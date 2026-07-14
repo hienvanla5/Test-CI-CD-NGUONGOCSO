@@ -1,5 +1,8 @@
 package vn.nguongocso.auth.entity;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,16 +12,25 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.nguongocso.auth.enums.UserStatus;
 
 @Entity
 @Table(name = "Users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int userID;
+    private UUID userID;
 
     @Column(nullable = false, unique = true)
     private String userName;
@@ -27,91 +39,33 @@ public class User {
     private String passwordHash;
 
     @Column(nullable = false)
-    private String name;
+    private String fullName;
+
+    private String phone;
+
+    private String email;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserStatus status;
 
-    @ManyToOne
-    @JoinColumn(name = "organizationID")
-    private Organization organization;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "roleID")
-    private Role role;
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
-	public User(int userID, String userName, String passwordHash, String name, UserStatus status,
-			Organization organization, Role role) {
-		super();
-		this.userID = userID;
-		this.userName = userName;
-		this.passwordHash = passwordHash;
-		this.name = name;
-		this.status = status;
-		this.organization = organization;
-		this.role = role;
-	}
-	
-	public User() {
-		super();
-	}
+    @PrePersist
+    public void prePersist() {
+        if (userID == null) {
+            userID = UUID.randomUUID();
+        }
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
 
-	public int getUserID() {
-		return userID;
-	}
-
-	public void setUserID(int userID) {
-		this.userID = userID;
-	}
-
-	public String getUserName() {
-		return userName;
-	}
-
-	public void setUserName(String userName) {
-		this.userName = userName;
-	}
-
-	public String getPasswordHash() {
-		return passwordHash;
-	}
-
-	public void setPasswordHash(String passwordHash) {
-		this.passwordHash = passwordHash;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public UserStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(UserStatus status) {
-		this.status = status;
-	}
-
-	public Organization getOrganization() {
-		return organization;
-	}
-
-	public void setOrganization(Organization organization) {
-		this.organization = organization;
-	}
-
-	public Role getRole() {
-		return role;
-	}
-
-	public void setRole(Role role) {
-		this.role = role;
-	}
-    
-    
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

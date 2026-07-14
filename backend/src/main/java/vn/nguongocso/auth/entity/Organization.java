@@ -1,26 +1,37 @@
 package vn.nguongocso.auth.entity;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import vn.nguongocso.auth.enums.OrganizationStatus;
 import vn.nguongocso.auth.enums.OrganizationType;
 
 @Entity
 @Table(name = "Organization")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Organization {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int organizationID;
+    private UUID organizationID;
 
     @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false, unique = true)
+    private String code;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -29,50 +40,19 @@ public class Organization {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrganizationStatus status;
-    
-	public Organization(int organizationID, String name, OrganizationType type, OrganizationStatus status) {
-		super();
-		this.organizationID = organizationID;
-		this.name = name;
-		this.type = type;
-		this.status = status;
-	}
 
-	public Organization() {
-		super();
-	}
+    @Column
+    private String address;
 
-	public int getOrganizationID() {
-		return organizationID;
-	}
+    @Column
+    private String phone;
 
-	public void setOrganizationID(int organizationID) {
-		this.organizationID = organizationID;
-	}
+    @Column
+    private String email;
 
-	public String getName() {
-		return name;
-	}
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public OrganizationType getType() {
-		return type;
-	}
-
-	public void setType(OrganizationType type) {
-		this.type = type;
-	}
-
-	public OrganizationStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(OrganizationStatus status) {
-		this.status = status;
-	}
-    
-    
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 }
