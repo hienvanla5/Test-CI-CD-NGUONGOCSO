@@ -1,4 +1,4 @@
-package vn.nguongocso.enums;
+package vn.nguongocso.auth.enums;
 
 public enum OrganizationStatus {
     ACTIVE,

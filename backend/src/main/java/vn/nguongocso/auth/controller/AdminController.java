@@ -1,4 +1,4 @@
-package vn.nguongocso.controller;
+package vn.nguongocso.auth.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
