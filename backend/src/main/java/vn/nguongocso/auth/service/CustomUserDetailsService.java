@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import vn.nguongocso.auth.entity.OrganizationUser;
 import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
-import vn.nguongocso.auth.repository.OrganizationRepository;
+import vn.nguongocso.auth.repository.OrganizationUserRepository;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.exception.BusinessException;
@@ -18,11 +18,11 @@ import vn.nguongocso.exception.BusinessException;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final OrganizationRepository organizationUserRepository;
+    private final OrganizationUserRepository organizationUserRepository;
     private final RoleRepository roleRepository;
 
     public UserDetails loadUserByUsernameAndOrg(String username, String orgCode) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUserName(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         OrganizationUser orgUser;
