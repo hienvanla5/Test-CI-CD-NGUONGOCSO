@@ -8,7 +8,7 @@ import lombok.Data;
 public class LoginResponse {
     private String accessToken;
     private String tokenType = "Bearer";
-    private Long expiresIn; // seconds
+    private Long expiresIn;
     private UserInfo user;
 
     @Data

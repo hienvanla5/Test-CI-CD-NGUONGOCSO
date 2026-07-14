@@ -1,28 +1,30 @@
 package vn.nguongocso.auth.entity;
 
 import jakarta.persistence.*;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "roles")
+@Table(name = "permissions")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Role {
+public class Permission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "role_id")
-    private int roleId;
+    @Column(name = "permission_id")
+    private Integer permissionId;
 
-    @Column(nullable = false, unique = true)
-    private String code;
+    @Column(nullable = false)
+    private String resource;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    @Column(nullable = false)
+    private String action;
+
+    @Column(length = 255)
+    private String description;
 }

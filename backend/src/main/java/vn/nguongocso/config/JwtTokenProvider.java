@@ -36,6 +36,7 @@ public class JwtTokenProvider {
                 .subject(userDetails.getUsername())
                 .claim("userID", userDetails.getUserId().toString())
                 .claim("orgId", userDetails.getOrganizationId().toString())
+                .claim("orgName", userDetails.getOrganizationName())
                 .claim("orgCode", userDetails.getOrganizationCode())
                 .claim("role", userDetails.getRoleCode())
                 .claim("fullName", userDetails.getFullName())

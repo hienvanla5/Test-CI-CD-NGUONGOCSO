@@ -34,7 +34,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                     .orElseThrow(() -> new BusinessException("User has no organization"));
         }
 
-        Role role = roleRepository.findById(orgUser.getRole().getRoleID())
+        Role role = roleRepository.findById(orgUser.getRole().getRoleId())
                 .orElseThrow(() -> new BusinessException("Role not found"));
 
         return new CustomUserDetails(user, orgUser, role);

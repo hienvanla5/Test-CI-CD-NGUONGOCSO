@@ -21,20 +21,21 @@ public class CustomUserDetails implements UserDetails {
     private final String passwordHash;
     private final String fullName;
     private final UUID organizationId;
+    private final String organizationName;
     private final String organizationCode;
     private final String roleCode;
     private final List<GrantedAuthority> authorities;
 
     public CustomUserDetails(User user, OrganizationUser orgUser, Role role) {
         this.user = user;
-        this.userId = user.getUserID();
+        this.userId = user.getUserId();
         this.username = user.getUserName();
         this.passwordHash = user.getPasswordHash();
         this.fullName = user.getFullName();
-        this.organizationId = orgUser.getOrganization().getOrganizationID();
+        this.organizationId = orgUser.getOrganization().getOrganizationId();
+        this.organizationName = orgUser.getOrganization().getName();
         this.organizationCode = orgUser.getOrganization().getCode();
         this.roleCode = role.getCode();
-        // Quyền đơn giản: dùng role code
         this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roleCode));
     }
 
@@ -77,6 +78,7 @@ public class CustomUserDetails implements UserDetails {
     public UUID getUserId() { return userId; }
     public String getFullName() { return fullName; }
     public UUID getOrganizationId() { return organizationId; }
+    public String getOrganizationName() { return organizationName; }
     public String getOrganizationCode() { return organizationCode; }
     public String getRoleCode() { return roleCode; }
 }

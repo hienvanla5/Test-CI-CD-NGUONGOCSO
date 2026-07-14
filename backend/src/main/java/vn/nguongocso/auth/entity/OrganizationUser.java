@@ -16,10 +16,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import vn.nguongocso.auth.enums.OrganizationUserStatus;
 
 @Entity
-@Table(name = "OrganizationUser")
+@Table(name = "organization_users")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,6 +29,8 @@ import vn.nguongocso.auth.enums.OrganizationUserStatus;
 public class OrganizationUser {
 
     @Id
+    @Column(name = "id")
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID id;
 
     @ManyToOne(optional = false)
@@ -41,10 +45,10 @@ public class OrganizationUser {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    @Column(columnDefinition = "JSON")
+    @Column(columnDefinition = "TEXT", name = "custom_permissions")
     private String customPermissions;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "joined_at")
     private LocalDateTime joinedAt;
 
     @Enumerated(EnumType.STRING)
