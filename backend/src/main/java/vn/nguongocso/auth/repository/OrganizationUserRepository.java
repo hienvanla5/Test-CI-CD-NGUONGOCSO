@@ -6,9 +6,7 @@ import vn.nguongocso.auth.entity.User;
 
 import java.util.Optional;
 
-public interface OrganizationUserRepository extends JpaRepository<OrganizationUserRepository, Integer> {
-    
-	boolean existsByName(String name);
+public interface OrganizationUserRepository extends JpaRepository<OrganizationUser, Integer> {
 
 	Optional<OrganizationUser> findByUserAndOrganizationCode(User user, String orgCode);
 

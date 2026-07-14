@@ -11,5 +11,5 @@ public class LoginRequest {
     @NotBlank
     private String password;
 
-    private String organizationCode; // Optional, nếu user thuộc nhiều tổ chức
+    private String organizationCode;
 }
