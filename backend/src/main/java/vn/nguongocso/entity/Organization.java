@@ -1,13 +1,33 @@
 package vn.nguongocso.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import vn.nguongocso.enums.OrganizationStatus;
 import vn.nguongocso.enums.OrganizationType;
 
+@Entity
+@Table(name = "Organization")
 public class Organization {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int organizationID;
+
+    @Column(nullable = false)
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrganizationType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrganizationStatus status;
     
 	public Organization(int organizationID, String name, OrganizationType type, OrganizationStatus status) {
