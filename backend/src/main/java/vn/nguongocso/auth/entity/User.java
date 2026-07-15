@@ -37,8 +37,10 @@ public class User {
     @Column(nullable = false)
     private String fullName;
 
+    @Column
     private String phone;
 
+    @Column
     private String email;
 
     @Enumerated(EnumType.STRING)

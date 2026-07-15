@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -55,4 +57,22 @@ public class Organization {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+    
+    @PrePersist
+    public void prePersist() {
+        if (organizationID == null) {
+            organizationID = UUID.randomUUID();
+        }
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
+        if (status == null) {
+            status = OrganizationStatus.ACTIVE;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
