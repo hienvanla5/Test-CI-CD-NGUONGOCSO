@@ -1,7 +1,8 @@
 INSERT INTO roles(code, name)
 VALUES
-    ('SUPER_ADMIN', 'Super Administrator'),
-    ('ORG_ADMIN', 'Organization Administrator'),
-    ('MANAGER', 'Manager'),
-    ('STAFF', 'Staff'),
-    ('VIEWER', 'Viewer');
+    ('VT-01', 'ADMIN'),
+    ('VT-02', 'ORG_MANAGER'),
+    ('VT-03', 'EVENT_RECODER'),
+    ('VT-04', 'PROCUREMENT'),
+    ('VT-05', 'REGULATOR'),
+    ('VT-06', 'CONSUMER');
