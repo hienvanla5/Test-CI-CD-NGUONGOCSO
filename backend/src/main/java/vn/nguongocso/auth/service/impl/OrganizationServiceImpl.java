@@ -97,9 +97,11 @@ public class OrganizationServiceImpl implements OrganizationService {
 	
 	private String resolveManagerRoleCode(OrganizationType type) {
 	    return switch (type) {
+	        case SYSTEM -> RoleCode.ADMIN; //VT-01;
 	        case COOPERATIVE -> RoleCode.ORG_MANAGER;   // VT-02
 	        case ENTERPRISE  -> RoleCode.PROCUREMENT;   // VT-04
 	        case GOVERNMENT  -> RoleCode.REGULATOR;     // VT-05
+	        
 	    };
 	}
 
