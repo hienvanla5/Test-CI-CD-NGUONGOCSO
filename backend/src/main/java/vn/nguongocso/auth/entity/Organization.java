@@ -15,11 +15,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import vn.nguongocso.auth.enums.OrganizationStatus;
 import vn.nguongocso.auth.enums.OrganizationType;
 
 @Entity
-@Table(name = "Organization")
+@Table(name = "organizations")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,7 +29,9 @@ import vn.nguongocso.auth.enums.OrganizationType;
 public class Organization {
 
     @Id
-    private UUID organizationID;
+    @Column(name = "organization_id")
+    @JdbcTypeCode(SqlTypes.CHAR)
+    private UUID organizationId;
 
     @Column(nullable = false)
     private String name;
@@ -52,16 +56,16 @@ public class Organization {
     @Column
     private String email;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
     
     @PrePersist
     public void prePersist() {
-        if (organizationID == null) {
-            organizationID = UUID.randomUUID();
+        if (organizationId == null) {
+            organizationId = UUID.randomUUID();
         }
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;

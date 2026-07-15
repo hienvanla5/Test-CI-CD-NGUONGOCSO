@@ -4,7 +4,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import vn.nguongocso.auth.entity.Organization;
 
 public interface OrganizationRepository extends JpaRepository<Organization, UUID> {
@@ -16,3 +15,4 @@ public interface OrganizationRepository extends JpaRepository<Organization, UUID
     Optional<Organization> findByCode(String code);
 
 }
+

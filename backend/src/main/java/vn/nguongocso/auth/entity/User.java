@@ -15,10 +15,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import vn.nguongocso.auth.enums.UserStatus;
 
 @Entity
-@Table(name = "Users")
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,15 +28,17 @@ import vn.nguongocso.auth.enums.UserStatus;
 public class User {
 
     @Id
-    private UUID userID;
+    @Column(name = "user_id")
+    @JdbcTypeCode(SqlTypes.CHAR)
+    private UUID userId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, name = "user_name")
     private String userName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "password_hash")
     private String passwordHash;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "full_name")
     private String fullName;
 
     @Column
@@ -47,16 +51,16 @@ public class User {
     @Column(nullable = false)
     private UserStatus status;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
     public void prePersist() {
-        if (userID == null) {
-            userID = UUID.randomUUID();
+        if (userId == null) {
+            userId = UUID.randomUUID();
         }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();

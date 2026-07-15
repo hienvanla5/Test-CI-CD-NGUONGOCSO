@@ -1,0 +1,84 @@
+package vn.nguongocso.auth.service;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import vn.nguongocso.auth.entity.OrganizationUser;
+import vn.nguongocso.auth.entity.Role;
+import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.auth.enums.UserStatus;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
+public class CustomUserDetails implements UserDetails {
+
+    private final User user;
+
+    private final UUID userId;
+    private final String username;
+    private final String passwordHash;
+    private final String fullName;
+    private final UUID organizationId;
+    private final String organizationName;
+    private final String organizationCode;
+    private final String roleCode;
+    private final List<GrantedAuthority> authorities;
+
+    public CustomUserDetails(User user, OrganizationUser orgUser, Role role) {
+        this.user = user;
+        this.userId = user.getUserId();
+        this.username = user.getUserName();
+        this.passwordHash = user.getPasswordHash();
+        this.fullName = user.getFullName();
+        this.organizationId = orgUser.getOrganization().getOrganizationId();
+        this.organizationName = orgUser.getOrganization().getName();
+        this.organizationCode = orgUser.getOrganization().getCode();
+        this.roleCode = role.getCode();
+        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roleCode));
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
+    @Override
+    public String getPassword() {
+        return passwordHash;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return user.getStatus() == UserStatus.ACTIVE;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    // Các getter bổ sung
+    public UUID getUserId() { return userId; }
+    public String getFullName() { return fullName; }
+    public UUID getOrganizationId() { return organizationId; }
+    public String getOrganizationName() { return organizationName; }
+    public String getOrganizationCode() { return organizationCode; }
+    public String getRoleCode() { return roleCode; }
+}

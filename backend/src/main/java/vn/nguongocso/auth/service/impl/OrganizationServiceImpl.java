@@ -68,7 +68,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         manager = userRepository.save(manager);
 
      // 3. Gắn user vào tổ chức với vai trò quản lý — theo loại tổ chức
-        Role managerRole = getDefaultRole(organization.getType());   // ← truyền type vào, không còn default cứng
+        Role managerRole = getDefaultRole(organization.getType());
         OrganizationUser link = new OrganizationUser();
         link.setOrganization(organization);
         link.setUser(manager);
@@ -111,7 +111,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 	
     private OrganizationResponse toResponse(Organization organization) {
         return new OrganizationResponse(
-                organization.getOrganizationID(),
+                organization.getOrganizationId(),
                 organization.getName(),
                 organization.getCode(),
                 organization.getType(),
