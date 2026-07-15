@@ -13,7 +13,7 @@ import vn.nguongocso.auth.service.OrganizationService;
 import vn.nguongocso.common.ApiResult;
 
 @RestController
-@RequestMapping("/api/admin/organizations")
+@RequestMapping("/api/v1/admin/organizations")
 public class OrganizationController {
 
 	private final OrganizationService organizationService;

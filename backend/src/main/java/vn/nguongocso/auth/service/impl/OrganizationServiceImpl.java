@@ -1,5 +1,7 @@
 package vn.nguongocso.auth.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +24,12 @@ import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.OrganizationService;
 import vn.nguongocso.exception.BusinessException;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class OrganizationServiceImpl implements OrganizationService {
 
 	private final OrganizationRepository organizationRepository;
@@ -30,17 +37,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 	private final RoleRepository roleRepository;
 	private final OrganizationUserRepository organizationUserRepository;
 	private final PasswordEncoder passwordEncoder;
-	
-    public OrganizationServiceImpl(OrganizationRepository organizationRepository,
-            UserRepository userRepository, RoleRepository roleRepository,
-            OrganizationUserRepository organizationUserRepository,
-            PasswordEncoder passwordEncoder) {
-        this.organizationRepository = organizationRepository;
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.organizationUserRepository = organizationUserRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
     @Transactional
@@ -56,10 +52,13 @@ public class OrganizationServiceImpl implements OrganizationService {
         organization.setAddress(request.getAddress());
         organization.setPhone(request.getPhone());
         organization.setEmail(request.getEmail());
+        organization.setCreatedAt(LocalDateTime.now());
+        organization.setUpdatedAt(LocalDateTime.now());
         organization = organizationRepository.save(organization);
 
         // 2. Tạo tài khoản quản lý ban đầu
         User manager = new User();
+        manager.setUserId(UUID.randomUUID());
         manager.setUserName(request.getUserName());
         manager.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         manager.setFullName(request.getFullName());
@@ -71,6 +70,7 @@ public class OrganizationServiceImpl implements OrganizationService {
      // 3. Gắn user vào tổ chức với vai trò quản lý — theo loại tổ chức
         Role managerRole = getDefaultRole(organization.getType());
         OrganizationUser link = new OrganizationUser();
+        link.setId(UUID.randomUUID());
         link.setOrganization(organization);
         link.setUser(manager);
         link.setRole(managerRole);

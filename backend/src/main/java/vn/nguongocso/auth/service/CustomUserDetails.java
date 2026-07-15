@@ -24,6 +24,7 @@ public class CustomUserDetails implements UserDetails {
     private final String organizationName;
     private final String organizationCode;
     private final String roleCode;
+    private final String roleName;
     private final List<GrantedAuthority> authorities;
 
     public CustomUserDetails(User user, OrganizationUser orgUser, Role role) {
@@ -36,6 +37,7 @@ public class CustomUserDetails implements UserDetails {
         this.organizationName = orgUser.getOrganization().getName();
         this.organizationCode = orgUser.getOrganization().getCode();
         this.roleCode = role.getCode();
+        this.roleName = role.getName();
         this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roleCode));
     }
 
@@ -81,4 +83,5 @@ public class CustomUserDetails implements UserDetails {
     public String getOrganizationName() { return organizationName; }
     public String getOrganizationCode() { return organizationCode; }
     public String getRoleCode() { return roleCode; }
+    public String getRoleName() { return roleName; }
 }
