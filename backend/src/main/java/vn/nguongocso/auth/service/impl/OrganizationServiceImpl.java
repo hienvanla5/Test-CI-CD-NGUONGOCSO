@@ -3,7 +3,7 @@ package vn.nguongocso.auth.service.impl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.auth.constant.RoleCode;
 import vn.nguongocso.auth.dto.request.CreateOrganizationRequest;
 import vn.nguongocso.auth.dto.response.OrganizationResponse;
@@ -20,6 +20,7 @@ import vn.nguongocso.auth.repository.OrganizationUserRepository;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.OrganizationService;
+import vn.nguongocso.exception.BusinessException;
 
 @Service
 public class OrganizationServiceImpl implements OrganizationService {
@@ -80,24 +81,28 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
 	private void validateRequest(CreateOrganizationRequest request) {
+		
+		if(request.getOrganizationType() == OrganizationType.SYSTEM) {
+			throw new BusinessException("Không thể tạo tổ chức System thông qua API này");
+		}
 
 		if (organizationRepository.existsByCode(request.getOrganizationCode())) {
-			throw new RuntimeException("Organization code already exists.");
+			throw new BusinessException("Organization code đã tồn tại");
 		}
 
 		if (userRepository.existsByUserName(request.getUserName())) {
-			throw new RuntimeException("Username already exists.");
+			throw new BusinessException("Username đã tồn tại");
 		}
 
 		if (userRepository.existsByEmail(request.getManagerEmail())) {
-			throw new RuntimeException("Email already exists.");
+			throw new BusinessException("Email đã tồn tại");
 		}
 
 	}
 	
 	private String resolveManagerRoleCode(OrganizationType type) {
 	    return switch (type) {
-	        case SYSTEM -> RoleCode.ADMIN; //VT-01;
+	        case SYSTEM      -> RoleCode.ADMIN; //VT-01;
 	        case COOPERATIVE -> RoleCode.ORG_MANAGER;   // VT-02
 	        case ENTERPRISE  -> RoleCode.PROCUREMENT;   // VT-04
 	        case GOVERNMENT  -> RoleCode.REGULATOR;     // VT-05

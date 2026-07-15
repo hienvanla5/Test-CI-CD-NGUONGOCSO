@@ -4,6 +4,7 @@ import vn.nguongocso.auth.enums.OrganizationType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 
 @Getter
@@ -13,7 +14,10 @@ import lombok.AllArgsConstructor;
 public class CreateOrganizationRequest {
 
     // Thông tin tổ chức
+	@NotBlank(message = "Tên tổ chức không được để trống")
     private String organizationName;
+    
+    @NotBlank(message = "Mã tổ chức không được để trống")
     private String organizationCode;
     private OrganizationType organizationType;
     private String address;
