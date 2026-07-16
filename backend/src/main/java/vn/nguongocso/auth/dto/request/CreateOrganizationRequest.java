@@ -39,7 +39,7 @@ public class CreateOrganizationRequest {
     private String address;
 
     @Pattern(
-            regexp = "^(0|\\+84)[3-9][0-9]{8}$",
+            regexp = "^(0|\\+84)[1-9][0-9]{8}$",
             message = "Số điện thoại tổ chức không hợp lệ"
     )
     private String phone;
@@ -68,7 +68,7 @@ public class CreateOrganizationRequest {
     private String password;
 
     @Pattern(
-            regexp = "^(0|\\+84)[3-9][0-9]{8}$",
+            regexp = "^(0|\\+84)[1-9][0-9]{8}$",
             message = "Số điện thoại người quản lý không hợp lệ"
     )
     private String managerPhone;

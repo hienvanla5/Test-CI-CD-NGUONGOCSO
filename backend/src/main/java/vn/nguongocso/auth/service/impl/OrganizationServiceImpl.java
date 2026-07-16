@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.auth.constant.RoleCode;
 import vn.nguongocso.auth.dto.request.CreateOrganizationRequest;
@@ -27,6 +26,7 @@ import vn.nguongocso.exception.BusinessException;
 /**
  * Service xử lý nghiệp vụ liên quan đến tổ chức.
  */
+
 @Service
 public class OrganizationServiceImpl implements OrganizationService {
 
@@ -47,7 +47,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 		this.organizationUserRepository = organizationUserRepository;
 		this.passwordEncoder = passwordEncoder;
 	}
-
+	
 	/**
 	 * Tạo mới một tổ chức cùng tài khoản quản lý mặc định.
 	 *
@@ -61,7 +61,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 		log.info("Bắt đầu tạo organization với code={}", request.getOrganizationCode());
 
 		validateRequest(request);
-
 		Organization organization = createOrganizationEntity(request);
 		User manager = createManager(request);
 

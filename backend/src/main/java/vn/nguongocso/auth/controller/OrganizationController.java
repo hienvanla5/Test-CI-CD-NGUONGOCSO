@@ -17,7 +17,7 @@ import vn.nguongocso.common.ApiResult;
  * <p>Hiện tại hỗ trợ tạo mới tổ chức cùng tài khoản quản lý mặc định.</p>
  */
 @RestController
-@RequestMapping("/api/admin/organizations")
+@RequestMapping("/api/v1/admin/organizations")
 public class OrganizationController {
 
     private static final Logger log =
