@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nguồn gốc số</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <div class="form-box">
+        <h1 class="title">Đăng nhập</h1>
+        <form id="login-form">
+            <div class="field">
+                <label for="username">Tên đăng nhập</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="field">
+                <label for="password">Mật khẩu</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="field">
+                <label for="org-code">Mã tổ chức (Tùy chọn)</label>
+                <input type="text" id="org-code" name="org-code">
+            </div>
+            <div id="error-message" style="color: #ef4444; margin-bottom: 12px; font-size: 14px; text-align: center; display: none;"></div>
+            <div class="submit">
+                <button type="submit">Đăng nhập</button>
+            </div>
+            <label for="remember"><input type="checkbox" id="remember" name="remember">Ghi nhớ đăng nhập</label>
+        </form>
+        <p>Chưa có tài khoản? <a href="register.html">Đăng ký</a></p>
+    </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
