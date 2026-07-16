@@ -1,15 +1,16 @@
 package vn.nguongocso.organization.service.impl;
 
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.enums.UserStatus;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
+import vn.nguongocso.exception.DuplicateResourceException;
 import vn.nguongocso.organization.constant.RoleCode;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
@@ -54,6 +55,16 @@ public class OrganizationServiceImpl implements OrganizationService {
 	@Override
 	@Transactional
 	public OrganizationResponse createOrganization(CreateOrganizationRequest request) {
+
+		if (organizationRepository.existsByCode(request.getOrganizationCode())) {
+			throw new DuplicateResourceException(
+					"Mã tổ chức đã tồn tại");
+		}
+
+		if (organizationRepository.existsByEmail(request.getEmail())) {
+			throw new DuplicateResourceException(
+					"Email tổ chức đã tồn tại");
+		}
 
 		log.info("Bắt đầu tạo organization với code={}", request.getOrganizationCode());
 
