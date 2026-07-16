@@ -13,7 +13,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Custom implementation of {@link UserDetails} that stores both
+ * user identity and organization-specific authorization information.
+ *
+ * <p>Besides the standard Spring Security user information, this class
+ * also exposes organization and role information used throughout the
+ * application.</p>
+ */
 public class CustomUserDetails implements UserDetails {
+
+    private static final String ROLE_PREFIX = "ROLE_";
 
     private final User user;
 
@@ -39,7 +49,9 @@ public class CustomUserDetails implements UserDetails {
         this.organizationCode = orgUser.getOrganization().getCode();
         this.roleCode = role.getCode();
         this.roleName = role.getName();
-        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roleCode));
+        this.authorities = List.of(
+                new SimpleGrantedAuthority(ROLE_PREFIX + roleCode)
+        );
     }
 
     @Override
@@ -78,11 +90,31 @@ public class CustomUserDetails implements UserDetails {
     }
 
     // Các getter bổ sung
-    public UUID getUserId() { return userId; }
-    public String getFullName() { return fullName; }
-    public UUID getOrganizationId() { return organizationId; }
-    public String getOrganizationName() { return organizationName; }
-    public String getOrganizationCode() { return organizationCode; }
-    public String getRoleCode() { return roleCode; }
-    public String getRoleName() { return roleName; }
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public UUID getOrganizationId() {
+        return organizationId;
+    }
+
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public String getOrganizationCode() {
+        return organizationCode;
+    }
+
+    public String getRoleCode() {
+        return roleCode;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
 }

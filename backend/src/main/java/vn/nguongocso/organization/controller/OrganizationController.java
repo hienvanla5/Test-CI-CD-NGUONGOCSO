@@ -1,11 +1,11 @@
 package vn.nguongocso.organization.controller;
 
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
@@ -41,20 +41,18 @@ public class OrganizationController {
      * @return thông tin tổ chức sau khi tạo thành công
      */
     @PostMapping
+    @PreAuthorize("hasRole('VT-01')")
     public ResponseEntity<ApiResult<OrganizationResponse>> create(
             @Valid @RequestBody CreateOrganizationRequest request) {
 
-        log.info(
-                "Nhận yêu cầu tạo organization với code={}",
-                request.getOrganizationCode()
-        );
+        log.info("Nhận yêu cầu tạo organization với code={}",
+                request.getOrganizationCode());
 
-        OrganizationResponse response = organizationService.createOrganization(request);
+        OrganizationResponse response =
+                organizationService.createOrganization(request);
 
-        log.info(
-                "Tạo organization thành công với id={}",
-                response.getOrganizationID()
-        );
+        log.info("Tạo organization thành công với id={}",
+                response.getOrganizationID());
 
         return ResponseEntity.ok(ApiResult.success(response));
     }

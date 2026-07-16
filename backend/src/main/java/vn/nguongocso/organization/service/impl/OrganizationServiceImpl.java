@@ -1,7 +1,6 @@
 package vn.nguongocso.organization.service.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +10,6 @@ import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.enums.UserStatus;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
-import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.organization.constant.RoleCode;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
@@ -27,11 +25,9 @@ import vn.nguongocso.organization.service.OrganizationService;
 /**
  * Service xử lý nghiệp vụ liên quan đến tổ chức.
  */
-
+@Slf4j
 @Service
 public class OrganizationServiceImpl implements OrganizationService {
-
-	private static final Logger log = LoggerFactory.getLogger(OrganizationServiceImpl.class);
 
 	private final OrganizationRepository organizationRepository;
 	private final UserRepository userRepository;
@@ -61,7 +57,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 
 		log.info("Bắt đầu tạo organization với code={}", request.getOrganizationCode());
 
-		validateRequest(request);
 		Organization organization = createOrganizationEntity(request);
 		User manager = createManager(request);
 
@@ -129,38 +124,14 @@ public class OrganizationServiceImpl implements OrganizationService {
 		log.debug("Đã lưu OrganizationUser");
 	}
 
-	private void validateRequest(CreateOrganizationRequest request) {
-
-		if (request.getOrganizationType() == OrganizationType.SYSTEM) {
-			log.warn("Yêu cầu tạo SYSTEM organization bị từ chối");
-			throw new BusinessException("Không thể tạo tổ chức System thông qua API này");
-		}
-
-		if (organizationRepository.existsByCode(request.getOrganizationCode())) {
-			log.warn("Organization code đã tồn tại: {}", request.getOrganizationCode());
-			throw new BusinessException("Organization code đã tồn tại");
-		}
-
-		if (userRepository.existsByUserName(request.getUserName())) {
-			log.warn("Username đã tồn tại: {}", request.getUserName());
-			throw new BusinessException("Username đã tồn tại");
-		}
-
-		if (userRepository.existsByEmail(request.getManagerEmail())) {
-			log.warn("Email đã tồn tại: {}", request.getManagerEmail());
-			throw new BusinessException("Email đã tồn tại");
-		}
-
-	}
-
 	private String resolveManagerRoleCode(OrganizationType type) {
-		return switch (type) {
-		case SYSTEM -> RoleCode.ADMIN; // VT-01;
-		case COOPERATIVE -> RoleCode.ORG_MANAGER; // VT-02
-		case ENTERPRISE -> RoleCode.PROCUREMENT; // VT-04
-		case GOVERNMENT -> RoleCode.REGULATOR; // VT-05
+	    return switch (type) {
+	        case SYSTEM      -> RoleCode.ADMIN;
+	        case COOPERATIVE -> RoleCode.ORG_MANAGER;   // VT-02
+	        case ENTERPRISE  -> RoleCode.PROCUREMENT;   // VT-04
+	        case GOVERNMENT  -> RoleCode.REGULATOR;     // VT-05
 
-		};
+	    };
 	}
 
 	private Role getDefaultRole(OrganizationType type) {
@@ -173,9 +144,13 @@ public class OrganizationServiceImpl implements OrganizationService {
 		});
 	}
 
-	private OrganizationResponse toResponse(Organization organization) {
-		return new OrganizationResponse(organization.getOrganizationId(), organization.getName(),
-				organization.getCode(), organization.getType(), organization.getStatus(), organization.getCreatedAt());
-	}
-
+    private OrganizationResponse toResponse(Organization organization) {
+        return new OrganizationResponse(
+                organization.getOrganizationId(),
+                organization.getName(),
+                organization.getCode(),
+                organization.getType(),
+                organization.getStatus(),
+                organization.getCreatedAt());
+    }
 }
