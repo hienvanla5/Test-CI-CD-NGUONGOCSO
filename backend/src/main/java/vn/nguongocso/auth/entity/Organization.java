@@ -20,6 +20,15 @@ import org.hibernate.type.SqlTypes;
 import vn.nguongocso.auth.enums.OrganizationStatus;
 import vn.nguongocso.auth.enums.OrganizationType;
 
+/**
+ * Đại diện cho một tổ chức trong hệ thống.
+ *
+ * <p>
+ * Mỗi tổ chức có mã định danh duy nhất, tên, mã tổ chức, loại tổ chức, trạng
+ * thái và các thông tin liên hệ. Dữ liệu thời gian tạo, cập nhật và UUID được
+ * tự động khởi tạo thông qua các callback của JPA.
+ * </p>
+ */
 @Entity
 @Table(name = "organizations")
 @Getter
@@ -28,55 +37,70 @@ import vn.nguongocso.auth.enums.OrganizationType;
 @AllArgsConstructor
 public class Organization {
 
-    @Id
-    @Column(name = "organization_id")
-    @JdbcTypeCode(SqlTypes.CHAR)
-    private UUID organizationId;
+	@Id
+	@Column(name = "organization_id")
+	@JdbcTypeCode(SqlTypes.CHAR)
+	private UUID organizationId;
 
-    @Column(nullable = false)
-    private String name;
+	@Column(nullable = false)
+	private String name;
 
-    @Column(nullable = false, unique = true)
-    private String code;
+	@Column(nullable = false, unique = true)
+	private String code;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrganizationType type;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private OrganizationType type;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrganizationStatus status;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private OrganizationStatus status;
 
-    @Column
-    private String address;
+	@Column
+	private String address;
 
-    @Column
-    private String phone;
+	@Column
+	private String phone;
 
-    @Column
-    private String email;
+	@Column
+	private String email;
 
-    @Column(nullable = false, updatable = false, name = "created_at")
-    private LocalDateTime createdAt;
+	@Column(nullable = false, updatable = false, name = "created_at")
+	private LocalDateTime createdAt;
 
-    @Column(nullable = false, name = "updated_at")
-    private LocalDateTime updatedAt;
-    
-    @PrePersist
-    public void prePersist() {
-        if (organizationId == null) {
-            organizationId = UUID.randomUUID();
-        }
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
-        if (status == null) {
-            status = OrganizationStatus.ACTIVE;
-        }
-    }
+	@Column(nullable = false, name = "updated_at")
+	private LocalDateTime updatedAt;
 
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+	/**
+	 * Khởi tạo các giá trị mặc định trước khi lưu bản ghi mới.
+	 *
+	 * <p>
+	 * Phương thức này sẽ:
+	 * <ul>
+	 * <li>Tạo UUID nếu chưa được gán.</li>
+	 * <li>Khởi tạo thời gian tạo và cập nhật.</li>
+	 * <li>Đặt trạng thái mặc định là {@code ACTIVE} nếu chưa có giá trị.</li>
+	 * </ul>
+	 * </p>
+	 */
+	@PrePersist
+	public void prePersist() {
+		if (organizationId == null) {
+			organizationId = UUID.randomUUID();
+		}
+		LocalDateTime now = LocalDateTime.now();
+		createdAt = now;
+		updatedAt = now;
+		if (status == null) {
+			status = OrganizationStatus.ACTIVE;
+		}
+	}
+
+	/**
+	 * Cập nhật thời gian chỉnh sửa trước khi cập nhật bản ghi.
+	 */
+	@PreUpdate
+	public void preUpdate() {
+		updatedAt = LocalDateTime.now();
+	}
 }
