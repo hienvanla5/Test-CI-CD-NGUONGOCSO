@@ -1,0 +1,497 @@
+Index: backend/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\r\n\txmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n\txsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\r\n\t<modelVersion>4.0.0</modelVersion>\r\n\t<parent>\r\n\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t<artifactId>spring-boot-starter-parent</artifactId>\r\n\t\t<version>3.5.16</version>\r\n\t</parent>\r\n\t<groupId>vn.nguongocso</groupId>\r\n\t<artifactId>backend</artifactId>\r\n\t<version>01</version>\r\n\t<name>backend</name>\r\n\t<description />\r\n\t<url />\r\n\t<licenses>\r\n\t\t<license />\r\n\t</licenses>\r\n\t<developers>\r\n\t\t<developer />\r\n\t</developers>\r\n\t<scm>\r\n\t\t<connection />\r\n\t\t<developerConnection />\r\n\t\t<tag />\r\n\t\t<url />\r\n\t</scm>\r\n\t<properties>\r\n\t\t<java.version>21</java.version>\r\n\t</properties>\r\n\t<dependencies>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-web</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-data-jpa</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-validation</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-security</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-actuator</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>com.mysql</groupId>\r\n\t\t\t<artifactId>mysql-connector-j</artifactId>\r\n\t\t\t<scope>runtime</scope>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.flywaydb</groupId>\r\n\t\t\t<artifactId>flyway-core</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.flywaydb</groupId>\r\n\t\t\t<artifactId>flyway-mysql</artifactId>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>io.jsonwebtoken</groupId>\r\n\t\t\t<artifactId>jjwt-api</artifactId>\r\n\t\t\t<version>0.12.6</version>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>io.jsonwebtoken</groupId>\r\n\t\t\t<artifactId>jjwt-impl</artifactId>\r\n\t\t\t<version>0.12.6</version>\r\n\t\t\t<scope>runtime</scope>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>io.jsonwebtoken</groupId>\r\n\t\t\t<artifactId>jjwt-jackson</artifactId>\r\n\t\t\t<version>0.12.6</version>\r\n\t\t\t<scope>runtime</scope>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>me.paulschwarz</groupId>\r\n\t\t\t<artifactId>spring-dotenv</artifactId>\r\n\t\t\t<version>4.0.0</version>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.projectlombok</groupId>\r\n\t\t\t<artifactId>lombok</artifactId>\r\n\t\t\t<optional>true</optional>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-devtools</artifactId>\r\n\t\t\t<scope>runtime</scope>\r\n\t\t\t<optional>true</optional>\r\n\t\t</dependency>\r\n\r\n\t\t<dependency>\r\n\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t<artifactId>spring-boot-starter-test</artifactId>\r\n\t\t\t<scope>test</scope>\r\n\t\t</dependency>\r\n\r\n\t</dependencies>\r\n\r\n\t<build>\r\n\t\t<plugins>\r\n\t\t\t<plugin>\r\n\t\t\t\t<groupId>org.springframework.boot</groupId>\r\n\t\t\t\t<artifactId>spring-boot-maven-plugin</artifactId>\r\n\t\t\t</plugin>\r\n\t\t</plugins>\r\n\t</build>\r\n\r\n</project>\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/pom.xml b/backend/pom.xml
+--- a/backend/pom.xml	(revision facf696a376e56b5acc405610a9cefc86760e18c)
++++ b/backend/pom.xml	(date 1784190665241)
+@@ -125,6 +125,18 @@
+ 				<groupId>org.springframework.boot</groupId>
+ 				<artifactId>spring-boot-maven-plugin</artifactId>
+ 			</plugin>
++			<plugin>
++				<groupId>org.apache.maven.plugins</groupId>
++				<artifactId>maven-compiler-plugin</artifactId>
++				<configuration>
++					<annotationProcessorPaths>
++						<path>
++							<groupId>org.projectlombok</groupId>
++							<artifactId>lombok</artifactId>
++						</path>
++					</annotationProcessorPaths>
++				</configuration>
++			</plugin>
+ 		</plugins>
+ 	</build>
+ 
+Index: backend/.env
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>DB_HOST=localhost\r\nDB_PORT=3307\r\nDB_NAME=nguon_goc_so\r\nDB_USERNAME=root\r\nDB_PASSWORD=
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/.env b/backend/.env
+--- a/backend/.env	(revision facf696a376e56b5acc405610a9cefc86760e18c)
++++ b/backend/.env	(date 1784190665249)
+@@ -1,5 +1,5 @@
+ DB_HOST=localhost
+-DB_PORT=3307
++DB_PORT=3306
+ DB_NAME=nguon_goc_so
+ DB_USERNAME=root
+ DB_PASSWORD=
+\ No newline at end of file
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"f16107c4-16f3-4ce4-9225-4daf688275c1\" name=\"Changes\" comment=\"\" />\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\r\n      <map>\r\n        <entry key=\"$PROJECT_DIR$\" value=\"test/login\" />\r\n      </map>\r\n    </option>\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"MavenImportPreferences\">\r\n    <option name=\"generalSettings\">\r\n      <MavenGeneralSettings>\r\n        <option name=\"mavenHomeTypeForPersistence\" value=\"WRAPPER\" />\r\n      </MavenGeneralSettings>\r\n    </option>\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 8\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"3GTS9s1fQUF3yLyNpWkNspLcxlG\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\"><![CDATA[{\r\n  \"keyToString\": {\r\n    \"ASKED_SHARE_PROJECT_CONFIGURATION_FILES\": \"true\",\r\n    \"ModuleVcsDetector.initialDetectionPerformed\": \"true\",\r\n    \"RequestMappingsPanelOrder0\": \"0\",\r\n    \"RequestMappingsPanelOrder1\": \"1\",\r\n    \"RequestMappingsPanelWidth0\": \"75\",\r\n    \"RequestMappingsPanelWidth1\": \"75\",\r\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\r\n    \"RunOnceActivity.git.unshallow\": \"true\",\r\n    \"RunOnceActivity.typescript.service.memoryLimit.init\": \"true\",\r\n    \"SHARE_PROJECT_CONFIGURATION_FILES\": \"true\",\r\n    \"Spring Boot.BackendApplication.executor\": \"Run\",\r\n    \"codeWithMe.voiceChat.enabledByDefault\": \"false\",\r\n    \"git-widget-placeholder\": \"feature/login\",\r\n    \"kotlin-language-version-configured\": \"true\",\r\n    \"last_opened_file_path\": \"D:/IntelliJ IDEA 2026.1.3/ProjectLocate/nguon-goc-so\",\r\n    \"node.js.detected.package.eslint\": \"true\",\r\n    \"node.js.detected.package.tslint\": \"true\",\r\n    \"node.js.selected.package.eslint\": \"(autodetect)\",\r\n    \"node.js.selected.package.tslint\": \"(autodetect)\",\r\n    \"nodejs_package_manager_path\": \"npm\",\r\n    \"project.structure.last.edited\": \"Modules\",\r\n    \"project.structure.proportion\": \"0.0\",\r\n    \"project.structure.side.proportion\": \"0.0\",\r\n    \"vue.rearranger.settings.migration\": \"true\"\r\n  }\r\n}]]></component>\r\n  <component name=\"RunManager\">\r\n    <configuration name=\"BackendApplication\" type=\"SpringBootApplicationConfigurationType\" factoryName=\"Spring Boot\" nameIsGenerated=\"true\">\r\n      <option name=\"FRAME_DEACTIVATION_UPDATE_POLICY\" value=\"UpdateClassesAndResources\" />\r\n      <module name=\"backend\" />\r\n      <option name=\"SPRING_BOOT_MAIN_CLASS\" value=\"vn.nguongocso.BackendApplication\" />\r\n      <method v=\"2\">\r\n        <option name=\"Make\" enabled=\"true\" />\r\n      </method>\r\n    </configuration>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-jdk-30f59d01ecdd-37e91769500f-intellij.indexing.shared.core-IU-261.25134.95\" />\r\n        <option value=\"bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-IU-261.25134.95\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"f16107c4-16f3-4ce4-9225-4daf688275c1\" name=\"Changes\" comment=\"\" />\r\n      <created>1783993917483</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1783993917483</updated>\r\n      <workItem from=\"1783993918545\" duration=\"1029000\" />\r\n      <workItem from=\"1784003819578\" duration=\"67000\" />\r\n      <workItem from=\"1784003900088\" duration=\"3157000\" />\r\n      <workItem from=\"1784106907390\" duration=\"3450000\" />\r\n      <workItem from=\"1784112595449\" duration=\"9236000\" />\r\n      <workItem from=\"1784164808176\" duration=\"5323000\" />\r\n      <workItem from=\"1784171704030\" duration=\"959000\" />\r\n    </task>\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision facf696a376e56b5acc405610a9cefc86760e18c)
++++ b/.idea/workspace.xml	(date 1784190720059)
+@@ -4,19 +4,41 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="f16107c4-16f3-4ce4-9225-4daf688275c1" name="Changes" comment="" />
++    <list default="true" id="f16107c4-16f3-4ce4-9225-4daf688275c1" name="Changes" comment="">
++      <change afterPath="$PROJECT_DIR$/backend/src/main/java/vn/nguongocso/auth/entity/FarmArea.java" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/backend/src/main/java/vn/nguongocso/auth/entity/ProductCategory.java" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/backend/src/main/java/vn/nguongocso/auth/entity/ProductionLot.java" afterDir="false" />
++      <change afterPath="$PROJECT_DIR$/backend/src/main/java/vn/nguongocso/auth/enums/ProductionLotStatus.java" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/backend/.env" beforeDir="false" afterPath="$PROJECT_DIR$/backend/.env" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/pom.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/application.properties" afterDir="false" />
++    </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+     <option name="LAST_RESOLUTION" value="IGNORE" />
++  </component>
++  <component name="FileTemplateManagerImpl">
++    <option name="RECENT_TEMPLATES">
++      <list>
++        <option value="HTML File" />
++        <option value="Class" />
++        <option value="com.intellij.jpb.FlywayMigrationScript" />
++      </list>
++    </option>
+   </component>
+   <component name="Git.Settings">
+     <option name="RECENT_BRANCH_BY_REPOSITORY">
+       <map>
+-        <entry key="$PROJECT_DIR$" value="test/login" />
++        <entry key="$PROJECT_DIR$" value="test/taolo" />
+       </map>
+     </option>
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
++  </component>
++  <component name="HighlightingSettingsPerFile">
++    <setting file="jar://$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot/3.5.16/spring-boot-3.5.16-sources.jar!/org/springframework/boot/SpringApplication.java" root0="SKIP_INSPECTION" />
+   </component>
+   <component name="MavenImportPreferences">
+     <option name="generalSettings">
+@@ -29,47 +51,72 @@
+   &quot;associatedIndex&quot;: 8
+ }</component>
+   <component name="ProjectId" id="3GTS9s1fQUF3yLyNpWkNspLcxlG" />
++  <component name="ProjectLevelVcsManager">
++    <ConfirmationsSetting value="2" id="Add" />
++  </component>
+   <component name="ProjectViewState">
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent"><![CDATA[{
+-  "keyToString": {
+-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+-    "ModuleVcsDetector.initialDetectionPerformed": "true",
+-    "RequestMappingsPanelOrder0": "0",
+-    "RequestMappingsPanelOrder1": "1",
+-    "RequestMappingsPanelWidth0": "75",
+-    "RequestMappingsPanelWidth1": "75",
+-    "RunOnceActivity.ShowReadmeOnStart": "true",
+-    "RunOnceActivity.git.unshallow": "true",
+-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+-    "Spring Boot.BackendApplication.executor": "Run",
+-    "codeWithMe.voiceChat.enabledByDefault": "false",
+-    "git-widget-placeholder": "feature/login",
+-    "kotlin-language-version-configured": "true",
+-    "last_opened_file_path": "D:/IntelliJ IDEA 2026.1.3/ProjectLocate/nguon-goc-so",
+-    "node.js.detected.package.eslint": "true",
+-    "node.js.detected.package.tslint": "true",
+-    "node.js.selected.package.eslint": "(autodetect)",
+-    "node.js.selected.package.tslint": "(autodetect)",
+-    "nodejs_package_manager_path": "npm",
+-    "project.structure.last.edited": "Modules",
+-    "project.structure.proportion": "0.0",
+-    "project.structure.side.proportion": "0.0",
+-    "vue.rearranger.settings.migration": "true"
++  <component name="PropertiesComponent">{
++  &quot;keyToString&quot;: {
++    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
++    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
++    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
++    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
++    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
++    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
++    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
++    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
++    &quot;Spring Boot.BackendApplication.executor&quot;: &quot;Run&quot;,
++    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
++    &quot;git-widget-placeholder&quot;: &quot;feature/login&quot;,
++    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
++    &quot;last_opened_file_path&quot;: &quot;D:/IntelliJ IDEA 2026.1.3/ProjectLocate/nguon-goc-so&quot;,
++    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
++    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
++    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
++    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
++    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
++    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
++    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
++    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
++    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+   }
+-}]]></component>
+-  <component name="RunManager">
++}</component>
++  <component name="RecentsManager">
++    <key name="MoveFile.RECENT_KEYS">
++      <recent name="D:\IntelliJ IDEA 2026.1.3\ProjectLocate\nguon-goc-so\frontend\login" />
++    </key>
++  </component>
++  <component name="RunManager" selected="Spring Boot.BackendApplication">
++    <configuration name="V5__.sql" type="DatabaseScript" editBeforeRun="true" temporary="true" nameIsGenerated="true">
++      <script-file value="$PROJECT_DIR$/backend/src/main/resources/db/migration/V5__.sql" />
++      <script-mode>FILE</script-mode>
++      <method v="2" />
++    </configuration>
+     <configuration name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+-      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
++      <option name="ALTERNATIVE_JRE_PATH" value="25" />
+       <module name="backend" />
+       <option name="SPRING_BOOT_MAIN_CLASS" value="vn.nguongocso.BackendApplication" />
+       <method v="2">
+         <option name="Make" enabled="true" />
+       </method>
+     </configuration>
++    <configuration default="true" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
++      <module name="backend" />
++      <option name="SPRING_BOOT_MAIN_CLASS" value="vn.nguongocso.BackendApplication" />
++      <method v="2">
++        <option name="Make" enabled="true" />
++      </method>
++    </configuration>
++    <recent_temporary>
++      <list>
++        <item itemvalue="Database Script.V5__.sql" />
++      </list>
++    </recent_temporary>
+   </component>
+   <component name="SharedIndexes">
+     <attachedChunks>
+@@ -93,6 +140,8 @@
+       <workItem from="1784112595449" duration="9236000" />
+       <workItem from="1784164808176" duration="5323000" />
+       <workItem from="1784171704030" duration="959000" />
++      <workItem from="1784174572928" duration="3180000" />
++      <workItem from="1784183615067" duration="6379000" />
+     </task>
+     <servers />
+   </component>
+Index: backend/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>spring.datasource.url=jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh\r\n\r\nspring.datasource.username=${DB_USERNAME}\r\nspring.datasource.password=${DB_PASSWORD}\r\nspring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver\r\n\r\nspring.jpa.hibernate.ddl-auto=validate\r\nspring.jpa.show-sql=true\r\nspring.jpa.properties.hibernate.format_sql=true\r\n\r\nspring.flyway.enabled=true\r\nspring.flyway.locations=classpath:db/migration\r\n\r\n#logging.level.root=DEBUG\r\n#logging.level.vn.nguongocso=DEBUG\r\n#logging.level.org.springframework.security=DEBUG\r\n#logging.level.org.hibernate=DEBUG\r\n#logging.level.org.springframework.web=DEBUG\r\n\r\napp.jwt.secret=${JWT_SECRET:Q29uZmlndXJlACB1cTVyTG9uZ1NlY3JldEtleUZvckpXVDI1NkJpdA==}\r\napp.jwt.expiration=86400000
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/src/main/resources/application.properties b/backend/src/main/resources/application.properties
+--- a/backend/src/main/resources/application.properties	(revision facf696a376e56b5acc405610a9cefc86760e18c)
++++ b/backend/src/main/resources/application.properties	(date 1784190665257)
+@@ -1,7 +1,6 @@
+-spring.datasource.url=jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh
+-
+-spring.datasource.username=${DB_USERNAME}
+-spring.datasource.password=${DB_PASSWORD}
++spring.datasource.url=jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:nguon_goc_so}?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh
++spring.datasource.username=${DB_USERNAME:root}
++spring.datasource.password=${DB_PASSWORD:}
+ spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+ 
+ spring.jpa.hibernate.ddl-auto=validate
+@@ -18,4 +17,4 @@
+ #logging.level.org.springframework.web=DEBUG
+ 
+ app.jwt.secret=${JWT_SECRET:Q29uZmlndXJlACB1cTVyTG9uZ1NlY3JldEtleUZvckpXVDI1NkJpdA==}
+-app.jwt.expiration=86400000
+\ No newline at end of file
++app.jwt.expiration=86400000
+Index: backend/src/main/java/vn/nguongocso/auth/entity/ProductCategory.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/src/main/java/vn/nguongocso/auth/entity/ProductCategory.java b/backend/src/main/java/vn/nguongocso/auth/entity/ProductCategory.java
+new file mode 100644
+--- /dev/null	(date 1784190665288)
++++ b/backend/src/main/java/vn/nguongocso/auth/entity/ProductCategory.java	(date 1784190665288)
+@@ -0,0 +1,32 @@
++package vn.nguongocso.auth.entity;
++
++
++import jakarta.persistence.*;
++import lombok.*;
++import java.util.UUID;
++
++@Entity
++@Table(name = "product_category")
++@Getter
++@Setter
++@NoArgsConstructor
++@AllArgsConstructor
++@Builder
++public class ProductCategory {
++
++    @Id
++    @GeneratedValue(strategy = GenerationType.UUID)
++    private UUID id;
++
++    @Column(nullable = false)
++    private String name;
++
++    @Column(name = "product_group")
++    private String group;
++
++    private String description;
++
++    @Column(name = "is_active")
++    @Builder.Default
++    private Boolean isActive = true;
++}
+Index: backend/src/main/java/vn/nguongocso/auth/entity/ProductionLot.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/src/main/java/vn/nguongocso/auth/entity/ProductionLot.java b/backend/src/main/java/vn/nguongocso/auth/entity/ProductionLot.java
+new file mode 100644
+--- /dev/null	(date 1784190665275)
++++ b/backend/src/main/java/vn/nguongocso/auth/entity/ProductionLot.java	(date 1784190665275)
+@@ -0,0 +1,86 @@
++package vn.nguongocso.auth.entity;
++
++import jakarta.persistence.*;
++import lombok.*;
++import vn.nguongocso.auth.enums.ProductionLotStatus;
++
++import java.time.LocalDate;
++import java.time.LocalDateTime;
++import java.util.UUID;
++
++
++@Entity
++@Table(name = "production_lot")
++@Getter
++@Setter
++@NoArgsConstructor
++@AllArgsConstructor
++@Builder
++public class ProductionLot {
++
++    @Id
++    @GeneratedValue(strategy = GenerationType.UUID)
++    private UUID id;
++
++    @ManyToOne(fetch = FetchType.LAZY)
++    @JoinColumn(name = "organization_id", nullable = false)
++    private Organization organization;
++
++    @ManyToOne(fetch = FetchType.LAZY)
++    @JoinColumn(name = "farm_area_id")
++    private FarmArea farmArea;
++
++    @ManyToOne(fetch = FetchType.LAZY)
++    @JoinColumn(name = "product_category_id", nullable = false)
++    private ProductCategory productCategory;
++
++    @Column(nullable = false)
++    private String name;
++
++    @Column(name = "expected_quantity", nullable = false)
++    private Double expectedQuantity;
++
++    @Column(name = "actual_quantity")
++    private Double actualQuantity;
++
++    @Column(name = "planting_date")
++    private LocalDate plantingDate;
++
++    @Column(name = "harvest_date")
++    private LocalDate harvestDate;
++
++    @Enumerated(EnumType.STRING)
++    @Column(nullable = false)
++    private ProductionLotStatus status;
++
++    @Column(name = "approval_notes")
++    private String approvalNotes;
++
++    @ManyToOne(fetch = FetchType.LAZY)
++    @JoinColumn(name = "created_by")
++    private User createdBy;
++
++    @ManyToOne(fetch = FetchType.LAZY)
++    @JoinColumn(name = "approved_by")
++    private User approvedBy;
++
++    @Column(name = "created_at")
++    private LocalDateTime createdAt;
++
++    @Column(name = "updated_at")
++    private LocalDateTime updatedAt;
++
++    @PrePersist
++    public void prePersist() {
++        this.createdAt = LocalDateTime.now();
++        this.updatedAt = this.createdAt;
++        if (this.status == null) {
++            this.status = ProductionLotStatus.DRAFT;
++        }
++    }
++
++    @PreUpdate
++    public void preUpdate() {
++        this.updatedAt = LocalDateTime.now();
++    }
++}
+Index: backend/src/main/java/vn/nguongocso/auth/enums/ProductionLotStatus.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/src/main/java/vn/nguongocso/auth/enums/ProductionLotStatus.java b/backend/src/main/java/vn/nguongocso/auth/enums/ProductionLotStatus.java
+new file mode 100644
+--- /dev/null	(date 1784190665263)
++++ b/backend/src/main/java/vn/nguongocso/auth/enums/ProductionLotStatus.java	(date 1784190665263)
+@@ -0,0 +1,5 @@
++package vn.nguongocso.auth.enums;
++
++public enum ProductionLotStatus {
++    DRAFT, PENDING, APPROVED, HARVESTED, PACKAGED, CLOSED
++}
+Index: backend/src/main/java/vn/nguongocso/auth/entity/FarmArea.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/backend/src/main/java/vn/nguongocso/auth/entity/FarmArea.java b/backend/src/main/java/vn/nguongocso/auth/entity/FarmArea.java
+new file mode 100644
+--- /dev/null	(date 1784190665303)
++++ b/backend/src/main/java/vn/nguongocso/auth/entity/FarmArea.java	(date 1784190665303)
+@@ -0,0 +1,57 @@
++package vn.nguongocso.auth.entity;
++
++import jakarta.persistence.*;
++import lombok.*;
++
++import java.time.LocalDateTime;
++import java.util.UUID;
++
++@Entity
++@Table(name = "farm_area")
++@Getter
++@Setter
++@NoArgsConstructor
++@AllArgsConstructor
++@Builder
++public class FarmArea {
++
++        @Id
++        @GeneratedValue(strategy = GenerationType.UUID)
++        private UUID id;
++
++        @ManyToOne(fetch = FetchType.LAZY)
++        @JoinColumn(name = "organization_id", nullable = false)
++        private Organization organization;
++
++        @Column(nullable = false)
++        private String name;
++
++        private Double latitude;
++
++        private Double longitude;
++
++        @Column(nullable = false)
++        private Float area;
++
++        @ManyToOne(fetch = FetchType.LAZY)
++        @JoinColumn(name = "crop_type_id")
++        private ProductCategory cropType;
++
++        @Column(name = "created_at")
++        private LocalDateTime createdAt;
++
++        @Column(name = "updated_at")
++        private LocalDateTime updatedAt;
++
++        @PrePersist
++        public void prePersist() {
++            this.createdAt = LocalDateTime.now();
++            this.updatedAt = this.createdAt;
++        }
++
++        @PreUpdate
++        public void preUpdate() {
++            this.updatedAt = LocalDateTime.now();
++        }
++
++}
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"CompilerConfiguration\">\r\n    <annotationProcessing>\r\n      <profile default=\"true\" name=\"Default\" enabled=\"true\" />\r\n    </annotationProcessing>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+--- a/.idea/compiler.xml	(revision facf696a376e56b5acc405610a9cefc86760e18c)
++++ b/.idea/compiler.xml	(date 1784190665340)
+@@ -3,6 +3,25 @@
+   <component name="CompilerConfiguration">
+     <annotationProcessing>
+       <profile default="true" name="Default" enabled="true" />
++      <profile name="Maven default annotation processors profile" enabled="true">
++        <sourceOutputDir name="target/generated-sources/annotations" />
++        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
++        <outputRelativeToContentRoot value="true" />
++      </profile>
++      <profile name="Annotation profile for backend" enabled="true">
++        <sourceOutputDir name="target/generated-sources/annotations" />
++        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
++        <outputRelativeToContentRoot value="true" />
++        <processorPath useClasspath="false">
++          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
++        </processorPath>
++        <module name="backend" />
++      </profile>
+     </annotationProcessing>
+   </component>
++  <component name="JavacSettings">
++    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
++      <module name="backend" options="-parameters" />
++    </option>
++  </component>
+ </project>
+\ No newline at end of file
