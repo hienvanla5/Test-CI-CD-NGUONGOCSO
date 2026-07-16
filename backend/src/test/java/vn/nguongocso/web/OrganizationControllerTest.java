@@ -10,13 +10,13 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import vn.nguongocso.auth.dto.request.CreateOrganizationRequest;
-import vn.nguongocso.auth.dto.response.OrganizationResponse;
-import vn.nguongocso.auth.enums.OrganizationType;
-import vn.nguongocso.auth.service.OrganizationService;
 import vn.nguongocso.config.JwtTokenProvider;
 import vn.nguongocso.auth.service.CustomUserDetailsService;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
+import vn.nguongocso.organization.dto.response.OrganizationResponse;
+import vn.nguongocso.organization.enums.OrganizationType;
+import vn.nguongocso.organization.service.OrganizationService;
 
 import java.util.UUID;
 

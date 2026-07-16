@@ -8,9 +8,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import vn.nguongocso.auth.controller.AuthController;
+import vn.nguongocso.auth.dto.request.LoginRequest;
+import vn.nguongocso.auth.dto.response.LoginResponse;
 import vn.nguongocso.auth.service.AuthService;
-import vn.nguongocso.dto.request.LoginRequest;
-import vn.nguongocso.dto.response.LoginResponse;
 import vn.nguongocso.exception.BusinessException;
 
 import java.util.UUID;

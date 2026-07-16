@@ -36,15 +36,15 @@ loginForm.addEventListener('submit', async (e) => {
         const result = await response.json();
 
         if (response.ok) {
-            // Save authentication details in localStorage
-            localStorage.setItem('accessToken', result.accessToken);
-            localStorage.setItem('user', JSON.stringify(result.user));
-            
-            // Show successful connection alert with details
-            alert(`Đăng nhập thành công!\nChào mừng ${result.user.fullName} (${getFriendlyRoleName(result.user.roleCode)}) thuộc tổ chức ${result.user.organizationName}.`);
-            
-            // Optional: Redirect to dashboard or do other action
-            console.log('Login successful, token:', result.accessToken);
+            const loginData = result.data;
+
+            localStorage.setItem('accessToken', loginData.accessToken);
+            localStorage.setItem('user', JSON.stringify(loginData.user));
+
+            alert(
+                `Đăng nhập thành công!\nChào mừng ${loginData.user.fullName} (${getFriendlyRoleName(loginData.user.roleCode)}) thuộc tổ chức ${loginData.user.organizationName}.`
+            );
+
         } else {
             // Show errors from backend
             showError(result.message || 'Sai thông tin đăng nhập hoặc lỗi hệ thống');
