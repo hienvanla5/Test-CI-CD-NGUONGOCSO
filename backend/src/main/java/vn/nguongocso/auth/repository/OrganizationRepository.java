@@ -3,6 +3,7 @@ package vn.nguongocso.auth.repository;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.validation.constraints.Email;
 import org.springframework.data.jpa.repository.JpaRepository;
 import vn.nguongocso.auth.entity.Organization;
 
@@ -14,5 +15,6 @@ public interface OrganizationRepository extends JpaRepository<Organization, UUID
 
     Optional<Organization> findByCode(String code);
 
+    boolean existsByEmail(@Email(message = "Email tổ chức không đúng định dạng") String email);
 }
 

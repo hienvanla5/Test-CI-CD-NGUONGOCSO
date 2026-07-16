@@ -22,6 +22,7 @@ import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.auth.service.OrganizationService;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.exception.DuplicateResourceException;
 
 /**
  * Service xử lý nghiệp vụ liên quan đến tổ chức.
@@ -56,6 +57,15 @@ public class OrganizationServiceImpl implements OrganizationService {
 	@Transactional
 	public OrganizationResponse createOrganization(CreateOrganizationRequest request) {
 
+		if (organizationRepository.existsByCode(request.getOrganizationCode())) {
+			throw new DuplicateResourceException(
+					"Mã tổ chức đã tồn tại");
+		}
+
+		if (organizationRepository.existsByEmail(request.getEmail())) {
+			throw new DuplicateResourceException(
+					"Email tổ chức đã tồn tại");
+		}
 		log.info("Bắt đầu tạo organization với code={}", request.getOrganizationCode());
 
 		Organization organization = createOrganizationEntity(request);

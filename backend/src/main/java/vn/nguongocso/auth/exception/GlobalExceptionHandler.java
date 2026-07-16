@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import jakarta.servlet.http.HttpServletRequest;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.exception.DuplicateResourceException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -41,5 +42,16 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
         ApiResult<Void> body = ApiResult.<Void>error(status.value(), message, errors, request.getRequestURI());
         return ResponseEntity.status(status).body(body);
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiResult<Void>> handleDuplicate(
+            DuplicateResourceException ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResult.error(
+                        409,
+                        ex.getMessage()));
     }
 }
