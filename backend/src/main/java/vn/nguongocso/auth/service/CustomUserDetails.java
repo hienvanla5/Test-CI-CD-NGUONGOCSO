@@ -3,10 +3,11 @@ package vn.nguongocso.auth.service;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import vn.nguongocso.auth.entity.OrganizationUser;
+
 import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.enums.UserStatus;
+import vn.nguongocso.organization.entity.OrganizationUser;
 
 import java.util.Collection;
 import java.util.List;

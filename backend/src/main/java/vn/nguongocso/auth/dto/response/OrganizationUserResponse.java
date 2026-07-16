@@ -2,7 +2,7 @@ package vn.nguongocso.auth.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
-import vn.nguongocso.auth.enums.OrganizationUserStatus;
+import vn.nguongocso.organization.enums.OrganizationUserStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
