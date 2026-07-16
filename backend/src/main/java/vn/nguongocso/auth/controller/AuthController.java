@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.service.AuthService;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.dto.request.LoginRequest;
 import vn.nguongocso.dto.response.LoginResponse;
 import vn.nguongocso.dto.response.UserProfileResponse;
@@ -37,9 +38,14 @@ public class AuthController {
      * @return authenticated user information and JWT token
      */
     @PostMapping("/login")
+<<<<<<< HEAD
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         System.out.println("=== CONTROLLER ===");
         return ResponseEntity.ok(authService.login(request));
+=======
+    public ResponseEntity<ApiResult<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(ApiResult.success(authService.login(request)));
+>>>>>>> 726c1b031c37a9725c2f1a2664ebb4e81c2a0555
     }
 
     /**
@@ -52,7 +58,8 @@ public class AuthController {
      */
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserProfileResponse> getCurrentUser() {
+    public ResponseEntity<ApiResult<UserProfileResponse>> getCurrentUser() {
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
 
@@ -67,6 +74,6 @@ public class AuthController {
                 .organizationName(userDetails.getOrganizationName())
                 .build();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResult.success(response));
     }
 }
