@@ -1,4 +1,4 @@
-package vn.nguongocso.dto.request;
+package vn.nguongocso.auth.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

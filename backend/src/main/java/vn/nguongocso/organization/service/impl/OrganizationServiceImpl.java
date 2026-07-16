@@ -1,27 +1,28 @@
-package vn.nguongocso.auth.service.impl;
+package vn.nguongocso.organization.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.nguongocso.auth.constant.RoleCode;
-import vn.nguongocso.auth.dto.request.CreateOrganizationRequest;
-import vn.nguongocso.auth.dto.response.OrganizationResponse;
-import vn.nguongocso.auth.entity.Organization;
-import vn.nguongocso.auth.entity.OrganizationUser;
+
 import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
-import vn.nguongocso.auth.enums.OrganizationStatus;
-import vn.nguongocso.auth.enums.OrganizationType;
-import vn.nguongocso.auth.enums.OrganizationUserStatus;
 import vn.nguongocso.auth.enums.UserStatus;
-import vn.nguongocso.auth.repository.OrganizationRepository;
-import vn.nguongocso.auth.repository.OrganizationUserRepository;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
-import vn.nguongocso.auth.service.OrganizationService;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.organization.constant.RoleCode;
+import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
+import vn.nguongocso.organization.dto.response.OrganizationResponse;
+import vn.nguongocso.organization.entity.Organization;
+import vn.nguongocso.organization.entity.OrganizationUser;
+import vn.nguongocso.organization.enums.OrganizationStatus;
+import vn.nguongocso.organization.enums.OrganizationType;
+import vn.nguongocso.organization.enums.OrganizationUserStatus;
+import vn.nguongocso.organization.repository.OrganizationRepository;
+import vn.nguongocso.organization.repository.OrganizationUserRepository;
+import vn.nguongocso.organization.service.OrganizationService;
 
 /**
  * Service xử lý nghiệp vụ liên quan đến tổ chức.

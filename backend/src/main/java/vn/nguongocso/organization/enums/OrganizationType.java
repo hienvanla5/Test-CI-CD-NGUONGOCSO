@@ -1,4 +1,4 @@
-package vn.nguongocso.auth.enums;
+package vn.nguongocso.organization.enums;
 
 
 public enum OrganizationType {

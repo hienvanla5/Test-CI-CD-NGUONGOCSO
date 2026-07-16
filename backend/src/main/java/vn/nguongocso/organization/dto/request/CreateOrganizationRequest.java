@@ -1,8 +1,8 @@
-package vn.nguongocso.auth.dto.request;
+package vn.nguongocso.organization.dto.request;
 
-import vn.nguongocso.auth.enums.OrganizationType;
 import lombok.Getter;
 import lombok.Setter;
+import vn.nguongocso.organization.enums.OrganizationType;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

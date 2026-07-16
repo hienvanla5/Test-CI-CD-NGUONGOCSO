@@ -1,4 +1,4 @@
-package vn.nguongocso.auth.constant;
+package vn.nguongocso.organization.constant;
 
 public final class RoleCode {
 

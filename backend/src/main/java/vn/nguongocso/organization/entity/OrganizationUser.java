@@ -1,4 +1,4 @@
-package vn.nguongocso.auth.entity;
+package vn.nguongocso.organization.entity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -18,7 +18,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import vn.nguongocso.auth.enums.OrganizationUserStatus;
+
+import vn.nguongocso.auth.entity.Role;
+import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.organization.enums.OrganizationUserStatus;
 
 @Entity
 @Table(name = "organization_users")
