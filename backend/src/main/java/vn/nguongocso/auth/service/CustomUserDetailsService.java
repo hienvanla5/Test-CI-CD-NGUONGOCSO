@@ -5,13 +5,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import vn.nguongocso.auth.entity.OrganizationUser;
+
 import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
-import vn.nguongocso.auth.repository.OrganizationUserRepository;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.organization.entity.OrganizationUser;
+import vn.nguongocso.organization.repository.OrganizationUserRepository;
 
 @Service
 @RequiredArgsConstructor

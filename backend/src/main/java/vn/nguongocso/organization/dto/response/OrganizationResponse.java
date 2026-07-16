@@ -1,12 +1,12 @@
-package vn.nguongocso.auth.dto.response;
+package vn.nguongocso.organization.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import vn.nguongocso.auth.enums.OrganizationStatus;
-import vn.nguongocso.auth.enums.OrganizationType;
 import lombok.Getter;
 import lombok.Setter;
+import vn.nguongocso.organization.enums.OrganizationStatus;
+import vn.nguongocso.organization.enums.OrganizationType;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 

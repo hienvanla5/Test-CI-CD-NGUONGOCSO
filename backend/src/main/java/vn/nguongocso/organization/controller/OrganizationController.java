@@ -1,4 +1,4 @@
-package vn.nguongocso.auth.controller;
+package vn.nguongocso.organization.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,10 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import vn.nguongocso.auth.dto.request.CreateOrganizationRequest;
-import vn.nguongocso.auth.dto.response.OrganizationResponse;
-import vn.nguongocso.auth.service.OrganizationService;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
+import vn.nguongocso.organization.dto.response.OrganizationResponse;
+import vn.nguongocso.organization.service.OrganizationService;
 
 /**
  * REST Controller cung cấp các API quản lý tổ chức.

@@ -1,4 +1,4 @@
-package vn.nguongocso.dto.response;
+package vn.nguongocso.auth.dto.response;
 
 import lombok.Builder;
 import lombok.Data;

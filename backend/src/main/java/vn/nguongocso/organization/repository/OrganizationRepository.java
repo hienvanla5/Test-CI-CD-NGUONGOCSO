@@ -1,10 +1,11 @@
-package vn.nguongocso.auth.repository;
+package vn.nguongocso.organization.repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import vn.nguongocso.auth.entity.Organization;
+
+import vn.nguongocso.organization.entity.Organization;
 
 public interface OrganizationRepository extends JpaRepository<Organization, UUID> {
 

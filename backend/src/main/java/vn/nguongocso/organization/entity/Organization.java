@@ -1,4 +1,4 @@
-package vn.nguongocso.auth.entity;
+package vn.nguongocso.organization.entity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,10 +15,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.nguongocso.organization.enums.OrganizationStatus;
+import vn.nguongocso.organization.enums.OrganizationType;
+
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import vn.nguongocso.auth.enums.OrganizationStatus;
-import vn.nguongocso.auth.enums.OrganizationType;
 
 /**
  * Đại diện cho một tổ chức trong hệ thống.
