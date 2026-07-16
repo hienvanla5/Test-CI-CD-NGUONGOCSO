@@ -13,6 +13,12 @@ import vn.nguongocso.dto.request.LoginRequest;
 import vn.nguongocso.dto.response.LoginResponse;
 import vn.nguongocso.dto.response.UserProfileResponse;
 
+/**
+ * REST controller providing authentication-related endpoints.
+ *
+ * <p>This controller handles user authentication and exposes APIs
+ * for retrieving information about the currently authenticated user.</p>
+ */
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -20,11 +26,30 @@ public class AuthController {
 
     private final AuthService authService;
 
+    /**
+     * Authenticates a user using the provided credentials.
+     *
+     * <p>If the credentials are valid, a JWT access token and the
+     * associated user information are returned.</p>
+     *
+     * @param request login request containing username, password and
+     *                organization information
+     * @return authenticated user information and JWT token
+     */
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        System.out.println("=== CONTROLLER ===");
         return ResponseEntity.ok(authService.login(request));
     }
 
+    /**
+     * Returns the profile of the currently authenticated user.
+     *
+     * <p>The user information is obtained from the Spring Security
+     * authentication context.</p>
+     *
+     * @return profile of the authenticated user
+     */
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserProfileResponse> getCurrentUser() {

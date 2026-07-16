@@ -2,6 +2,8 @@ package vn.nguongocso.auth.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ import vn.nguongocso.auth.repository.OrganizationRepository;
 import vn.nguongocso.auth.repository.OrganizationUserRepository;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
+import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.auth.service.OrganizationService;
 import vn.nguongocso.exception.BusinessException;
 
@@ -81,7 +84,17 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
 	private void validateRequest(CreateOrganizationRequest request) {
-		
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails)) {
+            throw new BusinessException("Người dùng chưa đăng nhập");
+        }
+
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+        if (!"VT-01".equals(userDetails.getRoleCode())) {
+            throw new BusinessException("Bạn không có quyền tạo tổ chức");
+        }
+
 		if(request.getOrganizationType() == OrganizationType.SYSTEM) {
 			throw new BusinessException("Không thể tạo tổ chức System thông qua API này");
 		}
@@ -99,14 +112,14 @@ public class OrganizationServiceImpl implements OrganizationService {
 		}
 
 	}
-	
+
 	private String resolveManagerRoleCode(OrganizationType type) {
 	    return switch (type) {
-	        case SYSTEM      -> RoleCode.ADMIN; //VT-01;
+	        case SYSTEM      -> RoleCode.ADMIN;
 	        case COOPERATIVE -> RoleCode.ORG_MANAGER;   // VT-02
 	        case ENTERPRISE  -> RoleCode.PROCUREMENT;   // VT-04
 	        case GOVERNMENT  -> RoleCode.REGULATOR;     // VT-05
-	        
+
 	    };
 	}
 
@@ -115,7 +128,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 	    return roleRepository.findByCode(code)
 	            .orElseThrow(() -> new RuntimeException("Default role not found: " + code));
 	}
-	
+
     private OrganizationResponse toResponse(Organization organization) {
         return new OrganizationResponse(
                 organization.getOrganizationId(),
@@ -125,5 +138,5 @@ public class OrganizationServiceImpl implements OrganizationService {
                 organization.getStatus(),
                 organization.getCreatedAt());
     }
-	
+
 }
