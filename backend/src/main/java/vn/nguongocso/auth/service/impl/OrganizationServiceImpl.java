@@ -1,14 +1,6 @@
 package vn.nguongocso.auth.service.impl;
 
-<<<<<<< HEAD
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-=======
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
->>>>>>> 726c1b031c37a9725c2f1a2664ebb4e81c2a0555
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,11 +26,9 @@ import vn.nguongocso.exception.BusinessException;
 /**
  * Service xử lý nghiệp vụ liên quan đến tổ chức.
  */
-
+@Slf4j
 @Service
 public class OrganizationServiceImpl implements OrganizationService {
-
-	private static final Logger log = LoggerFactory.getLogger(OrganizationServiceImpl.class);
 
 	private final OrganizationRepository organizationRepository;
 	private final UserRepository userRepository;
@@ -68,7 +58,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 
 		log.info("Bắt đầu tạo organization với code={}", request.getOrganizationCode());
 
-		validateRequest(request);
 		Organization organization = createOrganizationEntity(request);
 		User manager = createManager(request);
 
@@ -136,46 +125,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 		log.debug("Đã lưu OrganizationUser");
 	}
 
-	private void validateRequest(CreateOrganizationRequest request) {
-
-<<<<<<< HEAD
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails)) {
-            throw new BusinessException("Người dùng chưa đăng nhập");
-        }
-
-        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-        if (!"VT-01".equals(userDetails.getRoleCode())) {
-            throw new BusinessException("Bạn không có quyền tạo tổ chức");
-        }
-
-		if(request.getOrganizationType() == OrganizationType.SYSTEM) {
-=======
-		if (request.getOrganizationType() == OrganizationType.SYSTEM) {
-			log.warn("Yêu cầu tạo SYSTEM organization bị từ chối");
->>>>>>> 726c1b031c37a9725c2f1a2664ebb4e81c2a0555
-			throw new BusinessException("Không thể tạo tổ chức System thông qua API này");
-		}
-
-		if (organizationRepository.existsByCode(request.getOrganizationCode())) {
-			log.warn("Organization code đã tồn tại: {}", request.getOrganizationCode());
-			throw new BusinessException("Organization code đã tồn tại");
-		}
-
-		if (userRepository.existsByUserName(request.getUserName())) {
-			log.warn("Username đã tồn tại: {}", request.getUserName());
-			throw new BusinessException("Username đã tồn tại");
-		}
-
-		if (userRepository.existsByEmail(request.getManagerEmail())) {
-			log.warn("Email đã tồn tại: {}", request.getManagerEmail());
-			throw new BusinessException("Email đã tồn tại");
-		}
-
-	}
-
 	private String resolveManagerRoleCode(OrganizationType type) {
-<<<<<<< HEAD
 	    return switch (type) {
 	        case SYSTEM      -> RoleCode.ADMIN;
 	        case COOPERATIVE -> RoleCode.ORG_MANAGER;   // VT-02
@@ -183,15 +133,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 	        case GOVERNMENT  -> RoleCode.REGULATOR;     // VT-05
 
 	    };
-=======
-		return switch (type) {
-		case SYSTEM -> RoleCode.ADMIN; // VT-01;
-		case COOPERATIVE -> RoleCode.ORG_MANAGER; // VT-02
-		case ENTERPRISE -> RoleCode.PROCUREMENT; // VT-04
-		case GOVERNMENT -> RoleCode.REGULATOR; // VT-05
-
-		};
->>>>>>> 726c1b031c37a9725c2f1a2664ebb4e81c2a0555
 	}
 
 	private Role getDefaultRole(OrganizationType type) {
@@ -204,7 +145,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 		});
 	}
 
-<<<<<<< HEAD
     private OrganizationResponse toResponse(Organization organization) {
         return new OrganizationResponse(
                 organization.getOrganizationId(),
@@ -214,11 +154,4 @@ public class OrganizationServiceImpl implements OrganizationService {
                 organization.getStatus(),
                 organization.getCreatedAt());
     }
-=======
-	private OrganizationResponse toResponse(Organization organization) {
-		return new OrganizationResponse(organization.getOrganizationId(), organization.getName(),
-				organization.getCode(), organization.getType(), organization.getStatus(), organization.getCreatedAt());
-	}
->>>>>>> 726c1b031c37a9725c2f1a2664ebb4e81c2a0555
-
 }

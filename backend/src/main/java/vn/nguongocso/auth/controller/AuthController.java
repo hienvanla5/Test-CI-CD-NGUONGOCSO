@@ -38,14 +38,8 @@ public class AuthController {
      * @return authenticated user information and JWT token
      */
     @PostMapping("/login")
-<<<<<<< HEAD
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        System.out.println("=== CONTROLLER ===");
-        return ResponseEntity.ok(authService.login(request));
-=======
     public ResponseEntity<ApiResult<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResult.success(authService.login(request)));
->>>>>>> 726c1b031c37a9725c2f1a2664ebb4e81c2a0555
     }
 
     /**
