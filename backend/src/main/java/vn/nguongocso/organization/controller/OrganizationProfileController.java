@@ -13,7 +13,7 @@ import vn.nguongocso.organization.service.OrganizationService;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/organizations")
+@RequestMapping("/api/v1/organizations")
 @RequiredArgsConstructor
 public class OrganizationProfileController {
 

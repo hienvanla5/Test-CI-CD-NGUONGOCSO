@@ -17,11 +17,11 @@ public class ApiResult <T>{
 	private T data;
 	private Object errors;
 	private String path;
-	
+
 	@Builder.Default
 	private Instant timestamp = Instant.now();
-	
-	
+
+
 	public static <T> ApiResult<T> success(T data){
 		return ApiResult.<T>builder()
 				.success(true)
@@ -29,7 +29,7 @@ public class ApiResult <T>{
 				.data(data)
 				.build();
 	}
-	
+
 	public static <T> ApiResult<T> success(int status, T data){
 		return ApiResult.<T>builder()
 				.success(true)
@@ -37,7 +37,7 @@ public class ApiResult <T>{
 				.data(data)
 				.build();
 	}
-	
+
 	public static <T> ApiResult<T> error(int status, String message){
 		return ApiResult.<T>builder()
 				.success(false)
@@ -45,7 +45,7 @@ public class ApiResult <T>{
 				.message(message)
 				.build();
 	}
-	
+
     public static <T> ApiResult<T> error(int status, String message, Object errors, String path) {
         return ApiResult.<T>builder()
                 .success(false)
@@ -56,4 +56,23 @@ public class ApiResult <T>{
                 .build();
     }
 
+	public static <T> ApiResult<T> error(int status, String message, String path) {
+		return ApiResult.<T>builder()
+				.success(false)
+				.status(status)
+				.message(message)
+				.path(path)
+				.build();
+	}
+
+	public static <T> ApiResult<T> error(int status,
+	                                     String message,
+	                                     Object errors) {
+		return ApiResult.<T>builder()
+				.success(false)
+				.status(status)
+				.message(message)
+				.errors(errors)
+				.build();
+	}
 }

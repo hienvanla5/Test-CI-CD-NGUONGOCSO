@@ -3,13 +3,18 @@ package vn.nguongocso.organization.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
+import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
+import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
 import vn.nguongocso.organization.service.OrganizationService;
+
+import java.util.UUID;
 
 /**
  * REST Controller cung cấp các API quản lý tổ chức.
@@ -57,5 +62,14 @@ public class OrganizationController {
         );
 
         return ResponseEntity.ok(ApiResult.success(response));
+    }
+
+    @PutMapping("/profile/{id}")
+    @PreAuthorize("hasAnyRole('VT-01')")
+    public ResponseEntity<ApiResult<OrganizationProfileResponse>> updateProfileByAdmin(
+            @PathVariable UUID id,
+            @Valid @RequestBody OrganizationUpdateRequest request) {
+        log.info("Cập nhật hồ sơ tổ chức hiện tại");
+        return ResponseEntity.ok(ApiResult.success(organizationService.updateOrganizationById(id, request)));
     }
 }
