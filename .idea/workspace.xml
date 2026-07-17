@@ -24,8 +24,9 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="HTML File" />
-        <option value="Class" />
         <option value="com.intellij.jpb.FlywayMigrationScript" />
+        <option value="Interface" />
+        <option value="Class" />
       </list>
     </option>
   </component>
