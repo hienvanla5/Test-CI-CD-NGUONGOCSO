@@ -10,9 +10,9 @@ import java.util.UUID;
 
 public interface ProductionLotRepository extends JpaRepository<ProductionLot, UUID> {
 
-    List<ProductionLot> findByOrganizationId(UUID organizationId);
+    List<ProductionLot> findByOrganization_OrganizationId(UUID organizationId);
 
-    List<ProductionLot> findByOrganizationIdAndStatus(UUID organizationId, ProductionLotStatus status);
+    List<ProductionLot> findByOrganization_OrganizationIdAndStatus(UUID organizationId, ProductionLotStatus status);
 
     List<ProductionLot> findByFarmAreaId(UUID farmAreaId);
 }
