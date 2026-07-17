@@ -2,6 +2,8 @@ package vn.nguongocso.organization.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,9 +13,12 @@ import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.enums.UserStatus;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
+import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.organization.constant.RoleCode;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
+import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
+import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
 import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.entity.OrganizationUser;
@@ -23,6 +28,9 @@ import vn.nguongocso.organization.enums.OrganizationUserStatus;
 import vn.nguongocso.organization.repository.OrganizationRepository;
 import vn.nguongocso.organization.repository.OrganizationUserRepository;
 import vn.nguongocso.organization.service.OrganizationService;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Service xử lý nghiệp vụ liên quan đến tổ chức.
@@ -178,4 +186,85 @@ public class OrganizationServiceImpl implements OrganizationService {
 				organization.getCode(), organization.getType(), organization.getStatus(), organization.getCreatedAt());
 	}
 
+	// organization profile section
+	// helper
+	private UUID getCurrentOrganizationId() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || !auth.isAuthenticated()) {
+			throw new BusinessException("Chưa đăng nhập");
+		}
+		Object principal = auth.getPrincipal();
+		if (!(principal instanceof CustomUserDetails userDetails)) {
+			throw new BusinessException("Lỗi xác thực");
+		}
+		return userDetails.getOrganizationId();
+	}
+
+	// business methods
+	/**
+	 * Lấy thông tin hồ sơ tổ chức hiện tại
+	 */
+	@Override
+	public OrganizationProfileResponse getCurrentOrganizationProfile() {
+		UUID orgId = getCurrentOrganizationId();
+		Organization org = organizationRepository.findById(orgId)
+				.orElseThrow(() -> new BusinessException("Tổ chức không tồn tại"));
+		return toProfileResponse(org);
+	}
+
+	@Override
+	@Transactional
+	public OrganizationProfileResponse updateCurrentOrganization(OrganizationUpdateRequest request) {
+		UUID orgId = getCurrentOrganizationId();
+		Organization org = organizationRepository.findById(orgId)
+				.orElseThrow(() -> new BusinessException("Tổ chức không tồn tại"));
+
+		org.setName(request.getName());
+		org.setAddress(request.getAddress());
+		org.setPhone(request.getPhone());
+		org.setEmail(request.getEmail());
+		org.setUpdatedAt(LocalDateTime.now());
+
+		organizationRepository.save(org);
+
+		log.info("Cập nhật hồ sở tổ chức thành công: orgId={}", orgId);
+
+		return toProfileResponse(org);
+	}
+
+	/**
+	 * (Admin only) Cập nhật bất kỳ tổ chức nào theo ID
+	 */
+	@Override
+	@Transactional
+	public OrganizationProfileResponse updateOrganizationById(UUID orgId, OrganizationUpdateRequest request) {
+		Organization org = organizationRepository.findById(orgId)
+				.orElseThrow(() -> new BusinessException("Tổ chức không tồn tại"));
+
+		org.setName(request.getName());
+		org.setAddress(request.getAddress());
+		org.setPhone(request.getPhone());
+		org.setEmail(request.getEmail());
+		org.setUpdatedAt(LocalDateTime.now());
+
+		organizationRepository.save(org);
+		return toProfileResponse(org);
+	}
+
+	// mapping
+	private OrganizationProfileResponse toProfileResponse(Organization org) {
+
+		return OrganizationProfileResponse.builder()
+				.organizationId(org.getOrganizationId())
+				.name(org.getName())
+				.code(org.getCode())
+				.type(org.getType())
+				.status(org.getStatus())
+				.address(org.getAddress())
+				.phone(org.getPhone())
+				.email(org.getEmail())
+				.createdAt(org.getCreatedAt())
+				.updatedAt(org.getUpdatedAt())
+				.build();
+	}
 }
