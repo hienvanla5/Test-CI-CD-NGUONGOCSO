@@ -167,6 +167,11 @@
 }
 
 
+.form-group .required {
+    color: var(--color-danger);
+    margin-left: 2px;
+}
+
 .form-actions {
     display: flex;
 

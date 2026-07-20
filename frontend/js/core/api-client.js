@@ -43,7 +43,8 @@ export async function apiRequest(
     if (response.status === 401) {
         clearAuth();
         window.location.href =
-            "/pages/auth/login.html";
+            "/frontend/pages/auth/login.html";
+
 
         throw new Error(
             "Phiên đăng nhập đã hết hạn."

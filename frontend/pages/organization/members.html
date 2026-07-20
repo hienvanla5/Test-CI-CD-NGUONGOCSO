@@ -11,7 +11,7 @@
         initial-scale=1.0">
 
     <title>
-        Cooperative Dashboard | Nguồn Gốc Số
+        Organization Members | Nguồn Gốc Số
     </title>
 
     <link
@@ -40,7 +40,7 @@
 
     <link
         rel="stylesheet"
-        href="../../css/pages/cooperative/dashboard.css">
+        href="../../css/pages/organization/members.css">
 
 </head>
 
@@ -56,23 +56,20 @@
 
             <nav class="sidebar-menu">
 
-                <a href="/frontend/pages/cooperative/dashboard.html" class="active">
+                <a href="/frontend/pages/admin/dashboard.html">
                     Dashboard
                 </a>
 
-                <a href="/frontend/pages/cooperative/profile.html">
-                    Organization Profile
+                <a href="/frontend/pages/organization/members.html" class="active">
+                    Members
+                </a>
+
+                <a href="#" class="disabled-nav">
+                    Permission Management
+                    <span class="coming-soon-badge">Soon</span>
                 </a>
 
             </nav>
-
-            <div class="sidebar-user" id="sidebarUser">
-                <div class="sidebar-user-avatar" id="sidebarUserAvatar"></div>
-                <div class="sidebar-user-info">
-                    <strong id="sidebarUserName">—</strong>
-                    <span id="sidebarUserOrg">—</span>
-                </div>
-            </div>
 
         </aside>
 
@@ -82,7 +79,7 @@
 
                 <div>
                     <h1>
-                        Cooperative Dashboard
+                        Organization Members
                     </h1>
 
                     <p class="text-muted">
@@ -92,12 +89,13 @@
 
                 <div class="header-actions">
 
-                    <div class="user-badge" id="headerUserBadge">
-                        <span id="headerUserRole" class="user-role-badge">VT-02</span>
-                        <span id="headerUserName">—</span>
-                        <span class="user-org-sep">|</span>
-                        <span id="headerUserOrg">—</span>
-                    </div>
+                    <button
+                        id="addMemberButton"
+                        class="btn btn-primary">
+
+                        + Add Member
+
+                    </button>
 
                     <button
                         id="logoutButton"
@@ -145,59 +143,18 @@
                             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                         </svg>
                     </div>
-                    <p class="state-text state-error-text">You do not have permission to access this page.</p>
+                    <p class="state-text state-error-text">You do not have permission to manage organization members.</p>
                     <a href="/frontend/pages/auth/login.html" class="btn btn-secondary">Back to Login</a>
                 </div>
 
                 <!-- Main Content -->
                 <div id="mainContent" style="display: none;">
 
-                    <!-- Summary Cards -->
-                    <div class="stat-grid">
-
-                        <div class="stat-card stat-card-info">
-                            <span class="stat-label">
-                                Total Members
-                            </span>
-                            <strong id="totalMembers" class="stat-value">0</strong>
-                        </div>
-
-                        <div class="stat-card stat-card-success">
-                            <span class="stat-label">
-                                Active
-                            </span>
-                            <strong id="activeMembers" class="stat-value">0</strong>
-                        </div>
-
-                        <div class="stat-card">
-                            <span class="stat-label">
-                                Organization
-                            </span>
-                            <strong id="orgNameDisplay" class="stat-value stat-value-sm">—</strong>
-                        </div>
-
-                    </div>
-
-                    <!-- Member List Section -->
+                    <!-- Member Table Section -->
                     <div class="list-section">
 
                         <div class="list-section-header">
-                            <div class="list-section-header-row">
-                                <h2>Organization Members</h2>
-                                <div class="list-section-actions">
-                                    <div class="search-wrapper">
-                                        <input
-                                            type="text"
-                                            id="searchInput"
-                                            class="search-input"
-                                            placeholder="Search by name or username..."
-                                        />
-                                    </div>
-                                    <button id="addMemberButton" class="btn btn-primary">
-                                        + Add Member
-                                    </button>
-                                </div>
-                            </div>
+                            <h2>All Members</h2>
                         </div>
 
                         <!-- Empty State -->
@@ -222,11 +179,12 @@
                             <table id="memberTable" class="data-table" style="display: none;">
                                 <thead>
                                     <tr>
-                                        <th>Full Name</th>
                                         <th>Username</th>
+                                        <th>Full Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
                                         <th>Role</th>
                                         <th>Status</th>
-                                        <th>Joined Date</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -287,20 +245,6 @@
             <form id="addMemberForm" novalidate>
                 <div class="modal-body">
                     <div class="form-grid">
-                        <div class="form-group form-group-full">
-                            <label for="memberFullName">Full Name <span class="required">*</span></label>
-                            <input
-                                type="text"
-                                id="memberFullName"
-                                name="fullName"
-                                maxlength="255"
-                                autocomplete="name"
-                                aria-describedby="memberFullNameError"
-                                aria-invalid="false"
-                                required
-                            />
-                            <small id="memberFullNameError" class="field-error" data-error-for="fullName"></small>
-                        </div>
                         <div class="form-group">
                             <label for="memberUsername">Username <span class="required">*</span></label>
                             <input
@@ -323,14 +267,25 @@
                                 name="password"
                                 minlength="1"
                                 autocomplete="new-password"
-                                aria-describedby="memberPasswordHint memberPasswordError"
+                                aria-describedby="memberPasswordError"
                                 aria-invalid="false"
                                 required
                             />
-                            <small id="memberPasswordHint" class="field-hint">
-                                8+ chars with uppercase, lowercase, number and special character (@#$%^&+=!).
-                            </small>
                             <small id="memberPasswordError" class="field-error" data-error-for="password"></small>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label for="memberFullName">Full Name <span class="required">*</span></label>
+                            <input
+                                type="text"
+                                id="memberFullName"
+                                name="fullName"
+                                maxlength="255"
+                                autocomplete="name"
+                                aria-describedby="memberFullNameError"
+                                aria-invalid="false"
+                                required
+                            />
+                            <small id="memberFullNameError" class="field-error" data-error-for="fullName"></small>
                         </div>
                         <div class="form-group">
                             <label for="memberPhone">Phone</label>
@@ -382,7 +337,7 @@
 
     <script
         type="module"
-        src="../../js/pages/cooperative/dashboard.page.js">
+        src="../../js/pages/organization/members.page.js">
     </script>
 
 </body>

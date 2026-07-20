@@ -90,7 +90,7 @@ export async function authenticate(
     }
 
     const token =
-        response.data.token;
+        response.data.accessToken;
 
     const tokenType =
         response.data.tokenType;

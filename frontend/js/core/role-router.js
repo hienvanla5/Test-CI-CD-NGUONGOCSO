@@ -4,19 +4,19 @@ import {
 
 const ROLE_ROUTES = {
     "VT-01":
-        "/pages/admin/dashboard.html",
+        "/frontend/pages/admin/dashboard.html",
 
     "VT-02":
-        "/pages/cooperative/dashboard.html",
+        "/frontend/pages/cooperative/dashboard.html",
 
     "VT-03":
-        "/pages/cooperative/dashboard.html",
+        "/frontend/pages/cooperative/dashboard.html",
 
     "VT-04":
-        "/pages/enterprise/dashboard.html",
+        "/frontend/pages/enterprise/dashboard.html",
 
     "VT-05":
-        "/pages/government/dashboard.html"
+        "/frontend/pages/government/dashboard.html"
 };
 
 export function redirectByRole() {
@@ -30,7 +30,7 @@ export function redirectByRole() {
 
     if (!user) {
         window.location.href =
-            "/pages/auth/login.html";
+            "/frontend/pages/auth/login.html";
 
         return;
     }
@@ -53,7 +53,7 @@ export function redirectByRole() {
         );
 
         window.location.href =
-            "/pages/auth/login.html";
+            "/frontend/pages/auth/login.html";
 
         return;
     }

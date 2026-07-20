@@ -1,0 +1,228 @@
+/* ===== Organization Profile Page ===== */
+
+.profile-card {
+    background: var(--color-surface);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.profile-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 32px;
+    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.profile-card-header-info h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 10px;
+}
+
+.profile-org-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.profile-org-code {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    font-family: 'Courier New', monospace;
+    padding: 3px 10px;
+    background: var(--color-background);
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.badge-type {
+    background: var(--color-primary-light);
+    color: var(--color-primary-dark);
+}
+
+.badge-status {
+    background: rgb(22 163 74 / 12%);
+    color: #16a34a;
+}
+
+.badge-status-inactive {
+    background: rgb(239 68 68 / 12%);
+    color: #ef4444;
+}
+
+.profile-edit-btn {
+    width: auto !important;
+    padding: 0 24px;
+    height: 40px;
+    font-size: 0.9rem;
+}
+
+/* Profile Body */
+.profile-body {
+    padding: 28px 32px;
+}
+
+.profile-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Info Grid (View Mode) */
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.profile-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.profile-info-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.profile-info-value {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--color-text);
+    padding: 10px 14px;
+    background: var(--color-background);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--color-border);
+    word-break: break-word;
+}
+
+/* Form Grid (Edit Mode) */
+.profile-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-group-readonly input {
+    background: var(--color-background) !important;
+    color: var(--color-text-muted) !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.form-group-readonly label {
+    color: var(--color-text-muted);
+}
+
+.profile-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
+}
+
+.profile-form-actions .btn {
+    width: auto !important;
+    padding: 0 28px;
+    height: 44px;
+    font-size: 0.9rem;
+}
+
+.profile-form-actions .btn-primary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* btn-secondary styles for this page */
+.btn-secondary {
+    padding: 0 24px;
+    background: #f1f5f9;
+    color: var(--color-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    font-weight: 600;
+    height: 44px;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .profile-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .profile-form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .profile-edit-btn {
+        width: 100% !important;
+    }
+
+    .profile-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .profile-form-actions .btn {
+        width: 100% !important;
+    }
+
+    .profile-body {
+        padding: 20px;
+    }
+
+    .profile-card-header {
+        padding: 20px;
+    }
+}

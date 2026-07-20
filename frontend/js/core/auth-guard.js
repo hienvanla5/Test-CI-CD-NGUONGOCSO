@@ -5,17 +5,17 @@ import {
 } from "./storage.js";
 
 const ROLE_ROUTES = {
-    "VT-01": "/pages/admin/dashboard.html",
-    "VT-02": "/pages/cooperative/dashboard.html",
-    "VT-03": "/pages/cooperative/dashboard.html",
-    "VT-04": "/pages/enterprise/dashboard.html",
-    "VT-05": "/pages/government/dashboard.html"
+    "VT-01": "/frontend/pages/admin/dashboard.html",
+    "VT-02": "/frontend/pages/cooperative/dashboard.html",
+    "VT-03": "/frontend/pages/cooperative/dashboard.html",
+    "VT-04": "/frontend/pages/enterprise/dashboard.html",
+    "VT-05": "/frontend/pages/government/dashboard.html"
 };
 
 export function requireAuth() {
     if (!isAuthenticated()) {
         window.location.href =
-            "/pages/auth/login.html";
+            "/frontend/pages/auth/login.html";
         return false;
     }
     return true;
@@ -50,7 +50,7 @@ export function setupLogout(
                 event.preventDefault();
                 clearAuth();
                 window.location.href =
-                    "/pages/auth/login.html";
+                    "/frontend/pages/auth/login.html";
             }
         );
     }
