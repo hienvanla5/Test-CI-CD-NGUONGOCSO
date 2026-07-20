@@ -8,12 +8,23 @@ import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.enums.UserStatus;
 import vn.nguongocso.organization.entity.OrganizationUser;
+import vn.nguongocso.organization.enums.OrganizationType;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Custom implementation of {@link UserDetails} that stores both
+ * user identity and organization-specific authorization information.
+ *
+ * <p>Besides the standard Spring Security user information, this class
+ * also exposes organization and role information used throughout the
+ * application.</p>
+ */
 public class CustomUserDetails implements UserDetails {
+
+    private static final String ROLE_PREFIX = "ROLE_";
 
     private final User user;
 
@@ -24,6 +35,7 @@ public class CustomUserDetails implements UserDetails {
     private final UUID organizationId;
     private final String organizationName;
     private final String organizationCode;
+    private final OrganizationType organizationType;
     private final String roleCode;
     private final String roleName;
     private final List<GrantedAuthority> authorities;
@@ -37,9 +49,12 @@ public class CustomUserDetails implements UserDetails {
         this.organizationId = orgUser.getOrganization().getOrganizationId();
         this.organizationName = orgUser.getOrganization().getName();
         this.organizationCode = orgUser.getOrganization().getCode();
+        this.organizationType = orgUser.getOrganization().getType();
         this.roleCode = role.getCode();
         this.roleName = role.getName();
-        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + roleCode));
+        this.authorities = List.of(
+                new SimpleGrantedAuthority(ROLE_PREFIX + roleCode)
+        );
     }
 
     @Override
@@ -78,11 +93,33 @@ public class CustomUserDetails implements UserDetails {
     }
 
     // Các getter bổ sung
-    public UUID getUserId() { return userId; }
-    public String getFullName() { return fullName; }
-    public UUID getOrganizationId() { return organizationId; }
-    public String getOrganizationName() { return organizationName; }
-    public String getOrganizationCode() { return organizationCode; }
-    public String getRoleCode() { return roleCode; }
-    public String getRoleName() { return roleName; }
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public UUID getOrganizationId() {
+        return organizationId;
+    }
+
+    public String getOrganizationName() {
+        return organizationName;
+    }
+
+    public String getOrganizationCode() {
+        return organizationCode;
+    }
+
+    public OrganizationType getOrganizationType() {return organizationType;}
+
+    public String getRoleCode() {
+        return roleCode;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
 }
