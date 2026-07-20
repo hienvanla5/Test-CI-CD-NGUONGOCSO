@@ -1,8 +1,5 @@
 package vn.nguongocso.farm.entity;
 
-/**
- * Entity đại diện cho danh mục loại cây trồng.
- */
 import java.util.UUID;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -17,6 +14,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Entity đại diện cho danh mục loại cây trồng.
+ */
 @Entity
 @Table(name = "product_categories")
 @Getter
@@ -25,20 +25,20 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ProductCategory {
 
-    @Id
-    @Column(name = "id", nullable = false, updatable = false)
-    @JdbcTypeCode(SqlTypes.CHAR)
-    private UUID id;
+	@Id
+	@Column(name = "id", nullable = false, updatable = false)
+	@JdbcTypeCode(SqlTypes.CHAR)
+	private UUID id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+	@Column(name = "name", nullable = false)
+	private String name;
 
-    @Column(name = "category_group")
-    private String group;
+	@Column(name = "category_group")
+	private String group;
 
-    @Column(name = "description")
-    private String description;
+	@Column(name = "description")
+	private String description;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+	@Column(name = "is_active", nullable = false)
+	private Boolean isActive;
 }

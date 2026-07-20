@@ -12,18 +12,24 @@ import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.farm.dto.response.ProductCategoryResponse;
 import vn.nguongocso.farm.service.ProductCategoryService;
 
+/**
+ * REST Controller quản lý các API liên quan đến loại cây trồng.
+ */
 @RestController
 @RequestMapping("/api/v1/product-categories")
 @RequiredArgsConstructor
 public class ProductCategoryController {
 
-    private final ProductCategoryService productCategoryService;
+	private final ProductCategoryService productCategoryService;
 
-    @GetMapping
-    public ResponseEntity<ApiResult<List<ProductCategoryResponse>>> getAll() {
+	/**
+	 * Lấy danh sách tất cả các loại cây trồng.
+	 *
+	 * @return danh sách thông tin loại cây trồng
+	 */
+	@GetMapping
+	public ResponseEntity<ApiResult<List<ProductCategoryResponse>>> getAll() {
 
-        return ResponseEntity.ok(
-                ApiResult.success(productCategoryService.getAll())
-        );
-    }
+		return ResponseEntity.ok(ApiResult.success(productCategoryService.getAll()));
+	}
 }

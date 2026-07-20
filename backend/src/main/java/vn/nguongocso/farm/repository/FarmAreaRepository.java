@@ -10,5 +10,5 @@ import vn.nguongocso.farm.entity.FarmArea;
  * Repository thao tác dữ liệu vùng trồng.
  */
 public interface FarmAreaRepository extends JpaRepository<FarmArea, UUID> {
-	
+
 }

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,27 +17,28 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class FarmAreaResponse {
 
-    private UUID id;
+	private UUID id;
 
-    private String name;
+	private String name;
 
-    private UUID organizationId;
+	private UUID organizationId;
 
-    private String organizationName;
+	private String organizationName;
 
-    private UUID cropTypeId;
+	private UUID cropTypeId;
 
-    private String cropTypeName;
+	private String cropTypeName;
 
-    private Double latitude;
+	private Double latitude;
 
-    private Double longitude;
+	private Double longitude;
 
-    private BigDecimal area;
+	private BigDecimal area;
 
-    private LocalDateTime createdAt;
+	private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
+	private LocalDateTime updatedAt;
 }

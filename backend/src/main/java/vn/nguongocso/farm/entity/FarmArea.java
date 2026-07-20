@@ -1,4 +1,5 @@
 package vn.nguongocso.farm.entity;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -33,47 +34,47 @@ import vn.nguongocso.organization.entity.Organization;
 @AllArgsConstructor
 public class FarmArea {
 
-    @Id
-    @Column(name = "id", nullable = false, updatable = false)
-    @JdbcTypeCode(SqlTypes.CHAR)
-    private UUID id;
+	@Id
+	@Column(name = "id", nullable = false, updatable = false)
+	@JdbcTypeCode(SqlTypes.CHAR)
+	private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "organization_id", nullable = false)
+	private Organization organization;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+	@Column(name = "name", nullable = false)
+	private String name;
 
-    @Column(name = "location", columnDefinition = "POINT")
-    private Point location;
+	@Column(name = "location", columnDefinition = "POINT")
+	private Point location;
 
-    @Column(name = "area", nullable = false)
-    private BigDecimal area;
+	@Column(name = "area", nullable = false)
+	private BigDecimal area;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "crop_type", nullable = false)
-    private ProductCategory cropType;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "crop_type", nullable = false)
+	private ProductCategory cropType;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+	@Column(name = "created_at", nullable = false, updatable = false)
+	private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+	@Column(name = "updated_at", nullable = false)
+	private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void prePersist() {
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
+	@PrePersist
+	protected void prePersist() {
+		if (id == null) {
+			id = UUID.randomUUID();
+		}
 
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
-    }
+		LocalDateTime now = LocalDateTime.now();
+		createdAt = now;
+		updatedAt = now;
+	}
 
-    @PreUpdate
-    protected void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+	@PreUpdate
+	protected void preUpdate() {
+		updatedAt = LocalDateTime.now();
+	}
 }

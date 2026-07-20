@@ -16,21 +16,17 @@ import vn.nguongocso.farm.service.ProductCategoryService;
 @RequiredArgsConstructor
 public class ProductCategoryServiceImpl implements ProductCategoryService {
 
-    private final ProductCategoryRepository productCategoryRepository;
+	private final ProductCategoryRepository productCategoryRepository;
 
-    /**
-     * Lấy danh sách loại cây trồng.
-     *
-     * @return danh sách loại cây trồng
-     */
-    @Override
-    public List<ProductCategoryResponse> getAll() {
+	/**
+	 * Lấy danh sách loại cây trồng.
+	 *
+	 * @return danh sách loại cây trồng
+	 */
+	@Override
+	public List<ProductCategoryResponse> getAll() {
 
-        return productCategoryRepository.findAll()
-                .stream()
-                .map(category -> new ProductCategoryResponse(
-                        category.getId(),
-                        category.getName()))
-                .toList();
-    }
+		return productCategoryRepository.findAll().stream()
+				.map(category -> new ProductCategoryResponse(category.getId(), category.getName())).toList();
+	}
 }

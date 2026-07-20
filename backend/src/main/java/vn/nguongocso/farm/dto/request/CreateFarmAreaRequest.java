@@ -21,21 +21,20 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CreateFarmAreaRequest {
 
-    @NotBlank(message = "Tên vùng trồng không được để trống")
-    @Size(max = 255, message = "Tên vùng trồng không được vượt quá 255 ký tự")
-    private String name;
+	@NotBlank(message = "Tên vùng trồng không được để trống")
+	@Size(max = 255, message = "Tên vùng trồng không được vượt quá 255 ký tự")
+	private String name;
 
-    @NotNull(message = "Loại cây trồng không được để trống")
-    private UUID cropType;
+	@NotNull(message = "Loại cây trồng không được để trống")
+	private UUID cropType;
 
-    @NotNull(message = "Vĩ độ không được để trống")
-    private Double latitude;
+	@NotNull(message = "Vĩ độ không được để trống")
+	private Double latitude;
 
-    @NotNull(message = "Kinh độ không được để trống")
-    private Double longitude;
+	@NotNull(message = "Kinh độ không được để trống")
+	private Double longitude;
 
-    @NotNull(message = "Diện tích không được để trống")
-    @DecimalMin(value = "0.01", inclusive = true,
-            message = "Diện tích phải lớn hơn 0")
-    private BigDecimal area;
+	@NotNull(message = "Diện tích không được để trống")
+	@DecimalMin(value = "0.01", inclusive = true, message = "Diện tích phải lớn hơn 0")
+	private BigDecimal area;
 }

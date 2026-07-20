@@ -18,7 +18,6 @@ import vn.nguongocso.farm.dto.request.CreateFarmAreaRequest;
 import vn.nguongocso.farm.dto.response.FarmAreaResponse;
 import vn.nguongocso.farm.entity.FarmArea;
 import vn.nguongocso.farm.entity.ProductCategory;
-import vn.nguongocso.farm.mapper.FarmAreaMapper;
 import vn.nguongocso.farm.repository.FarmAreaRepository;
 import vn.nguongocso.farm.repository.ProductCategoryRepository;
 import vn.nguongocso.farm.service.FarmAreaService;
@@ -36,7 +35,6 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 	private final FarmAreaRepository farmAreaRepository;
 	private final ProductCategoryRepository productCategoryRepository;
 	private final OrganizationRepository organizationRepository;
-	private final FarmAreaMapper farmAreaMapper;
 	private final GeometryFactory geometryFactory;
 
 	/**
@@ -58,7 +56,7 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 
 		FarmArea saved = farmAreaRepository.save(farmArea);
 
-		return farmAreaMapper.toResponse(saved);
+		return toResponse(saved);
 	}
 
 	private CustomUserDetails getCurrentUser() {
@@ -89,6 +87,24 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 		farmArea.setArea(request.getArea());
 
 		return farmArea;
+	}
+
+	private FarmAreaResponse toResponse(FarmArea farmArea) {
+
+		Point point = farmArea.getLocation();
+
+		return FarmAreaResponse.builder().id(farmArea.getId()).name(farmArea.getName())
+
+				.organizationId(farmArea.getOrganization().getOrganizationId())
+				.organizationName(farmArea.getOrganization().getName())
+
+				.cropTypeId(farmArea.getCropType().getId()).cropTypeName(farmArea.getCropType().getName())
+
+				.latitude(point.getY()).longitude(point.getX())
+
+				.area(farmArea.getArea())
+
+				.createdAt(farmArea.getCreatedAt()).updatedAt(farmArea.getUpdatedAt()).build();
 	}
 
 }
