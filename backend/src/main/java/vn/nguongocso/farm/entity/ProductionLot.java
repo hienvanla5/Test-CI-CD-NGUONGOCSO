@@ -2,8 +2,8 @@ package vn.nguongocso.farm.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import vn.nguongocso.auth.entity.FarmArea;
-import vn.nguongocso.auth.entity.ProductCategory;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.organization.entity.Organization;
@@ -24,6 +24,7 @@ public class ProductionLot {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -7,14 +7,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
 import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
-import vn.nguongocso.auth.entity.*;
+import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
-import vn.nguongocso.auth.repository.*;
+import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.farm.repository.FarmAreaRepository;
+import vn.nguongocso.farm.repository.ProductCategoryRepository;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.farm.entity.FarmArea;
+import vn.nguongocso.farm.entity.ProductCategory;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
+import vn.nguongocso.organization.entity.Organization;
+import vn.nguongocso.organization.repository.OrganizationRepository;
 
 import java.util.UUID;
 
