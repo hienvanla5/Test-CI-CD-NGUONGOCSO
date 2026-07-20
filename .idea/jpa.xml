@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="PersistenceUnitSettings">
-    <persistence-units>
-      <persistence-unit moduleName="backend" name="V1__create_product_category_table" framework="JPA" ormUnit="backend:backend" />
-    </persistence-units>
-  </component>
-</project>
