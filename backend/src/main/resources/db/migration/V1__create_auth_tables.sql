@@ -71,3 +71,56 @@ CREATE TABLE organization_users (
                                     CONSTRAINT uk_org_user
                                         UNIQUE (organization_id, user_id)
 );
+
+CREATE TABLE product_categories (
+    id CHAR(36) NOT NULL,
+
+    name VARCHAR(255) NOT NULL,
+
+    category_group VARCHAR(100),
+
+    description TEXT,
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    CONSTRAINT pk_product_categories
+        PRIMARY KEY (id)
+);
+
+CREATE TABLE farm_areas (
+    id CHAR(36) NOT NULL,
+
+    organization_id CHAR(36) NOT NULL,
+
+    crop_type CHAR(36) NOT NULL,
+
+    name VARCHAR(255) NOT NULL,
+
+    location POINT NOT NULL,
+
+    area DECIMAL(10,2) NOT NULL,
+
+    created_at DATETIME NOT NULL,
+
+    updated_at DATETIME NOT NULL,
+
+    CONSTRAINT pk_farm_areas
+        PRIMARY KEY (id),
+
+    CONSTRAINT fk_farm_area_organization
+        FOREIGN KEY (organization_id)
+        REFERENCES organizations (organization_id),
+
+    CONSTRAINT fk_farm_area_product_category
+        FOREIGN KEY (crop_type)
+        REFERENCES product_categories (id)
+);
+
+CREATE INDEX idx_farm_area_organization
+ON farm_areas (organization_id);
+
+CREATE INDEX idx_farm_area_crop_type
+ON farm_areas (crop_type);
+
+CREATE SPATIAL INDEX idx_farm_area_location
+ON farm_areas (location);
