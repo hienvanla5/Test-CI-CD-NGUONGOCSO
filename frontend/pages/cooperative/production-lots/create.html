@@ -11,40 +11,40 @@
         initial-scale=1.0">
 
     <title>
-        Farm Area Declaration | Nguồn Gốc Số
+        Create Production Lot | Nguồn Gốc Số
     </title>
 
     <link
         rel="stylesheet"
-        href="../../css/reset.css">
+        href="../../../css/reset.css">
 
     <link
         rel="stylesheet"
-        href="../../css/variables.css">
+        href="../../../css/variables.css">
 
     <link
         rel="stylesheet"
-        href="../../css/global.css">
+        href="../../../css/global.css">
 
     <link
         rel="stylesheet"
-        href="../../css/layouts/dashboard-layout.css">
+        href="../../../css/layouts/dashboard-layout.css">
 
     <link
         rel="stylesheet"
-        href="../../css/components/button.css">
+        href="../../../css/components/button.css">
 
     <link
         rel="stylesheet"
-        href="../../css/components/form.css">
+        href="../../../css/components/form.css">
 
     <link
         rel="stylesheet"
-        href="../../css/pages/cooperative/dashboard.css">
+        href="../../../css/pages/cooperative/dashboard.css">
 
     <link
         rel="stylesheet"
-        href="../../css/pages/cooperative/farm-area-create.css">
+        href="../../../css/pages/cooperative/production-lot-create.css">
 
 </head>
 
@@ -94,11 +94,11 @@
 
                 <div>
                     <h1>
-                        Farm Area Declaration
+                        Create Production Lot
                     </h1>
 
                     <p class="text-muted">
-                        Khai báo vùng trồng
+                        Create a new production lot for your organization.
                     </p>
                 </div>
 
@@ -162,21 +162,21 @@
                 </div>
 
                 <!-- Main Content -->
-                <div id="mainContent">
+                <div id="mainContent" style="display: none;">
 
-                    <div class="declare-card">
+                    <div class="production-lot-card">
 
-                        <form id="farmAreaForm" novalidate>
+                        <form id="productionLotForm" novalidate>
 
-                            <!-- Section 1: Basic Farm Area Information -->
-                            <section class="declare-section">
-                                <h2 class="declare-section-title">Basic Farm Area Information</h2>
+                            <!-- Section 1: Production Lot Information -->
+                            <section class="production-lot-section">
+                                <h2 class="production-lot-section-title">Production Lot Information</h2>
 
-                                <div class="declare-field-grid">
+                                <div class="production-lot-field-grid">
 
-                                    <div class="form-group">
+                                    <div class="form-group form-group-full">
                                         <label for="name">
-                                            Farm Area Name <span class="required">*</span>
+                                            Lot Name <span class="required">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -184,6 +184,7 @@
                                             name="name"
                                             maxlength="255"
                                             autocomplete="off"
+                                            placeholder="e.g., Winter-Spring Rice Production Lot 2026"
                                             aria-describedby="nameError"
                                             aria-invalid="false"
                                             required
@@ -192,84 +193,78 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="cropType">
-                                            Crop Type <span class="required">*</span>
+                                        <label for="farmAreaId">
+                                            Farm Area <span class="required">*</span>
                                         </label>
                                         <select
-                                            id="cropType"
-                                            name="cropType"
-                                            aria-describedby="cropTypeError"
+                                            id="farmAreaId"
+                                            name="farmAreaId"
+                                            aria-describedby="farmAreaIdError"
                                             aria-invalid="false"
                                             required
                                         >
-                                            <option value="">Select crop type</option>
+                                            <option value="">Select farm area</option>
                                         </select>
-                                        <small id="cropTypeError" class="field-error" data-error-for="cropType"></small>
+                                        <small id="farmAreaIdError" class="field-error" data-error-for="farmAreaId"></small>
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="area">
-                                            Area <span class="required">*</span>
+                                        <label for="productCategoryId">
+                                            Product Category <span class="required">*</span>
                                         </label>
-                                        <input
-                                            type="number"
-                                            id="area"
-                                            name="area"
-                                            min="0.01"
-                                            step="0.01"
-                                            autocomplete="off"
-                                            aria-describedby="areaError"
+                                        <select
+                                            id="productCategoryId"
+                                            name="productCategoryId"
+                                            aria-describedby="productCategoryIdError"
                                             aria-invalid="false"
                                             required
-                                        />
-                                        <small id="areaError" class="field-error" data-error-for="area"></small>
+                                        >
+                                            <option value="">Select product category</option>
+                                        </select>
+                                        <small id="productCategoryIdError" class="field-error" data-error-for="productCategoryId"></small>
                                     </div>
 
                                 </div>
                             </section>
 
-                            <!-- Section 2: Geographic Location -->
-                            <section class="declare-section">
-                                <h2 class="declare-section-title">Geographic Location</h2>
+                            <!-- Section 2: Product Information -->
+                            <section class="production-lot-section">
+                                <h2 class="production-lot-section-title">Product Information</h2>
 
-                                <div class="declare-field-grid">
+                                <div class="production-lot-field-grid">
 
                                     <div class="form-group">
-                                        <label for="latitude">
-                                            Latitude <span class="required">*</span>
+                                        <label for="expectedQuantity">
+                                            Expected Quantity <span class="required">*</span>
                                         </label>
                                         <input
                                             type="number"
-                                            id="latitude"
-                                            name="latitude"
-                                            min="-90"
-                                            max="90"
-                                            step="any"
+                                            id="expectedQuantity"
+                                            name="expectedQuantity"
+                                            min="0.01"
+                                            step="0.01"
+                                            placeholder="e.g., 1500.5"
                                             autocomplete="off"
-                                            aria-describedby="latitudeError"
+                                            aria-describedby="expectedQuantityError"
                                             aria-invalid="false"
                                             required
                                         />
-                                        <small id="latitudeError" class="field-error" data-error-for="latitude"></small>
+                                        <small id="expectedQuantityError" class="field-error" data-error-for="expectedQuantity"></small>
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="longitude">
-                                            Longitude <span class="required">*</span>
+                                        <label for="plantingDate">
+                                            Planting Date
                                         </label>
                                         <input
-                                            type="number"
-                                            id="longitude"
-                                            name="longitude"
-                                            min="-180"
-                                            max="180"
-                                            step="any"
+                                            type="date"
+                                            id="plantingDate"
+                                            name="plantingDate"
                                             autocomplete="off"
-                                            aria-describedby="longitudeError"
+                                            aria-describedby="plantingDateError"
                                             aria-invalid="false"
-                                            required
                                         />
-                                        <small id="longitudeError" class="field-error" data-error-for="longitude"></small>
+                                        <small id="plantingDateError" class="field-error" data-error-for="plantingDate"></small>
                                     </div>
 
                                 </div>
@@ -278,8 +273,30 @@
                             <!-- Form message -->
                             <div id="formMessage" class="form-message" role="alert" aria-live="polite"></div>
 
+                            <!-- Success message area -->
+                            <div id="successMessage" class="form-message" style="display: none;" role="alert" aria-live="polite"></div>
+
+                            <!-- Success details -->
+                            <div id="successDetails" style="display: none;">
+                                <div class="success-details">
+                                    <p><strong>Production Lot Name:</strong> <span id="successName"></span></p>
+                                    <p><strong>Farm Area:</strong> <span id="successFarmArea"></span></p>
+                                    <p><strong>Product Category:</strong> <span id="successCategory"></span></p>
+                                    <p><strong>Expected Quantity:</strong> <span id="successQuantity"></span></p>
+                                    <p><strong>Status:</strong> <span id="successStatus"></span></p>
+                                </div>
+                                <div class="success-actions">
+                                    <button type="button" id="backToListButton" class="btn btn-secondary">
+                                        Back to Production Lots
+                                    </button>
+                                    <button type="button" id="createAnotherButton" class="btn btn-primary">
+                                        Create Another Lot
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- Actions -->
-                            <div class="declare-actions">
+                            <div id="formActions" class="production-lot-actions">
 
                                 <button
                                     type="button"
@@ -292,7 +309,7 @@
                                     type="submit"
                                     id="submitButton"
                                     class="btn btn-primary btn-create">
-                                    Create Farm Area
+                                    Create Production Lot
                                 </button>
 
                             </div>
@@ -311,7 +328,7 @@
 
     <script
         type="module"
-        src="../../js/pages/cooperative/farm-area-create.page.js">
+        src="../../../js/pages/cooperative/production-lots/production-lot-create.page.js">
     </script>
 
 </body>

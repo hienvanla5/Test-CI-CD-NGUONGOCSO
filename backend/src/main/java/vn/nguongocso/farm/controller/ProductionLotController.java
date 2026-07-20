@@ -12,6 +12,8 @@ import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.common.ApiResult;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/production-lots")
 @RequiredArgsConstructor
@@ -32,6 +34,20 @@ public class ProductionLotController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         CreateProductionLotResponse response = productionLotService.createProductionLot(request, userDetails);
+        return ResponseEntity.ok(ApiResult.success(response));
+    }
+
+    /**
+     * API lấy danh sách lô sản xuất của tổ chức hiện tại.
+     * Yêu cầu người dùng đã đăng nhập.
+     * Chỉ trả về các lô sản xuất thuộc tổ chức của người dùng hiện tại.
+     */
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResult<List<CreateProductionLotResponse>>> getAll(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        List<CreateProductionLotResponse> response = productionLotService.getAllProductionLots(userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
 }
