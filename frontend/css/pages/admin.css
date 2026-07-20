@@ -1,0 +1,37 @@
+.stat-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 24px;
+}
+
+.stat-card {
+    padding: 24px;
+
+    background-color:
+        var(--color-surface);
+
+    border-radius:
+        var(--border-radius-md);
+
+    box-shadow:
+        var(--shadow-sm);
+}
+
+.stat-card span {
+    display: block;
+
+    margin-bottom: 12px;
+
+    color:
+        var(--color-text-muted);
+}
+
+.stat-card strong {
+    font-size: 2rem;
+
+    color:
+        var(--color-primary);
+}
