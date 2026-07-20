@@ -47,20 +47,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String token = getTokenFromRequest(request);
 
-        if (token != null && tokenProvider.validateToken(token)) {
-            String username = tokenProvider.getUsernameFromToken(token);
-            String orgCode = tokenProvider.getOrganizationCodeFromToken(token);
+		if (token != null && tokenProvider.validateToken(token)) {
+			String username = tokenProvider.getUsernameFromToken(token);
+			String orgCode = tokenProvider.getOrganizationCodeFromToken(token);
 
-            UserDetails userDetails = userDetailsService.loadUserByUsernameAndOrg(username, orgCode);
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+			UserDetails userDetails = userDetailsService.loadUserByUsernameAndOrg(username, orgCode);
+			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
+					null, userDetails.getAuthorities());
+			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+			SecurityContextHolder.getContext().setAuthentication(authentication);
+		}
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
-
-        filterChain.doFilter(request, response);
-    }
+		filterChain.doFilter(request, response);
+	}
 
     /**
      * Extracts the JWT from the Authorization header.

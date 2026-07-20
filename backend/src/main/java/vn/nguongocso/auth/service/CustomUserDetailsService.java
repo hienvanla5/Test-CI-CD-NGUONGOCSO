@@ -48,22 +48,26 @@ public class CustomUserDetailsService implements UserDetailsService {
      *                           cannot be resolved
      */
     public UserDetails loadUserByUsernameAndOrg(String username, String orgCode) {
+
         User user = userRepository.findByUserName(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        log.info("Found user: {}", user.getUserName());
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng"));
 
         OrganizationUser orgUser;
+
         if (orgCode != null && !orgCode.isEmpty()) {
             orgUser = organizationUserRepository.findByUserAndOrganization_Code(user, orgCode)
-                    .orElseThrow(() -> new BusinessException("User not belong to organization: " + orgCode));
+                    .orElseThrow(() -> new BusinessException(
+                            "Người dùng không thuộc tổ chức có mã: " + orgCode));
         } else {
             orgUser = organizationUserRepository.findFirstByUser(user)
-                    .orElseThrow(() -> new BusinessException("User has no organization"));
+                    .orElseThrow(() -> new BusinessException(
+                            "Người dùng chưa được gán vào tổ chức nào"));
         }
         log.info("Found organization: {}", orgUser.getOrganization().getCode());
 
         Role role = roleRepository.findById(orgUser.getRole().getRoleId())
-                .orElseThrow(() -> new BusinessException("Role not found"));
+                .orElseThrow(() -> new BusinessException(
+                        "Không tìm thấy vai trò của người dùng"));
 
         return new CustomUserDetails(user, orgUser, role);
     }
@@ -83,7 +87,10 @@ public class CustomUserDetailsService implements UserDetailsService {
      * @throws UnsupportedOperationException always
      */
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        throw new UnsupportedOperationException("Use loadUserByUsernameAndOrg instead");
+    public UserDetails loadUserByUsername(String username)
+            throws UsernameNotFoundException {
+
+        throw new UnsupportedOperationException(
+                "Vui lòng sử dụng phương thức loadUserByUsernameAndOrg()");
     }
 }
