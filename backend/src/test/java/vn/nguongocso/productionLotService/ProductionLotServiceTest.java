@@ -1,4 +1,6 @@
-import static org.junit.jupiter.api.Assertions.*;
+package vn.nguongocso.productionLotService;
+
 class ProductionLotServiceTest {
-  
+
+
 }
