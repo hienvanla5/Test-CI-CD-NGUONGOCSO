@@ -1,8 +1,8 @@
-package vn.nguongocso.auth.repository;
+package vn.nguongocso.farm.repository;
 
 
-import vn.nguongocso.auth.entity.ProductionLot;
-import vn.nguongocso.auth.enums.ProductionLotStatus;
+import vn.nguongocso.farm.entity.ProductionLot;
+import vn.nguongocso.farm.enums.ProductionLotStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

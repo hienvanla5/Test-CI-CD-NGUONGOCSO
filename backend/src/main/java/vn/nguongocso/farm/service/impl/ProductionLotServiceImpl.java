@@ -1,18 +1,20 @@
-package vn.nguongocso.auth.service.impl;
+package vn.nguongocso.farm.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.nguongocso.auth.dto.request.CreateProductionLotRequest;
-import vn.nguongocso.auth.dto.response.CreateProductionLotResponse;
+import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
+import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
 import vn.nguongocso.auth.entity.*;
-import vn.nguongocso.auth.enums.ProductionLotStatus;
+import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.auth.repository.*;
 import vn.nguongocso.auth.service.CustomUserDetails;
-import vn.nguongocso.auth.service.ProductionLotService;
+import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.farm.entity.ProductionLot;
+import vn.nguongocso.farm.repository.ProductionLotRepository;
 
 import java.util.UUID;
 

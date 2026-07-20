@@ -1,8 +1,12 @@
-package vn.nguongocso.auth.entity;
+package vn.nguongocso.farm.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import vn.nguongocso.auth.enums.ProductionLotStatus;
+import vn.nguongocso.auth.entity.FarmArea;
+import vn.nguongocso.auth.entity.ProductCategory;
+import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.farm.enums.ProductionLotStatus;
+import vn.nguongocso.organization.entity.Organization;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

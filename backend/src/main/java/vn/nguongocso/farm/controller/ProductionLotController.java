@@ -1,4 +1,4 @@
-package vn.nguongocso.auth.controller;
+package vn.nguongocso.farm.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -6,10 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import vn.nguongocso.auth.dto.request.CreateProductionLotRequest;
-import vn.nguongocso.auth.dto.response.CreateProductionLotResponse;
+import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
+import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
 import vn.nguongocso.auth.service.CustomUserDetails;
-import vn.nguongocso.auth.service.ProductionLotService;
+import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.common.ApiResult;
 
 @RestController
