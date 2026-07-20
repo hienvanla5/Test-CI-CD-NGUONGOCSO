@@ -67,6 +67,7 @@ public class AuthController {
                 .organizationId(userDetails.getOrganizationId())
                 .organizationCode(userDetails.getOrganizationCode())
                 .organizationName(userDetails.getOrganizationName())
+                .organizationType(userDetails.getOrganizationType())
                 .build();
 
         return ResponseEntity.ok(ApiResult.success(response));

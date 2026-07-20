@@ -135,6 +135,7 @@ public class AuthService {
                         .organizationId(userDetails.getOrganizationId().toString())
                         .organizationName(userDetails.getOrganizationName())
                         .organizationCode(userDetails.getOrganizationCode())
+                        .organizationType(userDetails.getOrganizationType())
                         .build()
                 ).build();
     }

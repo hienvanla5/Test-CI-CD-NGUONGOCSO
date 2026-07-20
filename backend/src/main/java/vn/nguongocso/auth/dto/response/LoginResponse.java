@@ -2,6 +2,7 @@ package vn.nguongocso.auth.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
+import vn.nguongocso.organization.enums.OrganizationType;
 
 @Data
 @Builder
@@ -21,5 +22,6 @@ public class LoginResponse {
         private String organizationId;
         private String organizationName;
         private String organizationCode;
+        private OrganizationType organizationType;
     }
 }

@@ -2,6 +2,7 @@ package vn.nguongocso.auth.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
+import vn.nguongocso.organization.enums.OrganizationType;
 
 import java.util.UUID;
 
@@ -19,4 +20,5 @@ public class UserProfileResponse {
     private UUID organizationId;
     private String organizationCode;
     private String organizationName;
+    private OrganizationType organizationType;
 }
