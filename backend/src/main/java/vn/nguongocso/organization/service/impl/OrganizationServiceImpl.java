@@ -30,241 +30,416 @@ import vn.nguongocso.organization.repository.OrganizationUserRepository;
 import vn.nguongocso.organization.service.OrganizationService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Service xử lý nghiệp vụ liên quan đến tổ chức.
  */
-
 @Service
 public class OrganizationServiceImpl implements OrganizationService {
 
-	private static final Logger log = LoggerFactory.getLogger(OrganizationServiceImpl.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(OrganizationServiceImpl.class);
 
-	private final OrganizationRepository organizationRepository;
-	private final UserRepository userRepository;
-	private final RoleRepository roleRepository;
-	private final OrganizationUserRepository organizationUserRepository;
-	private final PasswordEncoder passwordEncoder;
+    private final OrganizationRepository organizationRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final OrganizationUserRepository organizationUserRepository;
+    private final PasswordEncoder passwordEncoder;
 
-	public OrganizationServiceImpl(OrganizationRepository organizationRepository, UserRepository userRepository,
-			RoleRepository roleRepository, OrganizationUserRepository organizationUserRepository,
-			PasswordEncoder passwordEncoder) {
-		this.organizationRepository = organizationRepository;
-		this.userRepository = userRepository;
-		this.roleRepository = roleRepository;
-		this.organizationUserRepository = organizationUserRepository;
-		this.passwordEncoder = passwordEncoder;
-	}
-	
-	/**
-	 * Tạo mới một tổ chức cùng tài khoản quản lý mặc định.
-	 *
-	 * @param request thông tin tổ chức và tài khoản quản lý
-	 * @return thông tin tổ chức sau khi tạo
-	 */
-	@Override
-	@Transactional
-	public OrganizationResponse createOrganization(CreateOrganizationRequest request) {
+    public OrganizationServiceImpl(
+            OrganizationRepository organizationRepository,
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            OrganizationUserRepository organizationUserRepository,
+            PasswordEncoder passwordEncoder) {
 
-		log.info("Bắt đầu tạo organization với code={}", request.getOrganizationCode());
+        this.organizationRepository = organizationRepository;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.organizationUserRepository = organizationUserRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
-		validateRequest(request);
-		Organization organization = createOrganizationEntity(request);
-		User manager = createManager(request);
+    /**
+     * Lấy danh sách tất cả tổ chức.
+     *
+     * @return danh sách tổ chức
+     */
+    @Override
+    public List<OrganizationResponse> getAllOrganizations() {
 
-		log.debug("Đã tạo Organization id={}", organization.getOrganizationId());
-		log.debug("Đã tạo User username={}", manager.getUserName());
+        log.info("Lấy danh sách tất cả organization");
 
-		assignManagerRole(organization, manager);
+        return organizationRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
-		log.info("Tạo organization thành công. organizationId={}, manager={}", organization.getOrganizationId(),
-				manager.getUserName());
+    /**
+     * Tạo mới một tổ chức cùng tài khoản quản lý mặc định.
+     *
+     * @param request thông tin tổ chức và tài khoản quản lý
+     * @return thông tin tổ chức sau khi tạo
+     */
+    @Override
+    @Transactional
+    public OrganizationResponse createOrganization(
+            CreateOrganizationRequest request) {
 
-		return toResponse(organization);
-	}
+        log.info(
+                "Bắt đầu tạo organization với code={}",
+                request.getOrganizationCode()
+        );
 
-	private Organization createOrganizationEntity(CreateOrganizationRequest request) {
+        validateRequest(request);
 
-		log.debug("Đang lưu organization {}", request.getOrganizationCode());
-		Organization organization = new Organization();
+        Organization organization =
+                createOrganizationEntity(request);
 
-		organization.setName(request.getOrganizationName());
-		organization.setCode(request.getOrganizationCode());
-		organization.setType(request.getOrganizationType());
-		organization.setStatus(OrganizationStatus.ACTIVE);
-		organization.setAddress(request.getAddress());
-		organization.setPhone(request.getPhone());
-		organization.setEmail(request.getEmail());
+        User manager =
+                createManager(request);
 
-		Organization saved = organizationRepository.save(organization);
-		log.debug("Đã lưu organization id={}", saved.getOrganizationId());
+        log.debug(
+                "Đã tạo Organization id={}",
+                organization.getOrganizationId()
+        );
 
-		return saved;
-	}
+        log.debug(
+                "Đã tạo User username={}",
+                manager.getUserName()
+        );
 
-	private User createManager(CreateOrganizationRequest request) {
+        assignManagerRole(organization, manager);
 
-		log.debug("Đang tạo tài khoản quản lý {}", request.getUserName());
-		User manager = new User();
+        log.info(
+                "Tạo organization thành công. organizationId={}, manager={}",
+                organization.getOrganizationId(),
+                manager.getUserName()
+        );
 
-		manager.setUserName(request.getUserName());
-		manager.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-		manager.setFullName(request.getFullName());
-		manager.setPhone(request.getManagerPhone());
-		manager.setEmail(request.getManagerEmail());
-		manager.setStatus(UserStatus.ACTIVE);
+        return toResponse(organization);
+    }
 
-		User saved = userRepository.save(manager);
-		log.debug("Đã tạo user id={}", saved.getUserId());
+    private Organization createOrganizationEntity(
+            CreateOrganizationRequest request) {
 
-		return saved;
-	}
+        log.debug(
+                "Đang lưu organization {}",
+                request.getOrganizationCode()
+        );
 
-	private void assignManagerRole(Organization organization, User manager) {
+        Organization organization = new Organization();
 
-		Role role = getDefaultRole(organization.getType());
-		log.debug("Gán role {} cho user {} trong organization {}", role.getCode(), manager.getUserName(),
-				organization.getCode());
+        organization.setName(request.getOrganizationName());
+        organization.setCode(request.getOrganizationCode());
+        organization.setType(request.getOrganizationType());
+        organization.setStatus(OrganizationStatus.ACTIVE);
+        organization.setAddress(request.getAddress());
+        organization.setPhone(request.getPhone());
+        organization.setEmail(request.getEmail());
 
-		OrganizationUser link = new OrganizationUser();
-		link.setOrganization(organization);
-		link.setUser(manager);
-		link.setRole(role);
-		link.setStatus(OrganizationUserStatus.ACTIVE);
+        Organization saved =
+                organizationRepository.save(organization);
 
-		organizationUserRepository.save(link);
-		log.debug("Đã lưu OrganizationUser");
-	}
+        log.debug(
+                "Đã lưu organization id={}",
+                saved.getOrganizationId()
+        );
 
-	private void validateRequest(CreateOrganizationRequest request) {
+        return saved;
+    }
 
-		if (request.getOrganizationType() == OrganizationType.SYSTEM) {
-			log.warn("Yêu cầu tạo SYSTEM organization bị từ chối");
-			throw new BusinessException("Không thể tạo tổ chức System thông qua API này");
-		}
+    private User createManager(
+            CreateOrganizationRequest request) {
 
-		if (organizationRepository.existsByCode(request.getOrganizationCode())) {
-			log.warn("Organization code đã tồn tại: {}", request.getOrganizationCode());
-			throw new BusinessException("Organization code đã tồn tại");
-		}
+        log.debug(
+                "Đang tạo tài khoản quản lý {}",
+                request.getUserName()
+        );
 
-		if (userRepository.existsByUserName(request.getUserName())) {
-			log.warn("Username đã tồn tại: {}", request.getUserName());
-			throw new BusinessException("Username đã tồn tại");
-		}
+        User manager = new User();
 
-		if (userRepository.existsByEmail(request.getManagerEmail())) {
-			log.warn("Email đã tồn tại: {}", request.getManagerEmail());
-			throw new BusinessException("Email đã tồn tại");
-		}
+        manager.setUserName(request.getUserName());
+        manager.setPasswordHash(
+                passwordEncoder.encode(request.getPassword())
+        );
+        manager.setFullName(request.getFullName());
+        manager.setPhone(request.getManagerPhone());
+        manager.setEmail(request.getManagerEmail());
+        manager.setStatus(UserStatus.ACTIVE);
 
-	}
+        User saved =
+                userRepository.save(manager);
 
-	private String resolveManagerRoleCode(OrganizationType type) {
-		return switch (type) {
-		case SYSTEM -> RoleCode.ADMIN; // VT-01;
-		case COOPERATIVE -> RoleCode.ORG_MANAGER; // VT-02
-		case ENTERPRISE -> RoleCode.PROCUREMENT; // VT-04
-		case GOVERNMENT -> RoleCode.REGULATOR; // VT-05
+        log.debug(
+                "Đã tạo user id={}",
+                saved.getUserId()
+        );
 
-		};
-	}
+        return saved;
+    }
 
-	private Role getDefaultRole(OrganizationType type) {
-		String code = resolveManagerRoleCode(type);
-		log.debug("Tìm role mặc định với code={}", code);
+    private void assignManagerRole(
+            Organization organization,
+            User manager) {
 
-		return roleRepository.findByCode(code).orElseThrow(() -> {
-			log.error("Không tìm thấy role mặc định với code={}", code);
-			return new RuntimeException("Default role not found: " + code);
-		});
-	}
+        Role role =
+                getDefaultRole(organization.getType());
 
-	private OrganizationResponse toResponse(Organization organization) {
-		return new OrganizationResponse(organization.getOrganizationId(), organization.getName(),
-				organization.getCode(), organization.getType(), organization.getStatus(), organization.getCreatedAt());
-	}
+        log.debug(
+                "Gán role {} cho user {} trong organization {}",
+                role.getCode(),
+                manager.getUserName(),
+                organization.getCode()
+        );
 
-	// organization profile section
-	// helper
-	private UUID getCurrentOrganizationId() {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (auth == null || !auth.isAuthenticated()) {
-			throw new BusinessException("Chưa đăng nhập");
-		}
-		Object principal = auth.getPrincipal();
-		if (!(principal instanceof CustomUserDetails userDetails)) {
-			throw new BusinessException("Lỗi xác thực");
-		}
-		return userDetails.getOrganizationId();
-	}
+        OrganizationUser link =
+                new OrganizationUser();
 
-	// business methods
-	/**
-	 * Lấy thông tin hồ sơ tổ chức hiện tại
-	 */
-	@Override
-	public OrganizationProfileResponse getCurrentOrganizationProfile() {
-		UUID orgId = getCurrentOrganizationId();
-		Organization org = organizationRepository.findById(orgId)
-				.orElseThrow(() -> new BusinessException("Tổ chức không tồn tại"));
-		return toProfileResponse(org);
-	}
+        link.setOrganization(organization);
+        link.setUser(manager);
+        link.setRole(role);
+        link.setStatus(OrganizationUserStatus.ACTIVE);
 
-	@Override
-	@Transactional
-	public OrganizationProfileResponse updateCurrentOrganization(OrganizationUpdateRequest request) {
-		UUID orgId = getCurrentOrganizationId();
-		Organization org = organizationRepository.findById(orgId)
-				.orElseThrow(() -> new BusinessException("Tổ chức không tồn tại"));
+        organizationUserRepository.save(link);
 
-		org.setName(request.getName());
-		org.setAddress(request.getAddress());
-		org.setPhone(request.getPhone());
-		org.setEmail(request.getEmail());
-		org.setUpdatedAt(LocalDateTime.now());
+        log.debug("Đã lưu OrganizationUser");
+    }
 
-		organizationRepository.save(org);
+    private void validateRequest(
+            CreateOrganizationRequest request) {
 
-		log.info("Cập nhật hồ sở tổ chức thành công: orgId={}", orgId);
+        if (request.getOrganizationType()
+                == OrganizationType.SYSTEM) {
 
-		return toProfileResponse(org);
-	}
+            log.warn(
+                    "Yêu cầu tạo SYSTEM organization bị từ chối"
+            );
 
-	/**
-	 * (Admin only) Cập nhật bất kỳ tổ chức nào theo ID
-	 */
-	@Override
-	@Transactional
-	public OrganizationProfileResponse updateOrganizationById(UUID orgId, OrganizationUpdateRequest request) {
-		Organization org = organizationRepository.findById(orgId)
-				.orElseThrow(() -> new BusinessException("Tổ chức không tồn tại"));
+            throw new BusinessException(
+                    "Không thể tạo tổ chức System thông qua API này"
+            );
+        }
 
-		org.setName(request.getName());
-		org.setAddress(request.getAddress());
-		org.setPhone(request.getPhone());
-		org.setEmail(request.getEmail());
-		org.setUpdatedAt(LocalDateTime.now());
+        if (organizationRepository.existsByCode(
+                request.getOrganizationCode())) {
 
-		organizationRepository.save(org);
-		return toProfileResponse(org);
-	}
+            log.warn(
+                    "Organization code đã tồn tại: {}",
+                    request.getOrganizationCode()
+            );
 
-	// mapping
-	private OrganizationProfileResponse toProfileResponse(Organization org) {
+            throw new BusinessException(
+                    "Organization code đã tồn tại"
+            );
+        }
 
-		return OrganizationProfileResponse.builder()
-				.organizationId(org.getOrganizationId())
-				.name(org.getName())
-				.code(org.getCode())
-				.type(org.getType())
-				.status(org.getStatus())
-				.address(org.getAddress())
-				.phone(org.getPhone())
-				.email(org.getEmail())
-				.createdAt(org.getCreatedAt())
-				.updatedAt(org.getUpdatedAt())
-				.build();
-	}
+        if (userRepository.existsByUserName(
+                request.getUserName())) {
+
+            log.warn(
+                    "Username đã tồn tại: {}",
+                    request.getUserName()
+            );
+
+            throw new BusinessException(
+                    "Username đã tồn tại"
+            );
+        }
+
+        if (userRepository.existsByEmail(
+                request.getManagerEmail())) {
+
+            log.warn(
+                    "Email đã tồn tại: {}",
+                    request.getManagerEmail()
+            );
+
+            throw new BusinessException(
+                    "Email đã tồn tại"
+            );
+        }
+    }
+
+    private String resolveManagerRoleCode(
+            OrganizationType type) {
+
+        return switch (type) {
+            case SYSTEM -> RoleCode.ADMIN;
+            case COOPERATIVE -> RoleCode.ORG_MANAGER;
+            case ENTERPRISE -> RoleCode.PROCUREMENT;
+            case GOVERNMENT -> RoleCode.REGULATOR;
+        };
+    }
+
+    private Role getDefaultRole(
+            OrganizationType type) {
+
+        String code =
+                resolveManagerRoleCode(type);
+
+        log.debug(
+                "Tìm role mặc định với code={}",
+                code
+        );
+
+        return roleRepository.findByCode(code)
+                .orElseThrow(() -> {
+
+                    log.error(
+                            "Không tìm thấy role mặc định với code={}",
+                            code
+                    );
+
+                    return new RuntimeException(
+                            "Default role not found: " + code
+                    );
+                });
+    }
+
+    private OrganizationResponse toResponse(
+            Organization organization) {
+
+        return new OrganizationResponse(
+                organization.getOrganizationId(),
+                organization.getName(),
+                organization.getCode(),
+                organization.getType(),
+                organization.getStatus(),
+                organization.getCreatedAt()
+        );
+    }
+
+    /**
+     * Lấy ID tổ chức của người dùng đang đăng nhập.
+     */
+    private UUID getCurrentOrganizationId() {
+
+        Authentication auth =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new BusinessException("Chưa đăng nhập");
+        }
+
+        Object principal =
+                auth.getPrincipal();
+
+        if (!(principal instanceof CustomUserDetails userDetails)) {
+            throw new BusinessException("Lỗi xác thực");
+        }
+
+        return userDetails.getOrganizationId();
+    }
+
+    /**
+     * Lấy thông tin hồ sơ tổ chức hiện tại.
+     */
+    @Override
+    public OrganizationProfileResponse
+    getCurrentOrganizationProfile() {
+
+        UUID orgId =
+                getCurrentOrganizationId();
+
+        Organization org =
+                organizationRepository.findById(orgId)
+                        .orElseThrow(() ->
+                                new BusinessException(
+                                        "Tổ chức không tồn tại"
+                                )
+                        );
+
+        return toProfileResponse(org);
+    }
+
+    /**
+     * Cập nhật tổ chức hiện tại.
+     */
+    @Override
+    @Transactional
+    public OrganizationProfileResponse
+    updateCurrentOrganization(
+            OrganizationUpdateRequest request) {
+
+        UUID orgId =
+                getCurrentOrganizationId();
+
+        Organization org =
+                organizationRepository.findById(orgId)
+                        .orElseThrow(() ->
+                                new BusinessException(
+                                        "Tổ chức không tồn tại"
+                                )
+                        );
+
+        org.setName(request.getName());
+        org.setAddress(request.getAddress());
+        org.setPhone(request.getPhone());
+        org.setEmail(request.getEmail());
+        org.setUpdatedAt(LocalDateTime.now());
+
+        organizationRepository.save(org);
+
+        log.info(
+                "Cập nhật hồ sơ tổ chức thành công: orgId={}",
+                orgId
+        );
+
+        return toProfileResponse(org);
+    }
+
+    /**
+     * Admin cập nhật tổ chức theo ID.
+     */
+    @Override
+    @Transactional
+    public OrganizationProfileResponse
+    updateOrganizationById(
+            UUID orgId,
+            OrganizationUpdateRequest request) {
+
+        Organization org =
+                organizationRepository.findById(orgId)
+                        .orElseThrow(() ->
+                                new BusinessException(
+                                        "Tổ chức không tồn tại"
+                                )
+                        );
+
+        org.setName(request.getName());
+        org.setAddress(request.getAddress());
+        org.setPhone(request.getPhone());
+        org.setEmail(request.getEmail());
+        org.setUpdatedAt(LocalDateTime.now());
+
+        organizationRepository.save(org);
+
+        return toProfileResponse(org);
+    }
+
+    /**
+     * Chuyển Organization sang OrganizationProfileResponse.
+     */
+    private OrganizationProfileResponse toProfileResponse(
+            Organization org) {
+
+        return OrganizationProfileResponse.builder()
+                .organizationId(org.getOrganizationId())
+                .name(org.getName())
+                .code(org.getCode())
+                .type(org.getType())
+                .status(org.getStatus())
+                .address(org.getAddress())
+                .phone(org.getPhone())
+                .email(org.getEmail())
+                .createdAt(org.getCreatedAt())
+                .updatedAt(org.getUpdatedAt())
+                .build();
+    }
 }

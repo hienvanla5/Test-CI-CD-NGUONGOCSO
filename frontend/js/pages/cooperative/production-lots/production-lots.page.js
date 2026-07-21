@@ -8,49 +8,71 @@ import {
 } from "../../../core/storage.js";
 
 import {
-    getProductionLots
+    getProductionLots,
+    getFarmAreas,
+    getProductCategories,
+    updateProductionLot,
+    submitProductionLot
 } from "../../../services/production-lot.service.js";
 
 // ---- Auth check ----
 
 if (!requireAuth()) {
-    // redirected to login
+    throw new Error("User not authenticated.");
 }
 
 const user = getUser();
 
 if (!user || !user.roleCode) {
     window.location.href =
-        "/nguon-goc-so/frontend/pages/auth/login.html";
-
-    throw new Error("User not authenticated.");
-}
-
-const roleCode = user.roleCode;
-
-const allowedRoles = ["VT-01", "VT-02", "VT-03"];
-
-if (!allowedRoles.includes(roleCode)) {
-    document.getElementById("loadingState").style.display = "none";
-    document.getElementById("unauthorizedState").style.display = "flex";
-    document.getElementById("mainContent").style.display = "none";
+        "/frontend/pages/auth/login.html";
 
     throw new Error(
-        "Access denied: user does not have permission to access this page."
+        "User not authenticated."
+    );
+}
+
+const allowedRoles = [
+    "VT-01",
+    "VT-02",
+    "VT-03"
+];
+
+if (!allowedRoles.includes(user.roleCode)) {
+    document
+        .getElementById("loadingState")
+        .style.display = "none";
+
+    document
+        .getElementById("unauthorizedState")
+        .style.display = "flex";
+
+    document
+        .getElementById("mainContent")
+        .style.display = "none";
+
+    throw new Error(
+        "Access denied."
     );
 }
 
 // ---- Populate user info ----
 
 function populateUserInfo() {
-    var sidebarName =
-        document.getElementById("sidebarUserName");
+    const sidebarName =
+        document.getElementById(
+            "sidebarUserName"
+        );
 
-    var sidebarOrg =
-        document.getElementById("sidebarUserOrg");
+    const sidebarOrg =
+        document.getElementById(
+            "sidebarUserOrg"
+        );
 
-    var sidebarAvatar =
-        document.getElementById("sidebarUserAvatar");
+    const sidebarAvatar =
+        document.getElementById(
+            "sidebarUserAvatar"
+        );
 
     if (sidebarName) {
         sidebarName.textContent =
@@ -74,14 +96,20 @@ function populateUserInfo() {
             )[0].toUpperCase();
     }
 
-    var headerName =
-        document.getElementById("headerUserName");
+    const headerName =
+        document.getElementById(
+            "headerUserName"
+        );
 
-    var headerOrg =
-        document.getElementById("headerUserOrg");
+    const headerOrg =
+        document.getElementById(
+            "headerUserOrg"
+        );
 
-    var headerRole =
-        document.getElementById("headerUserRole");
+    const headerRole =
+        document.getElementById(
+            "headerUserRole"
+        );
 
     if (headerName) {
         headerName.textContent =
@@ -108,115 +136,59 @@ populateUserInfo();
 // ---- DOM references ----
 
 const loadingState =
-    document.getElementById("loadingState");
+    document.getElementById(
+        "loadingState"
+    );
 
 const errorState =
-    document.getElementById("errorState");
+    document.getElementById(
+        "errorState"
+    );
 
 const errorMessage =
-    document.getElementById("errorMessage");
+    document.getElementById(
+        "errorMessage"
+    );
 
 const retryButton =
-    document.getElementById("retryButton");
+    document.getElementById(
+        "retryButton"
+    );
 
 const mainContent =
-    document.getElementById("mainContent");
+    document.getElementById(
+        "mainContent"
+    );
 
 const emptyState =
-    document.getElementById("emptyState");
+    document.getElementById(
+        "emptyState"
+    );
 
 const productionLotsTable =
-    document.getElementById("productionLotsTable");
+    document.getElementById(
+        "productionLotsTable"
+    );
 
 const productionLotsTableBody =
-    document.getElementById("productionLotsTableBody");
-
-// Modal edit
-
-const editLotModal =
-    document.getElementById("editLotModal");
-
-const editLotOverlay =
-    document.getElementById("editLotOverlay");
-
-const closeEditLotButton =
-    document.getElementById("closeEditLotButton");
-
-const cancelEditLotButton =
-    document.getElementById("cancelEditLotButton");
-
-const editLotForm =
-    document.getElementById("editLotForm");
-
-const editLotMessage =
-    document.getElementById("editLotMessage");
-
-const editFields = {
-    id:
-        document.getElementById("editLotId"),
-
-    name:
-        document.getElementById("editLotName"),
-
-    farmAreaId:
-        document.getElementById("editFarmAreaId"),
-
-    productCategoryId:
-        document.getElementById(
-            "editProductCategoryId"
-        ),
-
-    expectedQuantity:
-        document.getElementById(
-            "editExpectedQuantity"
-        ),
-
-    plantingDate:
-        document.getElementById(
-            "editPlantingDate"
-        )
-};
+    document.getElementById(
+        "productionLotsTableBody"
+    );
 
 // ---- State ----
 
 let productionLots = [];
+let farmAreas = [];
+let productCategories = [];
+let editingLotId = null;
 
-const USE_MOCK_DATA = true;
-/*
- * Dữ liệu tạm cho 2 select.
- * Khi tích hợp backend, thay bằng API vùng trồng
- * và API danh mục nông sản.
- */
-const mockFarmAreas = [
-    {
-        id: "farm-001",
-        name: "Khu vực canh tác A1"
-    },
-    {
-        id: "farm-002",
-        name: "Khu vực canh tác B1"
-    }
-];
-
-const mockProductCategories = [
-    {
-        id: "category-001",
-        name: "Cà chua"
-    },
-    {
-        id: "category-002",
-        name: "Xoài Cát Chu"
-    }
-];
-
-// ---- Status helpers ----
+// ---- Helpers ----
 
 function getStatusBadgeClass(status) {
-    if (!status) {
-        return "status-badge-draft";
-    }
-
-    var lower = status.toLowerCase();
+    const lower =
+        String(
+            status || "draft"
+        ).toLowerCase();
 
     if (lower === "draft") {
         return "status-badge-draft";
@@ -250,135 +222,489 @@ function formatDate(dateStr) {
         return "—";
     }
 
-    var date = new Date(dateStr);
+    const date =
+        new Date(dateStr);
 
-    if (Number.isNaN(date.getTime())) {
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
         return dateStr;
     }
 
-    return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric"
-    });
+    return date.toLocaleDateString(
+        "en-US",
+        {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        }
+    );
 }
 
-function formatDateTime(dateStr) {
+function getDateInputValue(dateStr) {
     if (!dateStr) {
-        return "—";
+        return "";
     }
 
-    var date = new Date(dateStr);
+    return String(dateStr)
+        .substring(0, 10);
+}
 
-    if (Number.isNaN(date.getTime())) {
-        return dateStr;
+function getErrorMessage(
+    error,
+    fallbackMessage
+) {
+    if (!error) {
+        return fallbackMessage;
     }
 
-    return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric"
-    });
+    return (
+        error.message ||
+        fallbackMessage
+    );
+}
+
+function createOption(
+    value,
+    label,
+    selectedValue
+) {
+    const option =
+        document.createElement(
+            "option"
+        );
+
+    option.value = value;
+    option.textContent = label;
+
+    option.selected =
+        String(value) ===
+        String(selectedValue);
+
+    return option;
 }
 
 // ---- Render table ----
 
 function renderProductionLots(lots) {
-    if (!lots || lots.length === 0) {
-        emptyState.style.display = "flex";
-        productionLotsTable.style.display = "none";
+    if (
+        !lots ||
+        lots.length === 0
+    ) {
+        emptyState.style.display =
+            "flex";
+
+        productionLotsTable
+            .style.display = "none";
+
+        productionLotsTableBody
+            .innerHTML = "";
+
         return;
     }
 
-    emptyState.style.display = "none";
-    productionLotsTable.style.display = "table";
+    emptyState.style.display =
+        "none";
 
-    productionLotsTableBody.innerHTML = "";
+    productionLotsTable
+        .style.display = "table";
+
+    productionLotsTableBody
+        .innerHTML = "";
 
     lots.forEach(function (lot) {
-        var row =
-            document.createElement("tr");
+        const isDraft =
+            lot.status === "DRAFT";
 
-        var nameCell =
-            document.createElement("td");
+        const isEditing =
+            isDraft &&
+            String(editingLotId) ===
+                String(lot.id);
 
-        nameCell.textContent =
-            lot.name || "—";
+        const row =
+            document.createElement(
+                "tr"
+            );
 
-        var farmAreaCell =
-            document.createElement("td");
+        // NAME
 
-        farmAreaCell.textContent =
-            lot.farmAreaName || "—";
+        const nameCell =
+            document.createElement(
+                "td"
+            );
 
-        var categoryCell =
-            document.createElement("td");
+        if (isEditing) {
+            const nameInput =
+                document.createElement(
+                    "input"
+                );
 
-        categoryCell.textContent =
-            lot.productCategoryName || "—";
+            nameInput.type = "text";
 
-        var qtyCell =
-            document.createElement("td");
+            nameInput.className =
+                "inline-input";
 
-        qtyCell.textContent =
-            lot.expectedQuantity != null
-                ? lot.expectedQuantity
-                : "—";
+            nameInput.id =
+                `edit-name-${lot.id}`;
 
-        var dateCell =
-            document.createElement("td");
+            nameInput.value =
+                lot.name || "";
 
-        dateCell.textContent =
-            formatDate(lot.plantingDate);
-
-        var statusCell =
-            document.createElement("td");
-
-        var statusBadge =
-            document.createElement("span");
-
-        statusBadge.className =
-            "status-badge " +
-            getStatusBadgeClass(lot.status);
-
-        statusBadge.textContent =
-            lot.status || "DRAFT";
-
-        statusCell.appendChild(statusBadge);
-
-        var createdCell =
-            document.createElement("td");
-
-        createdCell.textContent =
-            formatDateTime(lot.createdAt);
-
-        var actionCell =
-            document.createElement("td");
-
-        var editButton =
-            document.createElement("button");
-
-        editButton.type = "button";
-
-        editButton.className =
-            "btn btn-secondary btn-edit-lot";
-
-        editButton.dataset.id = lot.id;
-        editButton.textContent = "Sửa";
-
-        var normalizedStatus =
-            String(lot.status || "")
-                .trim()
-                .toUpperCase();
-
-        if (normalizedStatus !== "DRAFT") {
-            editButton.disabled = true;
-
-            editButton.title =
-                "Chỉ có thể sửa lô ở trạng thái DRAFT";
+            nameCell.appendChild(
+                nameInput
+            );
+        } else {
+            nameCell.textContent =
+                lot.name || "—";
         }
 
-        actionCell.appendChild(editButton);
+        // FARM AREA
+
+        const farmAreaCell =
+            document.createElement(
+                "td"
+            );
+
+        if (isEditing) {
+            const farmAreaSelect =
+                document.createElement(
+                    "select"
+                );
+
+            farmAreaSelect.className =
+                "inline-input";
+
+            farmAreaSelect.id =
+                `edit-farm-${lot.id}`;
+
+            farmAreaSelect.appendChild(
+                createOption(
+                    "",
+                    "Select",
+                    lot.farmAreaId
+                )
+            );
+
+            farmAreas.forEach(
+                function (area) {
+                    farmAreaSelect
+                        .appendChild(
+                            createOption(
+                                area.id,
+                                area.name ||
+                                    "—",
+                                lot.farmAreaId
+                            )
+                        );
+                }
+            );
+
+            farmAreaCell.appendChild(
+                farmAreaSelect
+            );
+        } else {
+            farmAreaCell.textContent =
+                lot.farmAreaName ||
+                "—";
+        }
+
+        // PRODUCT CATEGORY
+
+        const categoryCell =
+            document.createElement(
+                "td"
+            );
+
+        if (isEditing) {
+            const categorySelect =
+                document.createElement(
+                    "select"
+                );
+
+            categorySelect.className =
+                "inline-input";
+
+            categorySelect.id =
+                `edit-category-${lot.id}`;
+
+            categorySelect.appendChild(
+                createOption(
+                    "",
+                    "Select",
+                    lot.productCategoryId
+                )
+            );
+
+            productCategories.forEach(
+                function (category) {
+                    categorySelect
+                        .appendChild(
+                            createOption(
+                                category.id,
+                                category.name ||
+                                    "—",
+                                lot.productCategoryId
+                            )
+                        );
+                }
+            );
+
+            categoryCell.appendChild(
+                categorySelect
+            );
+        } else {
+            categoryCell.textContent =
+                lot.productCategoryName ||
+                "—";
+        }
+
+        // EXPECTED QUANTITY
+
+        const qtyCell =
+            document.createElement(
+                "td"
+            );
+
+        if (isEditing) {
+            const quantityInput =
+                document.createElement(
+                    "input"
+                );
+
+            quantityInput.type =
+                "number";
+
+            quantityInput.min =
+                "0.01";
+
+            quantityInput.step =
+                "0.01";
+
+            quantityInput.className =
+                "inline-input";
+
+            quantityInput.id =
+                `edit-qty-${lot.id}`;
+
+            quantityInput.value =
+                lot.expectedQuantity ??
+                "";
+
+            qtyCell.appendChild(
+                quantityInput
+            );
+        } else {
+            qtyCell.textContent =
+                lot.expectedQuantity ??
+                "—";
+        }
+
+        // PLANTING DATE
+
+        const dateCell =
+            document.createElement(
+                "td"
+            );
+
+        if (isEditing) {
+            const dateInput =
+                document.createElement(
+                    "input"
+                );
+
+            dateInput.type = "date";
+
+            dateInput.className =
+                "inline-input";
+
+            dateInput.id =
+                `edit-date-${lot.id}`;
+
+            dateInput.value =
+                getDateInputValue(
+                    lot.plantingDate
+                );
+
+            dateCell.appendChild(
+                dateInput
+            );
+        } else {
+            dateCell.textContent =
+                formatDate(
+                    lot.plantingDate
+                );
+        }
+
+        // STATUS
+
+        const statusCell =
+            document.createElement(
+                "td"
+            );
+
+        if (isDraft) {
+            const statusButton =
+                document.createElement(
+                    "button"
+                );
+
+            statusButton.type =
+                "button";
+
+            statusButton.className =
+                "inline-status";
+
+            statusButton.dataset.submit =
+                lot.id;
+
+            statusButton.textContent =
+                "Draft";
+
+            statusButton.disabled =
+                isEditing;
+
+            statusButton.title =
+                isEditing
+                    ? "Hãy Save hoặc Cancel trước."
+                    : "Bấm để chuyển sang Pending.";
+
+            statusCell.appendChild(
+                statusButton
+            );
+        } else {
+            const statusBadge =
+                document.createElement(
+                    "span"
+                );
+
+            statusBadge.className =
+                `status-badge ${getStatusBadgeClass(
+                    lot.status
+                )}`;
+
+            statusBadge.textContent =
+                lot.status || "—";
+
+            statusCell.appendChild(
+                statusBadge
+            );
+        }
+
+        // CREATED
+
+        const createdCell =
+            document.createElement(
+                "td"
+            );
+
+        createdCell.textContent =
+            formatDate(
+                lot.createdAt
+            );
+
+        // ACTIONS
+
+        const actionsCell =
+            document.createElement(
+                "td"
+            );
+
+        if (!isDraft) {
+            const lockedText =
+                document.createElement(
+                    "span"
+                );
+
+            lockedText.className =
+                "action-locked";
+
+            lockedText.textContent =
+                "Locked";
+
+            lockedText.title =
+                "Lô Pending không được chỉnh sửa.";
+
+            actionsCell.appendChild(
+                lockedText
+            );
+        } else if (isEditing) {
+            const actionGroup =
+                document.createElement(
+                    "div"
+                );
+
+            actionGroup.className =
+                "action-buttons";
+
+            const saveButton =
+                document.createElement(
+                    "button"
+                );
+
+            saveButton.type =
+                "button";
+
+            saveButton.className =
+                "btn btn-primary btn-sm";
+
+            saveButton.dataset.save =
+                lot.id;
+
+            saveButton.textContent =
+                "Save";
+
+            const cancelButton =
+                document.createElement(
+                    "button"
+                );
+
+            cancelButton.type =
+                "button";
+
+            cancelButton.className =
+                "btn btn-secondary btn-sm";
+
+            cancelButton.dataset.cancel =
+                lot.id;
+
+            cancelButton.textContent =
+                "Cancel";
+
+            actionGroup.appendChild(
+                saveButton
+            );
+
+            actionGroup.appendChild(
+                cancelButton
+            );
+
+            actionsCell.appendChild(
+                actionGroup
+            );
+        } else {
+            const editButton =
+                document.createElement(
+                    "button"
+                );
+
+            editButton.type =
+                "button";
+
+            editButton.className =
+                "btn btn-secondary btn-sm";
+
+            editButton.dataset.edit =
+                lot.id;
+
+            editButton.textContent =
+                "Edit";
+
+            actionsCell.appendChild(
+                editButton
+            );
+        }
 
         row.appendChild(nameCell);
         row.appendChild(farmAreaCell);
@@ -387,300 +713,481 @@ function renderProductionLots(lots) {
         row.appendChild(dateCell);
         row.appendChild(statusCell);
         row.appendChild(createdCell);
-        row.appendChild(actionCell);
+        row.appendChild(actionsCell);
 
-        productionLotsTableBody.appendChild(row);
+        productionLotsTableBody
+            .appendChild(row);
     });
+
+    attachTableEvents();
 }
 
-// ---- Modal helpers ----
+// ---- Table events ----
 
-function fillSelect(
-    selectElement,
-    items,
-    placeholder
+function attachTableEvents() {
+    document
+        .querySelectorAll(
+            "[data-edit]"
+        )
+        .forEach(
+            function (button) {
+                button.addEventListener(
+                    "click",
+                    function () {
+                        const lot =
+                            productionLots.find(
+                                function (
+                                    item
+                                ) {
+                                    return (
+                                        String(
+                                            item.id
+                                        ) ===
+                                        String(
+                                            button
+                                                .dataset
+                                                .edit
+                                        )
+                                    );
+                                }
+                            );
+
+                        if (
+                            !lot ||
+                            lot.status !==
+                                "DRAFT"
+                        ) {
+                            alert(
+                                "Chỉ lô Draft mới được chỉnh sửa."
+                            );
+
+                            return;
+                        }
+
+                        editingLotId =
+                            button.dataset.edit;
+
+                        renderProductionLots(
+                            productionLots
+                        );
+                    }
+                );
+            }
+        );
+
+    document
+        .querySelectorAll(
+            "[data-cancel]"
+        )
+        .forEach(
+            function (button) {
+                button.addEventListener(
+                    "click",
+                    function () {
+                        editingLotId =
+                            null;
+
+                        renderProductionLots(
+                            productionLots
+                        );
+                    }
+                );
+            }
+        );
+
+    document
+        .querySelectorAll(
+            "[data-save]"
+        )
+        .forEach(
+            function (button) {
+                button.addEventListener(
+                    "click",
+                    async function () {
+                        await saveProductionLot(
+                            button.dataset.save,
+                            button
+                        );
+                    }
+                );
+            }
+        );
+
+    document
+        .querySelectorAll(
+            "[data-submit]"
+        )
+        .forEach(
+            function (button) {
+                button.addEventListener(
+                    "click",
+                    async function () {
+                        await handleSubmitProductionLot(
+                            button.dataset
+                                .submit,
+                            button
+                        );
+                    }
+                );
+            }
+        );
+}
+
+async function saveProductionLot(
+    id,
+    saveButton
 ) {
-    selectElement.innerHTML = "";
+    const lot =
+        productionLots.find(
+            function (item) {
+                return (
+                    String(item.id) ===
+                    String(id)
+                );
+            }
+        );
 
-    var defaultOption =
-        document.createElement("option");
+    if (
+        !lot ||
+        lot.status !== "DRAFT"
+    ) {
+        alert(
+            "Chỉ lô Draft mới được chỉnh sửa."
+        );
 
-    defaultOption.value = "";
-    defaultOption.textContent = placeholder;
-
-    selectElement.appendChild(defaultOption);
-
-    items.forEach(function (item) {
-        var option =
-            document.createElement("option");
-
-        option.value = item.id;
-        option.textContent = item.name;
-
-        selectElement.appendChild(option);
-    });
-}
-
-function loadEditSelectOptions() {
-    fillSelect(
-        editFields.farmAreaId,
-        mockFarmAreas,
-        "-- Chọn khu vực canh tác --"
-    );
-
-    fillSelect(
-        editFields.productCategoryId,
-        mockProductCategories,
-        "-- Chọn loại nông sản --"
-    );
-}
-
-function openEditLotModal(lotId) {
-    var lot = productionLots.find(
-        function (item) {
-            return item.id === lotId;
-        }
-    );
-
-    if (!lot) {
         return;
     }
 
-    loadEditSelectOptions();
+    const name =
+        document
+            .getElementById(
+                `edit-name-${id}`
+            )
+            .value
+            .trim();
 
-    editFields.id.value =
-        lot.id || "";
+    const farmAreaId =
+        document.getElementById(
+            `edit-farm-${id}`
+        ).value;
 
-    editFields.name.value =
-        lot.name || "";
+    const productCategoryId =
+        document.getElementById(
+            `edit-category-${id}`
+        ).value;
 
-    editFields.farmAreaId.value =
-        lot.farmAreaId || "";
+    const quantityValue =
+        document.getElementById(
+            `edit-qty-${id}`
+        ).value;
 
-    editFields.productCategoryId.value =
-        lot.productCategoryId || "";
+    const plantingDate =
+        document.getElementById(
+            `edit-date-${id}`
+        ).value;
 
-    editFields.expectedQuantity.value =
-        lot.expectedQuantity ?? "";
+    const expectedQuantity =
+        Number(quantityValue);
 
-    editFields.plantingDate.value =
-        lot.plantingDate || "";
-
-    editLotMessage.hidden = true;
-    editLotModal.hidden = false;
-
-    document.body.classList.add(
-        "modal-open"
-    );
-}
-
-function closeEditLotModal() {
-    editLotModal.hidden = true;
-
-    document.body.classList.remove(
-        "modal-open"
-    );
-
-    editLotForm.reset();
-    editLotMessage.hidden = true;
-}
-
-/*
- * Hiện tại chỉ chuẩn bị payload đúng API Docs.
- * Chưa gọi PUT vì chưa tích hợp API cập nhật.
- */
-function handleEditLotSubmit(event) {
-    event.preventDefault();
-
-    var lotId =
-        editFields.id.value;
-
-    var payload = {
-        farmAreaId:
-            editFields.farmAreaId.value,
-
-        productCategoryId:
-            editFields.productCategoryId.value,
-
-        name:
-            editFields.name.value.trim(),
-
-        expectedQuantity:
-            Number(
-                editFields.expectedQuantity.value
-            ),
-
-        plantingDate:
-            editFields.plantingDate.value
-    };
-
-    console.log(
-        "PUT /api/v1/production-lots/" + lotId
-    );
-
-    console.log(
-        "Update payload:",
-        payload
-    );
-
-    editLotMessage.textContent =
-        "Giao diện đã sẵn sàng. Dữ liệu cập nhật đã được tạo trong Console.";
-
-    editLotMessage.className =
-        "modal-message success";
-
-    editLotMessage.hidden = false;
-}
-
-// ---- Load production lots ----
-
-async function loadProductionLots() {
-    loadingState.style.display = "flex";
-    errorState.style.display = "none";
-    mainContent.style.display = "none";
-
-    try {
-        if (USE_MOCK_DATA) {
-    productionLots = [
-        {
-            id: "lot-001",
-            name: "Lô cà chua vụ đông 2026",
-            farmAreaId: "farm-001",
-            farmAreaName: "Khu vực canh tác A1",
-            productCategoryId: "category-001",
-            productCategoryName: "Cà chua",
-            expectedQuantity: 500,
-            plantingDate: "2026-08-01",
-            status: "DRAFT",
-            createdAt: "2026-07-21T10:00:00"
-        },
-        {
-            id: "lot-002",
-            name: "Lô xoài đợt 1 năm 2026",
-            farmAreaId: "farm-002",
-            farmAreaName: "Khu vực canh tác B1",
-            productCategoryId: "category-002",
-            productCategoryName: "Xoài Cát Chu",
-            expectedQuantity: 1200,
-            plantingDate: "2026-07-25",
-            status: "APPROVED",
-            createdAt: "2026-07-20T08:30:00"
-        }
-    ];
-} else {
-    const response =
-        await getProductionLots();
-
-    if (!response.success) {
-        throw new Error(
-            response.message ||
-            "Failed to load production lots."
+    if (
+        !name ||
+        !farmAreaId ||
+        !productCategoryId ||
+        !quantityValue ||
+        !plantingDate
+    ) {
+        alert(
+            "Vui lòng nhập đầy đủ thông tin."
         );
+
+        return;
     }
 
-    productionLots =
-        response.data || [];
+    if (
+        !Number.isFinite(
+            expectedQuantity
+        ) ||
+        expectedQuantity <= 0
+    ) {
+        alert(
+            "Sản lượng dự kiến phải lớn hơn 0."
+        );
+
+        return;
+    }
+
+    const updatedData = {
+        name,
+        farmAreaId,
+        productCategoryId,
+        expectedQuantity,
+        plantingDate
+    };
+
+    const oldText =
+        saveButton.textContent;
+
+    saveButton.disabled = true;
+
+    saveButton.textContent =
+        "Saving...";
+
+    try {
+        const response =
+            await updateProductionLot(
+                id,
+                updatedData
+            );
+
+        if (
+            !response ||
+            response.success === false
+        ) {
+            throw new Error(
+                response?.message ||
+                "Update failed."
+            );
+        }
+
+        editingLotId = null;
+
+        alert(
+            "Cập nhật lô sản xuất thành công."
+        );
+
+        await loadAllData();
+    } catch (error) {
+        console.error(
+            "Update production lot error:",
+            error
+        );
+
+        alert(
+            getErrorMessage(
+                error,
+                "Không thể cập nhật lô sản xuất."
+            )
+        );
+    } finally {
+        saveButton.disabled =
+            false;
+
+        saveButton.textContent =
+            oldText;
+    }
 }
 
-        loadingState.style.display = "none";
-        mainContent.style.display = "block";
+async function handleSubmitProductionLot(
+    id,
+    statusButton
+) {
+    const lot =
+        productionLots.find(
+            function (item) {
+                return (
+                    String(item.id) ===
+                    String(id)
+                );
+            }
+        );
+
+    if (
+        !lot ||
+        lot.status !== "DRAFT"
+    ) {
+        alert(
+            "Chỉ lô Draft mới được gửi duyệt."
+        );
+
+        return;
+    }
+
+    const confirmed =
+        window.confirm(
+            "Sau khi chuyển sang Pending, lô sản xuất sẽ không thể chỉnh sửa. Bạn có chắc chắn không?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    const oldText =
+        statusButton.textContent;
+
+    statusButton.disabled = true;
+
+    statusButton.textContent =
+        "Submitting...";
+
+    try {
+        const response =
+            await submitProductionLot(
+                id
+            );
+
+        if (
+            !response ||
+            response.success === false
+        ) {
+            throw new Error(
+                response?.message ||
+                "Submit failed."
+            );
+        }
+
+        editingLotId = null;
+
+        alert(
+            "Đã chuyển lô sản xuất sang Pending."
+        );
+
+        await loadAllData();
+    } catch (error) {
+        console.error(
+            "Submit production lot error:",
+            error
+        );
+
+        alert(
+            getErrorMessage(
+                error,
+                "Không thể chuyển sang Pending."
+            )
+        );
+    } finally {
+        statusButton.disabled =
+            false;
+
+        statusButton.textContent =
+            oldText;
+    }
+}
+
+// ---- Load data ----
+
+async function loadAllData() {
+    loadingState.style.display =
+        "flex";
+
+    errorState.style.display =
+        "none";
+
+    mainContent.style.display =
+        "none";
+
+    try {
+        const [
+            lotsResponse,
+            farmAreasResponse,
+            categoriesResponse
+        ] = await Promise.all([
+            getProductionLots(),
+            getFarmAreas(),
+            getProductCategories()
+        ]);
+
+        if (
+            !lotsResponse ||
+            lotsResponse.success === false
+        ) {
+            throw new Error(
+                lotsResponse?.message ||
+                "Failed to load production lots."
+            );
+        }
+
+        productionLots =
+            lotsResponse.data || [];
+
+        farmAreas =
+            farmAreasResponse
+                ?.success === false
+                ? []
+                : (
+                    farmAreasResponse
+                        ?.data || []
+                );
+
+        productCategories =
+            categoriesResponse
+                ?.success === false
+                ? []
+                : (
+                    categoriesResponse
+                        ?.data || []
+                );
+
+        loadingState.style.display =
+            "none";
+
+        mainContent.style.display =
+            "block";
 
         renderProductionLots(
             productionLots
         );
     } catch (error) {
         console.error(
-            "Load production lots error:",
+            "Load production lot data error:",
             error
         );
 
-        loadingState.style.display = "none";
-        mainContent.style.display = "none";
+        loadingState.style.display =
+            "none";
 
-        var message =
-            error.message ||
-            "An unexpected error occurred while loading production lots.";
+        mainContent.style.display =
+            "none";
+
+        let message =
+            getErrorMessage(
+                error,
+                "An unexpected error occurred."
+            );
 
         if (
-            message.indexOf("404") !== -1 ||
+            message.includes("404") ||
             message
                 .toLowerCase()
-                .indexOf("not found") !== -1
+                .includes("not found")
         ) {
-            mainContent.style.display = "block";
+            mainContent.style.display =
+                "block";
+
             renderProductionLots([]);
+
             return;
         }
 
-        if (message.indexOf("403") !== -1) {
+        if (
+            message.includes("403")
+        ) {
             message =
                 "You do not have permission to view production lots.";
         }
 
-        errorMessage.textContent = message;
-        errorState.style.display = "flex";
+        errorMessage.textContent =
+            message;
+
+        errorState.style.display =
+            "flex";
     }
 }
 
-// ---- Events ----
+// ---- Retry ----
 
 if (retryButton) {
     retryButton.addEventListener(
         "click",
-        loadProductionLots
+        function () {
+            loadAllData();
+        }
     );
 }
 
-productionLotsTableBody.addEventListener(
-    "click",
-    function (event) {
-        var editButton =
-            event.target.closest(
-                ".btn-edit-lot"
-            );
-
-        if (!editButton) {
-            return;
-        }
-
-        openEditLotModal(
-            editButton.dataset.id
-        );
-    }
-);
-
-editLotForm.addEventListener(
-    "submit",
-    handleEditLotSubmit
-);
-
-closeEditLotButton.addEventListener(
-    "click",
-    closeEditLotModal
-);
-
-cancelEditLotButton.addEventListener(
-    "click",
-    closeEditLotModal
-);
-
-editLotOverlay.addEventListener(
-    "click",
-    closeEditLotModal
-);
-
-document.addEventListener(
-    "keydown",
-    function (event) {
-        if (
-            event.key === "Escape" &&
-            !editLotModal.hidden
-        ) {
-            closeEditLotModal();
-        }
-    }
-);
+// ---- Setup logout ----
 
 setupLogout();
 
-loadProductionLots();
+// ---- Initial load ----
+
+loadAllData();

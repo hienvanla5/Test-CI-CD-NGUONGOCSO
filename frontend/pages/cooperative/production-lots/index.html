@@ -56,19 +56,19 @@
 
             <nav class="sidebar-menu">
 
-                <a href="/nguon-goc-so/frontend/pages/cooperative/dashboard.html">
+                <a href="/frontend/pages/cooperative/dashboard.html">
                     Dashboard
                 </a>
 
-                <a href="/nguon-goc-so/frontend/pages/cooperative/farm-areas/index.html">
+                <a href="/frontend/pages/cooperative/farm-areas/index.html">
                     Farm Areas
                 </a>
 
-                <a href="/nguon-goc-so/frontend/pages/cooperative/production-lots/index.html" class="active">
+                <a href="/frontend/pages/cooperative/production-lots/index.html" class="active">
                     Production Lots
                 </a>
 
-                <a href="/nguon-goc-so/frontend/pages/cooperative/profile.html">
+                <a href="/frontend/pages/cooperative/profile.html">
                     Organization Profile
                 </a>
 
@@ -118,8 +118,7 @@
                 </div>
 
             </header>
-
-            <section class="dashboard-content">
+<section class="dashboard-content">
 
                 <!-- Loading State -->
                 <div id="loadingState" class="state-container" style="display: none;">
@@ -154,7 +153,7 @@
                         </svg>
                     </div>
                     <p class="state-text state-error-text">You do not have permission to access this page.</p>
-                    <a href="/nguon-goc-so/frontend/pages/auth/login.html" class="btn btn-secondary">Back to Login</a>
+                    <a href="/frontend/pages/auth/login.html" class="btn btn-secondary">Back to Login</a>
                 </div>
 
                 <!-- Main Content -->
@@ -163,9 +162,20 @@
                     <div class="production-lots-header">
                         <h2>All Production Lots</h2>
                         <div class="production-lots-header-actions">
-                            <a href="/nguon-goc-so/frontend/pages/cooperative/production-lots/create.html" class="btn btn-primary">
+                            <input
+                                type="text"
+                                id="searchProductionLot"
+                                class="table-search"
+                                placeholder="Search production lot...">
+
+                            <a
+                                href="/frontend/pages/cooperative/production-lots/create.html"
+                                class="btn btn-primary">
+
                                 + New
+
                             </a>
+
                         </div>
                     </div>
 
@@ -174,7 +184,7 @@
                         <!-- Empty State -->
                         <div id="emptyState" class="empty-state-container" style="display: none;">
                             <div class="empty-state-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                                     <polyline points="14 2 14 8 20 8" />
                                     <line x1="12" y1="18" x2="12" y2="12" />
@@ -183,7 +193,7 @@
                             </div>
                             <p class="empty-state-text">No production lots yet</p>
                             <p class="empty-state-hint">Create your first production lot to get started.</p>
-                            <a href="/nguon-goc-so/frontend/pages/cooperative/production-lots/create.html" class="btn btn-primary">
+                            <a href="/frontend/pages/cooperative/production-lots/create.html" class="btn btn-primary">
                                 + New Production Lot
                             </a>
                         </div>
@@ -217,161 +227,41 @@
         </main>
 
     </div>
+    <div id="confirmModal" class="modal-overlay" style="display:none;">
 
-    <script
-        type="module"
-        src="../../../js/pages/cooperative/production-lots/production-lots.page.js">
-    </script>
-    
-<div id="editLotModal" class="modal" hidden>
-    <div id="editLotOverlay" class="modal__overlay"></div>
+        <div class="modal">
 
-    <section
-        class="modal__content"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="editLotTitle"
-    >
-        <header class="modal__header">
-            <div>
-                <h2 id="editLotTitle">Sửa lô sản xuất</h2>
-                <p>Cập nhật thông tin lô sản xuất</p>
-            </div>
+            <h3 id="modalTitle">
+                Confirm
+            </h3>
 
-            <button
-                id="closeEditLotButton"
-                class="modal__close"
-                type="button"
-            >
-                ×
-            </button>
-        </header>
+            <p id="modalMessage">
+                Are you sure?
+            </p>
 
-        <div
-            id="editLotMessage"
-            class="modal-message"
-            hidden
-        ></div>
+            <div class="modal-actions">
 
-        <form id="editLotForm" novalidate>
-            <input id="editLotId" type="hidden">
-
-            <div class="modal-form-grid">
-                <div class="form-group">
-                    <label for="editLotName">
-                        Tên lô sản xuất
-                        <span>*</span>
-                    </label>
-
-                    <input
-                        id="editLotName"
-                        type="text"
-                        maxlength="255"
-                        required
-                    >
-
-                    <small
-                        id="editLotNameError"
-                        class="field-error"
-                    ></small>
-                </div>
-
-                <div class="form-group">
-                    <label for="editFarmAreaId">
-                        Khu vực canh tác
-                        <span>*</span>
-                    </label>
-
-                    <select id="editFarmAreaId" required>
-                        <option value="">
-                            -- Chọn khu vực canh tác --
-                        </option>
-                    </select>
-
-                    <small
-                        id="editFarmAreaIdError"
-                        class="field-error"
-                    ></small>
-                </div>
-
-                <div class="form-group">
-                    <label for="editProductCategoryId">
-                        Loại nông sản
-                        <span>*</span>
-                    </label>
-
-                    <select id="editProductCategoryId" required>
-                        <option value="">
-                            -- Chọn loại nông sản --
-                        </option>
-                    </select>
-
-                    <small
-                        id="editProductCategoryIdError"
-                        class="field-error"
-                    ></small>
-                </div>
-
-                <div class="form-group">
-                    <label for="editExpectedQuantity">
-                        Sản lượng dự kiến
-                        <span>*</span>
-                    </label>
-
-                    <input
-                        id="editExpectedQuantity"
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        required
-                    >
-
-                    <small
-                        id="editExpectedQuantityError"
-                        class="field-error"
-                    ></small>
-                </div>
-
-                <div class="form-group modal-form-grid__full">
-                    <label for="editPlantingDate">
-                        Ngày xuống giống
-                        <span>*</span>
-                    </label>
-
-                    <input
-                        id="editPlantingDate"
-                        type="date"
-                        required
-                    >
-
-                    <small
-                        id="editPlantingDateError"
-                        class="field-error"
-                    ></small>
-                </div>
-            </div>
-
-            <footer class="modal__actions">
                 <button
-                    id="cancelEditLotButton"
-                    class="btn btn-secondary"
-                    type="button"
-                >
-                    Hủy
+                    id="modalCancel"
+                    class="btn btn-secondary">
+
+                    Cancel
+
                 </button>
 
                 <button
-                    id="updateEditLotButton"
-                    class="btn btn-primary"
-                    type="submit"
-                >
-                    Cập nhật
-                </button>
-            </footer>
-        </form>
-    </section>
-</div>
+                    id="modalConfirm"
+                    class="btn btn-primary">
 
+                    Confirm
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
     <script
         type="module"
         src="../../../js/pages/cooperative/production-lots/production-lots.page.js">
