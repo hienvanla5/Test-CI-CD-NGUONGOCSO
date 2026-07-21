@@ -20,6 +20,9 @@ import vn.nguongocso.farm.repository.FarmLogRepository;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.farm.service.FarmLogService;
 
+/**
+ * Triển khai dịch vụ quản lý nhật ký canh tác.
+ */
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -28,6 +31,12 @@ public class FarmLogServiceImpl implements FarmLogService {
 	private final FarmLogRepository farmLogRepository;
 	private final ProductionLotRepository productionLotRepository;
 
+    /**
+     * Tạo nhật ký canh tác.
+     *
+     * @param request thông tin nhật ký
+     * @return thông tin nhật ký đã tạo
+     */
 	@Override
 	public FarmLogResponse create(CreateFarmLogRequest request) {
 
