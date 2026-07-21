@@ -8,9 +8,9 @@ import {
 } from "../../../core/storage.js";
 
 import {
-    getProductionLots
+    getProductionLots,
+    updateProductionLot
 } from "../../../services/production-lot.service.js";
-
 // ---- Auth check ----
 
 if (!requireAuth()) {
@@ -74,6 +74,7 @@ const productionLotsTableBody = document.getElementById("productionLotsTableBody
 // ---- State ----
 
 let productionLots = [];
+let editingLotId = null;
 
 // ---- Status helpers ----
 
@@ -86,7 +87,7 @@ function getStatusBadgeClass(status) {
     if (lower === "pending") return "status-badge-pending";
     if (lower === "approved") return "status-badge-approved";
     if (lower === "harvested") return "status-badge-harvested";
-    if (lower === "packaged") return "status-badge-packaged";
+if (lower === "packaged") return "status-badge-packaged";
     if (lower === "closed") return "status-badge-closed";
 
     return "status-badge-draft";
@@ -131,35 +132,84 @@ function renderProductionLots(lots) {
 
     emptyState.style.display = "none";
     productionLotsTable.style.display = "table";
-
     productionLotsTableBody.innerHTML = "";
 
     lots.forEach(function (lot) {
-        var row = document.createElement("tr");
+        const isEditing = editingLotId === lot.id;
+        const row = document.createElement("tr");
 
-        var nameCell = document.createElement("td");
-        nameCell.textContent = lot.name || "—";
+        // NAME
+        const nameCell = document.createElement("td");
+        nameCell.innerHTML = isEditing
+            ? `<input type="text" class="inline-input" value="${lot.name || ''}" id="edit-name-${lot.id}">`
+            : (lot.name || "—");
 
-        var farmAreaCell = document.createElement("td");
-        farmAreaCell.textContent = lot.farmAreaName || "—";
+        // FARM AREA
+        const farmAreaCell = document.createElement("td");
+        farmAreaCell.innerHTML = isEditing
+            ? `<input type="text" class="inline-input" value="${lot.farmAreaName || ''}" id="edit-farm-${lot.id}">`
+            : (lot.farmAreaName || "—");
 
-        var categoryCell = document.createElement("td");
-        categoryCell.textContent = lot.productCategoryName || "—";
+        // PRODUCT CATEGORY
+        const categoryCell = document.createElement("td");
+        categoryCell.innerHTML = isEditing
+            ? `<input type="text" class="inline-input" value="${lot.productCategoryName || ''}" id="edit-category-${lot.id}">`
+            : (lot.productCategoryName || "—");
 
-        var qtyCell = document.createElement("td");
-        qtyCell.textContent = lot.expectedQuantity != null ? lot.expectedQuantity : "—";
+        // EXPECTED QUANTITY
+        const qtyCell = document.createElement("td");
+        qtyCell.innerHTML = isEditing
+            ? `<input type="number" class="inline-input" value="${lot.expectedQuantity || ''}" id="edit-qty-${lot.id}">`
+            : (lot.expectedQuantity != null ? lot.expectedQuantity : "—");
 
-        var dateCell = document.createElement("td");
-        dateCell.textContent = formatDate(lot.plantingDate);
+        // PLANTING DATE
+        const dateCell = document.createElement("td");
+        dateCell.innerHTML = isEditing
+            ? `<input type="date" class="inline-input" value="${lot.plantingDate || ''}" id="edit-date-${lot.id}">`
+            : formatDate(lot.plantingDate);
 
-        var statusCell = document.createElement("td");
-        var statusBadge = document.createElement("span");
-        statusBadge.className = "status-badge " + getStatusBadgeClass(lot.status);
-        statusBadge.textContent = lot.status || "DRAFT";
-        statusCell.appendChild(statusBadge);
+        // STATUS
+        const statusCell = document.createElement("td");
+        if (lot.status === "DRAFT") {
+            statusCell.innerHTML = `
+                <button
+                    class="inline-status"
+                    data-id="${lot.id}">
+                    Draft
+                </button>
+            `;
+        } else {
+            statusCell.innerHTML = `
+                <span class="status-badge ${getStatusBadgeClass(lot.status)}">
+                    ${lot.status}
+                </span>
+            `;
+        }
 
-        var createdCell = document.createElement("td");
+        // CREATED
+        const createdCell = document.createElement("td");
         createdCell.textContent = formatDateTime(lot.createdAt);
+
+        // ACTIONS
+        const actionsCell = document.createElement("td");
+
+        if (isEditing) {
+           actionsCell.innerHTML = `
+                <div class="action-buttons">
+                    <button class="btn btn-primary btn-sm" data-save="${lot.id}">
+                        Save
+                    </button>
+
+                    <button class="btn btn-secondary btn-sm" data-cancel="${lot.id}">
+                        Cancel
+                    </button>
+                </div>
+            `;
+        } else {
+            actionsCell.innerHTML = `
+                <button class="btn btn-secondary btn-sm" data-edit="${lot.id}">Edit</button>
+            `;
+        }
 
         row.appendChild(nameCell);
         row.appendChild(farmAreaCell);
@@ -168,9 +218,103 @@ function renderProductionLots(lots) {
         row.appendChild(dateCell);
         row.appendChild(statusCell);
         row.appendChild(createdCell);
+        row.appendChild(actionsCell);
 
         productionLotsTableBody.appendChild(row);
     });
+
+    attachTableEvents();
+}
+function attachTableEvents() {
+
+    // EDIT
+    document.querySelectorAll("[data-edit]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            editingLotId = btn.dataset.edit;
+            renderProductionLots(productionLots);
+        });
+    });
+
+    // CANCEL
+    document.querySelectorAll("[data-cancel]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            editingLotId = null;
+            renderProductionLots(productionLots);
+        });
+    });
+
+    // SAVE
+    document.querySelectorAll("[data-save]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const id = btn.dataset.save;
+
+            const updatedData = {
+                name: document.getElementById(`edit-name-${id}`).value,
+                farmAreaName: document.getElementById(`edit-farm-${id}`).value,
+                productCategoryName: document.getElementById(`edit-category-${id}`).value,
+                expectedQuantity: Number(document.getElementById(`edit-qty-${id}`).value),
+                plantingDate: document.getElementById(`edit-date-${id}`).value
+            };
+
+            try {
+                const response = await updateProductionLot(id, updatedData);
+
+                if (!response.success) {
+                    throw new Error(response.message || "Update failed");
+                }
+
+                // cập nhật local state
+                const index = productionLots.findIndex(l => l.id == id);
+                if (index > -1) {
+                    productionLots[index] = {
+                        ...productionLots[index],
+                        ...updatedData
+                    };
+                }
+
+                editingLotId = null;
+                renderProductionLots(productionLots);
+
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    });
+
+    // STATUS CHANGE
+    document.querySelectorAll(".inline-status").forEach(button => {
+    button.addEventListener("click", async () => {
+
+        const id = button.dataset.id;
+
+        // Trạng thái sau khi bấm
+        const newStatus = "PENDING";   // hoặc APPROVED
+
+        try {
+
+            const response = await updateProductionLot(id, {
+                status: newStatus
+            });
+
+            if (!response.success) {
+                throw new Error(response.message || "Update status failed");
+            }
+
+            const index = productionLots.findIndex(l => l.id == id);
+
+            if (index > -1) {
+                productionLots[index].status = newStatus;
+            }
+
+            renderProductionLots(productionLots);
+
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+
+    });
+});
 }
 
 // ---- Load production lots ----
@@ -188,8 +332,7 @@ async function loadProductionLots() {
         }
 
         productionLots = response.data || [];
-
-        loadingState.style.display = "none";
+loadingState.style.display = "none";
         mainContent.style.display = "block";
 
         renderProductionLots(productionLots);

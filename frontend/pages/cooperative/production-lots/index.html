@@ -118,8 +118,7 @@
                 </div>
 
             </header>
-
-            <section class="dashboard-content">
+<section class="dashboard-content">
 
                 <!-- Loading State -->
                 <div id="loadingState" class="state-container" style="display: none;">
@@ -163,9 +162,20 @@
                     <div class="production-lots-header">
                         <h2>All Production Lots</h2>
                         <div class="production-lots-header-actions">
-                            <a href="/frontend/pages/cooperative/production-lots/create.html" class="btn btn-primary">
+                            <input
+                                type="text"
+                                id="searchProductionLot"
+                                class="table-search"
+                                placeholder="Search production lot...">
+
+                            <a
+                                href="/frontend/pages/cooperative/production-lots/create.html"
+                                class="btn btn-primary">
+
                                 + New
+
                             </a>
+
                         </div>
                     </div>
 
@@ -174,7 +184,7 @@
                         <!-- Empty State -->
                         <div id="emptyState" class="empty-state-container" style="display: none;">
                             <div class="empty-state-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                                     <polyline points="14 2 14 8 20 8" />
                                     <line x1="12" y1="18" x2="12" y2="12" />
@@ -200,6 +210,7 @@
                                         <th>Planting Date</th>
                                         <th>Status</th>
                                         <th>Created</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="productionLotsTableBody">
@@ -216,7 +227,41 @@
         </main>
 
     </div>
+    <div id="confirmModal" class="modal-overlay" style="display:none;">
 
+        <div class="modal">
+
+            <h3 id="modalTitle">
+                Confirm
+            </h3>
+
+            <p id="modalMessage">
+                Are you sure?
+            </p>
+
+            <div class="modal-actions">
+
+                <button
+                    id="modalCancel"
+                    class="btn btn-secondary">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    id="modalConfirm"
+                    class="btn btn-primary">
+
+                    Confirm
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
     <script
         type="module"
         src="../../../js/pages/cooperative/production-lots/production-lots.page.js">

@@ -245,3 +245,94 @@
         width: 100%;
     }
 }
+/* ===== Inline Input ===== */
+
+.inline-input {
+    width: 100%;
+    padding: 8px 10px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    font-size: 14px;
+    background: #fff;
+}
+
+.inline-input:focus {
+    outline: none;
+
+    border-color: #3b82f6;
+
+    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+}
+/* ===== Status Dropdown ===== */
+
+.inline-status{
+    appearance:none !important;
+    -webkit-appearance:none !important;
+    -moz-appearance:none !important;
+
+    background:#60A5FA !important;
+    color:#fff !important;
+
+    border:none !important;
+    outline:none;
+
+    border-radius:8px;
+
+    min-width:80px;
+    height:34px;
+    padding:0 14px;
+
+    font-weight:600;
+
+    cursor:pointer;
+}
+.inline-status:hover{
+
+    background:#3B82F6;
+
+    transform:translateY(-1px);
+
+    box-shadow:0 4px 12px rgba(59,130,246,.25);
+}
+.inline-status:active{
+
+    background:#2563EB;
+
+    transform:scale(.98);
+}
+.inline-status:focus{
+
+    outline:none;
+
+    box-shadow:0 0 0 3px rgba(59,130,246,.25);
+}
+.inline-status::-ms-expand{
+    display:none;
+}
+/* ===== Action Buttons ===== */
+
+.action-buttons{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    white-space:nowrap;
+}
+
+.action-buttons .btn{
+    margin:0;
+}
+
+.btn-sm{
+    min-width:72px;
+    height:36px;
+
+    padding:0 16px;
+
+    border-radius:8px;
+
+    font-size:14px;
+    font-weight:600;
+}
