@@ -208,3 +208,17 @@ ON farm_logs(created_by);
 
 CREATE INDEX idx_farm_logs_executed_date
 ON farm_logs(executed_date);
+
+CREATE TABLE farm_log_attachments (
+                                      id CHAR(36) PRIMARY KEY,
+                                      farm_log_id CHAR(36) NOT NULL,
+                                      file_name VARCHAR(255) NOT NULL,
+                                      file_size BIGINT NOT NULL,
+                                      file_type VARCHAR(100) NOT NULL,
+                                      file_path VARCHAR(500) NOT NULL,
+                                      description TEXT,
+                                      uploaded_by CHAR(36) NOT NULL,
+                                      uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                      FOREIGN KEY (farm_log_id) REFERENCES farm_logs(id),
+                                      FOREIGN KEY (uploaded_by) REFERENCES users(user_id)
+);
