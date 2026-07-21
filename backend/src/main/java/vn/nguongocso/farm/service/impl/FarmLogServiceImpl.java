@@ -30,6 +30,7 @@ public class FarmLogServiceImpl implements FarmLogService {
 
 	private final FarmLogRepository farmLogRepository;
 	private final ProductionLotRepository productionLotRepository;
+	private static final String EVENT_RECORDER_ROLE = "VT-03";
 
     /**
      * Tạo nhật ký canh tác.
@@ -41,12 +42,14 @@ public class FarmLogServiceImpl implements FarmLogService {
 	public FarmLogResponse create(CreateFarmLogRequest request) {
 
 		CustomUserDetails currentUser = getCurrentUser();
+		
+		validateRole(currentUser);
 
 		ProductionLot productionLot = getProductionLot(request.getProductionLotId());
 		
 		validateProductionLotStatus(productionLot);
 		
-		validatePermission(currentUser, productionLot);
+		validateOrganizationAccess(currentUser, productionLot);
 
 		FarmLog farmLog = buildFarmLog(request, productionLot, currentUser.getUser());
 
@@ -92,19 +95,33 @@ public class FarmLogServiceImpl implements FarmLogService {
 	            .build();
 	}
 
-	private void validatePermission(CustomUserDetails currentUser, ProductionLot productionLot) {
+	private void validateOrganizationAccess(
+	        CustomUserDetails currentUser,
+	        ProductionLot productionLot) {
 
-		if (!productionLot.getFarmArea().getOrganization().getOrganizationId()
-				.equals(currentUser.getOrganizationId())) {
+	    if (!productionLot.getFarmArea()
+	            .getOrganization()
+	            .getOrganizationId()
+	            .equals(currentUser.getOrganizationId())) {
 
-			throw new BusinessException("Bạn không có quyền ghi nhật ký cho lô sản xuất này");
-		}
+	        throw new BusinessException(
+	            "Bạn không thuộc tổ chức của lô sản xuất.");
+	    }
+	}
+	
+	private void validateRole(CustomUserDetails currentUser) {
+	    if (!EVENT_RECORDER_ROLE.equals(currentUser.getRoleCode())) {
+	        throw new BusinessException("Bạn không có quyền ghi nhật ký canh tác.");
+	    }
 	}
 	
 	private void validateProductionLotStatus(ProductionLot productionLot) {
 
-	    if (productionLot.getStatus() != ProductionLotStatus.APPROVED) {
-	        throw new BusinessException("Lô sản xuất chưa được duyệt.");
+	    if (productionLot.getStatus() != ProductionLotStatus.APPROVED
+	            && productionLot.getStatus() != ProductionLotStatus.HARVESTED) {
+
+	        throw new BusinessException(
+	                "Chỉ được ghi nhật ký cho lô đã duyệt hoặc đang thu hoạch.");
 	    }
 	}
 }
