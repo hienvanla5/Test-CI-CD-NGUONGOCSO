@@ -10,6 +10,9 @@ import lombok.Getter;
 import lombok.Setter;
 import vn.nguongocso.farm.enums.FarmActivityType;
 
+/**
+ * Yêu cầu tạo nhật ký canh tác.
+ */
 @Getter
 @Setter
 public class CreateFarmLogRequest {
