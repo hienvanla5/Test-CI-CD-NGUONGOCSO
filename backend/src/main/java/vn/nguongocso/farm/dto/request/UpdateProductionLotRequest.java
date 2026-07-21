@@ -3,7 +3,6 @@ package vn.nguongocso.farm.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,13 +18,12 @@ public class UpdateProductionLotRequest {
     private UUID farmAreaId;
 
     @NotNull(message = "Vui lòng chọn loại nông sản !")
-    private UUID productionId;
+    private UUID productCategoryId;
 
     @NotNull(message = "Vui lòng nhập sản lượng dự kiến !")
     @Positive(message = "Sản lượng dự kiến phải >0 !")
     private double expectedQuantity;
 
     @NotNull(message = "Ngày xuống giống không được để trống !")
-    private LocalDate planningDate;
-
- }
+    private LocalDate plantingDate;
+}
