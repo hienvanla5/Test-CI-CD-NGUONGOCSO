@@ -2,6 +2,8 @@ package vn.nguongocso.farm.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import vn.nguongocso.auth.entity.User;
 
 import java.time.LocalDateTime;
@@ -17,6 +19,8 @@ import java.util.UUID;
 public class FarmLogAttachment {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,6 +39,7 @@ public class FarmLogAttachment {
     @Column(name = "file_path", nullable = false)
     private String filePath;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
