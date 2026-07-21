@@ -78,8 +78,10 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(AccessDeniedException.class)
 	public ResponseEntity<ApiResult<Void>> handleAccessDenied(AccessDeniedException e, HttpServletRequest request) {
-
-		return build(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện chức năng này", null, request);
+		String message = (e.getMessage() != null && !e.getMessage().isEmpty())
+				? e.getMessage()
+				: "Bạn không có quyền thực hiện chức năng này";
+		return build(HttpStatus.FORBIDDEN, message, null, request);
 	}
 
 	/**
@@ -147,12 +149,4 @@ public class GlobalExceptionHandler {
 
 	}
 
-	//Loi khong co quyen truy cap (403)
-	@ExceptionHandler(AccessDeniedException.class)
-	public ResponseEntity<ApiResult<Void>> handleAccessDined(AccessDeniedException e, HttpServletRequest request){
-		String message = (e.getMessage() != null && !e.getMessage().isEmpty())
-				? e.getMessage()
-				: "Bạn không có quyền truy cập chức năng này !";
-		return build(HttpStatus.FORBIDDEN, message, null, request);
-	}
 }
