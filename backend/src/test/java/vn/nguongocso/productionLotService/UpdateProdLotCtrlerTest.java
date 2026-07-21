@@ -1,6 +1,4 @@
 package vn.nguongocso.productionLotService;
 
-class ProductionLotServiceTest {
-
-
+public class UpdateProdLotCtrlerTest {
 }
