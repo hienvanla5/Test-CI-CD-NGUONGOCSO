@@ -144,7 +144,7 @@ public class GlobalExceptionHandler {
 
 	//Loi Xung dot tai nguyen (409)
 	@ExceptionHandler(DuplicateResourceException.class)
-	public ResponseEntity<ApiResult<Void>>handleDublicate(DuplicateResourceException e, HttpServletRequest request){
+	public ResponseEntity<ApiResult<Void>>handleDuplicate(DuplicateResourceException e, HttpServletRequest request){
 		return build(HttpStatus.CONFLICT, e.getMessage(), null, request);
 
 	}
