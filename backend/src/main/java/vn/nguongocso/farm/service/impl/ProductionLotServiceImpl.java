@@ -157,7 +157,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
 
         ProductionLot savedLot = productionLotRepository.save(productionLot);
         log.info("Cập nhật thành công lô sản xuất id={}", savedLot.getId());
-        
+
         return UpdateProductionLotResponse.builder()
                 .id(savedLot.getId())
                 .farmAreaId(savedLot.getFarmArea() != null ? savedLot.getFarmArea().getId() : null)
