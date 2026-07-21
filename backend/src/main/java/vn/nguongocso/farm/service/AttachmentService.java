@@ -35,12 +35,21 @@ public class AttachmentService {
     private final FarmLogRepository farmLogRepository;
     private final FarmLogAttachmentRepository attachmentRepository;
     private final UserRepository userRepository;
-    private final ProductionLotRepository productionLotRepository;
+
+    @Value("${app.upload.base-dir}")
+    private String baseDir;
+
+    @Value("${app.upload.farm-log.relative-path:farm-logs}")
+    private String farmLogRelativePath;
 
     @Value("${app.upload.farm-log.max-size:5242880}")
     private long maxFileSize;
 
-    private final Set<String> ALLOWED_TYPES = Set.of(
+    private String getUploadDir(UUID logId) {
+        return Paths.get(baseDir, farmLogRelativePath, logId.toString()).toString();
+    }
+
+    private static final Set<String> ALLOWED_TYPES = Set.of(
             "image/jpeg", "image/png", "application/pdf"
     );
 
@@ -64,7 +73,7 @@ public class AttachmentService {
             throw new BusinessException("File vượt quá dung lượng cho phép (" + maxFileSize/1024/1024 + "MB)");
         }
         String contentType = file.getContentType();
-        if (!ALLOWED_TYPES.contains(contentType)) {
+        if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
             throw new BusinessException("Loại file không hỗ trợ. Chỉ chấp nhận JPG, PNG, PDF");
         }
 
@@ -75,12 +84,14 @@ public class AttachmentService {
             extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
         String newFileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
-        String uploadDir = "uploads/farm-logs/" + logId + "/";
+        String uploadDir = getUploadDir(logId);
         String filePath = uploadDir + newFileName;
 
         try {
             Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
             Files.copy(file.getInputStream(), Paths.get(filePath), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             log.error("Lỗi khi lưu file: {}", e.getMessage());
@@ -92,7 +103,6 @@ public class AttachmentService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng"));
 
         FarmLogAttachment attachment = FarmLogAttachment.builder()
-                .id(UUID.randomUUID())
                 .farmLog(farmLog)
                 .fileName(originalFilename != null ? originalFilename : "unknown")
                 .fileSize(file.getSize())
@@ -108,13 +118,16 @@ public class AttachmentService {
         return toResponse(attachment);
     }
 
+    @Transactional(readOnly = true)
     public List<AttachmentResponse> getAttachments(UUID logId, CustomUserDetails userDetails) {
 
         // Kiểm tra quyền: chỉ trả về nếu log thuộc tổ chức user
         FarmLog farmLog = farmLogRepository.findById(logId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy nhật ký canh tác"));
-        if (!farmLog.getProductionLotId().getOrganization().getOrganizationId()
-                .equals(userDetails.getOrganizationId())) {
+
+        UUID orgId = userDetails.getOrganizationId();
+        UUID lotOrgId = farmLog.getProductionLotId().getOrganization().getOrganizationId();
+        if (!lotOrgId.equals(orgId)) {
             throw new BusinessException("Nhật ký không thuộc tổ chức của bạn");
         }
 
@@ -139,9 +152,15 @@ public class AttachmentService {
 
         // Xóa file vật lý
         try {
-            Files.deleteIfExists(Paths.get(attachment.getFilePath()));
+            Path filePath = Paths.get(attachment.getFilePath());
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+            } else {
+                log.warn("File không tồn tại: {}", attachment.getFilePath());
+            }
         } catch (IOException e) {
-            log.warn("Không thể xóa file: {}", attachment.getFilePath());
+            log.error("Không thể xóa file: {}, lỗi: {}", attachment.getFilePath(), e.getMessage());
+            throw new BusinessException("Không thể xóa file, vui lòng thử lại");
         }
 
         attachmentRepository.delete(attachment);
