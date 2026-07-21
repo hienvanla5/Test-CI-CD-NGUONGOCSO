@@ -37,9 +37,4 @@ public class FarmLogController {
      * @param lotId ID của lô sản xuất
      * @return danh sách nhật ký canh tác
      */
-    @GetMapping("/production-lot/{lotId}")
-    public ApiResult<List<FarmLogResponse>> getLogsByProductionLot(@PathVariable UUID lotId) {
-        return ApiResult.success(farmLogService.getLogsByProductionLot(lotId));
-    }
-
 }

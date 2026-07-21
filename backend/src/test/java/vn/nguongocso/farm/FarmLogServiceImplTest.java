@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,9 +15,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.auth.enums.UserStatus;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.dto.request.CreateFarmLogRequest;
@@ -30,6 +34,11 @@ import vn.nguongocso.farm.repository.FarmLogRepository;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.farm.service.impl.FarmLogServiceImpl;
 import vn.nguongocso.organization.entity.Organization;
+import vn.nguongocso.organization.entity.OrganizationUser;
+
+import java.util.Collection;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @ExtendWith(MockitoExtension.class)
 class FarmLogServiceImplTest {
@@ -59,6 +68,8 @@ class FarmLogServiceImplTest {
         // Organization
         Organization organization = new Organization();
         organization.setOrganizationId(organizationId);
+        organization.setName("HTX A");
+        organization.setCode("HTX01");
 
         // FarmArea
         FarmArea farmArea = new FarmArea();
@@ -73,7 +84,32 @@ class FarmLogServiceImplTest {
 
         // User
         user = new User();
+        user.setUserId(UUID.randomUUID());
+        user.setUserName("user01");
+        user.setPasswordHash("123");
         user.setFullName("Nguyễn Văn A");
+        user.setStatus(UserStatus.ACTIVE);
+
+        // Role
+        Role role = new Role();
+        role.setCode("EVENT_RECODER");   // ==> ROLE_EVENT_RECODER
+        role.setName("Người ghi sự kiện");
+
+        // OrganizationUser
+        OrganizationUser orgUser = new OrganizationUser();
+        orgUser.setOrganization(organization);
+
+        // CustomUserDetails thật
+        CustomUserDetails userDetails =
+                new CustomUserDetails(user, orgUser, role);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // Request
         request = new CreateFarmLogRequest();
@@ -84,17 +120,6 @@ class FarmLogServiceImplTest {
         request.setUnit("Lít");
         request.setExecutedDate(LocalDate.now());
         request.setNotes("Tưới buổi sáng");
-
-        // Mock user đăng nhập
-        CustomUserDetails userDetails = mock(CustomUserDetails.class);
-
-        when(userDetails.getOrganizationId()).thenReturn(organizationId);
-        when(userDetails.getUser()).thenReturn(user);
-
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userDetails, null);
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
     
     //Thành công
@@ -151,7 +176,9 @@ class FarmLogServiceImplTest {
                 BusinessException.class,
                 () -> farmLogService.create(request));
 
-        assertEquals("Lô sản xuất chưa được duyệt.", ex.getMessage());
+        assertEquals(
+        	    "Chỉ được ghi nhật ký cho lô đã duyệt hoặc đang thu hoạch.",
+        	    ex.getMessage());
 
         verify(farmLogRepository, never()).save(any());
     }
@@ -175,9 +202,44 @@ class FarmLogServiceImplTest {
                 () -> farmLogService.create(request));
 
         assertEquals(
-                "Bạn không có quyền ghi nhật ký cho lô sản xuất này",
+                "Bạn không thuộc tổ chức của lô sản xuất.",
                 ex.getMessage());
 
+        verify(farmLogRepository, never()).save(any());
+    }
+    
+    @Test
+    void create_shouldThrowException_whenUserHasNoEventRecorderRole() {
+
+        Role role = new Role();
+        role.setCode("ADMIN");
+
+        Organization organization = new Organization();
+        organization.setOrganizationId(organizationId);
+
+        OrganizationUser orgUser = new OrganizationUser();
+        orgUser.setOrganization(organization);
+
+        CustomUserDetails userDetails =
+                new CustomUserDetails(user, orgUser, role);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        BusinessException ex = assertThrows(
+                BusinessException.class,
+                () -> farmLogService.create(request));
+
+        assertEquals(
+                "Bạn không có quyền ghi nhật ký canh tác.",
+                ex.getMessage());
+
+        verify(productionLotRepository, never()).findById(any());
         verify(farmLogRepository, never()).save(any());
     }
 }

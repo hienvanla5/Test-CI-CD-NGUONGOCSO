@@ -17,6 +17,4 @@ public interface FarmLogService {
      * @return thông tin nhật ký đã tạo
      */
 	FarmLogResponse create(CreateFarmLogRequest request);
-
-	List<FarmLogResponse> getLogsByProductionLot(UUID productionLotId);
 }

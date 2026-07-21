@@ -17,10 +17,6 @@ import vn.nguongocso.farm.entity.FarmLog;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.farm.repository.FarmLogRepository;
-import java.util.List;
-import java.util.stream.Collectors;
-import vn.nguongocso.farm.dto.response.AttachmentResponse;
-import vn.nguongocso.farm.repository.FarmLogAttachmentRepository;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.farm.service.FarmLogService;
 
@@ -34,7 +30,7 @@ public class FarmLogServiceImpl implements FarmLogService {
 
 	private final FarmLogRepository farmLogRepository;
 	private final ProductionLotRepository productionLotRepository;
-	private final FarmLogAttachmentRepository farmLogAttachmentRepository;
+	private static final String EVENT_RECORDER_ROLE = "VT-03";
 
     /**
      * Tạo nhật ký canh tác.
@@ -46,12 +42,14 @@ public class FarmLogServiceImpl implements FarmLogService {
 	public FarmLogResponse create(CreateFarmLogRequest request) {
 
 		CustomUserDetails currentUser = getCurrentUser();
+		
+		validateRole(currentUser);
 
 		ProductionLot productionLot = getProductionLot(request.getProductionLotId());
 		
 		validateProductionLotStatus(productionLot);
 		
-		validatePermission(currentUser, productionLot);
+		validateOrganizationAccess(currentUser, productionLot);
 
 		FarmLog farmLog = buildFarmLog(request, productionLot, currentUser.getUser());
 
@@ -78,63 +76,52 @@ public class FarmLogServiceImpl implements FarmLogService {
 	}
 
 	private FarmLogResponse toResponse(FarmLog farmLog) {
-		List<AttachmentResponse> attachments = farmLogAttachmentRepository.findByFarmLogId(farmLog.getId())
-				.stream()
-				.map(att -> AttachmentResponse.builder()
-						.id(att.getId())
-						.farmLogId(att.getFarmLog().getId())
-						.fileName(att.getFileName())
-						.fileSize(att.getFileSize())
-						.fileType(att.getFileType())
-						.fileUrl("/" + att.getFilePath())
-						.description(att.getDescription())
-						.uploadedBy(att.getUploadedBy().getFullName())
-						.uploadedAt(att.getUploadedAt())
-						.build())
-				.collect(Collectors.toList());
 
 	    return FarmLogResponse.builder()
 	            .id(farmLog.getId())
+
 	            .productionLotId(farmLog.getProductionLotId().getId())
 	            .productionLotName(farmLog.getProductionLotId().getName())
+
 	            .activityType(farmLog.getActivityType())
 	            .material(farmLog.getMaterial())
 	            .quantity(farmLog.getQuantity())
 	            .unit(farmLog.getUnit())
 	            .executedDate(farmLog.getExecutedDate())
 	            .notes(farmLog.getNotes())
+
 	            .createdByName(farmLog.getCreatedBy().getFullName())
 	            .createdAt(farmLog.getCreatedAt())
-	            .attachments(attachments)
 	            .build();
 	}
 
-	@Override
-	public List<FarmLogResponse> getLogsByProductionLot(UUID productionLotId) {
-		CustomUserDetails currentUser = getCurrentUser();
-		ProductionLot productionLot = getProductionLot(productionLotId);
-		validatePermission(currentUser, productionLot);
+	private void validateOrganizationAccess(
+	        CustomUserDetails currentUser,
+	        ProductionLot productionLot) {
 
-		List<FarmLog> logs = farmLogRepository.findByProductionLotId_IdOrderByExecutedDateAsc(productionLotId);
+	    if (!productionLot.getFarmArea()
+	            .getOrganization()
+	            .getOrganizationId()
+	            .equals(currentUser.getOrganizationId())) {
 
-		return logs.stream()
-				.map(this::toResponse)
-				.collect(Collectors.toList());
+	        throw new BusinessException(
+	            "Bạn không thuộc tổ chức của lô sản xuất.");
+	    }
 	}
-
-	private void validatePermission(CustomUserDetails currentUser, ProductionLot productionLot) {
-
-		if (!productionLot.getFarmArea().getOrganization().getOrganizationId()
-				.equals(currentUser.getOrganizationId())) {
-
-			throw new BusinessException("Bạn không có quyền ghi nhật ký cho lô sản xuất này");
-		}
+	
+	private void validateRole(CustomUserDetails currentUser) {
+	    if (!EVENT_RECORDER_ROLE.equals(currentUser.getRoleCode())) {
+	        throw new BusinessException("Bạn không có quyền ghi nhật ký canh tác.");
+	    }
 	}
 	
 	private void validateProductionLotStatus(ProductionLot productionLot) {
 
-	    if (productionLot.getStatus() != ProductionLotStatus.APPROVED) {
-	        throw new BusinessException("Lô sản xuất chưa được duyệt.");
+	    if (productionLot.getStatus() != ProductionLotStatus.APPROVED
+	            && productionLot.getStatus() != ProductionLotStatus.HARVESTED) {
+
+	        throw new BusinessException(
+	                "Chỉ được ghi nhật ký cho lô đã duyệt hoặc đang thu hoạch.");
 	    }
 	}
 }
