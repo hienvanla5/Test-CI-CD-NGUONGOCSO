@@ -245,3 +245,22 @@
         width: 100%;
     }
 }
+
+.btn-farm-log {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 110px;
+    min-height: 36px;
+
+    padding: 8px 14px;
+
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.production-lots-table th:last-child,
+.production-lots-table td:last-child {
+    text-align: center;
+}

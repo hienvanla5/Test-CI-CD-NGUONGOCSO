@@ -161,6 +161,41 @@ function renderProductionLots(lots) {
         var createdCell = document.createElement("td");
         createdCell.textContent = formatDateTime(lot.createdAt);
 
+        var actionsCell = document.createElement("td");
+
+var normalizedStatus = String(
+    lot.status || ""
+).toUpperCase();
+
+var canCreateFarmLog =
+    roleCode === "VT-03" &&
+    (
+        normalizedStatus === "APPROVED" ||
+        normalizedStatus === "HARVESTED"
+    );
+
+if (canCreateFarmLog) {
+    var farmLogButton =
+        document.createElement("a");
+
+    farmLogButton.className =
+        "btn btn-primary btn-farm-log";
+
+    farmLogButton.textContent =
+        "Ghi nhật ký";
+
+    farmLogButton.href =
+        "/frontend/pages/cooperative/farm-logs/create.html" +
+        "?productionLotId=" +
+        encodeURIComponent(lot.id);
+
+    actionsCell.appendChild(
+        farmLogButton
+    );
+} else {
+    actionsCell.textContent = "—";
+}
+        
         row.appendChild(nameCell);
         row.appendChild(farmAreaCell);
         row.appendChild(categoryCell);
@@ -168,6 +203,7 @@ function renderProductionLots(lots) {
         row.appendChild(dateCell);
         row.appendChild(statusCell);
         row.appendChild(createdCell);
+        row.appendChild(actionsCell);
 
         productionLotsTableBody.appendChild(row);
     });

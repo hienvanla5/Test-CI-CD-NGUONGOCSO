@@ -14,6 +14,7 @@ import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
 import vn.nguongocso.organization.service.OrganizationService;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -39,6 +40,20 @@ public class OrganizationController {
         this.organizationService = organizationService;
     }
 
+
+    @GetMapping
+@PreAuthorize("hasAnyRole('VT-01')")
+public ResponseEntity<ApiResult<List<OrganizationResponse>>> getAllOrganizations() {
+
+    log.info("Nhận yêu cầu lấy danh sách organization");
+
+    List<OrganizationResponse> organizations =
+            organizationService.getAllOrganizations();
+
+    return ResponseEntity.ok(
+            ApiResult.success(organizations)
+    );
+}
     /**
      * Tạo mới một tổ chức cùng tài khoản quản lý mặc định.
      *
@@ -72,4 +87,5 @@ public class OrganizationController {
         log.info("Cập nhật hồ sơ tổ chức hiện tại");
         return ResponseEntity.ok(ApiResult.success(organizationService.updateOrganizationById(id, request)));
     }
+
 }

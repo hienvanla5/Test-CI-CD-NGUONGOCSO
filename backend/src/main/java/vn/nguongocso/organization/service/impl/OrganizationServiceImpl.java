@@ -29,6 +29,7 @@ import vn.nguongocso.organization.repository.OrganizationRepository;
 import vn.nguongocso.organization.repository.OrganizationUserRepository;
 import vn.nguongocso.organization.service.OrganizationService;
 
+import java.util.List;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -266,5 +267,15 @@ public class OrganizationServiceImpl implements OrganizationService {
 				.createdAt(org.getCreatedAt())
 				.updatedAt(org.getUpdatedAt())
 				.build();
+		}
+
+		@Override
+	@Transactional(readOnly = true)
+	public List<OrganizationResponse> getAllOrganizations() {
+    	return organizationRepository.findAll()
+            	.stream()
+            	.map(this::toResponse)
+            	.toList();
 	}
+
 }
