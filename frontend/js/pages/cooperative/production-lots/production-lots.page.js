@@ -876,45 +876,67 @@ async function saveProductionLot(
             `edit-category-${id}`
         ).value;
 
-    const quantityValue =
-        document.getElementById(
-            `edit-qty-${id}`
-        ).value;
+    const quantityInput =
+    document.getElementById(
+        `edit-qty-${id}`
+    );
 
-    const plantingDate =
-        document.getElementById(
-            `edit-date-${id}`
-        ).value;
+const quantityValue =
+    quantityInput.value.trim();
 
-    const expectedQuantity =
-        Number(quantityValue);
+const plantingDate =
+    document.getElementById(
+        `edit-date-${id}`
+    ).value;
 
-    if (
-        !name ||
-        !farmAreaId ||
-        !productCategoryId ||
-        !quantityValue ||
-        !plantingDate
-    ) {
-        alert(
-            "Vui lòng nhập đầy đủ thông tin."
-        );
+/*
+ * Phải kiểm tra dữ liệu không hợp lệ trước kiểm tra bỏ trống.
+ * Với input type="number", nhập chữ có thể làm value thành chuỗi rỗng,
+ * nhưng validity.badInput sẽ bằng true.
+ */
+if (quantityInput.validity.badInput) {
+    alert(
+        "Sản lượng dự kiến chỉ được nhập số."
+    );
 
-        return;
-    }
+    quantityInput.focus();
+    return;
+}
 
-    if (
-        !Number.isFinite(
-            expectedQuantity
-        ) ||
-        expectedQuantity <= 0
-    ) {
-        alert(
-            "Sản lượng dự kiến phải lớn hơn 0."
-        );
+if (
+    !name ||
+    !farmAreaId ||
+    !productCategoryId ||
+    !quantityValue ||
+    !plantingDate
+) {
+    alert(
+        "Vui lòng nhập đầy đủ thông tin."
+    );
 
-        return;
-    }
+    return;
+}
+
+const expectedQuantity =
+    Number(quantityValue);
+
+if (!Number.isFinite(expectedQuantity)) {
+    alert(
+        "Sản lượng dự kiến chỉ được nhập số."
+    );
+
+    quantityInput.focus();
+    return;
+}
+
+if (expectedQuantity <= 0) {
+    alert(
+        "Sản lượng dự kiến phải lớn hơn 0."
+    );
+
+    quantityInput.focus();
+    return;
+}
 
     const updatedData = {
         name,
