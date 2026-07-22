@@ -365,15 +365,3 @@
     border: 1px solid #d5d9dd;
     border-radius: 6px;
 }
-.action-buttons .btn-primary{
-    width:auto !important;
-}
-
-.action-buttons .btn-sm{
-    min-width:90px;
-}
-
-.action-buttons [data-attachment]{
-    min-width:120px;
-    padding:0 14px;
-}
