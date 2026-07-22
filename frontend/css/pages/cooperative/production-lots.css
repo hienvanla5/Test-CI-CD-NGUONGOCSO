@@ -23,118 +23,7 @@
 .production-lots-header-actions {
     display: flex;
 
-    align-items: center;
-    justify-content: flex-end;
-
     gap: 12px;
-}
-
-/* ===== Search Box ===== */
-
-.search-box {
-    display: flex;
-    align-items: center;
-
-    gap: 12px;
-}
-
-.search-input-wrapper {
-    position: relative;
-
-    display: flex;
-    align-items: center;
-}
-
-.search-input-wrapper .search-input-icon {
-    position: absolute;
-    left: 14px;
-
-    display: flex;
-
-    width: 16px;
-    height: 16px;
-
-    color: var(--color-text-muted, #9ca3af);
-
-    pointer-events: none;
-}
-
-.search-box .table-search {
-    height: 42px;
-
-    padding: 0 14px 0 40px;
-
-    border: 1px solid #dcdcdc;
-    border-radius: 10px;
-
-    font-size: 0.9rem;
-
-    background: #fff;
-
-    min-width: 220px;
-
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.search-box .table-search::placeholder {
-    color: #9ca3af;
-}
-
-.search-box .table-search:focus {
-    outline: none;
-
-    border-color: #3b82f6;
-
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-}
-
-.search-box #searchButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-
-    height: 42px;
-
-    min-width: 120px;
-    max-width: 150px;
-
-    padding: 0 18px;
-
-    border: none;
-    border-radius: 10px;
-
-    background: #2E7D32;
-    color: #fff;
-
-    font-size: 0.9rem;
-    font-weight: 600;
-
-    box-shadow: 0 2px 6px rgba(46, 125, 50, 0.25);
-
-    transition:
-        background-color 0.2s ease,
-        box-shadow 0.2s ease,
-        transform 0.2s ease;
-}
-
-.search-box #searchButton:hover {
-    background: #276428;
-
-    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
-}
-
-.search-box #searchButton:active {
-    transform: scale(0.98);
-}
-
-.search-box #searchButton .search-btn-icon {
-    display: flex;
-
-    width: 16px;
-    height: 16px;
 }
 
 /* List card */
@@ -339,26 +228,6 @@
         flex: 1;
     }
 
-    .search-box {
-        width: 100%;
-
-        flex-wrap: wrap;
-    }
-
-    .search-input-wrapper {
-        flex: 1 1 100%;
-    }
-
-    .search-box .table-search {
-        width: 100%;
-    }
-
-    .search-box #searchButton {
-        flex: 1 1 100%;
-
-        max-width: none;
-    }
-
     .dashboard-header {
         flex-direction: column;
 
@@ -376,420 +245,135 @@
         width: 100%;
     }
 }
-/* ==========================================================
-   Attachment Page
-   Append Only
-========================================================== */
-
-.attachment-section {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-}
-
-/* ---------- Upload ---------- */
-
-.attachment-card {
-    padding: 24px;
-}
-
-.attachment-upload {
-    width: 100%;
-}
-
-.attachment-dropzone {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    padding: 48px 24px;
-
-    border: 2px dashed var(--color-border);
-
-    border-radius: var(--border-radius-md);
-
-    background: var(--color-background);
-
-    transition: .25s;
-
-    cursor: pointer;
-
-    text-align: center;
-}
-
-.attachment-dropzone:hover {
-    border-color: var(--color-primary);
-    background: var(--color-primary-light);
-}
-
-.attachment-dropzone.drag-over {
-    border-color: var(--color-primary);
-    background: rgba(37,99,235,.08);
-}
-
-.attachment-upload-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 72px;
-    height: 72px;
-
-    margin-bottom: 18px;
-
-    border-radius: 50%;
-
-    background: var(--color-primary-light);
-
-    color: var(--color-primary);
-}
-
-.attachment-dropzone h3 {
-    margin-bottom: 10px;
-    font-size: 20px;
-    color: var(--color-text);
-}
-
-.attachment-dropzone p {
-    margin-bottom: 20px;
-    color: var(--color-text-muted);
-}
-
-.attachment-upload-note {
-    margin-top: 16px;
-    font-size: 13px;
-    color: var(--color-text-muted);
-}
-
-/* ---------- List ---------- */
-
-.attachment-list-card {
-    overflow: hidden;
-}
-
-.attachment-list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    padding: 18px 24px;
-
-    border-bottom: 1px solid var(--color-border);
-}
-
-.attachment-list-header h3 {
-    margin: 0;
-    font-size: 18px;
-}
-
-.attachment-count {
-    padding: 6px 12px;
-
-    border-radius: 999px;
-
-    background: var(--color-primary-light);
-
-    color: var(--color-primary);
-
-    font-size: 13px;
-
-    font-weight: 600;
-}
-
-/* ---------- File ---------- */
-
-.file-item-name {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.file-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 40px;
-    height: 40px;
-
-    border-radius: 10px;
-
-    font-size: 14px;
-
-    font-weight: bold;
-
-    color: white;
-
-    flex-shrink: 0;
-}
-
-.file-icon-pdf {
-    background: #dc2626;
-}
-
-.file-icon-doc,
-.file-icon-docx {
-    background: #2563eb;
-}
-
-.file-icon-xls,
-.file-icon-xlsx {
-    background: #059669;
-}
-
-.file-icon-png,
-.file-icon-jpg,
-.file-icon-jpeg {
-    background: #7c3aed;
-}
-
-.file-icon-default {
-    background: #6b7280;
-}
-
-.file-name {
-    font-weight: 600;
-    color: var(--color-text);
-}
-
-.file-type {
-    text-transform: uppercase;
-    font-weight: 600;
-    font-size: 13px;
-}
-
-.file-size,
-.file-date {
-    color: var(--color-text-muted);
-    white-space: nowrap;
-}
-
-/* ---------- Actions ---------- */
-
-.file-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.file-action-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 7px 12px;
-
-    border: 1px solid var(--color-border);
-
-    border-radius: 6px;
-
-    background: white;
-
-    cursor: pointer;
-
-    transition: .2s;
-
-    font-size: 13px;
-
-    font-weight: 600;
-}
-
-.file-action-btn:hover {
-    background: var(--color-primary-light);
-}
-
-.file-action-view {
-    color: #2563eb;
-}
-
-.file-action-download {
-    color: #059669;
-}
-
-.file-action-delete {
-    color: #dc2626;
-}
-
-/* ---------- Preview ---------- */
-
-.document-preview {
-    overflow: hidden;
-}
-
-.document-preview-body {
-    min-height: 450px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: var(--color-background);
-
-    padding: 24px;
-}
-
-.document-preview-image {
-    max-width: 100%;
-    max-height: 520px;
-
-    border-radius: 10px;
-
-    box-shadow: var(--shadow-sm);
-}
-
-.document-preview-pdf {
-    width: 100%;
-    height: 650px;
-
-    border: none;
-
-    border-radius: 8px;
-
-    background: white;
-}
-
-.document-preview-placeholder {
-    text-align: center;
-    color: var(--color-text-muted);
-}
-
-.document-preview-placeholder h3 {
-    margin-top: 16px;
-    margin-bottom: 8px;
-}
-
-/* ---------- Animation ---------- */
-
-.file-item-row {
-    animation: attachmentFade .25s ease;
-}
-
-@keyframes attachmentFade {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ---------- Responsive ---------- */
-
-@media (max-width:768px) {
-
-    .attachment-dropzone {
-        padding: 32px 18px;
-    }
-
-    .attachment-list-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .file-actions {
-        flex-wrap: wrap;
-    }
-
-    .file-action-btn {
-        flex: 1;
-    }
-
-    .document-preview-body {
-        min-height: 300px;
-    }
-
-    .document-preview-pdf {
-        height: 420px;
-    }
-}
-
 /* ===== Inline Input ===== */
 
 .inline-input {
     width: 100%;
     padding: 8px 10px;
+
     border: 1px solid #d1d5db;
     border-radius: 8px;
+
     font-size: 14px;
     background: #fff;
 }
 
 .inline-input:focus {
     outline: none;
+
     border-color: #3b82f6;
+
     box-shadow: 0 0 0 3px rgba(59,130,246,.15);
 }
-
 /* ===== Status Dropdown ===== */
 
-.inline-status {
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
+.inline-status{
+    appearance:none !important;
+    -webkit-appearance:none !important;
+    -moz-appearance:none !important;
 
-    background: #60A5FA !important;
-    color: #fff !important;
+    background:#60A5FA !important;
+    color:#fff !important;
 
-    border: none !important;
-    outline: none;
+    border:none !important;
+    outline:none;
 
-    border-radius: 8px;
+    border-radius:8px;
 
-    min-width: 80px;
-    height: 34px;
-    padding: 0 14px;
+    min-width:80px;
+    height:34px;
+    padding:0 14px;
 
-    font-weight: 600;
+    font-weight:600;
 
+    cursor:pointer;
+}
+.inline-status:hover{
+
+    background:#3B82F6;
+
+    transform:translateY(-1px);
+
+    box-shadow:0 4px 12px rgba(59,130,246,.25);
+}
+.inline-status:active{
+
+    background:#2563EB;
+
+    transform:scale(.98);
+}
+.inline-status:focus{
+
+    outline:none;
+
+    box-shadow:0 0 0 3px rgba(59,130,246,.25);
+}
+.inline-status::-ms-expand{
+    display:none;
+}
+/* ===== Action Buttons ===== */
+
+.action-buttons{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    white-space:nowrap;
+}
+
+.action-buttons .btn{
+    margin:0;
+}
+
+.btn-sm{
+    min-width:72px;
+    height:36px;
+
+    padding:0 16px;
+
+    border-radius:8px;
+
+    font-size:14px;
+    font-weight:600;
+}
+
+.btn-save,
+.btn-edit,
+.btn-cancel,
+.status-button {
     cursor: pointer;
 }
 
-.inline-status:hover {
-    background: #3B82F6;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59,130,246,.25);
+.btn-save,
+.btn-edit,
+.btn-cancel {
+    margin-right: 8px;
 }
 
-.inline-status:active {
-    background: #2563EB;
-    transform: scale(.98);
+.status-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
 }
 
-.inline-status:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59,130,246,.25);
+.edit-lot-name,
+.edit-farm-area,
+.edit-product-category,
+.edit-expected-quantity,
+.edit-planting-date {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d5d9dd;
+    border-radius: 6px;
+}
+.action-buttons .btn-primary{
+    width:auto !important;
 }
 
-.inline-status::-ms-expand {
-    display: none;
+.action-buttons .btn-sm{
+    min-width:90px;
 }
 
-/* ===== Action Buttons ===== */
-
-.action-buttons {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-.action-buttons .btn {
-    margin: 0;
-}
-
-.btn-sm {
-    min-width: 72px;
-    height: 36px;
-
-    padding: 0 16px;
-
-    border-radius: 8px;
-
-    font-size: 14px;
-    font-weight: 600;
+.action-buttons [data-attachment]{
+    min-width:120px;
+    padding:0 14px;
 }

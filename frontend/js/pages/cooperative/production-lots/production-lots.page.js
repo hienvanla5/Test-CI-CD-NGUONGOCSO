@@ -252,7 +252,25 @@ function renderProductionLots(lots) {
             `;
         } else {
             actionsCell.innerHTML = `
-                <button class="btn btn-secondary btn-sm" data-edit="${lot.id}">Edit</button>
+                <div class="action-buttons">
+
+                    <button
+                        class="btn btn-secondary btn-sm"
+                        data-edit="${lot.id}">
+
+                        Edit
+
+                    </button>
+
+                    <button
+                        class="btn btn-primary btn-sm"
+                        data-attachment="${lot.id}">
+
+                        Attachment
+
+                    </button>
+
+                </div>
             `;
         }
 
@@ -357,6 +375,21 @@ function attachTableEvents() {
             console.error(error);
             alert(error.message);
         }
+
+    });
+    document
+    .querySelectorAll("[data-attachment]")
+    .forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            const lotId = this.dataset.attachment;
+
+            window.location.href =
+                "/frontend/pages/cooperative/production-lots/attachment.html?id=" +
+                lotId;
+
+        });
 
     });
 });
