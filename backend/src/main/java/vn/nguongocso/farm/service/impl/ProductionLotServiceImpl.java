@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
 import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
+import vn.nguongocso.farm.dto.request.UpdateProductionLotRequest;
 import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
 import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.farm.dto.response.UpdateProductionLotResponse;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
@@ -185,4 +187,55 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .updatedAt(lot.getUpdatedAt())
                 .build();
     }
+    @Override
+    @Transactional
+    public UpdateProductionLotResponse updateProductionLot(UUID id, UpdateProductionLotRequest request, CustomUserDetails userDetails) {
+        log.info("Bắt đầu xử lý cập nhật lô sản xuất với id={}", id);
+
+        UUID orgId = userDetails.getOrganizationId();
+
+        ProductionLot productionLot = productionLotRepository.findById(id)
+                .orElseThrow(() -> new vn.nguongocso.exception.ResourceNotFoundException("Lô sản xuất không tồn tại"));
+
+        if (!productionLot.getOrganization().getOrganizationId().equals(orgId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền chỉnh sửa lô sản xuất này");
+        }
+
+        if (productionLot.getStatus() != ProductionLotStatus.DRAFT) {
+            throw new vn.nguongocso.exception.DuplicateResourceException("Chỉ có thể cập nhật lô sản xuất khi đang ở trạng thái nháp");
+        }
+
+        ProductCategory productCategory = productCategoryRepository.findById(request.getProductCategoryId())
+                .orElseThrow(() -> new vn.nguongocso.exception.BusinessException("Không tìm thấy loại nông sản đã chọn"));
+        if (Boolean.FALSE.equals(productCategory.getIsActive())) {
+            throw new vn.nguongocso.exception.BusinessException("Loại nông sản này hiện đang ngưng hoạt động");
+        }
+
+        FarmArea farmArea = farmAreaRepository.findById(request.getFarmAreaId())
+                .orElseThrow(() -> new vn.nguongocso.exception.BusinessException("Không tìm thấy khu vực canh tác đã chọn"));
+        if (!farmArea.getOrganization().getOrganizationId().equals(orgId)) {
+            throw new vn.nguongocso.exception.BusinessException("Khu vực canh tác này không thuộc tổ chức của bạn");
+        }
+
+        productionLot.setName(request.getName());
+        productionLot.setFarmArea(farmArea);
+        productionLot.setProductCategory(productCategory);
+        productionLot.setExpectedQuantity(request.getExpectedQuantity());
+        productionLot.setPlantingDate(request.getPlantingDate());
+
+        ProductionLot savedLot = productionLotRepository.save(productionLot);
+        log.info("Cập nhật thành công lô sản xuất id={}", savedLot.getId());
+
+        return UpdateProductionLotResponse.builder()
+                .id(savedLot.getId())
+                .farmAreaId(savedLot.getFarmArea() != null ? savedLot.getFarmArea().getId() : null)
+                .productCategoryId(savedLot.getProductCategory().getId())
+                .name(savedLot.getName())
+                .expectedQuantity(savedLot.getExpectedQuantity())
+                .plantingDate(savedLot.getPlantingDate())
+                .status(savedLot.getStatus().name())
+                .updatedAt(savedLot.getUpdatedAt())
+                .build();
+    }
+
 }

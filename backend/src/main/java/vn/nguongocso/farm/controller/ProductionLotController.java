@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.security.SecurityUtils;
 import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
 import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
+import vn.nguongocso.farm.dto.request.UpdateProductionLotRequest;
 import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.farm.dto.response.UpdateProductionLotResponse;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.common.ApiResult;
 
@@ -37,6 +39,19 @@ public class ProductionLotController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         CreateProductionLotResponse response = productionLotService.createProductionLot(request, userDetails);
+        return ResponseEntity.ok(ApiResult.success(response));
+    }
+    /**
+     * API cập nhật lô sản xuất.
+     * Thêm vào đây, gọi thông qua đối tượng productionLotService viết thường
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
+    public ResponseEntity<ApiResult<UpdateProductionLotResponse>> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateProductionLotRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        UpdateProductionLotResponse response = productionLotService.updateProductionLot(id, request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
 

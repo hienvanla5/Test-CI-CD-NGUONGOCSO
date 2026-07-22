@@ -78,8 +78,10 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(AccessDeniedException.class)
 	public ResponseEntity<ApiResult<Void>> handleAccessDenied(AccessDeniedException e, HttpServletRequest request) {
-
-		return build(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện chức năng này", null, request);
+		String message = (e.getMessage() != null && !e.getMessage().isEmpty())
+				? e.getMessage()
+				: "Bạn không có quyền thực hiện chức năng này";
+		return build(HttpStatus.FORBIDDEN, message, null, request);
 	}
 
 	/**
@@ -133,4 +135,18 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.status(status).body(body);
 	}
+
+	//Loi khong tim thay tai nguyen (HTTP 404)
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<ApiResult<Void>> handleNotFound(ResourceNotFoundException e, HttpServletRequest request){
+		return build(HttpStatus.NOT_FOUND, e.getMessage(), null, request);
+	}
+
+	//Loi Xung dot tai nguyen (409)
+	@ExceptionHandler(DuplicateResourceException.class)
+	public ResponseEntity<ApiResult<Void>>handleDuplicate(DuplicateResourceException e, HttpServletRequest request){
+		return build(HttpStatus.CONFLICT, e.getMessage(), null, request);
+
+	}
+
 }
