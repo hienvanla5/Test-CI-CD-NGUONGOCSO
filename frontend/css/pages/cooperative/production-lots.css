@@ -245,6 +245,7 @@
         width: 100%;
     }
 }
+<<<<<<< HEAD
 /* ===== Inline Input ===== */
 
 .inline-input {
@@ -364,4 +365,24 @@
     padding: 8px;
     border: 1px solid #d5d9dd;
     border-radius: 6px;
+=======
+
+.btn-farm-log {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 110px;
+    min-height: 36px;
+
+    padding: 8px 14px;
+
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.production-lots-table th:last-child,
+.production-lots-table td:last-child {
+    text-align: center;
+>>>>>>> feature/create-farm-log
 }
