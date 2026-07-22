@@ -245,123 +245,322 @@
         width: 100%;
     }
 }
-/* ===== Inline Input ===== */
 
-.inline-input {
+/* ===== Edit Production Lot Modal ===== */
+
+.modal[hidden] {
+    display: none;
+}
+
+.modal {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 24px;
+}
+
+.modal__overlay {
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        rgba(0, 0, 0, 0.45);
+}
+
+.modal__content {
+    position: relative;
+
+    z-index: 1;
+
     width: 100%;
-    padding: 8px 10px;
 
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
+    max-width: 680px;
 
-    font-size: 14px;
-    background: #fff;
+    max-height:
+        calc(100vh - 48px);
+
+    overflow-y: auto;
+
+    background:
+        var(--color-surface);
+
+    border-radius:
+        var(--border-radius-md);
+
+    box-shadow:
+        var(--shadow-lg);
 }
 
-.inline-input:focus {
-    outline: none;
+.modal__header {
+    display: flex;
 
-    border-color: #3b82f6;
+    align-items: flex-start;
 
-    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
-}
-/* ===== Status Dropdown ===== */
+    justify-content: space-between;
 
-.inline-status{
-    appearance:none !important;
-    -webkit-appearance:none !important;
-    -moz-appearance:none !important;
+    gap: 20px;
 
-    background:#60A5FA !important;
-    color:#fff !important;
+    padding: 20px 24px;
 
-    border:none !important;
-    outline:none;
-
-    border-radius:8px;
-
-    min-width:80px;
-    height:34px;
-    padding:0 14px;
-
-    font-weight:600;
-
-    cursor:pointer;
-}
-.inline-status:hover{
-
-    background:#3B82F6;
-
-    transform:translateY(-1px);
-
-    box-shadow:0 4px 12px rgba(59,130,246,.25);
-}
-.inline-status:active{
-
-    background:#2563EB;
-
-    transform:scale(.98);
-}
-.inline-status:focus{
-
-    outline:none;
-
-    box-shadow:0 0 0 3px rgba(59,130,246,.25);
-}
-.inline-status::-ms-expand{
-    display:none;
-}
-/* ===== Action Buttons ===== */
-
-.action-buttons{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    white-space:nowrap;
+    border-bottom:
+        1px solid
+        var(--color-border);
 }
 
-.action-buttons .btn{
-    margin:0;
+.modal__header h2 {
+    margin-bottom: 4px;
+
+    font-size: 1.25rem;
+
+    color:
+        var(--color-text);
 }
 
-.btn-sm{
-    min-width:72px;
-    height:36px;
+.modal__header p {
+    font-size: 0.9rem;
 
-    padding:0 16px;
-
-    border-radius:8px;
-
-    font-size:14px;
-    font-weight:600;
+    color:
+        var(--color-text-muted);
 }
 
-.btn-save,
-.btn-edit,
-.btn-cancel,
-.status-button {
+.modal__close {
+    width: 36px;
+
+    height: 36px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: transparent;
+
+    font-size: 1.5rem;
+
+    line-height: 1;
+
     cursor: pointer;
+
+    color:
+        var(--color-text-muted);
 }
 
-.btn-save,
-.btn-edit,
-.btn-cancel {
-    margin-right: 8px;
+.modal__close:hover {
+    background:
+        var(--color-primary-light);
+
+    color:
+        var(--color-text);
 }
 
-.status-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.8;
+#editLotForm {
+    padding: 24px;
 }
 
-.edit-lot-name,
-.edit-farm-area,
-.edit-product-category,
-.edit-expected-quantity,
-.edit-planting-date {
+.modal-form-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 20px;
+}
+
+.modal-form-grid__full {
+    grid-column: 1 / -1;
+}
+
+.form-group {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+
+    font-weight: 600;
+
+    color:
+        var(--color-text);
+}
+
+.form-group label span {
+    color: #dc2626;
+}
+
+.form-group input,
+.form-group select {
     width: 100%;
-    padding: 8px;
-    border: 1px solid #d5d9dd;
-    border-radius: 6px;
+
+    min-height: 42px;
+
+    padding: 10px 12px;
+
+    border:
+        1px solid
+        var(--color-border);
+
+    border-radius:
+        var(--border-radius-sm);
+
+    background:
+        var(--color-surface);
+
+    color:
+        var(--color-text);
+
+    font-size: 0.9rem;
+
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color:
+        var(--color-primary);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(34, 139, 74, 0.12);
+}
+
+.form-group input.invalid,
+.form-group select.invalid {
+    border-color: #dc2626;
+}
+
+.field-error {
+    min-height: 16px;
+
+    font-size: 0.78rem;
+
+    color: #dc2626;
+}
+
+.modal__actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 12px;
+
+    margin-top: 24px;
+
+    padding-top: 20px;
+
+    border-top:
+        1px solid
+        var(--color-border);
+}
+
+.modal-message {
+    margin: 16px 24px 0;
+
+    padding: 12px 14px;
+
+    border-radius:
+        var(--border-radius-sm);
+
+    font-size: 0.9rem;
+}
+
+.modal-message.success {
+    border: 1px solid #86efac;
+
+    background: #f0fdf4;
+
+    color: #166534;
+}
+
+.modal-message.error {
+    border: 1px solid #fca5a5;
+
+    background: #fef2f2;
+
+    color: #991b1b;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+/* Edit button */
+
+.btn-edit-lot {
+    min-width: 64px;
+}
+
+.btn-edit-lot:disabled {
+    opacity: 0.55;
+
+    cursor: not-allowed;
+}
+
+/* Modal responsive */
+
+@media (max-width: 640px) {
+    .modal {
+        padding: 12px;
+    }
+
+    .modal-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-form-grid__full {
+        grid-column: auto;
+    }
+
+    .modal__header,
+    #editLotForm {
+        padding: 18px;
+    }
+
+    .modal__actions {
+        flex-direction: column-reverse;
+    }
+
+    .modal__actions .btn {
+        width: 100%;
+    }
+}
+
+.production-lot-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.production-lot-actions .btn {
+    min-width: max-content;
+}
+
+.btn-history-lot {
+    background: #237a35;
+    border-color: #237a35;
+    color: #ffffff;
+}
+
+.btn-history-lot:hover:not(:disabled) {
+    background: #1c672b;
+    border-color: #1c672b;
+}
+
+.btn-create-farm-log {
+    background: #237a35;
+    border-color: #237a35;
+    color: #ffffff;
 }
