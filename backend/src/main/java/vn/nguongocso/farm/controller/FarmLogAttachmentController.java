@@ -18,7 +18,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/farm-logs")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('VT-01', 'VT-02', 'VT-03')")
 public class FarmLogAttachmentController {
 
     private final AttachmentService attachmentService;
