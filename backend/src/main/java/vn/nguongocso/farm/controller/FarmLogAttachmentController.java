@@ -18,6 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/farm-logs")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('VT-03')")
 public class FarmLogAttachmentController {
 
     private final AttachmentService attachmentService;
@@ -41,7 +42,6 @@ public class FarmLogAttachmentController {
     }
 
     @DeleteMapping("/attachments/{attachmentId}")
-    @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
     public ResponseEntity<ApiResult<Void>> deleteAttachment(
             @PathVariable UUID attachmentId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {

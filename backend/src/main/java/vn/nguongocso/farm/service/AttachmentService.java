@@ -142,11 +142,11 @@ public class AttachmentService {
         FarmLogAttachment attachment = attachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy file đính kèm"));
 
-        // Kiểm tra quyền: chỉ người upload hoặc admin (VT-01) được xóa
-        boolean isAdmin = "VT-01".equals(userDetails.getRoleCode());
+        // Kiểm tra quyền: chỉ người upload
+
         boolean isUploader = attachment.getUploadedBy().getUserId().equals(userDetails.getUserId());
 
-        if (!isAdmin && !isUploader) {
+        if (!isUploader) {
             throw new BusinessException("Bạn không có quyền xóa file này");
         }
 
