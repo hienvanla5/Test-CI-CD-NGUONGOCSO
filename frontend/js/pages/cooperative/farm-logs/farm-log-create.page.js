@@ -110,15 +110,14 @@ const productionLotIdFromUrl =
 
 function hideElement(element) {
     if (element) {
+        element.classList.add("is-hidden");
         element.style.display = "none";
     }
 }
 
-function showElement(
-    element,
-    displayValue
-) {
+function showElement(element, displayValue) {
     if (element) {
+        element.classList.remove("is-hidden");
         element.style.display =
             displayValue || "block";
     }

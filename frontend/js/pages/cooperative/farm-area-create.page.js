@@ -26,7 +26,7 @@ if (!user || !user.roleCode) {
 
 const roleCode = user.roleCode;
 
-const allowedRoles = ["VT-01", "VT-02", "VT-03"];
+const allowedRoles = ["VT-02"];
 
 if (!allowedRoles.includes(roleCode)) {
     document.getElementById("loadingState").style.display = "none";
