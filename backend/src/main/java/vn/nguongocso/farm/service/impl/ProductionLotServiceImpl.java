@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
 import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
 import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
 import vn.nguongocso.auth.entity.User;
@@ -117,4 +118,69 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .updatedAt(lot.getUpdatedAt())
                 .build();
     }
+    @Override
+    @Transactional
+    public CreateProductionLotResponse submitProductionLot(UUID id, CustomUserDetails userDetails) {
+        log.info("Bắt đầu xử lý gửi duyệt lô sản xuất với id={}", id);
+
+        UUID orgId = userDetails.getOrganizationId();
+
+        ProductionLot lot = productionLotRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Lô sản xuất không tồn tại"));
+
+        if (!lot.getOrganization().getOrganizationId().equals(orgId)) {
+            throw new BusinessException("Bạn không có quyền gửi duyệt lô sản xuất này");
+        }
+
+        if (lot.getStatus() != ProductionLotStatus.DRAFT) {
+            throw new BusinessException("Chỉ có thể gửi duyệt lô sản xuất khi đang ở trạng thái nháp (DRAFT)");
+        }
+
+        lot.setStatus(ProductionLotStatus.PENDING);
+        ProductionLot savedLot = productionLotRepository.save(lot);
+        log.info("Đã gửi duyệt thành công lô sản xuất id={}, trạng thái={}", savedLot.getId(), savedLot.getStatus());
+
+        return mapToResponse(savedLot);
+    }
+
+    @Override
+    @Transactional
+    public CreateProductionLotResponse approveProductionLot(UUID id, ApproveProductionLotRequest request, CustomUserDetails userDetails) {
+        log.info("Bắt đầu xử lý phê duyệt lô sản xuất với id={}, approved={}", id, request.getApproved());
+
+        UUID orgId = userDetails.getOrganizationId();
+
+        ProductionLot lot = productionLotRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Lô sản xuất không tồn tại"));
+
+        // Phân quyền: Cán bộ kiểm duyệt (VT-05) hoặc Quản lý HTX (VT-02 - chỉ được duyệt lô của tổ chức mình)
+        if ("VT-02".equals(userDetails.getRoleCode())) {
+            if (!lot.getOrganization().getOrganizationId().equals(orgId)) {
+                throw new BusinessException("Bạn không có quyền phê duyệt lô sản xuất của tổ chức khác");
+            }
+        }
+
+        if (lot.getStatus() != ProductionLotStatus.PENDING) {
+            throw new BusinessException("Chỉ có thể phê duyệt lô sản xuất đang ở trạng thái chờ duyệt (PENDING)");
+        }
+
+        User approver = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin tài khoản người duyệt"));
+
+        if (Boolean.TRUE.equals(request.getApproved())) {
+            lot.setStatus(ProductionLotStatus.APPROVED);
+        } else {
+            // Nếu từ chối, trả về trạng thái DRAFT để HTX bổ sung thêm log/chứng từ
+            lot.setStatus(ProductionLotStatus.DRAFT);
+        }
+
+        lot.setApprovalNotes(request.getApprovalNotes());
+        lot.setApprovedBy(approver);
+
+        ProductionLot savedLot = productionLotRepository.save(lot);
+        log.info("Đã xử lý phê duyệt lô sản xuất id={}, trạng thái mới={}", savedLot.getId(), savedLot.getStatus());
+
+        return mapToResponse(savedLot);
+    }
+
 }
