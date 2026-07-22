@@ -9,5 +9,5 @@ import vn.nguongocso.farm.entity.FarmLog;
  * Repository thao tác dữ liệu nhật ký canh tác.
  */
 public interface FarmLogRepository extends JpaRepository<FarmLog, UUID> {
-    
+
 }

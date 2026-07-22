@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import vn.nguongocso.common.ApiResult;
 
 /**
@@ -149,4 +150,9 @@ public class GlobalExceptionHandler {
 
 	}
 
+	@ExceptionHandler(MissingServletRequestPartException.class)
+	public ResponseEntity<ApiResult<Void>> handleMissingPart(MissingServletRequestPartException e) {
+		return ResponseEntity.badRequest()
+				.body(ApiResult.error(400, "Thiếu trường file trong request"));
+	}
 }
