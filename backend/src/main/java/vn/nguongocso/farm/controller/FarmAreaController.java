@@ -1,5 +1,7 @@
 package vn.nguongocso.farm.controller;
 
+import java.util.List;
+
 import org.locationtech.jts.geom.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,23 @@ public class FarmAreaController {
 	private static final Logger log = LoggerFactory.getLogger(FarmAreaController.class);
 
 	private final FarmAreaService farmAreaService;
+
+	/**
+	 * Lấy danh sách vùng trồng thuộc tổ chức của người dùng đang đăng nhập.
+	 *
+	 * @return danh sách vùng trồng
+	 */
+	@GetMapping
+	public ResponseEntity<ApiResult<List<FarmAreaResponse>>> getFarmAreas() {
+
+		log.info("Nhận yêu cầu lấy danh sách vùng trồng");
+
+		List<FarmAreaResponse> farmAreas = farmAreaService.getFarmAreas();
+
+		log.info("Lấy danh sách vùng trồng thành công, size={}", farmAreas.size());
+
+		return ResponseEntity.ok(ApiResult.success(farmAreas));
+	}
 
 	/**
 	 * Tạo mới vùng trồng.

@@ -1,0 +1,429 @@
+/* ===== Production Lot Create Page ===== */
+
+/* Form Card */
+.production-lot-card {
+    max-width: 800px;
+
+    background:
+        var(--color-surface);
+
+    border-radius:
+        var(--border-radius-md);
+
+    box-shadow:
+        var(--shadow-sm);
+
+    padding: 40px;
+}
+
+/* Section */
+.production-lot-section {
+    margin-bottom: 36px;
+
+    padding-bottom: 28px;
+
+    border-bottom:
+        1px solid
+        var(--color-border);
+}
+
+.production-lot-section:last-of-type {
+    border-bottom: none;
+
+    margin-bottom: 24px;
+
+    padding-bottom: 0;
+}
+
+.production-lot-section-title {
+    margin-bottom: 20px;
+
+    font-size: 1rem;
+
+    font-weight: 700;
+
+    color:
+        var(--color-text);
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.03em;
+}
+
+/* Field Grid */
+.production-lot-field-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 20px;
+}
+
+/* Form Group overrides */
+.production-lot-field-grid .form-group {
+    display: flex;
+
+    flex-direction: column;
+}
+
+.production-lot-field-grid .form-group label {
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-size: 0.9rem;
+
+    font-weight: 600;
+
+    color:
+        var(--color-text);
+}
+
+.production-lot-field-grid .form-group .required {
+    color: var(--color-danger);
+
+    margin-left: 2px;
+}
+
+.production-lot-field-grid .form-group input,
+.production-lot-field-grid .form-group select {
+    width: 100%;
+
+    height: 48px;
+
+    padding: 0 14px;
+
+    border:
+        1px solid
+        var(--color-border);
+
+    border-radius:
+        var(--border-radius-sm);
+
+    background:
+        var(--color-surface);
+
+    color:
+        var(--color-text);
+
+    font-size: 0.95rem;
+
+    font-family: inherit;
+
+    transition:
+        border-color var(--transition),
+        box-shadow var(--transition);
+}
+
+.production-lot-field-grid .form-group input:focus,
+.production-lot-field-grid .form-group select:focus {
+    outline: none;
+
+    border-color:
+        var(--color-primary);
+
+    box-shadow:
+        0 0 0 3px
+        rgb(46 125 50 / 12%);
+}
+
+/* Field Error */
+.production-lot-field-grid .form-group .field-error {
+    display: block;
+
+    margin-top: 6px;
+
+    color:
+        var(--color-danger);
+
+    font-size: 0.75rem;
+}
+
+.production-lot-field-grid .form-group .input-error {
+    border-color:
+        var(--color-danger) !important;
+}
+
+/* Full width field */
+.production-lot-field-grid .form-group-full {
+    grid-column:
+        1 / -1;
+}
+
+/* Disabled select */
+.production-lot-field-grid .form-group select:disabled {
+    background:
+        var(--color-background);
+
+    color:
+        var(--color-text-muted);
+
+    cursor: not-allowed;
+}
+
+/* Actions */
+.production-lot-actions {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 16px;
+
+    padding-top: 8px;
+}
+
+.btn-cancel {
+    width: auto;
+
+    height: 48px;
+
+    padding: 0 28px;
+
+    border:
+        1px solid
+        var(--color-border);
+
+    border-radius:
+        var(--border-radius-sm);
+
+    background:
+        var(--color-surface);
+
+    color:
+        var(--color-text);
+
+    font-size: 0.95rem;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background var(--transition),
+        border-color var(--transition);
+}
+
+.btn-cancel:hover {
+    background:
+        var(--color-background);
+
+    border-color:
+        var(--color-text-muted);
+}
+
+.btn-create {
+    width: auto;
+
+    height: 48px;
+
+    padding: 0 32px;
+
+    border: none;
+
+    border-radius:
+        var(--border-radius-sm);
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--color-primary),
+            var(--color-primary-dark)
+        );
+
+    color: #ffffff;
+
+    font-size: 0.95rem;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        transform var(--transition),
+        box-shadow var(--transition);
+}
+
+.btn-create:hover {
+    box-shadow:
+        0 8px 18px
+        rgb(46 125 50 / 25%);
+
+    transform:
+        translateY(-1px);
+}
+
+.btn-create:active {
+    transform:
+        translateY(0);
+}
+
+.btn-create:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
+
+    box-shadow: none;
+}
+
+/* Form Message */
+.form-message {
+    min-height: 24px;
+
+    margin-bottom: 16px;
+
+    font-size: 0.9rem;
+}
+
+.form-message.success {
+    color:
+        var(--color-primary);
+}
+
+.form-message.error {
+    color:
+        var(--color-danger);
+}
+
+/* State Containers (reuse from dashboard.css) */
+.state-container {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 64px 24px;
+
+    text-align: center;
+}
+
+.state-icon {
+    margin-bottom: 16px;
+
+    color:
+        var(--color-text-muted);
+}
+
+.state-error-icon {
+    color:
+        var(--color-danger);
+}
+
+.state-text {
+    margin-bottom: 8px;
+
+    font-size: 1.1rem;
+
+    font-weight: 600;
+
+    color:
+        var(--color-text);
+}
+
+.state-error-text {
+    color:
+        var(--color-danger);
+}
+
+/* Success Details */
+.success-details {
+    margin-top: 16px;
+
+    padding: 16px 20px;
+
+    background:
+        var(--color-primary-light);
+
+    border-radius:
+        var(--border-radius-sm);
+
+    text-align: left;
+}
+
+.success-details p {
+    margin-bottom: 6px;
+
+    font-size: 0.9rem;
+
+    color:
+        var(--color-text);
+}
+
+.success-details strong {
+    font-weight: 600;
+}
+
+.success-actions {
+    display: flex;
+
+    gap: 12px;
+
+    margin-top: 24px;
+
+    justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .production-lot-card {
+        padding: 24px 20px;
+    }
+
+    .production-lot-field-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+    .production-lot-field-grid .form-group-full {
+        grid-column:
+            auto;
+    }
+
+    .production-lot-actions {
+        flex-direction:
+            column-reverse;
+    }
+
+    .btn-cancel,
+    .btn-create {
+        width: 100%;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+    .header-actions {
+        width: 100%;
+
+        flex-direction: column;
+    }
+
+    .header-actions .btn,
+    .header-actions .user-badge {
+        width: 100%;
+    }
+
+    .success-actions {
+        flex-direction: column;
+    }
+
+    .success-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .production-lot-card {
+        padding: 16px;
+    }
+}

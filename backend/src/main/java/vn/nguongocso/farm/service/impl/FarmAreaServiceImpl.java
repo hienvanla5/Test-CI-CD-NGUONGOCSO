@@ -3,7 +3,9 @@ package vn.nguongocso.farm.service.impl;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -43,6 +45,17 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 	 * @param request thông tin vùng trồng cần tạo
 	 * @return thông tin vùng trồng sau khi tạo
 	 */
+	@Override
+	public List<FarmAreaResponse> getFarmAreas() {
+		CustomUserDetails currentUser = getCurrentUser();
+
+		List<FarmArea> farmAreas = farmAreaRepository.findByOrganization_OrganizationId(currentUser.getOrganizationId());
+
+		return farmAreas.stream()
+				.map(this::toResponse)
+				.collect(Collectors.toList());
+	}
+
 	@Override
 	public FarmAreaResponse create(CreateFarmAreaRequest request) {
 

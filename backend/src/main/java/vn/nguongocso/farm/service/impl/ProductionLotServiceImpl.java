@@ -22,7 +22,9 @@ import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.repository.OrganizationRepository;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -80,6 +82,20 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         log.info("Đã tạo thành công lô sản xuất với id={}", savedLot.getId());
 
         return mapToResponse(savedLot);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CreateProductionLotResponse> getAllProductionLots(CustomUserDetails userDetails) {
+        UUID orgId = userDetails.getOrganizationId();
+
+        log.info("Lấy danh sách lô sản xuất cho tổ chức id={}", orgId);
+
+        List<ProductionLot> lots = productionLotRepository.findByOrganization_OrganizationId(orgId);
+
+        return lots.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     private CreateProductionLotResponse mapToResponse(ProductionLot lot) {

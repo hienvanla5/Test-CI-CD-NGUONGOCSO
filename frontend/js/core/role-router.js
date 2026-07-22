@@ -2,21 +2,24 @@ import {
     getUser
 } from "./storage.js";
 
-const ORGANIZATION_ROUTES = {
-    SYSTEM:
-        "/pages/admin/dashboard.html",
+const ROLE_ROUTES = {
+    "VT-01":
+        "/frontend/pages/admin/dashboard.html",
 
-    COOPERATIVE:
-        "/pages/cooperative/dashboard.html",
+    "VT-02":
+        "/frontend/pages/cooperative/dashboard.html",
 
-    ENTERPRISE:
-        "/pages/enterprise/dashboard.html",
+    "VT-03":
+        "/frontend/pages/cooperative/dashboard.html",
 
-    GOVERNMENT:
-        "/pages/government/dashboard.html"
+    "VT-04":
+        "/frontend/pages/enterprise/dashboard.html",
+
+    "VT-05":
+        "/frontend/pages/government/dashboard.html"
 };
 
-export function redirectByOrganizationType() {
+export function redirectByRole() {
 
     const user = getUser();
 
@@ -27,30 +30,30 @@ export function redirectByOrganizationType() {
 
     if (!user) {
         window.location.href =
-            "/pages/auth/login.html";
+            "/frontend/pages/auth/login.html";
 
         return;
     }
 
-    const organizationType =
-        user.organizationType;
+    const roleCode = user.roleCode;
 
     console.log(
-        "Organization type:",
-        organizationType
+        "Role code:",
+        roleCode
     );
 
     const route =
-        ORGANIZATION_ROUTES[
-            organizationType
-        ];
+        ROLE_ROUTES[roleCode];
 
     if (!route) {
 
         console.error(
-            "Unknown organization type:",
-            organizationType
+            "Unknown role code:",
+            roleCode
         );
+
+        window.location.href =
+            "/frontend/pages/auth/login.html";
 
         return;
     }
