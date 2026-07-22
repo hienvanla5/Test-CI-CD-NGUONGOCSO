@@ -286,6 +286,11 @@ function createOption(
     return option;
 }
 
+function isDraftStatus(status) {
+    return String(status)
+        .toUpperCase() === "DRAFT";
+}
+
 // ---- Render table ----
 
 function renderProductionLots(lots) {
@@ -316,7 +321,7 @@ function renderProductionLots(lots) {
 
     lots.forEach(function (lot) {
         const isDraft =
-            lot.status === "DRAFT";
+            isDraftStatus(lot.status);
 
         const isEditing =
             isDraft &&
@@ -803,8 +808,8 @@ function attachTableEvents() {
             function (button) {
                 button.addEventListener(
                     "click",
-                    async function () {
-                        await saveProductionLot(
+                    function () {
+                        saveProductionLot(
                             button.dataset.save,
                             button
                         );
@@ -821,8 +826,8 @@ function attachTableEvents() {
             function (button) {
                 button.addEventListener(
                     "click",
-                    async function () {
-                        await handleSubmitProductionLot(
+                    function () {
+                        handleSubmitProductionLot(
                             button.dataset
                                 .submit,
                             button
@@ -849,7 +854,7 @@ async function saveProductionLot(
 
     if (
         !lot ||
-        lot.status !== "DRAFT"
+        !isDraftStatus(lot.status)
     ) {
         alert(
             "Chỉ lô Draft mới được chỉnh sửa."
@@ -1015,7 +1020,7 @@ async function handleSubmitProductionLot(
 
     if (
         !lot ||
-        lot.status !== "DRAFT"
+        !isDraftStatus(lot.status)
     ) {
         alert(
             "Chỉ lô Draft mới được gửi duyệt."

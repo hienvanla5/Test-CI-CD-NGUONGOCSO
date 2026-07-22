@@ -116,9 +116,9 @@ export async function submitProductionLot(
     id
 ) {
     return apiRequest(
-        `/production-lots/${encodeURIComponent(id)}/submit`,
+        `/production-lots/${id}/submit`,
         {
-            method: "PUT"
+            method: "POST"
         }
     );
 }
