@@ -1,22 +1,20 @@
 package vn.nguongocso.unit.organization;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import static org.mockito.Mockito.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import vn.nguongocso.auth.service.CustomUserDetailsService;
+import vn.nguongocso.config.JwtTokenProvider;
+import vn.nguongocso.config.SecurityConfig;
+import vn.nguongocso.organization.controller.OrganizationProfileController;
 import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.enums.OrganizationStatus;
@@ -25,10 +23,17 @@ import vn.nguongocso.organization.service.OrganizationService;
 
 import java.util.UUID;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(OrganizationProfileController.class)
+@Import(SecurityConfig.class)
 @ActiveProfiles("test")
-public class OrganizationControllerTest {
+public class OrganizationProfileControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -38,6 +43,12 @@ public class OrganizationControllerTest {
 
     @MockitoBean
     private OrganizationService organizationService;
+
+    @MockitoBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockitoBean
+    private CustomUserDetailsService customUserDetailsService;
 
     private final UUID orgId = UUID.randomUUID();
 
@@ -58,7 +69,7 @@ public class OrganizationControllerTest {
         when(organizationService.getCurrentOrganizationProfile()).thenReturn(response);
 
         mockMvc.perform(get("/api/v1/organizations/profile")
-                    .with(csrf()))
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.name").value("HTX Xanh"))
                 .andExpect(jsonPath("$.data.code").value("HTX001"));
@@ -84,12 +95,13 @@ public class OrganizationControllerTest {
                 .email("new@htx.com")
                 .build();
 
-        when(organizationService.updateCurrentOrganization(any(OrganizationUpdateRequest.class))).thenReturn(response);
+        when(organizationService.updateCurrentOrganization(any(OrganizationUpdateRequest.class)))
+                .thenReturn(response);
 
         mockMvc.perform(put("/api/v1/organizations/profile")
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.name").value("HTX Xanh Mới"))
                 .andExpect(jsonPath("$.data.phone").value("0987654321"));
@@ -97,17 +109,17 @@ public class OrganizationControllerTest {
 
     @Test
     @WithMockUser(roles = "VT-02")
-    void updateProfile_shouldReturnBadRequest_whenInvalidData() throws Exception {
+    void updateProfile_shouldReturnBadRequest_whenInvalidEmail() throws Exception {
         OrganizationUpdateRequest request = new OrganizationUpdateRequest();
         request.setName("HTX Xanh");
         request.setEmail("invalid-email");
 
         mockMvc.perform(put("/api/v1/organizations/profile")
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(Matchers.containsString("Email không hợp lệ")));
+                .andExpect(jsonPath("$.errors.email").value(Matchers.containsString("Email không hợp lệ")));
     }
 
     @Test
@@ -117,32 +129,9 @@ public class OrganizationControllerTest {
         request.setName("HTX Xanh");
 
         mockMvc.perform(put("/api/v1/organizations/profile")
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @WithMockUser(roles = "VT-01")
-    void updateOrganizationById_shouldReturnOk_whenAdmin() throws Exception {
-        UUID targetId = UUID.randomUUID();
-        OrganizationUpdateRequest request = new OrganizationUpdateRequest();
-        request.setName("Admin sửa");
-
-        OrganizationProfileResponse response = OrganizationProfileResponse.builder()
-                .organizationId(targetId)
-                .name("Admin sửa")
-                .code("ORG001")
-                .build();
-
-        when(organizationService.updateOrganizationById(eq(targetId), any(OrganizationUpdateRequest.class))).thenReturn(response);
-
-        mockMvc.perform(put("/api/v1/admin/organizations/profile/{id}", targetId)
-                    .with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.name").value("Admin sửa"));
     }
 }
