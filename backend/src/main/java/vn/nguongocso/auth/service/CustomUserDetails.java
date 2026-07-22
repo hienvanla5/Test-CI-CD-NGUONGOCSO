@@ -57,7 +57,13 @@ public class CustomUserDetails implements UserDetails {
         );
     }
 
-    @Override
+    
+    public User getUser() {
+		return user;
+	}
+
+
+	@Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
