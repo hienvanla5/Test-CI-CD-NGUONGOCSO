@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
 import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
 import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
 import vn.nguongocso.auth.entity.User;
@@ -22,6 +23,7 @@ import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.repository.OrganizationRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -96,6 +98,72 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         return lots.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public CreateProductionLotResponse approveProductionLot(UUID lotId, ApproveProductionLotRequest request, CustomUserDetails userDetails) {
+        log.info("Bắt đầu duyệt lô sản xuất với id={}",  lotId);
+
+        UUID orgId = userDetails.getOrganizationId();
+        UUID userId = userDetails.getUserId();
+
+        ProductionLot lot = productionLotRepository.findById(lotId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy lô sản xuất"));
+
+        if (!lot.getOrganization().getOrganizationId().equals(orgId)) {
+            throw new BusinessException("Lô sản xuất không thuộc tổ chức của bạn");
+        }
+
+        if (lot.getStatus() != ProductionLotStatus.PENDING) {
+            throw new BusinessException("Chỉ có thể duyệt lô đang ở trạng thái chờ duyệt");
+        }
+
+        User approver = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin tài khoản "));
+
+        if (request.getApproved()) {
+            lot.setStatus(ProductionLotStatus.APPROVED);
+            lot.setApprovedBy(approver);
+            lot.setApprovalNotes(null);
+            log.info("Lô {} đã được duyệt bởi {}", lotId, userId);
+        } else {
+            lot.setStatus(ProductionLotStatus.DRAFT);
+            lot.setApprovedBy(null);
+            lot.setApprovalNotes(request.getReason());
+            log.info("Lô {} bị từ chối bởi {}, lý do: {}", lotId, userId, request.getReason());
+        }
+
+        ProductionLot saved = productionLotRepository.save(lot);
+        return mapToResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public CreateProductionLotResponse submitForApproval(UUID lotId, CustomUserDetails userDetails) {
+        UUID orgId = userDetails.getOrganizationId();
+
+        ProductionLot lot = productionLotRepository.findById(lotId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy lô sản xuất"));
+
+        if (!lot.getOrganization().getOrganizationId().equals(orgId)) {
+            throw new BusinessException("Bạn không có quyền với lô này");
+        }
+
+        if (lot.getStatus() != ProductionLotStatus.DRAFT) {
+            throw new BusinessException("Chỉ  có thể gửi duyệt lô ở trạng thái DRAFT");
+        }
+
+        if (lot.getFarmArea() == null) {
+            throw new BusinessException("Vui lòng chọn vùng trồng trước khi gửi duyệt");
+        }
+
+        lot.setStatus(ProductionLotStatus.PENDING);
+        lot.setUpdatedAt(LocalDateTime.now());
+        productionLotRepository.save(lot);
+
+        log.info("Gửi duyệt lô thành công: lotId={}", lotId);
+        return mapToResponse(lot);
     }
 
     private CreateProductionLotResponse mapToResponse(ProductionLot lot) {

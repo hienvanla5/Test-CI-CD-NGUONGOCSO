@@ -57,18 +57,71 @@
             <nav class="sidebar-menu">
 
                 <a href="/frontend/pages/cooperative/dashboard.html">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="9" rx="1.5"/>
+                        <rect x="14" y="3" width="7" height="5" rx="1.5"/>
+                        <rect x="14" y="12" width="7" height="9" rx="1.5"/>
+                        <rect x="3" y="16" width="7" height="5" rx="1.5"/>
+                    </svg>
                     Dashboard
                 </a>
 
                 <a href="/frontend/pages/cooperative/farm-areas/index.html">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 21h18"/>
+                        <path d="M5 21V9l7-5 7 5v12"/>
+                        <path d="M9 21v-6h6v6"/>
+                    </svg>
                     Farm Areas
                 </a>
 
-                <a href="/frontend/pages/cooperative/production-lots/index.html" class="active">
-                    Production Lots
-                </a>
+                <!-- Production Lots Dropdown -->
+                <div class="sidebar-dropdown">
+
+                    <button
+                        class="sidebar-dropdown-toggle"
+                        id="productionDropdown"
+                        aria-expanded="false">
+
+                        <span class="sidebar-dropdown-label">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 7h-3a2 2 0 0 1-2-2V2"/>
+                                <path d="M9 2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-7-7Z"/>
+                                <path d="M9 13h6"/>
+                                <path d="M9 17h6"/>
+                            </svg>
+                            <span>Production Lots</span>
+                        </span>
+                        <span class="dropdown-arrow">▼</span>
+
+                    </button>
+
+                    <div class="sidebar-dropdown-menu">
+
+                        <a
+                            href="/frontend/pages/cooperative/production-lots/index.html"
+                            class="active">
+
+                            List Production
+
+                        </a>
+
+                        <a
+                            href="/frontend/pages/cooperative/production-lots/create.html">
+
+                            New Production
+
+                        </a>
+
+                    </div>
+
+                </div>
 
                 <a href="/frontend/pages/cooperative/profile.html">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>
+                    </svg>
                     Organization Profile
                 </a>
 
@@ -118,8 +171,7 @@
                 </div>
 
             </header>
-
-            <section class="dashboard-content">
+<section class="dashboard-content">
 
                 <!-- Loading State -->
                 <div id="loadingState" class="state-container" style="display: none;">
@@ -163,9 +215,38 @@
                     <div class="production-lots-header">
                         <h2>All Production Lots</h2>
                         <div class="production-lots-header-actions">
-                            <a href="/frontend/pages/cooperative/production-lots/create.html" class="btn btn-primary">
-                                + New
-                            </a>
+
+                            <div class="search-box">
+
+                                <div class="search-input-wrapper">
+
+                                    <svg class="search-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="7"/>
+                                        <path d="m21 21-4.3-4.3"/>
+                                    </svg>
+
+                                    <input
+                                        type="text"
+                                        id="searchProductionLot"
+                                        class="table-search"
+                                        placeholder="Search production lot...">
+
+                                </div>
+
+                                <button
+                                    id="searchButton"
+                                    class="btn btn-primary">
+
+                                    <svg class="search-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="7"/>
+                                        <path d="m21 21-4.3-4.3"/>
+                                    </svg>
+                                    Search
+
+                                </button>
+
+                            </div>
+
                         </div>
                     </div>
 
@@ -174,7 +255,7 @@
                         <!-- Empty State -->
                         <div id="emptyState" class="empty-state-container" style="display: none;">
                             <div class="empty-state-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                                     <polyline points="14 2 14 8 20 8" />
                                     <line x1="12" y1="18" x2="12" y2="12" />
@@ -200,6 +281,7 @@
                                         <th>Planting Date</th>
                                         <th>Status</th>
                                         <th>Created</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="productionLotsTableBody">
@@ -216,7 +298,41 @@
         </main>
 
     </div>
+    <div id="confirmModal" class="modal-overlay" style="display:none;">
 
+        <div class="modal">
+
+            <h3 id="modalTitle">
+                Confirm
+            </h3>
+
+            <p id="modalMessage">
+                Are you sure?
+            </p>
+
+            <div class="modal-actions">
+
+                <button
+                    id="modalCancel"
+                    class="btn btn-secondary">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    id="modalConfirm"
+                    class="btn btn-primary">
+
+                    Confirm
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
     <script
         type="module"
         src="../../../js/pages/cooperative/production-lots/production-lots.page.js">
