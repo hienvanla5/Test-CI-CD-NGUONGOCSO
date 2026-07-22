@@ -19,6 +19,29 @@ if (!requireAuth()) {
 
 const user = getUser();
 
+function setupSidebarByRole() {
+    if (!user || user.roleCode !== "VT-03") {
+        return;
+    }
+
+    const menuIds = [
+        "dashboardMenu",
+        "farmAreasMenu",
+        "organizationProfileMenu"
+    ];
+
+    menuIds.forEach(function (menuId) {
+        const menuItem =
+            document.getElementById(menuId);
+
+        if (menuItem) {
+            menuItem.style.display = "none";
+        }
+    });
+}
+
+setupSidebarByRole();
+
 if (!user || !user.roleCode) {
     window.location.href = "/frontend/pages/auth/login.html";
     throw new Error("User not authenticated.");

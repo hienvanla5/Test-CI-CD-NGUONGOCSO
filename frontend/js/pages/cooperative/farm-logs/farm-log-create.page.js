@@ -46,6 +46,28 @@ if (!requireAuth()) {
 
 const user = getUser();
 
+function setupSidebarByRole() {
+    if (user.roleCode !== "VT-03") {
+        return;
+    }
+
+    const dashboardMenu =
+        document.getElementById("dashboardMenu");
+
+    const farmAreasMenu =
+        document.getElementById("farmAreasMenu");
+
+    if (dashboardMenu) {
+        dashboardMenu.style.display = "none";
+    }
+
+    if (farmAreasMenu) {
+        farmAreasMenu.style.display = "none";
+    }
+}
+
+setupSidebarByRole();
+
 if (!user || !user.roleCode) {
     window.location.href = LOGIN_URL;
 
