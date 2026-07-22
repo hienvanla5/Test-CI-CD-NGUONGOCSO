@@ -12,7 +12,8 @@ import {
     getFarmAreas,
     getProductCategories,
     updateProductionLot,
-    submitProductionLot
+    submitProductionLot,
+    approveProductionLot
 } from "../../../services/production-lot.service.js";
 
 // ---- Auth check ----
@@ -616,7 +617,112 @@ function renderProductionLots(lots) {
                 "td"
             );
 
-        if (!isDraft) {
+        if (isDraft) {
+            if (isEditing) {
+                const actionGroup =
+                    document.createElement(
+                        "div"
+                    );
+
+                actionGroup.className =
+                    "action-buttons";
+
+                const saveButton =
+                    document.createElement(
+                        "button"
+                    );
+
+                saveButton.type =
+                    "button";
+
+                saveButton.className =
+                    "btn btn-primary btn-sm";
+
+                saveButton.dataset.save =
+                    lot.id;
+
+                saveButton.textContent =
+                    "Save";
+
+                const cancelButton =
+                    document.createElement(
+                        "button"
+                    );
+
+                cancelButton.type =
+                    "button";
+
+                cancelButton.className =
+                    "btn btn-secondary btn-sm";
+
+                cancelButton.dataset.cancel =
+                    lot.id;
+
+                cancelButton.textContent =
+                    "Cancel";
+
+                actionGroup.appendChild(
+                    saveButton
+                );
+
+                actionGroup.appendChild(
+                    cancelButton
+                );
+
+                actionsCell.appendChild(
+                    actionGroup
+                );
+            } else {
+                const editButton =
+                    document.createElement(
+                        "button"
+                    );
+
+                editButton.type =
+                    "button";
+
+                editButton.className =
+                    "btn btn-secondary btn-sm";
+
+                editButton.dataset.edit =
+                    lot.id;
+
+                editButton.textContent =
+                    "Edit";
+
+                actionsCell.appendChild(
+                    editButton
+                );
+            }
+        } else if (
+            String(lot.status).toUpperCase() ===
+                "PENDING" &&
+            user.roleCode === "VT-02"
+        ) {
+            const approveButton =
+                document.createElement(
+                    "button"
+                );
+
+            approveButton.type =
+                "button";
+
+            approveButton.className =
+                "btn btn-primary btn-sm";
+
+            approveButton.dataset.approve =
+                lot.id;
+
+            approveButton.textContent =
+                "Approve";
+
+            approveButton.title =
+                "Approve this production lot.";
+
+            actionsCell.appendChild(
+                approveButton
+            );
+        } else {
             const lockedText =
                 document.createElement(
                     "span"
@@ -629,85 +735,10 @@ function renderProductionLots(lots) {
                 "Locked";
 
             lockedText.title =
-                "Lô Pending không được chỉnh sửa.";
+                "This production lot cannot be modified.";
 
             actionsCell.appendChild(
                 lockedText
-            );
-        } else if (isEditing) {
-            const actionGroup =
-                document.createElement(
-                    "div"
-                );
-
-            actionGroup.className =
-                "action-buttons";
-
-            const saveButton =
-                document.createElement(
-                    "button"
-                );
-
-            saveButton.type =
-                "button";
-
-            saveButton.className =
-                "btn btn-primary btn-sm";
-
-            saveButton.dataset.save =
-                lot.id;
-
-            saveButton.textContent =
-                "Save";
-
-            const cancelButton =
-                document.createElement(
-                    "button"
-                );
-
-            cancelButton.type =
-                "button";
-
-            cancelButton.className =
-                "btn btn-secondary btn-sm";
-
-            cancelButton.dataset.cancel =
-                lot.id;
-
-            cancelButton.textContent =
-                "Cancel";
-
-            actionGroup.appendChild(
-                saveButton
-            );
-
-            actionGroup.appendChild(
-                cancelButton
-            );
-
-            actionsCell.appendChild(
-                actionGroup
-            );
-        } else {
-            const editButton =
-                document.createElement(
-                    "button"
-                );
-
-            editButton.type =
-                "button";
-
-            editButton.className =
-                "btn btn-secondary btn-sm";
-
-            editButton.dataset.edit =
-                lot.id;
-
-            editButton.textContent =
-                "Edit";
-
-            actionsCell.appendChild(
-                editButton
             );
         }
 
@@ -830,6 +861,25 @@ function attachTableEvents() {
                         handleSubmitProductionLot(
                             button.dataset
                                 .submit,
+                            button
+                        );
+                    }
+                );
+            }
+        );
+
+    document
+        .querySelectorAll(
+            "[data-approve]"
+        )
+        .forEach(
+            function (button) {
+                button.addEventListener(
+                    "click",
+                    function () {
+                        handleApproveProductionLot(
+                            button.dataset
+                                .approve,
                             button
                         );
                     }
@@ -1086,6 +1136,99 @@ async function handleSubmitProductionLot(
             false;
 
         statusButton.textContent =
+            oldText;
+    }
+}
+
+async function handleApproveProductionLot(
+    id,
+    approveButton
+) {
+    const lot =
+        productionLots.find(
+            function (item) {
+                return (
+                    String(item.id) ===
+                    String(id)
+                );
+            }
+        );
+
+    if (
+        !lot ||
+        String(lot.status)
+            .toUpperCase() !== "PENDING"
+    ) {
+        alert(
+            "Chỉ lô Pending mới được duyệt."
+        );
+
+        return;
+    }
+
+    if (user.roleCode !== "VT-02") {
+        alert(
+            "Bạn không có quyền duyệt lô sản xuất."
+        );
+
+        return;
+    }
+
+    const confirmed =
+        window.confirm(
+            "Are you sure you want to approve this production lot?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    const oldText =
+        approveButton.textContent;
+
+    approveButton.disabled = true;
+
+    approveButton.textContent =
+        "Approving...";
+
+    try {
+        const response =
+            await approveProductionLot(
+                id
+            );
+
+        if (
+            !response ||
+            response.success === false
+        ) {
+            throw new Error(
+                response?.message ||
+                "Approve failed."
+            );
+        }
+
+        alert(
+            "Phê duyệt lô sản xuất thành công."
+        );
+
+        await loadAllData();
+    } catch (error) {
+        console.error(
+            "Approve production lot error:",
+            error
+        );
+
+        alert(
+            getErrorMessage(
+                error,
+                "Không thể phê duyệt lô sản xuất."
+            )
+        );
+    } finally {
+        approveButton.disabled =
+            false;
+
+        approveButton.textContent =
             oldText;
     }
 }

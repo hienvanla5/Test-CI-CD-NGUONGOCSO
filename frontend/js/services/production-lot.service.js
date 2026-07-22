@@ -122,3 +122,27 @@ export async function submitProductionLot(
         }
     );
 }
+
+/**
+ * Approve or reject a production lot.
+ *
+ * Chuyển trạng thái:
+ * PENDING -> APPROVED (when approved: true)
+ *
+ * POST /api/v1/production-lots/{id}/approve
+ *
+ * @param {string} id
+ * @returns {Promise<Object>}
+ */
+export async function approveProductionLot(id) {
+    return apiRequest(
+        `/production-lots/${id}/approve`,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                approved: true,
+                reason: ""
+            })
+        }
+    );
+}
