@@ -12,7 +12,9 @@ import {
     getFarmAreas,
     getProductCategories,
     updateProductionLot,
-    submitProductionLot
+    submitProductionLot,
+    approveProductionLot,
+    returnToDraftProductionLot
 } from "../../../services/production-lot.service.js";
 
 // ---- Auth check ----
@@ -175,12 +177,169 @@ const productionLotsTableBody =
         "productionLotsTableBody"
     );
 
+// ---- Modal DOM references ----
+
+const confirmModal =
+    document.getElementById(
+        "confirmModal"
+    );
+
+const modalTitle =
+    document.getElementById(
+        "modalTitle"
+    );
+
+const modalMessage =
+    document.getElementById(
+        "modalMessage"
+    );
+
+const modalConfirm =
+    document.getElementById(
+        "modalConfirm"
+    );
+
+const modalCancel =
+    document.getElementById(
+        "modalCancel"
+    );
+
+// ---- Return to Draft Modal DOM references ----
+
+const returnToDraftModal =
+    document.getElementById(
+        "returnToDraftModal"
+    );
+
+const returnToDraftReason =
+    document.getElementById(
+        "returnToDraftReason"
+    );
+
+const returnToDraftError =
+    document.getElementById(
+        "returnToDraftError"
+    );
+
+const returnToDraftCancel =
+    document.getElementById(
+        "returnToDraftCancel"
+    );
+
+const returnToDraftConfirm =
+    document.getElementById(
+        "returnToDraftConfirm"
+    );
+
 // ---- State ----
 
 let productionLots = [];
 let farmAreas = [];
 let productCategories = [];
 let editingLotId = null;
+
+// ---- Reusable modal ----
+
+let modalResolve = null;
+let modalReject = null;
+
+function showConfirmModal(
+    title,
+    message
+) {
+    return new Promise(
+        function (resolve, reject) {
+            modalTitle.textContent =
+                title;
+            modalMessage.textContent =
+                message;
+            confirmModal
+                .style.display = "flex";
+
+            modalResolve = resolve;
+            modalReject = reject;
+        }
+    );
+}
+
+function closeConfirmModal() {
+    confirmModal
+        .style.display = "none";
+    modalResolve = null;
+    modalReject = null;
+}
+
+modalConfirm.addEventListener(
+    "click",
+    function () {
+        if (modalResolve) {
+            modalResolve(true);
+        }
+
+        closeConfirmModal();
+    }
+);
+
+modalCancel.addEventListener(
+    "click",
+    function () {
+        if (modalResolve) {
+            modalResolve(false);
+        }
+
+        closeConfirmModal();
+    }
+);
+
+confirmModal.addEventListener(
+    "click",
+    function (event) {
+        if (
+            event.target ===
+            confirmModal
+        ) {
+            if (modalResolve) {
+                modalResolve(false);
+            }
+
+            closeConfirmModal();
+        }
+    }
+);
+
+// ---- Close all action menus ----
+
+function closeAllActionMenus() {
+    document
+        .querySelectorAll(
+            ".action-menu-container"
+        )
+        .forEach(
+            function (container) {
+                container.remove();
+            }
+        );
+}
+
+// ---- Global click to close menus ----
+
+document.addEventListener(
+    "click",
+    function (event) {
+        if (
+            !event.target
+                .closest(
+                    ".action-menu-trigger"
+                ) &&
+            !event.target
+                .closest(
+                    ".action-menu-container"
+                )
+        ) {
+            closeAllActionMenus();
+        }
+    }
+);
 
 // ---- Helpers ----
 
@@ -286,6 +445,563 @@ function createOption(
     return option;
 }
 
+function isDraftStatus(status) {
+    return String(status)
+        .toUpperCase() === "DRAFT";
+}
+
+// ---- Create action menu ----
+
+function createActionMenu(
+    lot,
+    actionsCell
+) {
+    const status =
+        String(
+            lot.status
+        ).toUpperCase();
+
+    const menuTrigger =
+        document.createElement(
+            "button"
+        );
+
+    menuTrigger.type = "button";
+
+    menuTrigger.className =
+        "action-menu-trigger";
+
+    menuTrigger.textContent =
+        "\u22EE";
+
+    menuTrigger.dataset.lotId =
+        lot.id;
+
+    menuTrigger.addEventListener(
+        "click",
+        function (event) {
+            event.stopPropagation();
+
+            closeAllActionMenus();
+
+            const existingMenu =
+                actionsCell
+                    .querySelector(
+                        ".action-menu-container"
+                    );
+
+            if (existingMenu) {
+                existingMenu
+                    .remove();
+
+                return;
+            }
+
+            const menu =
+                createMenuItems(
+                    lot
+                );
+
+            if (!menu) {
+                return;
+            }
+
+            actionsCell
+                .appendChild(
+                    menu
+                );
+        }
+    );
+
+    actionsCell.appendChild(
+        menuTrigger
+    );
+}
+
+// ---- Create menu items based on status ----
+
+function createMenuItems(lot) {
+    const status =
+        String(
+            lot.status
+        ).toUpperCase();
+
+    const menu =
+        document.createElement(
+            "div"
+        );
+
+    menu.className =
+        "action-menu-container";
+
+    var items = [];
+
+    if (status === "DRAFT") {
+        items = [
+            {
+                label:
+                    "Edit Lot",
+                action:
+                    "edit"
+            },
+            {
+                label:
+                    "Submit for Approval",
+                action:
+                    "submit"
+            }
+        ];
+    } else if (
+        status === "PENDING"
+    ) {
+        if (
+            user.roleCode ===
+            "VT-02"
+        ) {
+            items = [
+                {
+                    label:
+                        "Approve Lot",
+                    action:
+                        "approve"
+                },
+                {
+                    label:
+                        "Return to Draft",
+                    action:
+                        "return-to-draft"
+                }
+            ];
+        } else {
+            items = [
+                {
+                    label:
+                        "Return to Draft",
+                    action:
+                        "return-to-draft"
+                }
+            ];
+        }
+    }
+
+    if (items.length === 0) {
+        var lockedItem =
+            document.createElement(
+                "div"
+            );
+
+        lockedItem.className =
+            "action-menu-item action-menu-item-locked";
+
+        lockedItem.textContent =
+            "Locked";
+
+        menu.appendChild(
+            lockedItem
+        );
+
+        return menu;
+    }
+
+    items.forEach(
+        function (item) {
+            var menuItem =
+                document.createElement(
+                    "div"
+                );
+
+            menuItem.className =
+                "action-menu-item";
+
+            menuItem.dataset
+                .action = item.action;
+
+            menuItem.textContent =
+                item.label;
+
+            menuItem.addEventListener(
+                "click",
+                function (
+                    event
+                ) {
+                    event
+                        .stopPropagation();
+
+                    handleActionMenuClick(
+                        lot,
+                        item.action,
+                        menuItem
+                    );
+                }
+            );
+
+            menu.appendChild(
+                menuItem
+            );
+        }
+    );
+
+    return menu;
+}
+
+// ---- Handle action menu click ----
+
+async function handleActionMenuClick(
+    lot,
+    action,
+    menuItem
+) {
+    closeAllActionMenus();
+
+    if (
+        action === "edit"
+    ) {
+        if (
+            !isDraftStatus(
+                lot.status
+            )
+        ) {
+            alert(
+                "Chi lô Draft mới được chỉnh sửa."
+            );
+
+            return;
+        }
+
+        editingLotId =
+            String(lot.id);
+
+        renderProductionLots(
+            productionLots
+        );
+
+        return;
+    }
+
+    if (
+        action === "submit"
+    ) {
+        await handleSubmitAction(
+            lot,
+            menuItem
+        );
+
+        return;
+    }
+
+    if (
+        action === "approve"
+    ) {
+        await handleApproveAction(
+            lot,
+            menuItem
+        );
+
+        return;
+    }
+
+    if (
+        action ===
+        "return-to-draft"
+    ) {
+        await handleReturnToDraftAction(
+            lot,
+            menuItem
+        );
+
+        return;
+    }
+}
+
+// ---- Submit for Approval ----
+
+async function handleSubmitAction(
+    lot,
+    menuItem
+) {
+    if (
+        !isDraftStatus(
+            lot.status
+        )
+    ) {
+        alert(
+            "Chi lô Draft mới được gửi duyệt."
+        );
+
+        return;
+    }
+
+    var confirmed =
+        await showConfirmModal(
+            "Confirm Submission",
+            "Are you sure you want to submit this production lot for approval?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    var oldText =
+        menuItem.textContent;
+
+    menuItem.disabled = true;
+
+    menuItem.textContent =
+        "Submitting...";
+
+    try {
+        var response =
+            await submitProductionLot(
+                lot.id
+            );
+
+        if (
+            !response ||
+            response.success ===
+                false
+        ) {
+            throw new Error(
+                response
+                    ?.message ||
+                    "Submit failed."
+            );
+        }
+
+        editingLotId = null;
+
+        alert(
+            "Da chuyen lo san xuat sang Pending."
+        );
+
+        await loadAllData();
+    } catch (error) {
+        console.error(
+            "Submit production lot error:",
+            error
+        );
+
+        alert(
+            getErrorMessage(
+                error,
+                "Khong the chuyen sang Pending."
+            )
+        );
+    } finally {
+        menuItem.disabled =
+            false;
+
+        menuItem.textContent =
+            oldText;
+    }
+}
+
+// ---- Approve Lot ----
+
+async function handleApproveAction(
+    lot,
+    menuItem
+) {
+    if (
+        String(
+            lot.status
+        ).toUpperCase() !==
+        "PENDING"
+    ) {
+        alert(
+            "Chi lo Pending moi duoc duyet."
+        );
+
+        return;
+    }
+
+    if (
+        user.roleCode !== "VT-02"
+    ) {
+        alert(
+            "Ban khong co quyen duyet lo san xuat."
+        );
+
+        return;
+    }
+
+    var confirmed =
+        await showConfirmModal(
+            "Confirm Approval",
+            "Are you sure you want to approve this production lot?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    var oldText =
+        menuItem.textContent;
+
+    menuItem.disabled = true;
+
+    menuItem.textContent =
+        "Approving...";
+
+    try {
+        var response =
+            await approveProductionLot(
+                lot.id
+            );
+
+        if (
+            !response ||
+            response.success ===
+                false
+        ) {
+            throw new Error(
+                response
+                    ?.message ||
+                    "Approve failed."
+            );
+        }
+
+        alert(
+            "Phe duyet lo san xuat thanh cong."
+        );
+
+        await loadAllData();
+    } catch (error) {
+        console.error(
+            "Approve production lot error:",
+            error
+        );
+
+        alert(
+            getErrorMessage(
+                error,
+                "Khong the phe duyet lo san xuat."
+            )
+        );
+    } finally {
+        menuItem.disabled =
+            false;
+
+        menuItem.textContent =
+            oldText;
+    }
+}
+
+// ---- Return to Draft Modal helpers ----
+
+function closeReturnToDraftModal() {
+    returnToDraftModal.style.display = "none";
+}
+
+returnToDraftCancel.addEventListener(
+    "click",
+    function () {
+        closeReturnToDraftModal();
+    }
+);
+
+returnToDraftModal.addEventListener(
+    "click",
+    function (event) {
+        if (event.target === returnToDraftModal) {
+            closeReturnToDraftModal();
+        }
+    }
+);
+
+// ---- Return to Draft ----
+
+let returnToDraftPendingLot = null;
+
+returnToDraftConfirm.addEventListener(
+    "click",
+    async function () {
+        if (!returnToDraftPendingLot) {
+            return;
+        }
+
+        var reason = returnToDraftReason.value.trim();
+
+        if (!reason) {
+            returnToDraftError.style.display = "block";
+            returnToDraftReason.focus();
+            return;
+        }
+
+        returnToDraftError.style.display = "none";
+        returnToDraftConfirm.disabled = true;
+        returnToDraftConfirm.textContent = "Returning...";
+
+        try {
+            var response =
+                await returnToDraftProductionLot(
+                    returnToDraftPendingLot.id,
+                    reason
+                );
+
+            if (
+                !response ||
+                response.success ===
+                    false
+            ) {
+                throw new Error(
+                    response
+                        ?.message ||
+                        "Return to Draft failed."
+                );
+            }
+
+            closeReturnToDraftModal();
+
+            alert(
+                "The production lot has been returned to Draft successfully."
+            );
+
+            await loadAllData();
+        } catch (error) {
+            console.error(
+                "Return to Draft production lot error:",
+                error
+            );
+
+            returnToDraftConfirm.disabled = false;
+            returnToDraftConfirm.textContent = "Return to Draft";
+
+            alert(
+                getErrorMessage(
+                    error,
+                    "Unable to return the production lot to Draft."
+                )
+            );
+        }
+    }
+);
+
+async function handleReturnToDraftAction(
+    lot,
+    menuItem
+) {
+    if (
+        String(
+            lot.status
+        ).toUpperCase() !==
+        "PENDING"
+    ) {
+        alert(
+            "Chi lo Pending moi co the tra ve Draft."
+        );
+
+        return;
+    }
+
+    returnToDraftPendingLot = lot;
+    returnToDraftReason.value = "";
+    returnToDraftError.style.display = "none";
+    returnToDraftConfirm.disabled = false;
+    returnToDraftConfirm.textContent = "Return to Draft";
+    returnToDraftModal.style.display = "flex";
+    returnToDraftReason.focus();
+}
+
 // ---- Render table ----
 
 function renderProductionLots(lots) {
@@ -316,7 +1032,7 @@ function renderProductionLots(lots) {
 
     lots.forEach(function (lot) {
         const isDraft =
-            lot.status === "DRAFT";
+            isDraftStatus(lot.status);
 
         const isEditing =
             isDraft &&
@@ -544,53 +1260,22 @@ function renderProductionLots(lots) {
                 "td"
             );
 
-        if (isDraft) {
-            const statusButton =
-                document.createElement(
-                    "button"
-                );
-
-            statusButton.type =
-                "button";
-
-            statusButton.className =
-                "inline-status";
-
-            statusButton.dataset.submit =
-                lot.id;
-
-            statusButton.textContent =
-                "Draft";
-
-            statusButton.disabled =
-                isEditing;
-
-            statusButton.title =
-                isEditing
-                    ? "Hãy Save hoặc Cancel trước."
-                    : "Bấm để chuyển sang Pending.";
-
-            statusCell.appendChild(
-                statusButton
+        const statusBadge =
+            document.createElement(
+                "span"
             );
-        } else {
-            const statusBadge =
-                document.createElement(
-                    "span"
-                );
 
-            statusBadge.className =
-                `status-badge ${getStatusBadgeClass(
-                    lot.status
-                )}`;
+        statusBadge.className =
+            `status-badge ${getStatusBadgeClass(
+                lot.status
+            )}`;
 
-            statusBadge.textContent =
-                lot.status || "—";
+        statusBadge.textContent =
+            lot.status || "—";
 
-            statusCell.appendChild(
-                statusBadge
-            );
-        }
+        statusCell.appendChild(
+            statusBadge
+        );
 
         // CREATED
 
@@ -611,25 +1296,7 @@ function renderProductionLots(lots) {
                 "td"
             );
 
-        if (!isDraft) {
-            const lockedText =
-                document.createElement(
-                    "span"
-                );
-
-            lockedText.className =
-                "action-locked";
-
-            lockedText.textContent =
-                "Locked";
-
-            lockedText.title =
-                "Lô Pending không được chỉnh sửa.";
-
-            actionsCell.appendChild(
-                lockedText
-            );
-        } else if (isEditing) {
+        if (isEditing) {
             const actionGroup =
                 document.createElement(
                     "div"
@@ -683,26 +1350,33 @@ function renderProductionLots(lots) {
             actionsCell.appendChild(
                 actionGroup
             );
+        } else if (
+            isDraft ||
+            String(lot.status)
+                .toUpperCase() ===
+                "PENDING"
+        ) {
+            createActionMenu(
+                lot,
+                actionsCell
+            );
         } else {
-            const editButton =
+            const lockedText =
                 document.createElement(
-                    "button"
+                    "span"
                 );
 
-            editButton.type =
-                "button";
+            lockedText.className =
+                "action-locked";
 
-            editButton.className =
-                "btn btn-secondary btn-sm";
+            lockedText.textContent =
+                "Locked";
 
-            editButton.dataset.edit =
-                lot.id;
-
-            editButton.textContent =
-                "Edit";
+            lockedText.title =
+                "This production lot cannot be modified.";
 
             actionsCell.appendChild(
-                editButton
+                lockedText
             );
         }
 
@@ -803,8 +1477,8 @@ function attachTableEvents() {
             function (button) {
                 button.addEventListener(
                     "click",
-                    async function () {
-                        await saveProductionLot(
+                    function () {
+                        saveProductionLot(
                             button.dataset.save,
                             button
                         );
@@ -813,24 +1487,6 @@ function attachTableEvents() {
             }
         );
 
-    document
-        .querySelectorAll(
-            "[data-submit]"
-        )
-        .forEach(
-            function (button) {
-                button.addEventListener(
-                    "click",
-                    async function () {
-                        await handleSubmitProductionLot(
-                            button.dataset
-                                .submit,
-                            button
-                        );
-                    }
-                );
-            }
-        );
 }
 
 async function saveProductionLot(
@@ -849,7 +1505,7 @@ async function saveProductionLot(
 
     if (
         !lot ||
-        lot.status !== "DRAFT"
+        !isDraftStatus(lot.status)
     ) {
         alert(
             "Chỉ lô Draft mới được chỉnh sửa."
@@ -995,92 +1651,6 @@ if (expectedQuantity <= 0) {
             false;
 
         saveButton.textContent =
-            oldText;
-    }
-}
-
-async function handleSubmitProductionLot(
-    id,
-    statusButton
-) {
-    const lot =
-        productionLots.find(
-            function (item) {
-                return (
-                    String(item.id) ===
-                    String(id)
-                );
-            }
-        );
-
-    if (
-        !lot ||
-        lot.status !== "DRAFT"
-    ) {
-        alert(
-            "Chỉ lô Draft mới được gửi duyệt."
-        );
-
-        return;
-    }
-
-    const confirmed =
-        window.confirm(
-            "Sau khi chuyển sang Pending, lô sản xuất sẽ không thể chỉnh sửa. Bạn có chắc chắn không?"
-        );
-
-    if (!confirmed) {
-        return;
-    }
-
-    const oldText =
-        statusButton.textContent;
-
-    statusButton.disabled = true;
-
-    statusButton.textContent =
-        "Submitting...";
-
-    try {
-        const response =
-            await submitProductionLot(
-                id
-            );
-
-        if (
-            !response ||
-            response.success === false
-        ) {
-            throw new Error(
-                response?.message ||
-                "Submit failed."
-            );
-        }
-
-        editingLotId = null;
-
-        alert(
-            "Đã chuyển lô sản xuất sang Pending."
-        );
-
-        await loadAllData();
-    } catch (error) {
-        console.error(
-            "Submit production lot error:",
-            error
-        );
-
-        alert(
-            getErrorMessage(
-                error,
-                "Không thể chuyển sang Pending."
-            )
-        );
-    } finally {
-        statusButton.disabled =
-            false;
-
-        statusButton.textContent =
             oldText;
     }
 }

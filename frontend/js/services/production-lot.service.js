@@ -107,7 +107,7 @@ export async function updateProductionLot(
  * Chuyển trạng thái:
  * DRAFT -> PENDING
  *
- * PUT /api/v1/production-lots/{id}/submit
+ * POST /api/v1/production-lots/{id}/submit
  *
  * @param {string} id
  * @returns {Promise<Object>}
@@ -116,9 +116,60 @@ export async function submitProductionLot(
     id
 ) {
     return apiRequest(
-        `/production-lots/${encodeURIComponent(id)}/submit`,
+        `/production-lots/${id}/submit`,
         {
-            method: "PUT"
+            method: "POST"
+        }
+    );
+}
+
+/**
+ * Approve or reject a production lot.
+ *
+ * Chuyển trạng thái:
+ * PENDING -> APPROVED (when approved: true)
+ *
+ * POST /api/v1/production-lots/{id}/approve
+ *
+ * @param {string} id
+ * @returns {Promise<Object>}
+ */
+export async function approveProductionLot(id) {
+    return apiRequest(
+        `/production-lots/${id}/approve`,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                approved: true,
+                reason: ""
+            })
+        }
+    );
+}
+
+/**
+ * Return a production lot to draft.
+ *
+ * Chuyển trạng thái:
+ * PENDING -> DRAFT
+ *
+ * POST /api/v1/production-lots/{id}/approve false
+ *
+ * @param {string} id
+ * @returns {Promise<Object>}
+ */
+export async function returnToDraftProductionLot(id, reason) {
+    return apiRequest(
+        `/production-lots/${id}/approve`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                approved: false,
+                reason: reason.trim()
+            })
         }
     );
 }
