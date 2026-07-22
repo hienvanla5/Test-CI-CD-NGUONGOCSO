@@ -11,6 +11,12 @@ import {
     getProductionLots,
     updateProductionLot
 } from "../../../services/production-lot.service.js";
+import {
+    getFarmAreas,
+    getProductCategories
+} from "../../../services/production-lot.service.js";
+let farmAreas = [];
+let productCategories = [];
 // ---- Auth check ----
 
 if (!requireAuth()) {
@@ -18,7 +24,36 @@ if (!requireAuth()) {
 }
 
 const user = getUser();
+async function loadAllData() {
+    loadingState.style.display = "flex";
+    try {
+        const [lotsRes, farmRes, catRes] = await Promise.all([
+            getProductionLots(),
+            getFarmAreas(),
+            getProductCategories()
+        ]);
 
+        // Xử lý production lots
+        if (!lotsRes.success) throw new Error(lotsRes.message);
+        productionLots = lotsRes.data || [];
+
+        // Xử lý farm areas
+        if (farmRes.success) {
+            farmAreas = farmRes.data || [];
+        }
+
+        // Xử lý categories
+        if (catRes.success) {
+            productCategories = catRes.data || [];
+        }
+
+        loadingState.style.display = "none";
+        mainContent.style.display = "block";
+        renderProductionLots(productionLots);
+    } catch (error) {
+        // ... xử lý lỗi
+    }
+}
 if (!user || !user.roleCode) {
     window.location.href = "/frontend/pages/auth/login.html";
     throw new Error("User not authenticated.");
@@ -143,19 +178,29 @@ function renderProductionLots(lots) {
         nameCell.innerHTML = isEditing
             ? `<input type="text" class="inline-input" value="${lot.name || ''}" id="edit-name-${lot.id}">`
             : (lot.name || "—");
-
-        // FARM AREA
+        // Farm Area
         const farmAreaCell = document.createElement("td");
-        farmAreaCell.innerHTML = isEditing
-            ? `<input type="text" class="inline-input" value="${lot.farmAreaName || ''}" id="edit-farm-${lot.id}">`
-            : (lot.farmAreaName || "—");
-
-        // PRODUCT CATEGORY
+        if (isEditing) {
+            let options = `<option value="">Select</option>`;
+            farmAreas.forEach(area => {
+                const selected = (area.id === lot.farmAreaId) ? 'selected' : '';
+                options += `<option value="${area.id}" ${selected}>${area.name}</option>`;
+            });
+            farmAreaCell.innerHTML = `<select class="inline-input" id="edit-farm-${lot.id}">${options}</select>`;
+        } else {
+            farmAreaCell.textContent = lot.farmAreaName || "—";
+        }
         const categoryCell = document.createElement("td");
-        categoryCell.innerHTML = isEditing
-            ? `<input type="text" class="inline-input" value="${lot.productCategoryName || ''}" id="edit-category-${lot.id}">`
-            : (lot.productCategoryName || "—");
-
+        if (isEditing) {
+            let options = `<option value="">Select</option>`;
+            productCategories.forEach(cat => {
+                const selected = (cat.id === lot.productCategoryId) ? 'selected' : '';
+                options += `<option value="${cat.id}" ${selected}>${cat.name}</option>`;
+            });
+            categoryCell.innerHTML = `<select class="inline-input" id="edit-category-${lot.id}">${options}</select>`;
+        } else {
+            categoryCell.textContent = lot.productCategoryName || "—";
+        }
         // EXPECTED QUANTITY
         const qtyCell = document.createElement("td");
         qtyCell.innerHTML = isEditing
@@ -250,8 +295,8 @@ function attachTableEvents() {
 
             const updatedData = {
                 name: document.getElementById(`edit-name-${id}`).value,
-                farmAreaName: document.getElementById(`edit-farm-${id}`).value,
-                productCategoryName: document.getElementById(`edit-category-${id}`).value,
+                farmAreaId: document.getElementById(`edit-farm-${id}`).value,
+                productCategoryId: document.getElementById(`edit-category-${id}`).value,
                 expectedQuantity: Number(document.getElementById(`edit-qty-${id}`).value),
                 plantingDate: document.getElementById(`edit-date-${id}`).value
             };
@@ -378,3 +423,9 @@ setupLogout();
 // ---- Initial load ----
 
 loadProductionLots();
+const dropdown = document.querySelector(".sidebar-dropdown");
+const toggle = document.getElementById("productionDropdown");
+
+toggle.addEventListener("click", () => {
+    dropdown.classList.toggle("open");
+});

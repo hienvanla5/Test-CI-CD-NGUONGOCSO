@@ -64,9 +64,38 @@
                     Farm Areas
                 </a>
 
-                <a href="/frontend/pages/cooperative/production-lots/index.html" class="active">
-                    Production Lots
-                </a>
+                <!-- Production Lots Dropdown -->
+                <div class="sidebar-dropdown">
+
+                    <button
+                        class="sidebar-dropdown-toggle active"
+                        id="productionDropdown">
+
+                        <span>Production Lots</span>
+                        <span class="dropdown-arrow">▼</span>
+
+                    </button>
+
+                    <div class="sidebar-dropdown-menu">
+
+                        <a
+                            href="/frontend/pages/cooperative/production-lots/index.html"
+                            class="active">
+
+                            List Production
+
+                        </a>
+
+                        <a
+                            href="/frontend/pages/cooperative/production-lots/create.html">
+
+                            New Production
+
+                        </a>
+
+                    </div>
+
+                </div>
 
                 <a href="/frontend/pages/cooperative/profile.html">
                     Organization Profile
@@ -162,19 +191,24 @@
                     <div class="production-lots-header">
                         <h2>All Production Lots</h2>
                         <div class="production-lots-header-actions">
-                            <input
-                                type="text"
-                                id="searchProductionLot"
-                                class="table-search"
-                                placeholder="Search production lot...">
 
-                            <a
-                                href="/frontend/pages/cooperative/production-lots/create.html"
-                                class="btn btn-primary">
+                            <div class="search-box">
 
-                                + New
+                                <input
+                                    type="text"
+                                    id="searchProductionLot"
+                                    class="table-search"
+                                    placeholder="Search production lot...">
 
-                            </a>
+                                <button
+                                    id="searchButton"
+                                    class="btn btn-primary">
+
+                                    Search
+
+                                </button>
+
+                            </div>
 
                         </div>
                     </div>
