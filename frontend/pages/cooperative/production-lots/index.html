@@ -57,10 +57,21 @@
             <nav class="sidebar-menu">
 
                 <a href="/frontend/pages/cooperative/dashboard.html">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="9" rx="1.5"/>
+                        <rect x="14" y="3" width="7" height="5" rx="1.5"/>
+                        <rect x="14" y="12" width="7" height="9" rx="1.5"/>
+                        <rect x="3" y="16" width="7" height="5" rx="1.5"/>
+                    </svg>
                     Dashboard
                 </a>
 
                 <a href="/frontend/pages/cooperative/farm-areas/index.html">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 21h18"/>
+                        <path d="M5 21V9l7-5 7 5v12"/>
+                        <path d="M9 21v-6h6v6"/>
+                    </svg>
                     Farm Areas
                 </a>
 
@@ -68,10 +79,19 @@
                 <div class="sidebar-dropdown">
 
                     <button
-                        class="sidebar-dropdown-toggle active"
-                        id="productionDropdown">
+                        class="sidebar-dropdown-toggle"
+                        id="productionDropdown"
+                        aria-expanded="false">
 
-                        <span>Production Lots</span>
+                        <span class="sidebar-dropdown-label">
+                            <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 7h-3a2 2 0 0 1-2-2V2"/>
+                                <path d="M9 2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9l-7-7Z"/>
+                                <path d="M9 13h6"/>
+                                <path d="M9 17h6"/>
+                            </svg>
+                            <span>Production Lots</span>
+                        </span>
                         <span class="dropdown-arrow">▼</span>
 
                     </button>
@@ -98,6 +118,10 @@
                 </div>
 
                 <a href="/frontend/pages/cooperative/profile.html">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>
+                    </svg>
                     Organization Profile
                 </a>
 
@@ -194,16 +218,29 @@
 
                             <div class="search-box">
 
-                                <input
-                                    type="text"
-                                    id="searchProductionLot"
-                                    class="table-search"
-                                    placeholder="Search production lot...">
+                                <div class="search-input-wrapper">
+
+                                    <svg class="search-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="7"/>
+                                        <path d="m21 21-4.3-4.3"/>
+                                    </svg>
+
+                                    <input
+                                        type="text"
+                                        id="searchProductionLot"
+                                        class="table-search"
+                                        placeholder="Search production lot...">
+
+                                </div>
 
                                 <button
                                     id="searchButton"
                                     class="btn btn-primary">
 
+                                    <svg class="search-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="7"/>
+                                        <path d="m21 21-4.3-4.3"/>
+                                    </svg>
                                     Search
 
                                 </button>

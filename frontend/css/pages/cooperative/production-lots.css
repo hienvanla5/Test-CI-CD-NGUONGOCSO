@@ -23,7 +23,118 @@
 .production-lots-header-actions {
     display: flex;
 
+    align-items: center;
+    justify-content: flex-end;
+
     gap: 12px;
+}
+
+/* ===== Search Box ===== */
+
+.search-box {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+}
+
+.search-input-wrapper {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+}
+
+.search-input-wrapper .search-input-icon {
+    position: absolute;
+    left: 14px;
+
+    display: flex;
+
+    width: 16px;
+    height: 16px;
+
+    color: var(--color-text-muted, #9ca3af);
+
+    pointer-events: none;
+}
+
+.search-box .table-search {
+    height: 42px;
+
+    padding: 0 14px 0 40px;
+
+    border: 1px solid #dcdcdc;
+    border-radius: 10px;
+
+    font-size: 0.9rem;
+
+    background: #fff;
+
+    min-width: 220px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.search-box .table-search::placeholder {
+    color: #9ca3af;
+}
+
+.search-box .table-search:focus {
+    outline: none;
+
+    border-color: #3b82f6;
+
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.search-box #searchButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    height: 42px;
+
+    min-width: 120px;
+    max-width: 150px;
+
+    padding: 0 18px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #2E7D32;
+    color: #fff;
+
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    box-shadow: 0 2px 6px rgba(46, 125, 50, 0.25);
+
+    transition:
+        background-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.search-box #searchButton:hover {
+    background: #276428;
+
+    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+}
+
+.search-box #searchButton:active {
+    transform: scale(0.98);
+}
+
+.search-box #searchButton .search-btn-icon {
+    display: flex;
+
+    width: 16px;
+    height: 16px;
 }
 
 /* List card */
@@ -226,6 +337,26 @@
 
     .production-lots-header-actions .btn {
         flex: 1;
+    }
+
+    .search-box {
+        width: 100%;
+
+        flex-wrap: wrap;
+    }
+
+    .search-input-wrapper {
+        flex: 1 1 100%;
+    }
+
+    .search-box .table-search {
+        width: 100%;
+    }
+
+    .search-box #searchButton {
+        flex: 1 1 100%;
+
+        max-width: none;
     }
 
     .dashboard-header {
