@@ -23,7 +23,7 @@ const user = getUser();
 
 if (!user || !user.roleCode) {
     window.location.href =
-        "/nguon-goc-so/frontend/pages/auth/login.html";
+        "/frontend/pages/auth/login.html";
 
     throw new Error(
         "User not authenticated."
