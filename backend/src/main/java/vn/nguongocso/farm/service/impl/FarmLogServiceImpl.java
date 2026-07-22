@@ -17,6 +17,10 @@ import vn.nguongocso.farm.entity.FarmLog;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.farm.repository.FarmLogRepository;
+import java.util.List;
+import java.util.stream.Collectors;
+import vn.nguongocso.farm.dto.response.AttachmentResponse;
+import vn.nguongocso.farm.repository.FarmLogAttachmentRepository;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.farm.service.FarmLogService;
 
@@ -27,6 +31,7 @@ public class FarmLogServiceImpl implements FarmLogService {
 
 	private final FarmLogRepository farmLogRepository;
 	private final ProductionLotRepository productionLotRepository;
+	private final FarmLogAttachmentRepository farmLogAttachmentRepository;
 
 	@Override
 	public FarmLogResponse create(CreateFarmLogRequest request) {
@@ -64,23 +69,48 @@ public class FarmLogServiceImpl implements FarmLogService {
 	}
 
 	private FarmLogResponse toResponse(FarmLog farmLog) {
+		List<AttachmentResponse> attachments = farmLogAttachmentRepository.findByFarmLogId(farmLog.getId())
+				.stream()
+				.map(att -> AttachmentResponse.builder()
+						.id(att.getId())
+						.farmLogId(att.getFarmLog().getId())
+						.fileName(att.getFileName())
+						.fileSize(att.getFileSize())
+						.fileType(att.getFileType())
+						.fileUrl("/" + att.getFilePath())
+						.description(att.getDescription())
+						.uploadedBy(att.getUploadedBy().getFullName())
+						.uploadedAt(att.getUploadedAt())
+						.build())
+				.collect(Collectors.toList());
 
 	    return FarmLogResponse.builder()
 	            .id(farmLog.getId())
-
 	            .productionLotId(farmLog.getProductionLotId().getId())
 	            .productionLotName(farmLog.getProductionLotId().getName())
-
 	            .activityType(farmLog.getActivityType())
 	            .material(farmLog.getMaterial())
 	            .quantity(farmLog.getQuantity())
 	            .unit(farmLog.getUnit())
 	            .executedDate(farmLog.getExecutedDate())
 	            .notes(farmLog.getNotes())
-
 	            .createdByName(farmLog.getCreatedBy().getFullName())
 	            .createdAt(farmLog.getCreatedAt())
+	            .attachments(attachments)
 	            .build();
+	}
+
+	@Override
+	public List<FarmLogResponse> getLogsByProductionLot(UUID productionLotId) {
+		CustomUserDetails currentUser = getCurrentUser();
+		ProductionLot productionLot = getProductionLot(productionLotId);
+		validatePermission(currentUser, productionLot);
+
+		List<FarmLog> logs = farmLogRepository.findByProductionLotId_IdOrderByExecutedDateAsc(productionLotId);
+
+		return logs.stream()
+				.map(this::toResponse)
+				.collect(Collectors.toList());
 	}
 
 	private void validatePermission(CustomUserDetails currentUser, ProductionLot productionLot) {
