@@ -14,5 +14,6 @@ public interface ProductionLotService {
     List<CreateProductionLotResponse> getAllProductionLots(CustomUserDetails userDetails);
     CreateProductionLotResponse submitProductionLot(UUID id, CustomUserDetails userDetails);
     CreateProductionLotResponse approveProductionLot(UUID id, ApproveProductionLotRequest request, CustomUserDetails userDetails);
+    CreateProductionLotResponse packageProductionLot(UUID id, CustomUserDetails userDetails);
 
 }
