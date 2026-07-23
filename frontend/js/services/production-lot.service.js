@@ -68,3 +68,18 @@ export async function getProductionLots() {
         }
     );
 }
+// production-lot.service.js
+
+/**
+ * Update a production lot
+ * PUT /api/v1/production-lots/:id
+ */
+export async function updateProductionLot(id, productionLotData) {
+    return apiRequest(
+        `/production-lots/${id}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(productionLotData)
+        }
+    );
+}
