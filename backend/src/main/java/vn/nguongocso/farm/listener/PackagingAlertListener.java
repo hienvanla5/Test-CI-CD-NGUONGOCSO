@@ -1,0 +1,22 @@
+package vn.nguongocso.farm.listener;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import vn.nguongocso.farm.event.PackagingValidationFailedEvent;
+
+@Component
+public class PackagingAlertListener {
+    private static final Logger log = LoggerFactory.getLogger(PackagingAlertListener.class);
+
+    @Async
+    @EventListener
+    public void handlePackagingValidationFailed(PackagingValidationFailedEvent event) {
+        log.warn("CẢNH BÁO THIẾU NHẬT KÝ: Lô sản xuất '{}' (ID: {}) thuộc tổ chức ID {} không đủ điều kiện đóng gói.",
+                event.getLotName(), event.getProductionLotId(), event.getOrganizationId());
+
+
+    }
+}

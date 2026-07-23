@@ -35,6 +35,7 @@ import vn.nguongocso.farm.service.FarmLogService;
 @RequiredArgsConstructor
 public class FarmLogServiceImpl implements FarmLogService {
 
+<<<<<<< HEAD
 	private final FarmLogRepository farmLogRepository;
 	private final ProductionLotRepository productionLotRepository;
 	
@@ -56,79 +57,101 @@ public class FarmLogServiceImpl implements FarmLogService {
 	        Sort.by(
 	                Sort.Order.desc("executedDate"),
 	                Sort.Order.desc("createdAt"));
+=======
+    private static final String EVENT_RECORDER_ROLE = "VT-03";
+    private static final String ORG_MANAGER_ROLE = "VT-02";
+
+    private static final String CREATE_PERMISSION_MESSAGE =
+            "Bạn không có quyền ghi nhật ký canh tác.";
+    private static final String VIEW_PERMISSION_MESSAGE =
+            "Bạn không có quyền xem lịch sử nhật ký canh tác.";
+    private static final String ORGANIZATION_ACCESS_MESSAGE =
+            "Bạn không thuộc tổ chức của lô sản xuất.";
+    private static final String PRODUCTION_LOT_NOT_FOUND_MESSAGE =
+            "Không tìm thấy lô sản xuất";
+    private static final String INVALID_LOT_STATUS_MESSAGE =
+            "Chỉ được ghi nhật ký cho lô đã duyệt hoặc đang thu hoạch.";
+
+    private static final Sort FARM_LOG_SORT =
+            Sort.by(
+                    Sort.Order.desc("executedDate"),
+                    Sort.Order.desc("createdAt"));
+
+    private final FarmLogRepository farmLogRepository;
+    private final ProductionLotRepository productionLotRepository;
+>>>>>>> feature/farm-log-attachment
 
     /**
      * Tạo nhật ký canh tác.
-     *
-     * @param request thông tin nhật ký
-     * @return thông tin nhật ký đã tạo
      */
-	@Override
-	public FarmLogResponse create(CreateFarmLogRequest request) {
+    @Override
+    public FarmLogResponse create(CreateFarmLogRequest request) {
 
+<<<<<<< HEAD
 		CustomUserDetails currentUser = getCurrentUser();
 		
 		validateRole(currentUser,EVENT_RECORDER_ROLE,CREATE_PERMISSION_MESSAGE);
+=======
+        CustomUserDetails currentUser = getCurrentUser();
+>>>>>>> feature/farm-log-attachment
 
-		ProductionLot productionLot = getProductionLot(request.getProductionLotId());
-		
-		validateProductionLotStatus(productionLot);
-		
-		validateOrganizationAccess(currentUser, productionLot);
+        validateRole(
+                currentUser,
+                EVENT_RECORDER_ROLE,
+                CREATE_PERMISSION_MESSAGE);
 
-		FarmLog farmLog = buildFarmLog(request, productionLot, currentUser.getUser());
+        ProductionLot productionLot =
+                getProductionLot(request.getProductionLotId());
 
-		FarmLog saved = farmLogRepository.save(farmLog);
+        validateProductionLotStatus(productionLot);
+        validateOrganizationAccess(currentUser, productionLot);
 
-		return toResponse(saved);
-	}
+        FarmLog farmLog =
+                buildFarmLog(
+                        request,
+                        productionLot,
+                        currentUser.getUser());
 
-	private CustomUserDetails getCurrentUser() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		return (CustomUserDetails) authentication.getPrincipal();
-	}
+        FarmLog saved = farmLogRepository.save(farmLog);
 
-	private ProductionLot getProductionLot(UUID productionLotId) {
-		return productionLotRepository.findById(productionLotId)
-				.orElseThrow(() -> new BusinessException(PRODUCTION_LOT_NOT_FOUND_MESSAGE));
-	}
+        return toResponse(saved);
+    }
 
-	private FarmLog buildFarmLog(CreateFarmLogRequest request, ProductionLot productionLot, User createdBy) {
+    /**
+     * Lấy danh sách nhật ký canh tác của lô sản xuất theo phân trang.
+     */
+    @Override
+    public PageResponse<FarmLogResponse> getFarmLogsByProductionLot(
+            UUID productionLotId,
+            int page,
+            int size) {
 
-		return FarmLog.builder().productionLotId(productionLot).activityType(request.getActivityType())
-				.material(request.getMaterial()).quantity(request.getQuantity()).unit(request.getUnit())
-				.executedDate(request.getExecutedDate()).notes(request.getNotes()).createdBy(createdBy).build();
-	}
+        CustomUserDetails currentUser = getCurrentUser();
 
-	private FarmLogResponse toResponse(FarmLog farmLog) {
+        validateRole(
+                currentUser,
+                ORG_MANAGER_ROLE,
+                VIEW_PERMISSION_MESSAGE);
 
-	    return FarmLogResponse.builder()
-	            .id(farmLog.getId())
+        ProductionLot productionLot =
+                getProductionLot(productionLotId);
 
-	            .productionLotId(farmLog.getProductionLotId().getId())
-	            .productionLotName(farmLog.getProductionLotId().getName())
+        validateOrganizationAccess(currentUser, productionLot);
 
-	            .activityType(farmLog.getActivityType())
-	            .material(farmLog.getMaterial())
-	            .quantity(farmLog.getQuantity())
-	            .unit(farmLog.getUnit())
-	            .executedDate(farmLog.getExecutedDate())
-	            .notes(farmLog.getNotes())
+        Page<FarmLogProjection> farmLogs =
+                findFarmLogs(productionLot, page, size);
 
-	            .createdByName(farmLog.getCreatedBy().getFullName())
-	            .createdAt(farmLog.getCreatedAt())
-	            .build();
-	}
+        List<FarmLogResponse> responses = farmLogs.getContent()
+                .stream()
+                .map(this::toResponse)
+                .toList();
 
-	private void validateOrganizationAccess(
-	        CustomUserDetails currentUser,
-	        ProductionLot productionLot) {
+        return PageResponse.from(farmLogs, responses);
+    }
 
-	    if (!productionLot.getFarmArea()
-	            .getOrganization()
-	            .getOrganizationId()
-	            .equals(currentUser.getOrganizationId())) {
+    private CustomUserDetails getCurrentUser() {
 
+<<<<<<< HEAD
 	        throw new BusinessException(
 	            ORGANIZATION_ACCESS_MESSAGE);
 	    }
@@ -145,78 +168,137 @@ public class FarmLogServiceImpl implements FarmLogService {
 	}
 	
 	private void validateProductionLotStatus(ProductionLot productionLot) {
+=======
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
 
-	    if (productionLot.getStatus() != ProductionLotStatus.APPROVED
-	            && productionLot.getStatus() != ProductionLotStatus.HARVESTED) {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
+>>>>>>> feature/farm-log-attachment
 
+            throw new BusinessException(
+                    "Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn.");
+        }
+
+<<<<<<< HEAD
 	        throw new BusinessException(
 	        		INVALID_LOT_STATUS_MESSAGE);
 	    }
 	}
+=======
+        return (CustomUserDetails) authentication.getPrincipal();
+    }
+>>>>>>> feature/farm-log-attachment
 
-	/**
-	 * Lấy danh sách nhật ký canh tác của lô sản xuất theo phân trang.
-	 *
-	 * @param productionLotId mã lô sản xuất
-	 * @param page số trang (bắt đầu từ 0)
-	 * @param size số bản ghi trên mỗi trang
-	 * @return dữ liệu nhật ký canh tác theo phân trang
-	 */
-	@Override
-	public PageResponse<FarmLogResponse> getFarmLogsByProductionLot(
-	        UUID productionLotId,
-	        int page,
-	        int size) {
+    private ProductionLot getProductionLot(UUID productionLotId) {
 
-	    CustomUserDetails currentUser = getCurrentUser();
+        return productionLotRepository.findById(productionLotId)
+                .orElseThrow(
+                        () -> new BusinessException(
+                                PRODUCTION_LOT_NOT_FOUND_MESSAGE));
+    }
 
-	    validateRole(currentUser,ORG_MANAGER_ROLE,VIEW_PERMISSION_MESSAGE);
+    private FarmLog buildFarmLog(
+            CreateFarmLogRequest request,
+            ProductionLot productionLot,
+            User createdBy) {
 
-	    ProductionLot productionLot = getProductionLot(productionLotId);
+        return FarmLog.builder()
+                .productionLotId(productionLot)
+                .activityType(request.getActivityType())
+                .material(request.getMaterial())
+                .quantity(request.getQuantity())
+                .unit(request.getUnit())
+                .executedDate(request.getExecutedDate())
+                .notes(request.getNotes())
+                .createdBy(createdBy)
+                .build();
+    }
 
-	    validateOrganizationAccess(currentUser, productionLot);
+    private void validateOrganizationAccess(
+            CustomUserDetails currentUser,
+            ProductionLot productionLot) {
 
-	    Page<FarmLogProjection> farmLogs =
-	            findFarmLogs(productionLot, page, size);
+        if (!productionLot.getFarmArea()
+                .getOrganization()
+                .getOrganizationId()
+                .equals(currentUser.getOrganizationId())) {
 
-	    List<FarmLogResponse> responses = farmLogs.getContent()
-	            .stream()
-	            .map(this::toResponse)
-	            .toList();
+            throw new BusinessException(
+                    ORGANIZATION_ACCESS_MESSAGE);
+        }
+    }
 
-	    return PageResponse.from(farmLogs, responses);
-	}
-	
-	private Page<FarmLogProjection> findFarmLogs(
-	        ProductionLot productionLot,
-	        int page,
-	        int size) {
+    private void validateRole(
+            CustomUserDetails currentUser,
+            String expectedRole,
+            String message) {
 
-	    Pageable pageable = buildPageable(page, size);
+        if (!expectedRole.equals(currentUser.getRoleCode())) {
+            throw new BusinessException(message);
+        }
+    }
 
-	    return farmLogRepository.findByProductionLot(
-	            productionLot,
-	            pageable);
-	}
-		
-	private Pageable buildPageable(int page, int size) {
-	    return PageRequest.of(page, size, FARM_LOG_SORT);
-	}
-	
-	private FarmLogResponse toResponse(FarmLogProjection projection) {
-	    return FarmLogResponse.builder()
-	            .id(projection.getId())
-	            .productionLotId(projection.getProductionLotId())
-	            .productionLotName(projection.getProductionLotName())
-	            .activityType(projection.getActivityType())
-	            .material(projection.getMaterial())
-	            .quantity(projection.getQuantity())
-	            .unit(projection.getUnit())
-	            .executedDate(projection.getExecutedDate())
-	            .notes(projection.getNotes())
-	            .createdByName(projection.getCreatedByName())
-	            .createdAt(projection.getCreatedAt())
-	            .build();
-	}
-	
+    private void validateProductionLotStatus(
+            ProductionLot productionLot) {
+
+        if (productionLot.getStatus() != ProductionLotStatus.APPROVED
+                && productionLot.getStatus() != ProductionLotStatus.HARVESTED) {
+
+            throw new BusinessException(
+                    INVALID_LOT_STATUS_MESSAGE);
+        }
+    }
+
+    private Page<FarmLogProjection> findFarmLogs(
+            ProductionLot productionLot,
+            int page,
+            int size) {
+
+        Pageable pageable = buildPageable(page, size);
+
+        return farmLogRepository.findByProductionLot(
+                productionLot,
+                pageable);
+    }
+
+    private Pageable buildPageable(int page, int size) {
+        return PageRequest.of(page, size, FARM_LOG_SORT);
+    }
+
+    private FarmLogResponse toResponse(FarmLog farmLog) {
+
+        return FarmLogResponse.builder()
+                .id(farmLog.getId())
+                .productionLotId(farmLog.getProductionLotId().getId())
+                .productionLotName(farmLog.getProductionLotId().getName())
+                .activityType(farmLog.getActivityType())
+                .material(farmLog.getMaterial())
+                .quantity(farmLog.getQuantity())
+                .unit(farmLog.getUnit())
+                .executedDate(farmLog.getExecutedDate())
+                .notes(farmLog.getNotes())
+                .createdByName(farmLog.getCreatedBy().getFullName())
+                .createdAt(farmLog.getCreatedAt())
+                .build();
+    }
+
+    private FarmLogResponse toResponse(
+            FarmLogProjection projection) {
+
+        return FarmLogResponse.builder()
+                .id(projection.getId())
+                .productionLotId(projection.getProductionLotId())
+                .productionLotName(projection.getProductionLotName())
+                .activityType(projection.getActivityType())
+                .material(projection.getMaterial())
+                .quantity(projection.getQuantity())
+                .unit(projection.getUnit())
+                .executedDate(projection.getExecutedDate())
+                .notes(projection.getNotes())
+                .createdByName(projection.getCreatedByName())
+                .createdAt(projection.getCreatedAt())
+                .build();
+    }
 }

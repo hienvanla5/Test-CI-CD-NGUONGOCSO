@@ -674,15 +674,29 @@
     }
 
     .header-actions {
-        width: 100%;
+    width: auto;
 
-        flex-direction: column;
-    }
+    display: flex;
 
-    .header-actions .btn,
-    .header-actions .user-badge {
-        width: 100%;
-    }
+    align-items: center;
+
+    justify-content: flex-end;
+
+    flex-direction: row;
+
+    gap: 12px;
+}
+
+.header-actions .btn,
+.header-actions .user-badge {
+    width: auto;
+}
+
+#logoutButton {
+    flex-shrink: 0;
+
+    white-space: nowrap;
+}
 
     .stat-grid {
         grid-template-columns:
