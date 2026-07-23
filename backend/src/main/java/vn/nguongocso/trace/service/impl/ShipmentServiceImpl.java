@@ -343,7 +343,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 	 * @param shipment lô hàng
 	 * @param traceCodes danh sách mã truy xuất
 	 * @param createdByName tên người tạo
-	 * @return thông tin phản hồi
+	 * @return thông tin phản hồiF
 	 */
 	private ShipmentResponse buildShipmentResponse(Shipment shipment, List<TraceCode> traceCodes,
 			String createdByName) {
