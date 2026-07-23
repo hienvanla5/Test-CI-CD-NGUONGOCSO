@@ -37,20 +37,6 @@ public class OrganizationController {
         this.organizationService = organizationService;
     }
 
-
-    @GetMapping
-@PreAuthorize("hasAnyRole('VT-01')")
-public ResponseEntity<ApiResult<List<OrganizationResponse>>> getAllOrganizations() {
-
-    log.info("Nhận yêu cầu lấy danh sách organization");
-
-    List<OrganizationResponse> organizations =
-            organizationService.getAllOrganizations();
-
-    return ResponseEntity.ok(
-            ApiResult.success(organizations)
-    );
-}
     /**
      * Lấy danh sách toàn bộ tổ chức.
      *
