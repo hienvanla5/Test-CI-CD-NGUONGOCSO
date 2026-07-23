@@ -3,6 +3,8 @@ package vn.nguongocso.trace.service;
 import vn.nguongocso.trace.dto.request.CreateShipmentRequest;
 import vn.nguongocso.trace.dto.response.ShipmentResponse;
 
+import java.util.UUID;
+
 
 /**
  * Định nghĩa các nghiệp vụ quản lý lô hàng và sinh mã truy xuất.
@@ -16,5 +18,6 @@ public interface ShipmentService {
      * @return thông tin lô hàng sau khi tạo
      */
 	ShipmentResponse createShipment(CreateShipmentRequest request);
+    ShipmentResponse activateShipmentStamps(UUID shipmentId);
 	
 }
