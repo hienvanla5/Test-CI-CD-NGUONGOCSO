@@ -88,25 +88,21 @@ class ShipmentServiceImplTest {
         lotId = UUID.randomUUID();
         shipmentId = UUID.randomUUID();
 
-        // Thiết lập thông tin tổ chức
         organization = new Organization();
         organization.setOrganizationId(orgId);
         organization.setName("Tổ chức HTX Nông Nghiệp");
 
-        // Thiết lập thông tin lô sản xuất
         productionLot = new ProductionLot();
         productionLot.setId(lotId);
         productionLot.setName("Lô sản phẩm Organic");
         productionLot.setOrganization(organization);
         productionLot.setStatus(ProductionLotStatus.PACKAGED); // Mặc định ở trạng thái hợp lệ để tạo lô hàng
 
-        // Thiết lập dải mã của tổ chức
         codeRange = new CodeRange();
         codeRange.setPrefix("ORG893");
         codeRange.setTotalLimit(100L);
         codeRange.setUsedCount(10L);
 
-        // Mock thông tin người dùng đăng nhập
         userDetails = mock(CustomUserDetails.class);
         lenient().when(userDetails.getUserId()).thenReturn(userId);
         lenient().when(userDetails.getOrganizationId()).thenReturn(orgId);
@@ -125,11 +121,9 @@ class ShipmentServiceImplTest {
         SecurityContextHolder.setContext(securityContext);
     }
 
-    // --- KIỂM THỬ PHƯƠNG THỨC: createShipment ---
 
     @Test
     void createShipment_shouldSuccess_whenAllValid() {
-        // Given
         mockLogin(userDetails);
 
         CreateShipmentRequest request = new CreateShipmentRequest();
@@ -141,7 +135,6 @@ class ShipmentServiceImplTest {
         when(productionLotRepository.findById(lotId)).thenReturn(Optional.of(productionLot));
         when(codeRangeRepository.findByOrganizationOrganizationId(orgId)).thenReturn(Optional.of(codeRange));
 
-        // Stub save methods
         when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> {
             Shipment s = invocation.getArgument(0);
             s.setId(shipmentId);
@@ -156,17 +149,15 @@ class ShipmentServiceImplTest {
             return codes;
         });
 
-        // When
+
         ShipmentResponse response = shipmentService.createShipment(request);
 
-        // Then
         assertThat(response).isNotNull();
         assertThat(response.getName()).isEqualTo("Lô Hàng Xuất Khẩu Số 1");
         assertThat(response.getStatus()).isEqualTo(ShipmentStatus.CODE_PRINTED);
         assertThat(response.getTraceCodes()).hasSize(20);
         assertThat(response.getTraceCodes().get(0).getCodeValue()).isEqualTo("ORG89300000011"); // Start sequence = 10 + 1
 
-        // Verify usedCount được cộng thêm
         assertThat(codeRange.getUsedCount()).isEqualTo(30L);
 
         verify(shipmentRepository, times(1)).save(any(Shipment.class));
@@ -181,7 +172,6 @@ class ShipmentServiceImplTest {
 
         CreateShipmentRequest request = new CreateShipmentRequest();
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.createShipment(request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Bạn không có quyền tạo lô hàng.");
@@ -198,7 +188,6 @@ class ShipmentServiceImplTest {
 
         when(productionLotRepository.findById(lotId)).thenReturn(Optional.empty());
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.createShipment(request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Không tìm thấy lô sản xuất.");
@@ -216,7 +205,6 @@ class ShipmentServiceImplTest {
 
         when(productionLotRepository.findById(lotId)).thenReturn(Optional.of(productionLot));
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.createShipment(request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Bạn không thuộc tổ chức của lô sản xuất.");
@@ -233,7 +221,6 @@ class ShipmentServiceImplTest {
 
         when(productionLotRepository.findById(lotId)).thenReturn(Optional.of(productionLot));
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.createShipment(request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Chỉ có thể tạo lô hàng từ lô sản xuất đã đóng gói.");
@@ -249,7 +236,6 @@ class ShipmentServiceImplTest {
         when(productionLotRepository.findById(lotId)).thenReturn(Optional.of(productionLot));
         when(codeRangeRepository.findByOrganizationOrganizationId(orgId)).thenReturn(Optional.empty());
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.createShipment(request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Tổ chức chưa được cấp dải mã truy xuất.");
@@ -266,13 +252,11 @@ class ShipmentServiceImplTest {
         when(productionLotRepository.findById(lotId)).thenReturn(Optional.of(productionLot));
         when(codeRangeRepository.findByOrganizationOrganizationId(orgId)).thenReturn(Optional.of(codeRange));
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.createShipment(request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Số lượng tem vượt quá hạn mức dải mã còn lại.");
     }
 
-    // --- KIỂM THỬ PHƯƠNG THỨC: activateShipmentStamps ---
 
     @Test
     void activateShipmentStamps_shouldSuccess_whenAllValid() {
@@ -298,10 +282,8 @@ class ShipmentServiceImplTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
         when(traceCodeRepository.findByShipmentId(shipmentId)).thenReturn(List.of(traceCode));
 
-        // When
         ShipmentResponse response = shipmentService.activateShipmentStamps(shipmentId);
 
-        // Then
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(ShipmentStatus.ACTIVATED);
         assertThat(traceCode.getStatus()).isEqualTo(TraceCodeStatus.ACTIVE);
@@ -314,11 +296,9 @@ class ShipmentServiceImplTest {
 
     @Test
     void activateShipmentStamps_shouldThrow_whenUserHasInvalidRole() {
-        // Given
         when(userDetails.getRoleCode()).thenReturn("VT-03");
         mockLogin(userDetails);
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.activateShipmentStamps(shipmentId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Bạn không có quyền kích hoạt tem.");
@@ -326,11 +306,9 @@ class ShipmentServiceImplTest {
 
     @Test
     void activateShipmentStamps_shouldThrow_whenShipmentNotFound() {
-        // Given
         mockLogin(userDetails);
         when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.empty());
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.activateShipmentStamps(shipmentId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Không tìm thấy lô hàng.");
@@ -348,7 +326,6 @@ class ShipmentServiceImplTest {
 
         when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.activateShipmentStamps(shipmentId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Bạn không có quyền kích hoạt tem của tổ chức khác.");
@@ -369,7 +346,6 @@ class ShipmentServiceImplTest {
 
         when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.activateShipmentStamps(shipmentId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Chỉ có thể tạo lô hàng từ lô sản xuất đã đóng gói.");
@@ -377,7 +353,6 @@ class ShipmentServiceImplTest {
 
     @Test
     void activateShipmentStamps_shouldThrow_whenAlreadyActivated() {
-        // Given: Lô hàng đã kích hoạt trước đó
         mockLogin(userDetails);
 
         Shipment shipment = new Shipment();
@@ -388,7 +363,6 @@ class ShipmentServiceImplTest {
 
         when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.activateShipmentStamps(shipmentId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Tem đã được kích hoạt trước đó.");
@@ -396,7 +370,6 @@ class ShipmentServiceImplTest {
 
     @Test
     void activateShipmentStamps_shouldThrow_whenNotCodePrinted() {
-        // Given: Lô hàng còn ở trạng thái DRAFT chứ chưa in tem (CODE_PRINTED)
         mockLogin(userDetails);
 
         Shipment shipment = new Shipment();
@@ -407,7 +380,6 @@ class ShipmentServiceImplTest {
 
         when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.activateShipmentStamps(shipmentId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Lô hàng chưa được cấp hoặc in mã tem.");
@@ -415,7 +387,6 @@ class ShipmentServiceImplTest {
 
     @Test
     void activateShipmentStamps_shouldThrow_whenActorNotFound() {
-        // Given
         mockLogin(userDetails);
 
         Shipment shipment = new Shipment();
@@ -427,7 +398,6 @@ class ShipmentServiceImplTest {
         when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
         when(userRepository.findById(userId)).thenReturn(Optional.empty()); // Lỗi do không tìm thấy tài khoản người kích hoạt
 
-        // When & Then
         assertThatThrownBy(() -> shipmentService.activateShipmentStamps(shipmentId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Người dùng không tồn tại.");
