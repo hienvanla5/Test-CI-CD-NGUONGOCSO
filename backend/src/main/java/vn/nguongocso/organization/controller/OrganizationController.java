@@ -1,11 +1,12 @@
 package vn.nguongocso.organization.controller;
 
-import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Valid;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
 import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
@@ -24,35 +25,55 @@ import java.util.UUID;
 public class OrganizationController {
 
     private static final Logger log =
-            LoggerFactory.getLogger(OrganizationController.class);
+            LoggerFactory.getLogger(
+                    OrganizationController.class
+            );
 
-    private final OrganizationService organizationService;
+    private final OrganizationService
+            organizationService;
 
     /**
      * Khởi tạo controller quản lý tổ chức.
      *
      * @param organizationService service xử lý nghiệp vụ tổ chức
      */
-    public OrganizationController(OrganizationService organizationService) {
-        this.organizationService = organizationService;
+    public OrganizationController(
+            OrganizationService organizationService
+    ) {
+        this.organizationService =
+                organizationService;
     }
 
     /**
-     * Lấy danh sách toàn bộ tổ chức.
+     * Lấy toàn bộ danh sách tổ chức.
+     *
+     * Chỉ tài khoản VT-01 được phép truy cập.
      *
      * @return danh sách tổ chức
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('VT-01')")
-    public ResponseEntity<ApiResult<List<OrganizationResponse>>> getAll() {
+    public ResponseEntity<
+            ApiResult<List<OrganizationResponse>>
+            > getAllOrganizations() {
 
-        log.info("Nhận yêu cầu lấy danh sách organization");
+        log.info(
+                "Nhận yêu cầu lấy danh sách organization"
+        );
 
         List<OrganizationResponse> organizations =
-                organizationService.getAllOrganizations();
+                organizationService
+                        .getAllOrganizations();
+
+        log.info(
+                "Lấy danh sách organization thành công, số lượng={}",
+                organizations.size()
+        );
 
         return ResponseEntity.ok(
-                ApiResult.success(organizations)
+                ApiResult.success(
+                        organizations
+                )
         );
     }
 
@@ -64,16 +85,23 @@ public class OrganizationController {
      */
     @PostMapping
     @PreAuthorize("hasAnyRole('VT-01')")
-    public ResponseEntity<ApiResult<OrganizationResponse>> create(
-            @Valid @RequestBody CreateOrganizationRequest request) {
-
+    public ResponseEntity<
+            ApiResult<OrganizationResponse>
+            > create(
+            @Valid
+            @RequestBody
+            CreateOrganizationRequest request
+    ) {
         log.info(
                 "Nhận yêu cầu tạo organization với code={}",
                 request.getOrganizationCode()
         );
 
         OrganizationResponse response =
-                organizationService.createOrganization(request);
+                organizationService
+                        .createOrganization(
+                                request
+                        );
 
         log.info(
                 "Tạo organization thành công với id={}",
@@ -81,31 +109,45 @@ public class OrganizationController {
         );
 
         return ResponseEntity.ok(
-                ApiResult.success(response)
+                ApiResult.success(
+                        response
+                )
         );
     }
 
     /**
-     * Cập nhật hồ sơ tổ chức theo ID.
+     * Admin cập nhật hồ sơ một tổ chức theo ID.
      *
-     * @param id      ID tổ chức
-     * @param request thông tin cập nhật
+     * @param id ID tổ chức
+     * @param request dữ liệu cập nhật
      * @return hồ sơ tổ chức sau khi cập nhật
      */
     @PutMapping("/profile/{id}")
     @PreAuthorize("hasAnyRole('VT-01')")
-    public ResponseEntity<ApiResult<OrganizationProfileResponse>>
-    updateProfileByAdmin(
+    public ResponseEntity<
+            ApiResult<OrganizationProfileResponse>
+            > updateProfileByAdmin(
             @PathVariable UUID id,
-            @Valid @RequestBody OrganizationUpdateRequest request) {
-
-        log.info("Cập nhật hồ sơ tổ chức với id={}", id);
+            @Valid
+            @RequestBody
+            OrganizationUpdateRequest request
+    ) {
+        log.info(
+                "Admin cập nhật hồ sơ organization id={}",
+                id
+        );
 
         OrganizationProfileResponse response =
-                organizationService.updateOrganizationById(id, request);
+                organizationService
+                        .updateOrganizationById(
+                                id,
+                                request
+                        );
 
         return ResponseEntity.ok(
-                ApiResult.success(response)
+                ApiResult.success(
+                        response
+                )
         );
     }
 

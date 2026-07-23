@@ -356,6 +356,7 @@
     opacity: 0.8;
 }
 
+<<<<<<< HEAD
 .edit-lot-name,
 .edit-farm-area,
 .edit-product-category,
@@ -385,4 +386,61 @@
 .production-lots-table td:last-child {
     text-align: center;
 >>>>>>> feature/create-farm-log
+=======
+/* Modal responsive */
+
+@media (max-width: 640px) {
+    .modal {
+        padding: 12px;
+    }
+
+    .modal-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-form-grid__full {
+        grid-column: auto;
+    }
+
+    .modal__header,
+    #editLotForm {
+        padding: 18px;
+    }
+
+    .modal__actions {
+        flex-direction: column-reverse;
+    }
+
+    .modal__actions .btn {
+        width: 100%;
+    }
+}
+
+.production-lot-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.production-lot-actions .btn {
+    min-width: max-content;
+}
+
+.btn-history-lot {
+    background: #237a35;
+    border-color: #237a35;
+    color: #ffffff;
+}
+
+.btn-history-lot:hover:not(:disabled) {
+    background: #1c672b;
+    border-color: #1c672b;
+}
+
+.btn-create-farm-log {
+    background: #237a35;
+    border-color: #237a35;
+    color: #ffffff;
+>>>>>>> feature/view-farm-log
 }
