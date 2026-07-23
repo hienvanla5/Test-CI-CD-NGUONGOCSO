@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
@@ -41,6 +42,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 	private final TraceCodeRepository traceCodeRepository;
 	private final CodeRangeRepository codeRangeRepository;
 	private final ProductionLotRepository productionLotRepository;
+	private final UserRepository userRepository;
 
 	private static final String ORG_MANAGER_ROLE = "VT-02";
 
@@ -91,6 +93,11 @@ public class ShipmentServiceImpl implements ShipmentService {
 		shipment.setStatus(ShipmentStatus.CODE_PRINTED);
 
 		return buildShipmentResponse(shipment, traceCodes, currentUser.getFullName());
+	}
+
+	@Override
+	public ShipmentResponse activateShipmentStamps(UUID shipmentId) {
+		return null;
 	}
 
 	/**
