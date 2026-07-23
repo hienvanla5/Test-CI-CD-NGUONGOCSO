@@ -18,28 +18,12 @@ public interface ProductionLotService {
     List<CreateProductionLotResponse> getAllProductionLots(
             CustomUserDetails userDetails);
 
-<<<<<<< HEAD
-    List<CreateProductionLotResponse> getAllProductionLots(CustomUserDetails userDetails);
-
     UpdateProductionLotResponse updateProductionLot(UUID id, UpdateProductionLotRequest request, CustomUserDetails userDetails);
 
     CreateProductionLotResponse approveProductionLot(UUID lotId, ApproveProductionLotRequest request, CustomUserDetails userDetails);
 
     CreateProductionLotResponse submitForApproval(UUID lotId, CustomUserDetails userDetails);
-}
-=======
     CreateProductionLotResponse submitProductionLot(
             UUID id,
             CustomUserDetails userDetails);
-
-    CreateProductionLotResponse approveProductionLot(
-            UUID id,
-            ApproveProductionLotRequest request,
-            CustomUserDetails userDetails);
-
-    UpdateProductionLotResponse updateProductionLot(
-            UUID id,
-            UpdateProductionLotRequest request,
-            CustomUserDetails userDetails);
 }
->>>>>>> feature/farm-log-attachment

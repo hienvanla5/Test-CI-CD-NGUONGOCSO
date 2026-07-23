@@ -242,6 +242,11 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         }
 
         @Override
+        public CreateProductionLotResponse submitForApproval(UUID lotId, CustomUserDetails userDetails) {
+                return null;
+        }
+
+        @Override
         @Transactional
         public UpdateProductionLotResponse updateProductionLot(
                         UUID id,

@@ -6,10 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-<<<<<<< HEAD
 import vn.nguongocso.auth.security.SecurityUtils;
-=======
->>>>>>> feature/farm-log-attachment
 import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
 import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
 import vn.nguongocso.farm.dto.request.UpdateProductionLotRequest;
@@ -71,7 +68,6 @@ public class ProductionLotController {
         List<CreateProductionLotResponse> response = productionLotService.getAllProductionLots(userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
-<<<<<<< HEAD
 
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('VT-02')")
@@ -91,7 +87,6 @@ public class ProductionLotController {
         CreateProductionLotResponse response = productionLotService.approveProductionLot(id, request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
-=======
     // Thêm import:
     /**
      * API gửi duyệt nhật ký lô sản xuất.
@@ -120,5 +115,4 @@ public class ProductionLotController {
         return ResponseEntity.ok(ApiResult.success(response));
     }
 
->>>>>>> feature/farm-log-attachment
 }
