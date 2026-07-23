@@ -709,6 +709,81 @@ No specific role is required — any authenticated user can access. (The source 
 
 ---
 
+### 9.2 PUT /api/v1/production-lots/{id}
+
+#### Description
+
+Updates an existing production lot. Only allowed when the production lot is in the `DRAFT` status and belongs to the user's organization.
+
+#### Authentication
+
+**Required.** `@PreAuthorize("hasAnyRole('VT-02', 'VT-03')")`
+
+**Required Role:** `VT-02` (Organization Manager / Quản lý hợp tác xã) or `VT-03` (Event Recorder / Người ghi nhận sự kiện) of the owning organization.
+
+#### Path Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `id` | `UUID` | Yes | The unique identifier of the production lot to update |
+
+#### Request Body
+
+| Field | Type | Required | Validation | Description |
+|---|---|---|---|---|
+| `farmAreaId` | `UUID` | Yes | Must belong to the same organization | Vùng trồng |
+| `productCategoryId` | `UUID` | Yes | Must exist and be active | Danh mục nông sản |
+| `name` | `String` | Yes | `@NotBlank`, max 255 chars | Tên lô sản xuất |
+| `expectedQuantity` | `Double` | Yes | `@NotNull`, `@Positive` (> 0) | Sản lượng dự kiến |
+| `plantingDate` | `LocalDate` | Yes | Format: `yyyy-MM-dd` | Ngày xuống giống |
+
+#### Request Example
+
+```json
+{
+  "farmAreaId": "a1b2c3d4-0000-0000-0000-000000000001",
+  "productCategoryId": "b2c3d4e5-0000-0000-0000-000000000002",
+  "name": "Lô cà chua vụ đông 2026",
+  "expectedQuantity": 500.0,
+  "plantingDate": "2026-08-01"
+}
+```
+
+#### Success Response
+
+**HTTP Status:** `200`
+
+**Response Body:** `ApiResult<CreateProductionLotResponse>`
+
+```json
+{
+  "success": true,
+  "status": 200,
+  "data": {
+    "id": "f1e2d3c4-0000-0000-0000-000000000099",
+    "farmAreaId": "a1b2c3d4-0000-0000-0000-000000000001",
+    "productCategoryId": "b2c3d4e5-0000-0000-0000-000000000002",
+    "name": "Lô cà chua vụ đông 2026",
+    "expectedQuantity": 500.0,
+    "plantingDate": "2026-08-01",
+    "status": "DRAFT",
+    "updatedAt": "2026-07-21T10:26:05.912Z"
+  }
+}
+```
+
+#### Error Responses
+
+| HTTP Status | Message / Reason | JSON Schema / Response |
+|---|---|---|
+| `400` | Validation failed | `{"success": false, "status": 400, "message": "Validation failed", "errors": {"expectedQuantity": "Sản lượng dự kiến phải lớn hơn 0", "name": "Tên lô không được để trống"}, ...}` |
+| `401` | Unauthorized | Missing or invalid JWT token |
+| `403` | Forbidden | `{"success": false, "status": 403, "message": "Bạn không có quyền chỉnh sửa lô sản xuất này"}` |
+| `404` | Not Found | `{"success": false, "status": 404, "message": "Lô sản xuất không tồn tại"}` |
+| `409` | Conflict (Not in DRAFT status) | `{"success": false, "status": 409, "message": "Chỉ có thể cập nhật lô sản xuất khi đang ở trạng thái nháp"}` |
+
+---
+
 ## 10. Enums
 
 ### 10.1 OrganizationType
@@ -775,6 +850,7 @@ Used in: `User` entity
 | `POST` | `/api/v1/farm-areas` | Required | Any authenticated | Farm Area Management |
 | `GET` | `/api/v1/product-categories` | Required | Any authenticated | Product Category |
 | `POST` | `/api/v1/production-lots` | Required | Any authenticated | Production Lot Management |
+| `PUT` | `/api/v1/production-lots/{id}` | Required | `VT-02`, `VT-03` | Production Lot Management |
 
 ---
 

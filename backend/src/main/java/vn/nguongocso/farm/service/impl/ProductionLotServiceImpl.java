@@ -1,38 +1,44 @@
 package vn.nguongocso.farm.service.impl;
 
-import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
-import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
-import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
-import vn.nguongocso.auth.entity.User;
-import vn.nguongocso.farm.enums.ProductionLotStatus;
-import vn.nguongocso.auth.repository.UserRepository;
-import vn.nguongocso.auth.service.CustomUserDetails;
-import vn.nguongocso.farm.repository.FarmAreaRepository;
-import vn.nguongocso.farm.repository.ProductCategoryRepository;
-import vn.nguongocso.farm.service.ProductionLotService;
-import vn.nguongocso.exception.BusinessException;
-import vn.nguongocso.farm.entity.FarmArea;
-import vn.nguongocso.farm.entity.ProductCategory;
-import vn.nguongocso.farm.entity.ProductionLot;
-import vn.nguongocso.farm.repository.ProductionLotRepository;
-import vn.nguongocso.organization.entity.Organization;
-import vn.nguongocso.organization.repository.OrganizationRepository;
-
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
+import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.auth.repository.UserRepository;
+import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.exception.DuplicateResourceException;
+import vn.nguongocso.exception.ResourceNotFoundException;
+import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
+import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
+import vn.nguongocso.farm.dto.request.UpdateProductionLotRequest;
+import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
+import vn.nguongocso.farm.dto.response.UpdateProductionLotResponse;
+import vn.nguongocso.farm.entity.FarmArea;
+import vn.nguongocso.farm.entity.ProductCategory;
+import vn.nguongocso.farm.entity.ProductionLot;
+import vn.nguongocso.farm.enums.ProductionLotStatus;
+import vn.nguongocso.farm.repository.FarmAreaRepository;
+import vn.nguongocso.farm.repository.ProductCategoryRepository;
+import vn.nguongocso.farm.repository.ProductionLotRepository;
+import vn.nguongocso.farm.service.ProductionLotService;
+import vn.nguongocso.organization.entity.Organization;
+import vn.nguongocso.organization.repository.OrganizationRepository;
 
 @Service
 @RequiredArgsConstructor
 public class ProductionLotServiceImpl implements ProductionLotService {
 
-    private static final Logger log = LoggerFactory.getLogger(ProductionLotServiceImpl.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(ProductionLotServiceImpl.class);
 
     private final ProductionLotRepository productionLotRepository;
     private final FarmAreaRepository farmAreaRepository;
@@ -42,30 +48,55 @@ public class ProductionLotServiceImpl implements ProductionLotService {
 
     @Override
     @Transactional
-    public CreateProductionLotResponse createProductionLot(CreateProductionLotRequest request, CustomUserDetails userDetails) {
-        log.info("Bắt đầu xử lý tạo lô sản xuất với tên={}", request.getName());
+    public CreateProductionLotResponse createProductionLot(
+            CreateProductionLotRequest request,
+            CustomUserDetails userDetails) {
+
+        log.info(
+                "Bắt đầu xử lý tạo lô sản xuất với tên={}",
+                request.getName());
 
         UUID userId = userDetails.getUserId();
         UUID orgId = userDetails.getOrganizationId();
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin tài khoản"));
-        Organization organization = organizationRepository.findById(orgId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin tổ chức tương ứng"));
+                .orElseThrow(
+                        () -> new BusinessException(
+                                "Không tìm thấy thông tin tài khoản"));
 
-        ProductCategory productCategory = productCategoryRepository.findById(request.getProductCategoryId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy loại nông sản đã chọn"));
+        Organization organization =
+                organizationRepository.findById(orgId)
+                        .orElseThrow(
+                                () -> new BusinessException(
+                                        "Không tìm thấy thông tin tổ chức tương ứng"));
+
+        ProductCategory productCategory =
+                productCategoryRepository
+                        .findById(request.getProductCategoryId())
+                        .orElseThrow(
+                                () -> new BusinessException(
+                                        "Không tìm thấy loại nông sản đã chọn"));
+
         if (Boolean.FALSE.equals(productCategory.getIsActive())) {
-            throw new BusinessException("Loại nông sản này hiện đang ngưng hoạt động");
+            throw new BusinessException(
+                    "Loại nông sản này hiện đang ngưng hoạt động");
         }
 
         FarmArea farmArea = null;
-        if (request.getFarmAreaId() != null) {
-            farmArea = farmAreaRepository.findById(request.getFarmAreaId())
-                    .orElseThrow(() -> new BusinessException("Không tìm thấy khu vực canh tác đã chọn"));
 
-            if (!farmArea.getOrganization().getOrganizationId().equals(orgId)) {
-                throw new BusinessException("Khu vực canh tác này không thuộc tổ chức của bạn");
+        if (request.getFarmAreaId() != null) {
+            farmArea = farmAreaRepository
+                    .findById(request.getFarmAreaId())
+                    .orElseThrow(
+                            () -> new BusinessException(
+                                    "Không tìm thấy khu vực canh tác đã chọn"));
+
+            if (!farmArea.getOrganization()
+                    .getOrganizationId()
+                    .equals(orgId)) {
+
+                throw new BusinessException(
+                        "Khu vực canh tác này không thuộc tổ chức của bạn");
             }
         }
 
@@ -80,32 +111,242 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .createdBy(user)
                 .build();
 
-        ProductionLot savedLot = productionLotRepository.save(productionLot);
-        log.info("Đã tạo thành công lô sản xuất với id={}", savedLot.getId());
+        ProductionLot savedLot =
+                productionLotRepository.save(productionLot);
+
+        log.info(
+                "Đã tạo thành công lô sản xuất với id={}",
+                savedLot.getId());
 
         return mapToResponse(savedLot);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CreateProductionLotResponse> getAllProductionLots(CustomUserDetails userDetails) {
+    public List<CreateProductionLotResponse> getAllProductionLots(
+            CustomUserDetails userDetails) {
+
         UUID orgId = userDetails.getOrganizationId();
 
-        log.info("Lấy danh sách lô sản xuất cho tổ chức id={}", orgId);
+        log.info(
+                "Lấy danh sách lô sản xuất cho tổ chức id={}",
+                orgId);
 
-        List<ProductionLot> lots = productionLotRepository.findByOrganization_OrganizationId(orgId);
+        List<ProductionLot> lots =
+                productionLotRepository
+                        .findByOrganization_OrganizationId(orgId);
 
         return lots.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    private CreateProductionLotResponse mapToResponse(ProductionLot lot) {
+    @Override
+    @Transactional
+    public CreateProductionLotResponse submitProductionLot(
+            UUID id,
+            CustomUserDetails userDetails) {
+
+        log.info(
+                "Bắt đầu xử lý gửi duyệt lô sản xuất với id={}",
+                id);
+
+        UUID orgId = userDetails.getOrganizationId();
+
+        ProductionLot lot = productionLotRepository.findById(id)
+                .orElseThrow(
+                        () -> new BusinessException(
+                                "Lô sản xuất không tồn tại"));
+
+        if (!lot.getOrganization()
+                .getOrganizationId()
+                .equals(orgId)) {
+
+            throw new BusinessException(
+                    "Bạn không có quyền gửi duyệt lô sản xuất này");
+        }
+
+        if (lot.getStatus() != ProductionLotStatus.DRAFT) {
+            throw new BusinessException(
+                    "Chỉ có thể gửi duyệt lô sản xuất khi đang ở trạng thái nháp (DRAFT)");
+        }
+
+        lot.setStatus(ProductionLotStatus.PENDING);
+
+        ProductionLot savedLot =
+                productionLotRepository.save(lot);
+
+        log.info(
+                "Đã gửi duyệt thành công lô sản xuất id={}, trạng thái={}",
+                savedLot.getId(),
+                savedLot.getStatus());
+
+        return mapToResponse(savedLot);
+    }
+
+    @Override
+    @Transactional
+    public CreateProductionLotResponse approveProductionLot(
+            UUID id,
+            ApproveProductionLotRequest request,
+            CustomUserDetails userDetails) {
+
+        log.info(
+                "Bắt đầu xử lý phê duyệt lô sản xuất với id={}, approved={}",
+                id,
+                request.getApproved());
+
+        UUID orgId = userDetails.getOrganizationId();
+
+        ProductionLot lot = productionLotRepository.findById(id)
+                .orElseThrow(
+                        () -> new BusinessException(
+                                "Lô sản xuất không tồn tại"));
+
+        if ("VT-02".equals(userDetails.getRoleCode())
+                && !lot.getOrganization()
+                        .getOrganizationId()
+                        .equals(orgId)) {
+
+            throw new BusinessException(
+                    "Bạn không có quyền phê duyệt lô sản xuất của tổ chức khác");
+        }
+
+        if (lot.getStatus() != ProductionLotStatus.PENDING) {
+            throw new BusinessException(
+                    "Chỉ có thể phê duyệt lô sản xuất đang ở trạng thái chờ duyệt (PENDING)");
+        }
+
+        User approver =
+                userRepository.findById(userDetails.getUserId())
+                        .orElseThrow(
+                                () -> new BusinessException(
+                                        "Không tìm thấy thông tin tài khoản người duyệt"));
+
+        if (Boolean.TRUE.equals(request.getApproved())) {
+            lot.setStatus(ProductionLotStatus.APPROVED);
+        } else {
+            lot.setStatus(ProductionLotStatus.DRAFT);
+        }
+
+        lot.setApprovalNotes(request.getApprovalNotes());
+        lot.setApprovedBy(approver);
+
+        ProductionLot savedLot =
+                productionLotRepository.save(lot);
+
+        log.info(
+                "Đã xử lý phê duyệt lô sản xuất id={}, trạng thái mới={}",
+                savedLot.getId(),
+                savedLot.getStatus());
+
+        return mapToResponse(savedLot);
+    }
+
+    @Override
+    @Transactional
+    public UpdateProductionLotResponse updateProductionLot(
+            UUID id,
+            UpdateProductionLotRequest request,
+            CustomUserDetails userDetails) {
+
+        log.info(
+                "Bắt đầu xử lý cập nhật lô sản xuất với id={}",
+                id);
+
+        UUID orgId = userDetails.getOrganizationId();
+
+        ProductionLot productionLot =
+                productionLotRepository.findById(id)
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "Lô sản xuất không tồn tại"));
+
+        if (!productionLot.getOrganization()
+                .getOrganizationId()
+                .equals(orgId)) {
+
+            throw new AccessDeniedException(
+                    "Bạn không có quyền chỉnh sửa lô sản xuất này");
+        }
+
+        if (productionLot.getStatus()
+                != ProductionLotStatus.DRAFT) {
+
+            throw new DuplicateResourceException(
+                    "Chỉ có thể cập nhật lô sản xuất khi đang ở trạng thái nháp");
+        }
+
+        ProductCategory productCategory =
+                productCategoryRepository
+                        .findById(request.getProductCategoryId())
+                        .orElseThrow(
+                                () -> new BusinessException(
+                                        "Không tìm thấy loại nông sản đã chọn"));
+
+        if (Boolean.FALSE.equals(productCategory.getIsActive())) {
+            throw new BusinessException(
+                    "Loại nông sản này hiện đang ngưng hoạt động");
+        }
+
+        FarmArea farmArea =
+                farmAreaRepository
+                        .findById(request.getFarmAreaId())
+                        .orElseThrow(
+                                () -> new BusinessException(
+                                        "Không tìm thấy khu vực canh tác đã chọn"));
+
+        if (!farmArea.getOrganization()
+                .getOrganizationId()
+                .equals(orgId)) {
+
+            throw new BusinessException(
+                    "Khu vực canh tác này không thuộc tổ chức của bạn");
+        }
+
+        productionLot.setName(request.getName());
+        productionLot.setFarmArea(farmArea);
+        productionLot.setProductCategory(productCategory);
+        productionLot.setExpectedQuantity(
+                request.getExpectedQuantity());
+        productionLot.setPlantingDate(
+                request.getPlantingDate());
+
+        ProductionLot savedLot =
+                productionLotRepository.save(productionLot);
+
+        log.info(
+                "Cập nhật thành công lô sản xuất id={}",
+                savedLot.getId());
+
+        return UpdateProductionLotResponse.builder()
+                .id(savedLot.getId())
+                .farmAreaId(
+                        savedLot.getFarmArea() != null
+                                ? savedLot.getFarmArea().getId()
+                                : null)
+                .productCategoryId(
+                        savedLot.getProductCategory().getId())
+                .name(savedLot.getName())
+                .expectedQuantity(savedLot.getExpectedQuantity())
+                .plantingDate(savedLot.getPlantingDate())
+                .status(savedLot.getStatus().name())
+                .updatedAt(savedLot.getUpdatedAt())
+                .build();
+    }
+
+    private CreateProductionLotResponse mapToResponse(
+            ProductionLot lot) {
+
         return CreateProductionLotResponse.builder()
                 .id(lot.getId())
                 .organizationName(lot.getOrganization().getName())
-                .farmAreaName(lot.getFarmArea() != null ? lot.getFarmArea().getName() : null)
-                .productCategoryName(lot.getProductCategory().getName())
+                .farmAreaName(
+                        lot.getFarmArea() != null
+                                ? lot.getFarmArea().getName()
+                                : null)
+                .productCategoryName(
+                        lot.getProductCategory().getName())
                 .name(lot.getName())
                 .expectedQuantity(lot.getExpectedQuantity())
                 .actualQuantity(lot.getActualQuantity())
@@ -113,75 +354,16 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .harvestDate(lot.getHarvestDate())
                 .status(lot.getStatus().name())
                 .approvalNotes(lot.getApprovalNotes())
-                .createdByName(lot.getCreatedBy() != null ? lot.getCreatedBy().getFullName() : null)
-                .approvedByName(lot.getApprovedBy() != null ? lot.getApprovedBy().getFullName() : null)
+                .createdByName(
+                        lot.getCreatedBy() != null
+                                ? lot.getCreatedBy().getFullName()
+                                : null)
+                .approvedByName(
+                        lot.getApprovedBy() != null
+                                ? lot.getApprovedBy().getFullName()
+                                : null)
                 .createdAt(lot.getCreatedAt())
                 .updatedAt(lot.getUpdatedAt())
                 .build();
     }
-    @Override
-    @Transactional
-    public CreateProductionLotResponse submitProductionLot(UUID id, CustomUserDetails userDetails) {
-        log.info("Bắt đầu xử lý gửi duyệt lô sản xuất với id={}", id);
-
-        UUID orgId = userDetails.getOrganizationId();
-
-        ProductionLot lot = productionLotRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Lô sản xuất không tồn tại"));
-
-        if (!lot.getOrganization().getOrganizationId().equals(orgId)) {
-            throw new BusinessException("Bạn không có quyền gửi duyệt lô sản xuất này");
-        }
-
-        if (lot.getStatus() != ProductionLotStatus.DRAFT) {
-            throw new BusinessException("Chỉ có thể gửi duyệt lô sản xuất khi đang ở trạng thái nháp (DRAFT)");
-        }
-
-        lot.setStatus(ProductionLotStatus.PENDING);
-        ProductionLot savedLot = productionLotRepository.save(lot);
-        log.info("Đã gửi duyệt thành công lô sản xuất id={}, trạng thái={}", savedLot.getId(), savedLot.getStatus());
-
-        return mapToResponse(savedLot);
-    }
-
-    @Override
-    @Transactional
-    public CreateProductionLotResponse approveProductionLot(UUID id, ApproveProductionLotRequest request, CustomUserDetails userDetails) {
-        log.info("Bắt đầu xử lý phê duyệt lô sản xuất với id={}, approved={}", id, request.getApproved());
-
-        UUID orgId = userDetails.getOrganizationId();
-
-        ProductionLot lot = productionLotRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Lô sản xuất không tồn tại"));
-
-        // Phân quyền: Cán bộ kiểm duyệt (VT-05) hoặc Quản lý HTX (VT-02 - chỉ được duyệt lô của tổ chức mình)
-        if ("VT-02".equals(userDetails.getRoleCode())) {
-            if (!lot.getOrganization().getOrganizationId().equals(orgId)) {
-                throw new BusinessException("Bạn không có quyền phê duyệt lô sản xuất của tổ chức khác");
-            }
-        }
-
-        if (lot.getStatus() != ProductionLotStatus.PENDING) {
-            throw new BusinessException("Chỉ có thể phê duyệt lô sản xuất đang ở trạng thái chờ duyệt (PENDING)");
-        }
-
-        User approver = userRepository.findById(userDetails.getUserId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin tài khoản người duyệt"));
-
-        if (Boolean.TRUE.equals(request.getApproved())) {
-            lot.setStatus(ProductionLotStatus.APPROVED);
-        } else {
-            // Nếu từ chối, trả về trạng thái DRAFT để HTX bổ sung thêm log/chứng từ
-            lot.setStatus(ProductionLotStatus.DRAFT);
-        }
-
-        lot.setApprovalNotes(request.getApprovalNotes());
-        lot.setApprovedBy(approver);
-
-        ProductionLot savedLot = productionLotRepository.save(lot);
-        log.info("Đã xử lý phê duyệt lô sản xuất id={}, trạng thái mới={}", savedLot.getId(), savedLot.getStatus());
-
-        return mapToResponse(savedLot);
-    }
-
 }

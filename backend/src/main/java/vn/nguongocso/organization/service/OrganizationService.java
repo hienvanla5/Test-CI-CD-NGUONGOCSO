@@ -5,6 +5,7 @@ import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface OrganizationService {
@@ -16,4 +17,6 @@ public interface OrganizationService {
     OrganizationProfileResponse updateCurrentOrganization(OrganizationUpdateRequest request);
 
     OrganizationProfileResponse updateOrganizationById(UUID orgId, OrganizationUpdateRequest request);
+
+    List<OrganizationResponse> getAllOrganizations();
 }
