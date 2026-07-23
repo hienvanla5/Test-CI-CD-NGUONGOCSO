@@ -18,7 +18,7 @@ public class CreateShipmentRequest {
 
     @NotNull(message = "Vui lòng nhập số lượng")
     @Positive(message = "Số lượng phải lớn hơn 0")
-    private Double totalQuantity;
+    private long totalQuantity;
 
     private String packagingInfo;
 

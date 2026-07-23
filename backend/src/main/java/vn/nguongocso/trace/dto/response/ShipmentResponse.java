@@ -20,7 +20,7 @@ public class ShipmentResponse {
 
     private String name;
 
-    private Double totalQuantity;
+    private Long totalQuantity;
 
     private String packagingInfo;
 
