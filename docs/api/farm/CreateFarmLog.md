@@ -4,7 +4,7 @@
 
 **Mục tiêu**
 
-Cho phép người dùng có quyền ghi nhận một hoạt động canh tác cho một Lô sản xuất (ProductionLot).
+Cho phép Người ghi sự kiện (EVENT_RECODER) ghi nhận một hoạt động canh tác cho Lô sản xuất (ProductionLot).
 
 Mỗi bản ghi nhật ký phản ánh một hoạt động như:
 
@@ -22,11 +22,18 @@ Nhật ký được lưu vào bảng farm_logs (entity FarmLog).
 | **Thuộc tính** | **Giá trị** |
 | --- | --- |
 | Method | POST |
-| URL | /api/v1/farm/farming-logs |
+| URL | /api/v1/farm-logs |
 | Authentication | Bearer Token |
 | Điều kiện tổ chức | Người dùng phải cùng Organization với ProductionLot |
 
-Ghi chú: mã nguồn service hiện chỉ kiểm tra người dùng thuộc cùng Organization với ProductionLot (không có kiểm tra permission code kiểu "farming_log:create" trong lớp service). Nếu hệ thống có áp dụng permission-based access control, việc này cần được xác nhận ở tầng controller/annotation (@PreAuthorize) — chưa thấy trong đoạn mã được cung cấp.
+**Điều kiện**
+
+Người dùng phải:
+
+- Đăng nhập thành công.
+- Có role EVENT_RECODER.
+- Thuộc cùng Organization với ProductionLot.
+- ProductionLot phải ở trạng thái APPROVED hoặc HARVESTED.
 
 # 3. Request Body
 
@@ -84,29 +91,40 @@ Lưu ý: đoạn mã cung cấp chỉ xác nhận giá trị FERTILIZING qua ví
 | unit > 50 ký tự | 400 Bad Request | Đơn vị không được vượt quá 50 ký tự |
 | notes > 1000 ký tự | 400 Bad Request | Ghi chú không được vượt quá 1000 ký tự |
 
-## 5.2 Kiểm tra tồn tại của ProductionLot
+## 5.2 Kiểm tra Role
+
+Chỉ người dùng có role `ROLE_EVENT_RECODER` được phép ghi nhật ký.
+
+**Nếu không đúng role**
+
+"Bạn không có quyền ghi nhật ký canh tác."
+
+## 5.3 Kiểm tra tồn tại của ProductionLot
 
 Nếu productionLotId không tồn tại, hệ thống ném BusinessException:
 
 "Không tìm thấy lô sản xuất"
 
-## 5.3 Kiểm tra trạng thái lô
+## 5.4 Kiểm tra trạng thái lô
 
-Chỉ cho phép ghi nhật ký khi ProductionLot đang ở trạng thái APPROVED (đã duyệt). Đây là bước kiểm tra được thực hiện trước bước kiểm tra Organization.
+Chỉ cho phép ghi nhật ký khi trạng thái là:
 
-**Nếu trạng thái khác APPROVED**
+- APPROVED
+- HARVESTED
 
-"Lô sản xuất chưa được duyệt."
+**Nếu trạng thái khác**
 
-## 5.4 Kiểm tra quyền theo Organization
+"Chỉ được ghi nhật ký cho lô đã duyệt hoặc đang thu hoạch."
 
-Hệ thống so sánh Organization của người dùng đang đăng nhập với Organization sở hữu ProductionLot (thông qua ProductionLot → FarmArea → Organization).
+## 5.5 Kiểm tra quyền theo Organization
 
-**Nếu không cùng Organization**
+Organization của người đăng nhập phải trùng với Organization của ProductionLot.
 
-"Bạn không có quyền ghi nhật ký cho lô sản xuất này"
+**Nếu khác**
 
-## 5.5 Dữ liệu hệ thống tự sinh
+"Bạn không thuộc tổ chức của lô sản xuất."
+
+## 5.6 Dữ liệu hệ thống tự sinh
 
 Backend tự gán khi lưu (FarmLog entity, @PrePersist):
 
@@ -149,7 +167,7 @@ Thay đổi so với bản trước: mã trạng thái thành công thực tế 
 
 # 7. Error Response
 
-Lưu ý: đoạn mã cung cấp dùng chung một loại BusinessException cho các trường hợp không tìm thấy lô, sai trạng thái và sai quyền tổ chức. Mã HTTP cụ thể cho từng trường hợp (404 / 409 / 403) phụ thuộc vào cấu hình global exception handler — chưa có trong mã nguồn được cung cấp, nên các mã dưới đây giữ theo thiết kế ban đầu và cần được xác nhận lại với global exception handler thực tế.
+Lưu ý: đoạn mã cung cấp dùng chung một loại BusinessException cho các trường hợp không tìm thấy lô, sai trạng thái, sai role và sai quyền tổ chức. Mã HTTP cụ thể cho từng trường hợp (404 / 409 / 403) phụ thuộc vào cấu hình global exception handler — chưa có trong mã nguồn được cung cấp, nên các mã dưới đây giữ theo thiết kế ban đầu và cần được xác nhận lại với global exception handler thực tế.
 
 ## 400 Bad Request
 
@@ -167,7 +185,17 @@ Lưu ý: đoạn mã cung cấp dùng chung một loại BusinessException cho c
 {
     "success": false,
     "status": 403,
-    "message": "Bạn không có quyền ghi nhật ký cho lô sản xuất này"
+    "message": "Bạn không có quyền ghi nhật ký canh tác."
+}
+```
+
+Hoặc
+
+```json
+{
+    "success": false,
+    "status": 403,
+    "message": "Bạn không thuộc tổ chức của lô sản xuất."
 }
 ```
 
@@ -187,7 +215,7 @@ Lưu ý: đoạn mã cung cấp dùng chung một loại BusinessException cho c
 {
     "success": false,
     "status": 409,
-    "message": "Lô sản xuất chưa được duyệt."
+    "message": "Chỉ được ghi nhật ký cho lô đã duyệt hoặc đang thu hoạch."
 }
 ```
 
@@ -197,43 +225,55 @@ Lưu ý: đoạn mã cung cấp dùng chung một loại BusinessException cho c
 Client
     │
     ▼
-POST /farming-logs
+POST /api/v1/farm-logs
     │
     ▼
-Validate Request (Bean Validation)
+Bean Validation
     │
     ▼
-Tìm ProductionLot (404 nếu không có)
+Kiểm tra Role (ROLE_EVENT_RECODER)
     │
     ▼
-Kiểm tra trạng thái ProductionLot (chỉ APPROVED)
+Tìm ProductionLot
     │
     ▼
-Kiểm tra Organization của người dùng
+Kiểm tra trạng thái (APPROVED hoặc HARVESTED)
     │
     ▼
-Build & Lưu FarmLog
+Kiểm tra Organization
     │
     ▼
-Map sang FarmLogResponse & Trả Response
+Tạo FarmLog
+    │
+    ▼
+Lưu Database
+    │
+    ▼
+Map FarmLogResponse
+    │
+    ▼
+Trả Response
 ```
 
-Thay đổi so với bản trước: thứ tự thực tế trong FarmLogServiceImpl là kiểm tra trạng thái ProductionLot TRƯỚC, sau đó mới kiểm tra Organization (ngược lại với thứ tự đã mô tả ở bản tài liệu trước).
+Thay đổi so với bản trước: bổ sung bước kiểm tra Role (EVENT_RECODER) ngay sau Bean Validation, trước khi tìm ProductionLot; đồng thời trạng thái hợp lệ để ghi nhật ký mở rộng thành APPROVED hoặc HARVESTED (trước đó chỉ APPROVED).
 
 # 9. Phạm vi của Story
 
 **Bao gồm**
 
-- Thiết kế DTO Request/Response (CreateFarmLogRequest / FarmLogResponse).
-- Tạo API ghi nhật ký.
-- Validate dữ liệu đầu vào (Bean Validation).
-- Kiểm tra trạng thái ProductionLot (chỉ cho phép khi APPROVED).
-- Kiểm tra quyền theo Organization.
-- Lưu bản ghi FarmLog.
+- Thiết kế DTO Request/Response.
+- API tạo nhật ký canh tác.
+- Bean Validation.
+- Kiểm tra Role (EVENT_RECODER).
+- Kiểm tra trạng thái ProductionLot (APPROVED, HARVESTED).
+- Kiểm tra Organization.
+- Lưu FarmLog.
+- Trả về thông tin nhật ký vừa tạo.
 
 **Không bao gồm**
 
-- Đính kèm ảnh/chứng từ (FarmingLogAttachment) – thuộc NCL-03-CN-002.
-- Hiển thị danh sách lịch sử nhật ký – thuộc NCL-03-CN-003.
-- Chỉnh sửa hoặc xóa nhật ký.
+- Đính kèm ảnh/chứng từ (FarmLogAttachment).
+- Danh sách nhật ký canh tác.
+- Chỉnh sửa nhật ký.
+- Xóa nhật ký.
 - Quản lý ProductionLot.

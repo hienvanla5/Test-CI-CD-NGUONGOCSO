@@ -28,7 +28,7 @@ import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.farm.enums.FarmActivityType;
 
 /**
- * FarmLog
+ * Nhật ký hoạt động sản xuất của lô sản xuất.
  */
 @Entity
 @Table(name = "farm_logs")

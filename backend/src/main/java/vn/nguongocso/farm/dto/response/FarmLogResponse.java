@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.nguongocso.farm.enums.FarmActivityType;
 
+/**
+ * Thông tin trả về nhật ký canh tác.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
