@@ -230,7 +230,7 @@ CREATE TABLE shipments (
     organization_id CHAR(36) NOT NULL,
 
     name VARCHAR(255) NOT NULL,
-    total_quantity DOUBLE NOT NULL,
+    total_quantity BIGINT NOT NULL,
     packaging_info VARCHAR(500),
 
     status VARCHAR(30) NOT NULL,
@@ -241,15 +241,15 @@ CREATE TABLE shipments (
 
     CONSTRAINT fk_shipment_production_lot
         FOREIGN KEY (production_lot_id)
-        REFERENCES production_lots(id),
+        REFERENCES production_lot(id),
 
     CONSTRAINT fk_shipment_organization
         FOREIGN KEY (organization_id)
-        REFERENCES organizations(id),
+        REFERENCES organizations(organization_id),
 
     CONSTRAINT fk_shipment_created_by
         FOREIGN KEY (created_by)
-        REFERENCES users(id)
+        REFERENCES users(user_id)
 );
 CREATE TABLE trace_codes (
     id CHAR(36) PRIMARY KEY,
@@ -273,5 +273,5 @@ CREATE TABLE trace_codes (
 
     CONSTRAINT fk_trace_code_activated_by
         FOREIGN KEY (activated_by)
-        REFERENCES users(id)
+        REFERENCES users(user_id)
 );

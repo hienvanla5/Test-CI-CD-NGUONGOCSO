@@ -14,5 +14,5 @@ public interface CodeRangeRepository extends JpaRepository<CodeRange, UUID> {
     Optional<CodeRange> findByPrefix(String prefix);
     
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<CodeRange> findByOrganizationId(UUID organizationId);
+    Optional<CodeRange> findByOrganizationOrganizationId(UUID organizationId);
 }

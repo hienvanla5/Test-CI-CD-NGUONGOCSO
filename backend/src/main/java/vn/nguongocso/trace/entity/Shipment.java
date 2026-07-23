@@ -47,7 +47,7 @@ public class Shipment {
     private String name;
 
     @Column(name = "total_quantity", nullable = false)
-    private Double totalQuantity;
+    private long totalQuantity;
 
     @Column(name = "packaging_info")
     private String packagingInfo;
