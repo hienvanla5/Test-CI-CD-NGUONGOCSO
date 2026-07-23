@@ -3,16 +3,21 @@ package vn.nguongocso.farm.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
 import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
 import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
 import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.farm.entity.FarmLog;
+import vn.nguongocso.farm.enums.FarmActivityType;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.farm.event.PackagingValidationFailedEvent;
 import vn.nguongocso.farm.repository.FarmAreaRepository;
+import vn.nguongocso.farm.repository.FarmLogRepository;
 import vn.nguongocso.farm.repository.ProductCategoryRepository;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.exception.BusinessException;
@@ -23,6 +28,7 @@ import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.repository.OrganizationRepository;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,6 +44,9 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     private final ProductCategoryRepository productCategoryRepository;
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
+    private final FarmLogRepository farmLogRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     @Override
     @Transactional
@@ -182,5 +191,43 @@ public class ProductionLotServiceImpl implements ProductionLotService {
 
         return mapToResponse(savedLot);
     }
+    @Override
+    @Transactional
+    public CreateProductionLotResponse packageProductionLot(UUID id, CustomUserDetails userDetails) {
+        // 1. Tìm kiếm và kiểm tra lô sản xuất
+        ProductionLot lot = productionLotRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Lô sản xuất không tồn tại"));
+        // 2. Kiểm tra trạng thái phải là HARVESTED (TC-03)
+        if (lot.getStatus() != ProductionLotStatus.HARVESTED) {
+            throw new BusinessException("Lô sản xuất phải ở trạng thái đã thu hoạch (HARVESTED) mới có thể đóng gói");
+        }
+        // 3. Lấy tất cả nhật ký được sắp xếp theo ngày thực hiện
+        List<FarmLog> logs = farmLogRepository.findByProductionLotId_IdOrderByExecutedDateAsc(id);
 
+        // Giả sử có danh sách hoạt động bắt buộc
+        List<FarmActivityType> mandatoryTypes = Arrays.asList(
+                FarmActivityType.PLANTING,
+                FarmActivityType.FERTILIZING,
+                FarmActivityType.PESTICIDE,
+                FarmActivityType.HARVESTING
+        );
+        List<FarmActivityType> missingLogs = mandatoryTypes.stream()
+                .filter(type -> logs.stream().noneMatch(log -> log.getActivityType() == type))
+                .toList();
+        if (!missingLogs.isEmpty()) {
+            // Phát sự kiện kiểm tra thất bại để hệ thống gửi thông báo (TC-04)
+            eventPublisher.publishEvent(new PackagingValidationFailedEvent(
+                    this,
+                    lot.getId(),
+                    userDetails.getOrganizationId(),
+                    lot.getName()
+            ));
+            // Ném lỗi chặn luồng nghiệp vụ
+            throw new BusinessException("Không thể đóng gói. Lô thiếu các nhật ký bắt buộc: " + missingLogs);
+        }
+        // 4. Nếu đủ điều kiện, chuyển trạng thái sang PACKAGED
+        lot.setStatus(ProductionLotStatus.PACKAGED);
+        ProductionLot savedLot = productionLotRepository.save(lot);
+        return mapToResponse(savedLot);
+    }
 }
