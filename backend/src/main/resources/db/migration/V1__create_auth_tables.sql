@@ -222,3 +222,56 @@ CREATE TABLE farm_log_attachments (
     FOREIGN KEY (farm_log_id) REFERENCES farm_logs(id),
     FOREIGN KEY (uploaded_by) REFERENCES users(user_id)
 );
+
+CREATE TABLE shipments (
+    id CHAR(36) PRIMARY KEY,
+
+    production_lot_id CHAR(36) NOT NULL,
+    organization_id CHAR(36) NOT NULL,
+
+    name VARCHAR(255) NOT NULL,
+    total_quantity DOUBLE NOT NULL,
+    packaging_info VARCHAR(500),
+
+    status VARCHAR(30) NOT NULL,
+
+    created_by CHAR(36),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+
+    CONSTRAINT fk_shipment_production_lot
+        FOREIGN KEY (production_lot_id)
+        REFERENCES production_lots(id),
+
+    CONSTRAINT fk_shipment_organization
+        FOREIGN KEY (organization_id)
+        REFERENCES organizations(id),
+
+    CONSTRAINT fk_shipment_created_by
+        FOREIGN KEY (created_by)
+        REFERENCES users(id)
+);
+CREATE TABLE trace_codes (
+    id CHAR(36) PRIMARY KEY,
+
+    shipment_id CHAR(36) NOT NULL,
+
+    code_value VARCHAR(100) NOT NULL UNIQUE,
+
+    qr_image VARCHAR(500),
+
+    status VARCHAR(20) NOT NULL,
+
+    activated_at DATETIME,
+    activated_by CHAR(36),
+    created_at DATETIME NOT NULL,
+
+    CONSTRAINT fk_trace_code_shipment
+        FOREIGN KEY (shipment_id)
+        REFERENCES shipments(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_trace_code_activated_by
+        FOREIGN KEY (activated_by)
+        REFERENCES users(id)
+);
