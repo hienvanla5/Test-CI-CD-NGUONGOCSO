@@ -445,6 +445,24 @@ function goToCreateFarmLog(lot) {
         `../farm-logs/create.html?${queryParams.toString()}`;
 }
 
+function goToAttachments(lot) {
+    if (!lot || !lot.id) {
+        return;
+    }
+
+    const queryParams =
+        new URLSearchParams({
+            id: lot.id,
+            productionLotId:
+                lot.id,
+            productionLotName:
+                lot.name || ""
+        });
+
+    window.location.href =
+        `./attachment.html?${queryParams.toString()}`;
+}
+
 /* =====================================================
    CREATE ACTION BUTTONS
 ===================================================== */
@@ -575,32 +593,25 @@ function renderActionButtons(
      * Có quyền sửa lô, xem lịch sử và quản lý attachment.
      */
     if (roleCode === "VT-02") {
-        const editButton =
+    if (normalizedStatus === "DRAFT") {
+        actionCell.appendChild(
             createEditButton(
                 lot,
                 normalizedStatus
-            );
-
-        const historyButton =
-            createHistoryButton(lot);
-
-        const attachmentButton =
-            createAttachmentButton(lot);
-
-        actionCell.appendChild(
-            editButton
+            )
         );
-
-        actionCell.appendChild(
-            historyButton
-        );
-
-        actionCell.appendChild(
-            attachmentButton
-        );
-
-        return;
     }
+
+    actionCell.appendChild(
+        createHistoryButton(lot)
+    );
+
+    actionCell.appendChild(
+        createAttachmentButton(lot)
+    );
+
+    return;
+}
 
     /*
      * VT-03: Người ghi nhật ký.
@@ -1408,25 +1419,14 @@ if (productionLotsTableBody) {
              * Nút quản lý tệp đính kèm
              */
             if (
-                button.classList.contains(
-                    "btn-attachment-lot"
-                )
-            ) {
-                const queryParams =
-                    new URLSearchParams({
-                        id:
-                            lot.id,
+    button.classList.contains(
+        "btn-attachment-lot"
+    )
+) {
+    goToAttachments(lot);
 
-                        productionLotId:
-                            lot.id,
-
-                        productionLotName:
-                            lot.name || ""
-                    });
-
-                window.location.href =
-                    `./attachment.html?${queryParams.toString()}`;
-            }
+    return;
+}
         }
     );
 }
