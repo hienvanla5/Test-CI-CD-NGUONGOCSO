@@ -5,9 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.repository.OrganizationRepository;
 import vn.nguongocso.trace.dto.request.CreateCodeRangeRequest;
 import vn.nguongocso.trace.dto.response.CodeRangeResponse;
+import vn.nguongocso.trace.entity.CodeRange;
 import vn.nguongocso.trace.repository.CodeRangeRepository;
 
 @Slf4j
@@ -20,6 +23,48 @@ public class CodeRangeService {
 
     @Transactional
     public CodeRangeResponse createCodeRange(CreateCodeRangeRequest request, CustomUserDetails admin) {
-        return null;
+        // Kiểm tra quyền admin
+        if (!"VT-01".equals(admin.getRoleCode())) {
+            throw new BusinessException("Chỉ quản trị viên nền tảng mới có quyền cấp dải mã");
+        }
+
+        Organization organization = organizationRepository.findById(request.getOrganizationId())
+                .orElseThrow(() -> new BusinessException("Tổ chức không tồn tại"));
+
+        // Kiểm tra prefix trùng
+        if (codeRangeRepository.findByPrefix(request.getPrefix()).isPresent()) {
+            throw new BusinessException("Tiền tố mã đã tồn tại");
+        }
+
+        // (Tùy chọn) kiểm tra hạn mức so với sản lượng khai báo (nếu có)
+        // Hiện tại chưa có sản lương, có thể bỏ qua hoặc thêm sau
+
+        CodeRange codeRange = CodeRange.builder()
+                .organization(organization)
+                .prefix(request.getPrefix())
+                .fromNumber(null)
+                .toNumber(null)
+                .totalLimit(request.getTotalLimit())
+                .usedCount(0L)
+                .createdBy(admin.getUserId())
+                .build();
+        codeRangeRepository.save(codeRange);
+
+        log.info("Cấp dải mã thành công: prefix={}, org={}", codeRange.getPrefix(), organization.getCode());
+
+        return toResponse(codeRange);
+    }
+
+    private CodeRangeResponse toResponse(CodeRange codeRange) {
+
+        return CodeRangeResponse.builder()
+                .id(codeRange.getId())
+                .organizationId(codeRange.getOrganization().getOrganizationId())
+                .organizationName(codeRange.getOrganization().getName())
+                .prefix(codeRange.getPrefix())
+                .totalLimit(codeRange.getTotalLimit())
+                .usedCount(codeRange.getUsedCount())
+                .createdAt(codeRange.getCreatedAt())
+                .build();
     }
 }

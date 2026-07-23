@@ -2,6 +2,8 @@ package vn.nguongocso.trace.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import vn.nguongocso.organization.entity.Organization;
 
 import java.time.LocalDateTime;
@@ -17,6 +19,7 @@ import java.util.UUID;
 public class CodeRange {
 
     @Id
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID id;
 
     @ManyToOne
@@ -39,6 +42,7 @@ public class CodeRange {
     private Long usedCount;
 
     @Column(name = "created_by")
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID createdBy;
 
     private LocalDateTime createdAt;
