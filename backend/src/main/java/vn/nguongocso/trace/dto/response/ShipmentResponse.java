@@ -8,6 +8,9 @@ import lombok.Builder;
 import lombok.Data;
 import vn.nguongocso.trace.enums.ShipmentStatus;
 
+/**
+ * Dữ liệu tạo lô hàng trả về
+ */
 @Data
 @Builder
 public class ShipmentResponse {
