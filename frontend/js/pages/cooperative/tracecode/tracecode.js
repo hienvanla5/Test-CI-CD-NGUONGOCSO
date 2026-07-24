@@ -1,703 +1,679 @@
+import {
+    requireAuth,
+    setupLogout
+} from "../../../core/auth-guard.js";
+
+import {
+    getCurrentUser
+} from "../../../services/auth.service.js";
+
+import {
+    getProductionLots
+} from "../../../services/production-lot.service.js";
+
+import {
+    createShipment
+} from "../../../services/shipment.service.js";
+
 /* ============================================================
- * TraceCode Management
- * NCL-04-CN-002
- * Tạo lô hàng & Sinh mã truy xuất
- * ============================================================
- */
+ * Auth
+ * ============================================================ */
 
-import { requireAuth, setupLogout } from "../../../core/auth-guard.js";
-import { getUser } from "../../../core/storage.js";
-import { getHttpClient } from "../../../services/http-client.js";
+requireAuth();
+
+setupLogout();
 
 /* ============================================================
- * CONSTANTS
- * ============================================================
- */
+ * Constants
+ * ============================================================ */
 
-const http = getHttpClient();
+// Chỉ dùng để dựng URL ảnh QR khi qrImage trả về
+// là đường dẫn tương đối (vd: "/files/qr/...").
+const API_FILE_BASE_URL = "http://localhost:8080";
 
-const API = {
-    SHIPMENTS: "/api/v1/shipments",
-    PRODUCTION_LOTS: "/api/v1/production-lots"
+const PAGE_SIZE = 8;
+
+// Gộp trạng thái của cả Shipment (DRAFT, CODE_PRINTED,
+// ACTIVATED, RECALLED) và TraceCode (INACTIVE, ACTIVE,
+// RECALLED). Trace Code vừa sinh ra trong story này luôn
+// là INACTIVE (kích hoạt tem là story khác), nhưng badge
+// vẫn cần map đủ các trạng thái có thể có ở nơi khác.
+const STATUS_BADGE_CLASS = {
+    DRAFT: "badge-neutral",
+    CODE_PRINTED: "badge-info",
+    ACTIVATED: "badge-active",
+    INACTIVE: "badge-inactive",
+    ACTIVE: "badge-active",
+    RECALLED: "badge-danger"
 };
-const BASE_URL = "http://localhost:8080";
-const STATE = {
-    shipment: null,
-    traceCodes: [],
-    packagedLots: [],
-    loading: false
-};
-
-/* ============================================================
- * AUTH
- * ============================================================
- */
-
-if (!requireAuth()) {
-    throw new Error("Unauthorized");
-}
-
-const currentUser = getUser();
-
-if (!currentUser) {
-    window.location.href = "/frontend/pages/auth/login.html";
-}
-
-if (currentUser.roleCode !== "VT-02") {
-
-    document.body.innerHTML = `
-        <div class="unauthorized-container">
-            <h2>403</h2>
-            <p>Bạn không có quyền truy cập chức năng này.</p>
-        </div>
-    `;
-
-    throw new Error("Forbidden");
-}
 
 /* ============================================================
  * DOM
- * ============================================================
- */
+ * ============================================================ */
 
-const DOM = {
+const loadingState = document.getElementById("loadingState");
+const errorState = document.getElementById("errorState");
+const unauthorizedState = document.getElementById("unauthorizedState");
+const mainContent = document.getElementById("mainContent");
+const retryButton = document.getElementById("retryButton");
+const errorMessage = document.getElementById("errorMessage");
 
-    headerName:
-        document.getElementById("headerUserName"),
+const shipmentInfoCard = document.getElementById("shipmentInfoCard");
+const noShipmentState = document.getElementById("noShipmentState");
+const shipmentNameEl = document.getElementById("shipmentName");
+const shipmentIdEl = document.getElementById("shipmentId");
+const shipmentProductionLotEl = document.getElementById("shipmentProductionLot");
+const shipmentQuantityEl = document.getElementById("shipmentQuantity");
+const shipmentStatusBadge = document.getElementById("shipmentStatusBadge");
 
-    headerOrg:
-        document.getElementById("headerUserOrg"),
+const shipmentMenuToggle = document.getElementById("shipmentMenuToggle");
+const shipmentMenuDropdown = document.getElementById("shipmentMenuDropdown");
+const copyShipmentIdButton = document.getElementById("copyShipmentIdButton");
+const printAllFromMenuButton = document.getElementById("printAllFromMenuButton");
 
-    headerRole:
-        document.getElementById("headerUserRole"),
+const traceCodeSection = document.getElementById("traceCodeSection");
+const traceCodeGrid = document.getElementById("traceCodeGrid");
+const pagination = document.getElementById("pagination");
+const printBatchButton = document.getElementById("printBatchButton");
 
-    sidebarName:
-        document.getElementById("sidebarUserName"),
+const traceCardTemplate = document.getElementById("traceCardTemplate");
 
-    sidebarOrg:
-        document.getElementById("sidebarUserOrg"),
+const openCreateShipmentButton = document.getElementById("openCreateShipmentButton");
+const createShipmentModal = document.getElementById("createShipmentModal");
+const createShipmentModalClose = document.getElementById("createShipmentModalClose");
+const cancelCreateShipmentButton = document.getElementById("cancelCreateShipmentButton");
+const generateShipmentForm = document.getElementById("generateShipmentForm");
+const productionLotSelect = document.getElementById("productionLotId");
+const shipmentNameInput = document.getElementById("shipmentNameInput");
+const totalQuantityInput = document.getElementById("totalQuantityInput");
+const packagingInfoInput = document.getElementById("packagingInfoInput");
+const generateButton = document.getElementById("generateButton");
 
-    sidebarAvatar:
-        document.getElementById("sidebarUserAvatar"),
-
-    modal:
-        document.getElementById("createShipmentModal"),
-
-    form:
-        document.getElementById("createShipmentForm"),
-
-    message:
-        document.getElementById("shipmentFormMessage"),
-
-    btnOpen:
-        document.getElementById("openCreateShipmentModalBtn"),
-
-    btnClose:
-        document.getElementById("createShipmentClose"),
-
-    btnCancel:
-        document.getElementById("createShipmentCancel"),
-
-    productionLotSelect:
-        document.getElementById("productionLotSelect"),
-
-    shipmentName:
-        document.getElementById("shipmentName"),
-
-    totalQuantity:
-        document.getElementById("totalQuantity"),
-
-    packagingInfo:
-        document.getElementById("packagingInfo"),
-    
-    shipmentTitle:
-    document.getElementById("shipmentTitle"),
-
-    shipmentId:
-        document.getElementById("shipmentIdDisplay"),
-
-    productionLot:
-        document.getElementById("productionLotDisplay"),
-
-    totalQuantityDisplay:
-        document.getElementById("totalQuantityDisplay"),
-
-    shipmentStatus:
-        document.getElementById("shipmentStatusBadge"),
-
-    traceGrid:
-        document.getElementById("traceCodeGrid"),
-};
+const printModal = document.getElementById("printModal");
+const printModalClose = document.getElementById("printModalClose");
+const printContent = document.getElementById("printContent");
+const printButton = document.getElementById("printButton");
+const cancelPrintButton = document.getElementById("cancelPrintButton");
 
 /* ============================================================
- * USER INFO
- * ============================================================
- */
+ * State
+ * ============================================================ */
 
-function renderCurrentUser() {
-
-    const fullName =
-        currentUser.fullName ||
-        currentUser.username ||
-        "Unknown";
-
-    const organization =
-        currentUser.organizationName ||
-        "";
-
-    const avatar =
-        fullName.charAt(0).toUpperCase();
-
-    DOM.headerName.textContent = fullName;
-    DOM.headerOrg.textContent = organization;
-    DOM.headerRole.textContent = currentUser.roleCode;
-
-    DOM.sidebarName.textContent = fullName;
-    DOM.sidebarOrg.textContent = organization;
-    DOM.sidebarAvatar.textContent = avatar;
-}
+let productionLots = [];
+let currentShipment = null;
+let currentPage = 1;
+let currentPrintTrace = null;
 
 /* ============================================================
- * MODAL
- * ============================================================
- */
+ * User info
+ * ============================================================ */
 
-function openModal() {
-
-    DOM.modal.style.display = "flex";
-
-}
-
-function closeModal() {
-
-    DOM.modal.style.display = "none";
-
-    DOM.form.reset();
-
-    DOM.message.textContent = "";
-
-}
-
-/* ============================================================
- * API
- * ============================================================
- */
-
-async function loadPackagedLots() {
+async function populateUserInformation() {
 
     try {
 
-        const response =
-            await http.get(API.PRODUCTION_LOTS);
+        const response = await getCurrentUser();
 
-        const lots =
-            response.data.data || [];
+        const user = response?.data ?? response;
 
-        STATE.packagedLots =
-            lots.filter(
-                x => x.status === "PACKAGED"
-            );
+        if (!user) {
+            return;
+        }
 
-        renderProductionLots();
+        document.getElementById("sidebarUserAvatar").textContent =
+            user.fullName?.charAt(0)?.toUpperCase() ?? "U";
+
+        document.getElementById("sidebarUserName").textContent =
+            user.fullName ?? "-";
+
+        document.getElementById("sidebarUserOrg").textContent =
+            user.organizationName ?? "-";
+
+        document.getElementById("headerUserName").textContent =
+            user.fullName ?? "-";
+
+        document.getElementById("headerUserOrg").textContent =
+            user.organizationName ?? "-";
+
+        document.getElementById("headerUserRole").textContent =
+            user.roleCode ?? "-";
+
+    } catch (error) {
+
+        // Không chặn luồng chính nếu chỉ lỗi hiển thị thông tin user.
+        console.error(error);
+    }
+}
+
+/* ============================================================
+ * UI state
+ * ============================================================ */
+
+function showLoading() {
+    loadingState.style.display = "";
+    errorState.style.display = "none";
+    mainContent.style.display = "none";
+}
+
+function showContent() {
+    loadingState.style.display = "none";
+    errorState.style.display = "none";
+    mainContent.style.display = "";
+}
+
+function showError(message) {
+    loadingState.style.display = "none";
+    mainContent.style.display = "none";
+    errorState.style.display = "";
+    errorMessage.textContent = message;
+}
+
+function showUnauthorized() {
+    loadingState.style.display = "none";
+    mainContent.style.display = "none";
+    errorState.style.display = "none";
+    unauthorizedState.style.display = "";
+}
+
+/* ============================================================
+ * Production lots (chỉ những lô đã PACKAGED
+ * mới được phép chọn để tạo lô hàng, theo mục 3
+ * của tài liệu API — backend cũng sẽ tự chặn
+ * bằng lỗi 409 nếu sai trạng thái)
+ * ============================================================ */
+
+async function loadProductionLots() {
+
+    try {
+
+        showLoading();
+
+        const response = await getProductionLots();
+
+        const lots = response?.data ?? [];
+
+        productionLots = lots.filter(
+            lot => !lot.status || lot.status === "PACKAGED"
+        );
+
+        renderProductionLotOptions();
+
+        showContent();
 
     } catch (error) {
 
         console.error(error);
 
-        showMessage(
-            "Không tải được danh sách lô sản xuất.",
-            "error"
+        // Lưu ý: api-client.js chỉ tự redirect khi gặp lỗi 401
+        // (không throw error.status ra ngoài trong trường hợp đó).
+        // Với mọi lỗi khác (403 sai quyền, 500, mất kết nối...),
+        // nó chỉ throw Error(message) mà KHÔNG có field .status,
+        // nên không thể phân biệt 403 ở đây. Vì vậy hiển thị luôn
+        // message thật từ server/lỗi mạng để biết chính xác
+        // nguyên nhân, thay vì một câu chung chung che mất lỗi gốc.
+        showError(
+            error?.message ??
+            "Không thể tải danh sách lô sản xuất."
         );
     }
-
 }
 
-async function createShipment(payload) {
+function renderProductionLotOptions() {
 
-    return await http.post(
-        API.SHIPMENTS,
-        payload
-    );
+    productionLotSelect.innerHTML =
+        `<option value="">Select Production Lot</option>`;
 
-}
+    productionLots.forEach(lot => {
 
-/* ============================================================
- * RENDER PRODUCTION LOTS
- * ============================================================
- */
-
-function renderProductionLots() {
-
-    DOM.productionLotSelect.innerHTML = "";
-
-    const defaultOption =
-        document.createElement("option");
-
-    defaultOption.value = "";
-
-    defaultOption.textContent =
-        "-- Chọn lô sản xuất --";
-
-    DOM.productionLotSelect.appendChild(
-        defaultOption
-    );
-
-    STATE.packagedLots.forEach(lot => {
-
-        const option =
-            document.createElement("option");
+        const option = document.createElement("option");
 
         option.value = lot.id;
+        option.textContent = lot.name;
 
-        option.textContent =
-            `${lot.name} (${lot.id.substring(0,8)})`;
-
-        DOM.productionLotSelect.appendChild(
-            option
-        );
-
+        productionLotSelect.appendChild(option);
     });
 
+    if (productionLots.length === 0) {
+
+        productionLotSelect.innerHTML +=
+            `<option value="" disabled>Không có lô sản xuất đã đóng gói</option>`;
+    }
 }
 
+retryButton.addEventListener("click", loadProductionLots);
+
 /* ============================================================
- * MESSAGE
- * ============================================================
- */
+ * Create shipment modal
+ * ============================================================ */
 
-function showMessage(text, type = "error") {
+openCreateShipmentButton.addEventListener("click", () => {
+    createShipmentModal.style.display = "flex";
+});
 
-    DOM.message.textContent = text;
-
-    DOM.message.style.color =
-        type === "success"
-            ? "#16a34a"
-            : "#dc2626";
-
+function closeCreateShipmentModal() {
+    createShipmentModal.style.display = "none";
+    generateShipmentForm.reset();
 }
 
-/* ============================================================
- * SUBMIT
- * ============================================================
- */
+createShipmentModalClose.addEventListener("click", closeCreateShipmentModal);
+cancelCreateShipmentButton.addEventListener("click", closeCreateShipmentModal);
 
-async function submitShipment(event) {
+createShipmentModal.addEventListener("click", event => {
+    if (event.target === createShipmentModal) {
+        closeCreateShipmentModal();
+    }
+});
+
+generateShipmentForm.addEventListener("submit", handleGenerateShipment);
+
+async function handleGenerateShipment(event) {
 
     event.preventDefault();
 
-    showMessage("");
+    if (!validateForm()) {
+        return;
+    }
 
     const payload = {
-
-        productionLotId:
-            DOM.productionLotSelect.value,
-
-        name:
-            DOM.shipmentName.value.trim(),
-
-        totalQuantity:
-            Number(DOM.totalQuantity.value),
-
-        packagingInfo:
-            DOM.packagingInfo.value.trim()
-
+        productionLotId: productionLotSelect.value,
+        name: shipmentNameInput.value.trim(),
+        totalQuantity: Number(totalQuantityInput.value),
+        packagingInfo: packagingInfoInput.value.trim()
     };
 
-    if (
-        !payload.productionLotId ||
-        !payload.name ||
-        payload.totalQuantity <= 0
-    ) {
+    try {
 
-        showMessage(
-            "Vui lòng nhập đầy đủ thông tin lô hàng."
+        setGenerateLoading(true);
+
+        const response = await createShipment(payload);
+
+        currentShipment = response.data;
+        currentPage = 1;
+
+        selectShipment(currentShipment);
+
+        closeCreateShipmentModal();
+
+    } catch (error) {
+
+        console.error(error);
+
+        // Backend trả sẵn message phù hợp cho từng
+        // trường hợp lỗi (400/403/404/409 — xem mục 7
+        // của tài liệu API).
+        alert(
+            error?.message ??
+            "Tạo lô hàng và sinh mã thất bại."
         );
 
+    } finally {
+
+        setGenerateLoading(false);
+    }
+}
+
+function validateForm() {
+
+    if (!productionLotSelect.value) {
+        alert("Vui lòng chọn Production Lot.");
+        productionLotSelect.focus();
+        return false;
+    }
+
+    if (!shipmentNameInput.value.trim()) {
+        alert("Vui lòng nhập Shipment Name.");
+        shipmentNameInput.focus();
+        return false;
+    }
+
+    const quantity = Number(totalQuantityInput.value);
+
+    if (Number.isNaN(quantity) || quantity <= 0) {
+        alert("Total Quantity phải lớn hơn 0.");
+        totalQuantityInput.focus();
+        return false;
+    }
+
+    return true;
+}
+
+function setGenerateLoading(isLoading) {
+
+    generateButton.disabled = isLoading;
+    generateButton.textContent = isLoading ? "Generating..." : "Generate QR";
+}
+
+/* ============================================================
+ * Shipment result
+ * ============================================================ */
+
+function selectShipment(shipment) {
+
+    if (!shipment) {
+        shipmentInfoCard.hidden = true;
+        traceCodeSection.hidden = true;
+        noShipmentState.hidden = false;
+        return;
+    }
+
+    noShipmentState.hidden = true;
+    shipmentInfoCard.hidden = false;
+    traceCodeSection.hidden = false;
+
+    renderShipmentCard(shipment);
+    renderTraceGrid();
+}
+
+function renderShipmentCard(shipment) {
+
+    shipmentNameEl.textContent = shipment.name ?? "-";
+    shipmentIdEl.textContent = shipment.id ?? "-";
+    shipmentProductionLotEl.textContent = shipment.productionLotName ?? "-";
+    shipmentQuantityEl.textContent = `${shipment.totalQuantity ?? 0} mã`;
+
+    renderStatusBadge(shipmentStatusBadge, shipment.status);
+}
+
+function renderStatusBadge(element, status) {
+
+    element.textContent = status ?? "-";
+
+    element.className =
+        `badge ${STATUS_BADGE_CLASS[status] ?? "badge-neutral"}`;
+}
+
+/* Menu (thao tác chỉ ở phía client, không gọi API) */
+
+shipmentMenuToggle.addEventListener("click", () => {
+    shipmentMenuDropdown.hidden = !shipmentMenuDropdown.hidden;
+});
+
+document.addEventListener("click", event => {
+
+    if (!shipmentMenuDropdown.contains(event.target)
+        && event.target !== shipmentMenuToggle) {
+
+        shipmentMenuDropdown.hidden = true;
+    }
+});
+
+copyShipmentIdButton.addEventListener("click", async () => {
+
+    if (!currentShipment) {
         return;
     }
 
     try {
-
-        const response =
-            await createShipment(payload);
-
-        if (!response.data.success) {
-
-            showMessage(
-                response.data.message
-            );
-
-            return;
-        }
-
-        STATE.shipment =
-            response.data.data;
-
-        STATE.traceCodes =
-            STATE.shipment.traceCodes;
-
-        showMessage(
-            "Tạo lô hàng thành công.",
-            "success"
-        );
-        renderShipment();
-
-        renderTraceCodes();
-
-        closeModal();
-
-        /*
-         * Phần 2
-         * renderShipment()
-         * renderTraceCodes()
-         */
-
+        await navigator.clipboard.writeText(currentShipment.id);
     } catch (error) {
-
-        const status =
-            error.response?.status;
-
-        const message =
-            error.response?.data?.message;
-
-        switch (status) {
-
-            case 400:
-
-                showMessage(
-                    message ||
-                    "Vui lòng nhập đầy đủ thông tin."
-                );
-
-                break;
-
-            case 403:
-
-                showMessage(
-                    message ||
-                    "Bạn không có quyền thực hiện."
-                );
-
-                break;
-
-            case 404:
-
-                showMessage(
-                    message ||
-                    "Không tìm thấy lô sản xuất."
-                );
-
-                break;
-
-            case 409:
-
-                showMessage(
-                    message ||
-                    "Không thể tạo lô hàng."
-                );
-
-                break;
-
-            default:
-
-                showMessage(
-                    "Lỗi hệ thống."
-                );
-
-        }
-
+        console.error(error);
     }
 
+    shipmentMenuDropdown.hidden = true;
+});
+
+printAllFromMenuButton.addEventListener("click", () => {
+    shipmentMenuDropdown.hidden = true;
+    printBatch();
+});
+
+/* ============================================================
+ * Trace code grid + pagination
+ * (mã truy xuất đã có sẵn trong response tạo
+ * shipment — không cần gọi thêm API danh sách)
+ * ============================================================ */
+
+function renderTraceGrid() {
+
+    const traceCodes = currentShipment?.traceCodes ?? [];
+
+    traceCodeGrid.innerHTML = "";
+
+    if (traceCodes.length === 0) {
+
+        traceCodeGrid.innerHTML =
+            `<div class="empty-trace">Chưa có Trace Code.</div>`;
+
+        pagination.innerHTML = "";
+
+        return;
+    }
+
+    const totalPages = Math.ceil(traceCodes.length / PAGE_SIZE);
+
+    currentPage = Math.min(currentPage, totalPages) || 1;
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+
+    traceCodes
+        .slice(start, start + PAGE_SIZE)
+        .forEach(trace => traceCodeGrid.appendChild(buildTraceCard(trace)));
+
+    renderPagination(totalPages);
+}
+
+function buildTraceCard(trace) {
+
+    const node = traceCardTemplate.content.cloneNode(true);
+
+    const img = node.querySelector(".trace-qr-image");
+    const codeValue = node.querySelector(".trace-code-value");
+    const statusBadge = node.querySelector(".trace-status");
+    const downloadButton = node.querySelector(".btn-download");
+    const printButtonEl = node.querySelector(".btn-print");
+
+    img.src = getQrImageUrl(trace.qrImage);
+    img.alt = trace.codeValue ?? "QR Code";
+
+    img.onerror = () => {
+        img.src = "/frontend/assets/images/qr-placeholder.png";
+    };
+
+    codeValue.textContent = trace.codeValue ?? "-";
+
+    renderStatusBadge(statusBadge, trace.status);
+
+    downloadButton.addEventListener("click", () => downloadQr(trace));
+    printButtonEl.addEventListener("click", () => openPrintModal(trace));
+
+    // Kích hoạt tem (TraceCode -> ACTIVE) không thuộc
+    // phạm vi API này (xem mục 10 - "Không bao gồm"),
+    // nên card ở đây chỉ hiển thị trạng thái, không có
+    // hành động kích hoạt.
+
+    return node;
+}
+
+function renderPagination(totalPages) {
+
+    pagination.innerHTML = "";
+
+    if (totalPages <= 1) {
+        return;
+    }
+
+    const prevButton = document.createElement("button");
+    prevButton.textContent = "<";
+    prevButton.disabled = currentPage === 1;
+    prevButton.addEventListener("click", () => goToPage(currentPage - 1));
+    pagination.appendChild(prevButton);
+
+    for (let page = 1; page <= totalPages; page++) {
+
+        const pageButton = document.createElement("button");
+
+        pageButton.textContent = String(page);
+
+        if (page === currentPage) {
+            pageButton.classList.add("active");
+        }
+
+        pageButton.addEventListener("click", () => goToPage(page));
+
+        pagination.appendChild(pageButton);
+    }
+
+    const nextButton = document.createElement("button");
+    nextButton.textContent = ">";
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.addEventListener("click", () => goToPage(currentPage + 1));
+    pagination.appendChild(nextButton);
+}
+
+function goToPage(page) {
+    currentPage = page;
+    renderTraceGrid();
 }
 
 /* ============================================================
- * EVENTS
- * ============================================================
- */
+ * Download QR (chỉ dùng đường dẫn ảnh có sẵn,
+ * không cần API riêng)
+ * ============================================================ */
 
-function registerEvents() {
+function downloadQr(trace) {
 
-    DOM.btnOpen.addEventListener(
-        "click",
-        () => {
+    const link = document.createElement("a");
 
-            loadPackagedLots();
+    link.href = getQrImageUrl(trace.qrImage);
+    link.download = `${trace.codeValue ?? "qr-code"}.png`;
+    link.target = "_blank";
+    link.rel = "noopener";
 
-            openModal();
-
-        }
-    );
-
-    DOM.btnClose.addEventListener(
-        "click",
-        closeModal
-    );
-
-    DOM.btnCancel.addEventListener(
-        "click",
-        closeModal
-    );
-
-    DOM.form.addEventListener(
-        "submit",
-        submitShipment
-    );
-
-    setupLogout();
-
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
 }
 
 /* ============================================================
- * INIT
- * ============================================================
- */
+ * Print (single + batch) — xử lý hoàn toàn ở client
+ * ============================================================ */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
+function openPrintModal(trace) {
 
-        renderCurrentUser();
+    currentPrintTrace = trace;
 
-        registerEvents();
+    printContent.innerHTML = buildPrintCardHtml(trace);
 
-    }
-);
-function badgeClass(status){
-
-    switch(status){
-
-        case "ACTIVE":
-            return "badge-green";
-
-        case "INACTIVE":
-            return "badge-orange";
-
-        case "CODE_PRINTED":
-            return "badge-blue";
-
-        default:
-            return "badge-blue";
-
-    }
-
+    printModal.style.display = "flex";
 }
-function renderShipment(){
 
-    if(!STATE.shipment)
+function closePrintModal() {
+    printModal.style.display = "none";
+}
+
+printModalClose.addEventListener("click", closePrintModal);
+cancelPrintButton.addEventListener("click", closePrintModal);
+
+printModal.addEventListener("click", event => {
+    if (event.target === printModal) {
+        closePrintModal();
+    }
+});
+
+printButton.addEventListener("click", () => {
+
+    if (currentPrintTrace) {
+        printCards([currentPrintTrace]);
+    }
+});
+
+printBatchButton.addEventListener("click", printBatch);
+
+function printBatch() {
+
+    const traceCodes = currentShipment?.traceCodes ?? [];
+
+    if (traceCodes.length === 0) {
+        alert("Chưa có Trace Code để in.");
         return;
-
-    DOM.shipmentTitle.textContent =
-        STATE.shipment.name;
-
-    DOM.shipmentId.textContent =
-        STATE.shipment.id;
-
-    DOM.productionLot.textContent =
-        STATE.shipment.productionLotName;
-
-    DOM.totalQuantityDisplay.textContent =
-        `${STATE.shipment.totalQuantity} mã`;
-
-    DOM.shipmentStatus.textContent =
-        STATE.shipment.status;
-
-    DOM.shipmentStatus.className =
-        `status-badge ${badgeClass(STATE.shipment.status)}`;
-
-}
-function renderTraceCodes(){
-
-    DOM.traceGrid.innerHTML="";
-
-    if(!STATE.traceCodes.length){
-
-        DOM.traceGrid.innerHTML=`
-
-            <div class="empty-state">
-
-                Không có mã QR
-
-            </div>
-
-        `;
-
-        return;
-
     }
 
-    STATE.traceCodes.forEach(trace=>{
-
-        const card=createTraceCard(trace);
-
-        DOM.traceGrid.appendChild(card);
-
-    });
-
+    printCards(traceCodes);
 }
-function createTraceCard(trace){
 
-    const card=document.createElement("div");
+function buildPrintCardHtml(trace) {
 
-    card.className="qr-card";
-
-    card.innerHTML=`
-
-        <div class="qr-card-header">
-
-            <button class="btn-icon-xs">
-
-                ⋮
-
-            </button>
-
+    return `
+        <div class="print-card">
+            <img src="${getQrImageUrl(trace.qrImage)}" style="width:220px;height:220px;">
+            <h3>${escapeHtml(trace.codeValue ?? "-")}</h3>
+            <p>${escapeHtml(currentShipment?.name ?? "-")}</p>
+            <p>${escapeHtml(currentShipment?.productionLotName ?? "-")}</p>
         </div>
-
-        <div class="qr-image-wrapper">
-
-            <img
-                class="qr-img"
-                src="${BASE_URL}${trace.qrImage}"
-                alt="${trace.codeValue}"
-            >
-
-        </div>
-
-        <div class="qr-card-info">
-
-            <span class="qr-code-val">
-
-                ${trace.codeValue}
-
-            </span>
-
-            <span class="status-badge ${badgeClass(trace.status)}">
-
-                ${trace.status}
-
-            </span>
-
-        </div>
-
-        <div class="qr-card-actions">
-
-            <button
-                class="btn-action-text download-btn">
-
-                Tải QR
-
-            </button>
-
-            <button
-                class="btn-action-text print-btn">
-
-                In Tem
-
-            </button>
-
-            <button
-                class="btn-action-solid btn-success-sm activate-btn">
-
-                Kích hoạt
-
-            </button>
-
-        </div>
-
     `;
-
-    setupCardEvents(card,trace);
-
-    return card;
-
 }
-function downloadQR(trace){
 
-    const a=document.createElement("a");
+function printCards(traceCodes) {
 
-    a.href=
-        BASE_URL+trace.qrImage;
+    const popup = window.open("", "_blank", "width=800,height=900");
 
-    a.download=
-        `${trace.codeValue}.png`;
+    const cardsHtml = traceCodes.map(buildPrintCardHtml).join("");
 
-    document.body.appendChild(a);
-
-    a.click();
-
-    a.remove();
-
-}
-function printQR(trace){
-
-    const win=window.open("");
-
-    win.document.write(`
-
+    popup.document.write(`
         <html>
-
         <head>
-
-            <title>${trace.codeValue}</title>
-
-        </head>
-
-        <body style="text-align:center">
-
-            <h2>
-
-                ${trace.codeValue}
-
-            </h2>
-
-            <img
-                src="${BASE_URL}${trace.qrImage}"
-                style="width:320px">
-
-            <script>
-
-                window.onload=function(){
-
-                    window.print();
-
+            <title>In Tem QR</title>
+            <style>
+                body { font-family: Arial, sans-serif; }
+                .print-card {
+                    display: inline-block;
+                    width: 260px;
+                    text-align: center;
+                    padding: 20px;
+                    page-break-inside: avoid;
                 }
-
-            </script>
-
-        </body>
-
+                .print-card img { width: 220px; height: 220px; }
+                .print-card h3 { margin: 12px 0 4px; }
+                .print-card p { margin: 2px 0; color: #555; }
+            </style>
+        </head>
+        <body>${cardsHtml}</body>
         </html>
-
     `);
 
-    win.document.close();
-
+    popup.document.close();
+    popup.focus();
+    popup.print();
+    popup.close();
 }
-function setupCardEvents(card,trace){
 
-    card
-        .querySelector(".download-btn")
-        .addEventListener("click",()=>{
+/* ============================================================
+ * Helpers
+ * ============================================================ */
 
-            downloadQR(trace);
+function getQrImageUrl(path) {
 
-        });
+    if (!path) {
+        return "";
+    }
 
-    card
-        .querySelector(".print-btn")
-        .addEventListener("click",()=>{
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+        return path;
+    }
 
-            printQR(trace);
-
-        });
-
-    card
-        .querySelector(".activate-btn")
-        .addEventListener("click",()=>{
-
-            alert(
-                "Story kích hoạt tem chưa được triển khai."
-            );
-
-        });
-
+    return API_FILE_BASE_URL + path;
 }
+
+function escapeHtml(value) {
+
+    const div = document.createElement("div");
+
+    div.textContent = value ?? "";
+
+    return div.innerHTML;
+}
+
+/* ============================================================
+ * Initialize
+ * ============================================================ */
+
+async function initializePage() {
+
+    selectShipment(null);
+
+    populateUserInformation();
+
+    await loadProductionLots();
+}
+
+initializePage();

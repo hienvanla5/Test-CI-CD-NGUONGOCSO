@@ -1,29 +1,55 @@
-/* ==========================================================================
-   TRACECODE & SHIPMENT MANAGEMENT STYLES
-   ========================================================================== */
+/* ============================================================
+ * [hidden] override
+ * Bất kỳ class nào trong file này tự khai báo `display`
+ * (vd: .trace-code-section { display: flex }) sẽ có cùng độ
+ * đặc hiệu với rule mặc định [hidden] { display: none } của
+ * trình duyệt, và vì đứng sau trong cascade nên sẽ ĐÈ lên nó,
+ * khiến phần tử vẫn hiển thị dù đã set hidden = true bằng JS.
+ * Rule này đảm bảo hidden luôn thắng, bất kể thứ tự CSS bên dưới.
+ * ============================================================ */
 
-/* --------------------------------------------------------------------------
-   1. Dashboard Header & User Badge
-   -------------------------------------------------------------------------- */
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
+[hidden] {
+    display: none !important;
+}
+
+/* ============================================================
+ * .btn-secondary
+ * button.css chỉ định nghĩa .btn-primary. Trang này dùng
+ * .btn-secondary cho Logout, Retry, Huỷ... nhưng class đó
+ * không được định nghĩa ở bất kỳ file CSS nào được load ở
+ * đây, nên bổ sung tại đây cho đồng bộ với các trang khác.
+ * ============================================================ */
+
+.btn-secondary {
+    display: inline-flex;
     align-items: center;
-    margin-bottom: 24px;
+    justify-content: center;
+
+    height: 44px;
+    padding: 0 24px;
+
+    border: none;
+    border-radius: var(--border-radius-sm);
+
+    background: #f1f5f9;
+    color: var(--color-text);
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: background var(--transition);
 }
 
-.dashboard-header h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0 0 4px 0;
+.btn-secondary:hover {
+    background: #e2e8f0;
 }
 
-.text-muted {
-    font-size: 0.875rem;
-    color: #64748b;
-    margin: 0;
-}
+/* ============================================================
+ * Header actions (user badge + logout)
+ * dashboard.css chỉ định nghĩa display:flex cho .header-actions
+ * bên trong media query mobile, nên ở màn hình desktop badge
+ * user và nút Logout bị vỡ layout (xếp chồng/lệch dòng).
+ * Bổ sung rule mặc định tại đây để không phải sửa file dùng chung.
+ * ============================================================ */
 
 .header-actions {
     display: flex;
@@ -31,591 +57,519 @@
     gap: 12px;
 }
 
-.user-badge {
+/* ============================================================
+ * Toolbar (search + create button)
+ * ============================================================ */
+
+.tc-toolbar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    color: #334155;
-}
-
-.user-role-badge {
-    padding: 2px 6px;
-    background-color: #e8f5e9;
-    color: #15803d;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.user-org-sep {
-    color: #cbd5e1;
-}
-
-/* --------------------------------------------------------------------------
-   2. Action Bar (Search & Create Button)
-   -------------------------------------------------------------------------- */
-/* --------------------------------------------------------------------------
-   2. Action Bar (Search & Create Button) - FIX LỖI BỊ BÉO/TRÀN
-   -------------------------------------------------------------------------- */
-.content-action-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: space-between; 
     gap: 16px;
     margin-bottom: 24px;
-    width: 100%;
 }
 
-/* Ép ô Search chiếm phần còn lại của hàng */
-.content-action-bar .search-wrapper {
-    flex: 1 1 auto;
-    max-width: 420px; /* Độ rộng tối đa chuẩn theo thiết kế */
-}
-
-.content-action-bar .search-input {
-    width: 100%;
-    height: 42px; /* Cố định chiều cao cho vừa vặn */
-    padding: 0 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background-color: #ffffff;
-    font-size: 0.9rem;
-    color: #334155;
-    outline: none;
-    box-sizing: border-box;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.content-action-bar .search-input:focus {
-    border-color: #15803d;
-    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
-}
-
-/* Khống chế nút Tạo Lô Hàng không bị dãn tràn màn hình */
-.content-action-bar #openCreateShipmentModalBtn,
-.content-action-bar .btn-primary {
-    flex: 0 0 auto !important; /* Không cho phép button tự phình to */
-    width: auto !important;     /* Ghi đè style width: 100% từ button.css */
-    height: 42px;               /* Chiều cao bằng ô search */
-    padding: 0 20px;
-    background-color: #15803d;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    white-space: nowrap;       /* Giữ chữ trên 1 hàng */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-}
-
-.content-action-bar #openCreateShipmentModalBtn:hover,
-.content-action-bar .btn-primary:hover {
-    background-color: #166534;
-}
-
-.search-wrapper {
+.tc-search-wrap {
+    position: relative;
     flex: 1;
-    max-width: 420px;
 }
 
-.search-input {
+.tc-search-input {
     width: 100%;
+
+    height: 44px;
+    padding: 0 16px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+
+    background: var(--color-surface);
+    font-size: 0.95rem;
+    color: var(--color-text);
+
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.tc-search-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.tc-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+
+    max-height: 280px;
+    overflow-y: auto;
+
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-md);
+}
+
+.tc-suggestion-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
     padding: 10px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background-color: #ffffff;
-    font-size: 0.9rem;
-    color: #334155;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.search-input:focus {
-    border-color: #15803d;
-    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
-}
-
-.btn-primary {
-    background-color: #15803d;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-weight: 600;
-    font-size: 0.9rem;
     cursor: pointer;
+}
+
+.tc-suggestion-item:hover,
+.tc-suggestion-item.active {
+    background: var(--color-primary-light);
+}
+
+.tc-suggestion-item strong {
+    font-size: 0.9rem;
+    color: var(--color-text);
+}
+
+.tc-suggestion-item span {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.tc-suggestion-empty {
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.tc-btn-inline {
+    width: auto;
+    height: 44px;
+    padding: 0 20px;
     white-space: nowrap;
-    transition: background-color 0.2s;
+    border-radius: var(--border-radius-sm);
 }
 
-.btn-primary:hover {
-    background-color: #166534;
-}
+/* ============================================================
+ * Layout: shipment card + trace codes
+ * ============================================================ */
 
-/* --------------------------------------------------------------------------
-   3. Main Layout Container (Grid 2 cột)
-   -------------------------------------------------------------------------- */
-.shipment-view-container {
+.tc-body {
     display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 20px;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
     align-items: start;
 }
 
-/* --- Thẻ bên trái: Thông tin lô hàng --- */
-.shipment-info-card {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+@media (max-width: 992px) {
+    .tc-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- Shipment card ---------- */
+
+.shipment-card {
     position: sticky;
-    top: 20px;
+    top: 24px;
+
+    padding: 20px;
+
+    background: var(--color-surface);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
 }
 
-.card-header {
+.shipment-card-header {
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+
+    margin-bottom: 12px;
 }
 
-.shipment-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin: 0;
-    line-height: 1.4;
+.shipment-card-header h3 {
+    font-size: 1rem;
+    line-height: 1.35;
+    color: var(--color-primary-dark);
 }
 
 .shipment-id {
-    display: block;
-    font-size: 0.75rem;
-    color: #94a3b8;
-    margin-top: 6px;
     margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px dashed #e2e8f0;
+
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
     word-break: break-all;
 }
 
-.shipment-meta-list {
+.shipment-meta {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
-.meta-item {
+.shipment-meta > div {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-size: 0.875rem;
-}
-
-.meta-label {
-    color: #64748b;
-}
-
-.meta-value {
-    font-weight: 600;
-    color: #1e293b;
-}
-
-.link-text {
-    color: #15803d;
-    font-family: monospace;
-}
-
-/* Status Badges */
-.status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.725rem;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-}
-
-.badge-blue {
-    background-color: #e0f2fe;
-    color: #0284c7;
-}
-
-.badge-orange {
-    background-color: #ffedd5;
-    color: #ea580c;
-}
-
-.badge-green {
-    background-color: #dcfce7;
-    color: #15803d;
-}
-
-/* --------------------------------------------------------------------------
-   4. Khối bên phải: Lưới Mã Tem QR
-   -------------------------------------------------------------------------- */
-.tracecode-section {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.tracecode-section-header {
-    display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #f1f5f9;
+
+    font-size: 0.85rem;
 }
 
-.tracecode-section-header h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #0f172a;
+.shipment-meta dt {
+    color: var(--color-text-muted);
+    font-weight: 400;
 }
 
-.btn-secondary {
-    background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    color: #334155;
-    padding: 6px 14px;
-    border-radius: 6px;
+.shipment-meta dd {
     font-weight: 600;
-    font-size: 0.825rem;
-    cursor: pointer;
-    transition: all 0.2s;
 }
 
-.btn-secondary:hover {
-    background-color: #f8fafc;
-    border-color: #94a3b8;
+.text-accent {
+    color: var(--color-primary);
 }
 
-.btn-icon, .btn-icon-xs {
-    background: transparent;
+/* Three-dot menu */
+
+.tc-menu {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.tc-menu-toggle {
+    width: 28px;
+    height: 28px;
+
     border: none;
-    color: #94a3b8;
-    cursor: pointer;
+    background: transparent;
+
     font-size: 1.1rem;
-    padding: 2px 6px;
-    border-radius: 4px;
+    line-height: 1;
+    color: var(--color-text-muted);
+
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
 }
 
-.btn-icon:hover, .btn-icon-xs:hover {
-    background-color: #f1f5f9;
-    color: #0f172a;
+.tc-menu-toggle:hover {
+    background: var(--color-background);
+    color: var(--color-text);
 }
 
-/* --- QR Card Grid --- */
-.tracecode-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
+.tc-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 10;
+
+    min-width: 180px;
+
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-md);
+
+    overflow: hidden;
 }
 
-.qr-card {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 12px;
+.tc-menu-dropdown button {
+    display: block;
+    width: 100%;
+
+    padding: 10px 14px;
+
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-size: 0.85rem;
+    color: var(--color-text);
+
+    cursor: pointer;
+}
+
+.tc-menu-dropdown button:hover {
+    background: var(--color-background);
+}
+
+/* Empty state (no shipment selected) */
+
+.empty-state-container {
+    grid-column: 1 / -1;
+
+    padding: 48px 24px;
+    text-align: center;
+
+    background: var(--color-surface);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.empty-state-text {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.empty-state-hint {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+/* ============================================================
+ * Trace codes
+ * ============================================================ */
+
+.trace-code-section {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    transition: transform 0.2s, box-shadow 0.2s;
+    gap: 16px;
 }
 
-.qr-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.qr-card-header {
-    width: 100%;
+.trace-code-header {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.qr-image-wrapper {
-    width: 120px;
-    height: 120px;
-    margin: 8px 0;
-    padding: 6px;
-    background-color: #ffffff;
-    border: 1px solid #f1f5f9;
-    border-radius: 8px;
+.trace-code-header h3 {
+    font-size: 1.05rem;
+    color: var(--color-text);
+}
+
+.trace-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 1200px) {
+    .trace-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 900px) {
+    .trace-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 560px) {
+    .trace-grid { grid-template-columns: 1fr; }
+}
+
+.trace-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    padding: 14px;
+
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+
+    transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.trace-card:hover {
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.trace-image {
     display: flex;
     align-items: center;
     justify-content: center;
+
+    aspect-ratio: 1 / 1;
+
+    background: var(--color-background);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
 }
 
-.qr-img {
+.trace-image img {
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
-.qr-card-info {
+.trace-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    margin-bottom: 12px;
+    text-align: center;
 }
 
-.qr-code-val {
-    font-family: monospace;
+.trace-content h4 {
     font-size: 0.85rem;
     font-weight: 700;
-    color: #0f172a;
+    letter-spacing: 0.02em;
 }
 
-.qr-card-actions {
-    width: 100%;
+.trace-actions {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: 10px;
-    border-top: 1px dashed #e2e8f0;
-}
-
-.btn-action-text {
-    background: transparent;
-    border: none;
-    color: #15803d;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 4px 2px;
-    cursor: pointer;
-}
-
-.btn-action-text:hover {
-    text-decoration: underline;
-}
-
-.btn-action-solid {
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.btn-success-sm {
-    background-color: #15803d;
-    color: #ffffff;
-}
-
-.btn-success-sm:hover {
-    background-color: #166534;
-}
-
-/* --------------------------------------------------------------------------
-   5. Pagination Component
-   -------------------------------------------------------------------------- */
-.pagination-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     gap: 6px;
-    margin-top: 20px;
 }
 
-.pagination-btn {
-    min-width: 32px;
-    height: 32px;
-    padding: 0 6px;
-    border: 1px solid #e2e8f0;
-    background-color: #ffffff;
-    color: #334155;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 500;
+.tc-link-btn {
+    border: none;
+    background: transparent;
+    padding: 4px;
+
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-decoration: underline;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
 }
 
-.pagination-btn:hover:not(:disabled) {
-    border-color: #15803d;
-    color: #15803d;
+.tc-link-btn:hover {
+    color: var(--color-primary-dark);
 }
 
-.pagination-btn.active {
-    background-color: #15803d;
-    border-color: #15803d;
-    color: #ffffff;
+.tc-btn-sm {
+    width: auto;
+    height: 30px;
+    padding: 0 12px;
+    font-size: 0.78rem;
+    border-radius: var(--border-radius-sm);
 }
 
-.pagination-btn:disabled {
-    opacity: 0.5;
+.tc-btn-sm[disabled] {
+    opacity: 0.55;
     cursor: not-allowed;
 }
 
-/* --------------------------------------------------------------------------
-   6. Modal Component & Form Styling
-   -------------------------------------------------------------------------- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(2px);
+.empty-trace {
+    grid-column: 1 / -1;
+    padding: 32px;
+    text-align: center;
+    color: var(--color-text-muted);
+}
+
+/* ============================================================
+ * Badges
+ * ============================================================ */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 3px 10px;
+
+    border-radius: 999px;
+
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.badge-inactive {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.badge-active {
+    background: var(--color-primary-light);
+    color: var(--color-primary-dark);
+}
+
+.badge-info {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.badge-danger {
+    background: #fdecea;
+    color: var(--color-danger);
+}
+
+.badge-neutral {
+    background: var(--color-background);
+    color: var(--color-text-muted);
+}
+
+/* ============================================================
+ * Pagination
+ * ============================================================ */
+
+.tc-pagination {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    gap: 6px;
+
+    margin-top: 8px;
 }
 
-.modal {
-    background-color: #ffffff;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 600px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    overflow: hidden;
-}
+.tc-pagination button {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
 
-.modal-header {
-    padding: 16px 24px;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    border-radius: var(--border-radius-sm);
 
-.modal-header h2 {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin: 0;
-}
-
-.modal-close {
-    background: transparent;
-    border: none;
-    font-size: 1.5rem;
-    color: #94a3b8;
+    font-size: 0.85rem;
+    color: var(--color-text);
     cursor: pointer;
-    line-height: 1;
 }
 
-.modal-body {
-    padding: 24px;
+.tc-pagination button:hover:not(:disabled) {
+    background: var(--color-background);
 }
 
-.modal-footer {
-    padding: 16px 24px;
-    background-color: #f8fafc;
-    border-top: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
+.tc-pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+.tc-pagination button.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #ffffff;
+    font-weight: 700;
 }
+
+/* ============================================================
+ * Misc form bits reused from create modal
+ * ============================================================ */
 
 .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.form-group-full {
-    grid-column: span 2;
+    margin-bottom: 16px;
 }
 
 .form-group label {
+    display: block;
+    margin-bottom: 6px;
     font-size: 0.85rem;
     font-weight: 600;
-    color: #334155;
 }
 
-.required {
-    color: #dc2626;
+.form-group .required {
+    color: var(--color-danger);
 }
 
+.form-group select,
 .form-group input,
-.form-group select {
+.form-group textarea {
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    outline: none;
-    box-sizing: border-box;
+
+    padding: 10px 12px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+
+    font-size: 0.9rem;
+    color: var(--color-text);
+    background: var(--color-surface);
 }
 
+.form-group select:focus,
 .form-group input:focus,
-.form-group select:focus {
-    border-color: #15803d;
-    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
-}
-
-.field-error {
-    color: #dc2626;
-    font-size: 0.75rem;
-}
-
-.form-message {
-    margin-top: 12px;
-    font-size: 0.85rem;
-}
-
-/* --------------------------------------------------------------------------
-   7. Responsive Breakdown
-   -------------------------------------------------------------------------- */
-@media (max-width: 1024px) {
-    .shipment-view-container {
-        grid-template-columns: 1fr;
-    }
-
-    .shipment-info-card {
-        position: static;
-    }
-}
-
-@media (max-width: 640px) {
-    .content-action-bar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .search-wrapper {
-        max-width: 100%;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .form-group-full {
-        grid-column: span 1;
-    }
-
-    .tracecode-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    }
+.form-group textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
 }
