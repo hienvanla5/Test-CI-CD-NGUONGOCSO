@@ -1,4 +1,4 @@
-package vn.nguongocso.event;
+package vn.nguongocso.event.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
