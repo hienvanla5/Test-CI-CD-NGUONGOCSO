@@ -2,25 +2,25 @@ package vn.nguongocso.trace.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import vn.nguongocso.auth.service.CustomUserDetailsService;
+import vn.nguongocso.config.JwtTokenProvider;
+import vn.nguongocso.config.SecurityConfig;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.trace.dto.request.CreateShipmentRequest;
 import vn.nguongocso.trace.dto.response.ShipmentResponse;
@@ -29,9 +29,14 @@ import vn.nguongocso.trace.enums.ShipmentStatus;
 import vn.nguongocso.trace.enums.TraceCodeStatus;
 import vn.nguongocso.trace.service.ShipmentService;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@WithMockUser(roles = "USER")
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@WebMvcTest(ShipmentController.class)
+@Import(SecurityConfig.class)
+@ActiveProfiles("test")
+@WithMockUser(roles = "USER") // Áp dụng cho tất cả các test, đảm bảo SecurityContext có user
 class ShipmentControllerTest {
 
     @Autowired
@@ -40,8 +45,14 @@ class ShipmentControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private ShipmentService shipmentService;
+
+    @MockitoBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockitoBean
+    private CustomUserDetailsService customUserDetailsService;
 
     private final UUID productionLotId = UUID.randomUUID();
     private final UUID shipmentId = UUID.randomUUID();
@@ -62,6 +73,7 @@ class ShipmentControllerTest {
                 .thenReturn(response);
 
         mockMvc.perform(post("/api/v1/shipments")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -84,10 +96,10 @@ class ShipmentControllerTest {
         request.setTotalQuantity(50L);
 
         mockMvc.perform(post("/api/v1/shipments")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
-        // Không cần kiểm tra chi tiết body vì validation do Spring tự động trả về
     }
 
     @Test
@@ -97,6 +109,7 @@ class ShipmentControllerTest {
         request.setTotalQuantity(50L);
 
         mockMvc.perform(post("/api/v1/shipments")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -110,6 +123,7 @@ class ShipmentControllerTest {
         request.setTotalQuantity(0L);
 
         mockMvc.perform(post("/api/v1/shipments")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -129,6 +143,7 @@ class ShipmentControllerTest {
                 .thenThrow(new BusinessException("Không tìm thấy lô sản xuất."));
 
         mockMvc.perform(post("/api/v1/shipments")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -149,12 +164,45 @@ class ShipmentControllerTest {
                 .thenThrow(new BusinessException("Số lượng tem vượt quá hạn mức dải mã còn lại."));
 
         mockMvc.perform(post("/api/v1/shipments")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Số lượng tem vượt quá hạn mức dải mã còn lại."));
+    }
+
+    // ==================== TEST KÍCH HOẠT TEM ====================
+
+    @Test
+    void activateStamps_shouldReturnOk_whenValidId() throws Exception {
+        UUID shipmentId = UUID.randomUUID();
+        ShipmentResponse response = ShipmentResponse.builder()
+                .id(shipmentId)
+                .name("Lô hàng đã kích hoạt")
+                .status(ShipmentStatus.ACTIVATED)
+                .build();
+
+        when(shipmentService.activateShipmentStamps(shipmentId)).thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/shipments/{id}/activate", shipmentId)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("ACTIVATED"))
+                .andExpect(jsonPath("$.data.id").value(shipmentId.toString()));
+    }
+
+    @Test
+    void activateStamps_shouldReturnBadRequest_whenBusinessException() throws Exception {
+        UUID shipmentId = UUID.randomUUID();
+        when(shipmentService.activateShipmentStamps(shipmentId))
+                .thenThrow(new BusinessException("Tem đã được kích hoạt trước đó."));
+
+        mockMvc.perform(post("/api/v1/shipments/{id}/activate", shipmentId)
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Tem đã được kích hoạt trước đó."));
     }
 
     // ==================== HELPER ====================

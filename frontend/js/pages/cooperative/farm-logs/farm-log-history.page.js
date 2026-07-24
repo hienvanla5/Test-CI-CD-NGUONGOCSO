@@ -14,6 +14,102 @@ document.addEventListener(
 async function initPage() {
     bindEvents();
 
+    function renderCurrentUser() {
+    const storedUser =
+        localStorage.getItem("currentUser");
+
+    console.log(
+        "currentUser raw:",
+        storedUser
+    );
+
+    if (!storedUser) {
+        console.error(
+            "Không tìm thấy currentUser trong localStorage"
+        );
+        return;
+    }
+
+    let currentUser;
+
+    try {
+        currentUser =
+            JSON.parse(storedUser);
+
+        // Xử lý trường hợp dữ liệu bị stringify hai lần
+        if (typeof currentUser === "string") {
+            currentUser =
+                JSON.parse(currentUser);
+        }
+    } catch (error) {
+        console.error(
+            "Không thể parse currentUser:",
+            error
+        );
+        return;
+    }
+
+    console.log(
+        "currentUser parsed:",
+        currentUser
+    );
+
+    setText(
+        "headerUserRole",
+        currentUser.roleCode ||
+            currentUser.roleName ||
+            "—"
+    );
+
+    setText(
+        "headerUserName",
+        currentUser.fullName ||
+            currentUser.username ||
+            "—"
+    );
+
+    setText(
+        "headerUserOrg",
+        currentUser.organizationName ||
+            currentUser.organizationCode ||
+            "—"
+    );
+
+    setText(
+        "sidebarUserName",
+        currentUser.fullName ||
+            currentUser.username ||
+            "—"
+    );
+
+    setText(
+        "sidebarUserOrg",
+        currentUser.organizationName ||
+            currentUser.organizationCode ||
+            "—"
+    );
+
+    const avatar =
+        document.getElementById(
+            "sidebarUserAvatar"
+        );
+
+    if (avatar) {
+        const displayName =
+            currentUser.fullName ||
+            currentUser.username ||
+            "N";
+
+        avatar.textContent =
+            displayName
+                .trim()
+                .charAt(0)
+                .toUpperCase();
+    }
+}
+    // Bắt buộc phải có dòng này
+    renderCurrentUser();
+
     const productionLotId =
         getProductionLotId();
 
@@ -26,10 +122,7 @@ async function initPage() {
     );
 
     if (!productionLotId) {
-        showError(
-            "Thiếu productionLotId."
-        );
-
+        showError("Thiếu productionLotId.");
         return;
     }
 
@@ -80,6 +173,77 @@ function bindEvents() {
                 window.location.reload();
             }
         );
+    }
+}
+
+function renderCurrentUser() {
+    let currentUser = null;
+
+    try {
+        currentUser = JSON.parse(
+            localStorage.getItem("currentUser")
+        );
+    } catch (error) {
+        console.error(
+            "Không thể đọc thông tin người dùng:",
+            error
+        );
+    }
+
+    if (!currentUser) {
+        return;
+    }
+
+    setText(
+        "headerUserRole",
+        currentUser.roleCode ||
+            currentUser.roleName ||
+            ""
+    );
+
+    setText(
+        "headerUserName",
+        currentUser.fullName ||
+            currentUser.username ||
+            "Người dùng"
+    );
+
+    setText(
+        "headerUserOrg",
+        currentUser.organizationName ||
+            currentUser.organizationCode ||
+            ""
+    );
+
+    setText(
+        "sidebarUserName",
+        currentUser.fullName ||
+            currentUser.username ||
+            "Người dùng"
+    );
+
+    setText(
+        "sidebarUserOrg",
+        currentUser.organizationName ||
+            currentUser.organizationCode ||
+            ""
+    );
+
+    const avatar =
+        document.getElementById(
+            "sidebarUserAvatar"
+        );
+
+    if (avatar) {
+        avatar.textContent =
+            (
+                currentUser.fullName ||
+                currentUser.username ||
+                "N"
+            )
+                .trim()
+                .charAt(0)
+                .toUpperCase();
     }
 }
 

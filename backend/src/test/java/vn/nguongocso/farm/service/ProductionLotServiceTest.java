@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import vn.nguongocso.auth.entity.User;
@@ -113,11 +115,10 @@ public class ProductionLotServiceTest {
 
     @Test
     void approveProductionLot_shouldRejectAndSetDraft_whenApprovedFalse() {
-
-        // Given
-        ApproveProductionLotRequest request = new ApproveProductionLotRequest();
-        request.setApproved(false);
-        request.setReason("Thiếu thông tin vùng trồng");
+    // Given
+    ApproveProductionLotRequest request = new ApproveProductionLotRequest();
+    request.setApproved(false);
+    request.setApprovalNotes("Thiếu thông tin vùng trồng");
 
         ProductionLot lot = createPendingLot();
         User approver = new User();

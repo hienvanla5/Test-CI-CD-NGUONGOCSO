@@ -3,83 +3,89 @@
 /* Page header */
 .production-lots-header {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     margin-bottom: 24px;
 }
 
 .production-lots-header h2 {
     font-size: 1.25rem;
-
     font-weight: 700;
-
-    color:
-        var(--color-text);
+    color: var(--color-text);
 }
 
 .production-lots-header-actions {
     display: flex;
-
+    align-items: center;
     gap: 12px;
+}
+
+/* Search input */
+#productionLotSearchInput {
+    height: 40px;
+    padding: 0 16px;
+
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+
+    font-size: 0.95rem;
+    outline: none;
+}
+
+#productionLotSearchInput:focus {
+    border-color: var(--color-primary);
+}
+
+/* New button */
+.production-lots-header-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 40px;
+    padding: 0 18px;
+
+    border-radius: 20px;
 }
 
 /* List card */
 .production-lots-card {
-    background:
-        var(--color-surface);
-
-    border-radius:
-        var(--border-radius-md);
-
-    box-shadow:
-        var(--shadow-sm);
-
+    background: var(--color-surface);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
 }
 
-/* Empty state within card */
+/* Empty state */
 .empty-state-container {
     display: flex;
-
     flex-direction: column;
-
     align-items: center;
-
     justify-content: center;
 
     padding: 80px 24px;
-
     text-align: center;
 }
 
 .empty-state-icon {
     margin-bottom: 16px;
-
-    color:
-        var(--color-text-muted);
+    color: var(--color-text-muted);
 }
 
 .empty-state-text {
     margin-bottom: 8px;
 
     font-size: 1.1rem;
-
     font-weight: 600;
 
-    color:
-        var(--color-text);
+    color: var(--color-text);
 }
 
 .empty-state-hint {
     margin-bottom: 20px;
 
     font-size: 0.9rem;
-
-    color:
-        var(--color-text-muted);
+    color: var(--color-text-muted);
 }
 
 /* Table */
@@ -89,51 +95,36 @@
 
 .production-lots-table {
     width: 100%;
-
     border-collapse: collapse;
 }
 
 .production-lots-table thead {
-    background:
-        var(--color-background);
+    background: var(--color-background);
 }
 
 .production-lots-table th {
     padding: 12px 16px;
 
     text-align: left;
+    white-space: nowrap;
 
     font-size: 0.8rem;
-
     font-weight: 600;
-
     text-transform: uppercase;
-
     letter-spacing: 0.04em;
 
-    color:
-        var(--color-text-muted);
-
-    border-bottom:
-        1px solid
-        var(--color-border);
-
-    white-space: nowrap;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .production-lots-table td {
     padding: 14px 16px;
 
     font-size: 0.9rem;
-
-    color:
-        var(--color-text);
-
-    border-bottom:
-        1px solid
-        var(--color-border);
-
     vertical-align: middle;
+
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .production-lots-table tbody tr:last-child td {
@@ -141,8 +132,12 @@
 }
 
 .production-lots-table tbody tr:hover {
-    background:
-        var(--color-primary-light);
+    background: var(--color-primary-light);
+}
+
+.production-lots-table th:last-child,
+.production-lots-table td:last-child {
+    text-align: center;
 }
 
 /* Status badges */
@@ -150,192 +145,161 @@
     display: inline-block;
 
     padding: 4px 10px;
-
     border-radius: 20px;
 
     font-size: 0.75rem;
-
     font-weight: 600;
-
     text-transform: uppercase;
-
     letter-spacing: 0.03em;
 }
 
 .status-badge-draft {
-    background:
-        #f3f4f6;
-
-    color:
-        #6b7280;
+    background: #f3f4f6;
+    color: #6b7280;
 }
 
 .status-badge-pending {
-    background:
-        #fef3c7;
-
-    color:
-        #d97706;
+    background: #fef3c7;
+    color: #d97706;
 }
 
 .status-badge-approved {
-    background:
-        #d1fae5;
-
-    color:
-        #059669;
+    background: #d1fae5;
+    color: #059669;
 }
 
 .status-badge-harvested {
-    background:
-        #dbeafe;
-
-    color:
-        #2563eb;
+    background: #dbeafe;
+    color: #2563eb;
 }
 
 .status-badge-packaged {
-    background:
-        #ede9fe;
-
-    color:
-        #7c3aed;
+    background: #ede9fe;
+    color: #7c3aed;
 }
 
 .status-badge-closed {
-    background:
-        #f3f4f6;
-
-    color:
-        #374151;
+    background: #f3f4f6;
+    color: #374151;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .production-lots-header {
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 12px;
-    }
-
-    .production-lots-header-actions {
-        width: 100%;
-    }
-
-    .production-lots-header-actions .btn {
-        flex: 1;
-    }
-
-    .dashboard-header {
-        flex-direction: column;
-
-        align-items: flex-start;
-    }
-
-    .header-actions {
-        width: 100%;
-
-        flex-direction: column;
-    }
-
-    .header-actions .btn,
-    .header-actions .user-badge {
-        width: 100%;
-    }
-}
-<<<<<<< HEAD
-/* ===== Inline Input ===== */
-
-.inline-input {
+/* Inline inputs */
+.inline-input,
+.edit-lot-name,
+.edit-farm-area,
+.edit-product-category,
+.edit-expected-quantity,
+.edit-planting-date {
     width: 100%;
+
     padding: 8px 10px;
 
     border: 1px solid #d1d5db;
     border-radius: 8px;
 
     font-size: 14px;
-    background: #fff;
+    background: #ffffff;
 }
 
-.inline-input:focus {
+.inline-input:focus,
+.edit-lot-name:focus,
+.edit-farm-area:focus,
+.edit-product-category:focus,
+.edit-expected-quantity:focus,
+.edit-planting-date:focus {
     outline: none;
 
     border-color: #3b82f6;
-
-    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
-}
-/* ===== Status Dropdown ===== */
-
-.inline-status{
-    appearance:none !important;
-    -webkit-appearance:none !important;
-    -moz-appearance:none !important;
-
-    background:#60A5FA !important;
-    color:#fff !important;
-
-    border:none !important;
-    outline:none;
-
-    border-radius:8px;
-
-    min-width:80px;
-    height:34px;
-    padding:0 14px;
-
-    font-weight:600;
-
-    cursor:pointer;
-}
-.inline-status:hover{
-
-    background:#3B82F6;
-
-    transform:translateY(-1px);
-
-    box-shadow:0 4px 12px rgba(59,130,246,.25);
-}
-.inline-status:active{
-
-    background:#2563EB;
-
-    transform:scale(.98);
-}
-.inline-status:focus{
-
-    outline:none;
-
-    box-shadow:0 0 0 3px rgba(59,130,246,.25);
-}
-.inline-status::-ms-expand{
-    display:none;
-}
-/* ===== Action Buttons ===== */
-
-.action-buttons{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    white-space:nowrap;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-.action-buttons .btn{
-    margin:0;
+/* Status dropdown */
+.inline-status {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    min-width: 80px;
+    height: 34px;
+    padding: 0 14px;
+
+    background: #60a5fa;
+    color: #ffffff;
+
+    border: none;
+    border-radius: 8px;
+    outline: none;
+
+    font-weight: 600;
+    cursor: pointer;
 }
 
-.btn-sm{
-    min-width:72px;
-    height:36px;
+.inline-status:hover {
+    background: #3b82f6;
 
-    padding:0 16px;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
 
-    border-radius:8px;
+.inline-status:active {
+    background: #2563eb;
+    transform: scale(0.98);
+}
 
-    font-size:14px;
-    font-weight:600;
+.inline-status:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.inline-status::-ms-expand {
+    display: none;
+}
+
+/* Action area */
+.action-buttons,
+.production-lot-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.action-buttons .btn,
+.production-lot-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 82px;
+    height: 32px;
+    margin: 0;
+    padding: 0 14px;
+
+    border: none;
+    border-radius: 20px;
+
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.production-lot-actions .btn {
+    min-width: max-content;
+}
+
+.btn-sm {
+    min-width: 82px;
+    height: 32px;
+    padding: 0 14px;
+
+    border-radius: 20px;
+
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .btn-save,
@@ -345,49 +309,90 @@
     cursor: pointer;
 }
 
-.btn-save,
-.btn-edit,
-.btn-cancel {
-    margin-right: 8px;
-}
-
 .status-button:disabled {
     cursor: not-allowed;
     opacity: 0.8;
 }
 
-<<<<<<< HEAD
-.edit-lot-name,
-.edit-farm-area,
-.edit-product-category,
-.edit-expected-quantity,
-.edit-planting-date {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #d5d9dd;
-    border-radius: 6px;
-=======
-
-.btn-farm-log {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    min-width: 110px;
-    min-height: 36px;
-
-    padding: 8px 14px;
-
-    font-size: 0.82rem;
-    white-space: nowrap;
+/* Edit and attachment buttons */
+.btn-edit,
+.btn-attachment-lot {
+    background: #f3f4f6;
+    color: #374151;
 }
 
-.production-lots-table th:last-child,
-.production-lots-table td:last-child {
-    text-align: center;
->>>>>>> feature/create-farm-log
-=======
-/* Modal responsive */
+.btn-edit:hover:not(:disabled),
+.btn-attachment-lot:hover:not(:disabled) {
+    background: #e5e7eb;
+}
+
+/* History and farm log buttons */
+.btn-history-lot,
+.btn-create-farm-log,
+.btn-farm-log {
+    background: #237a35;
+    border-color: #237a35;
+    color: #ffffff;
+}
+
+.btn-history-lot:hover:not(:disabled),
+.btn-create-farm-log:hover:not(:disabled),
+.btn-farm-log:hover:not(:disabled) {
+    background: #1c672b;
+    border-color: #1c672b;
+}
+
+.btn-farm-log {
+    min-width: 110px;
+}
+
+/* Locked action */
+.action-locked {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .production-lots-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .production-lots-header-actions {
+        width: 100%;
+    }
+
+    #productionLotSearchInput {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .production-lots-header-actions .btn {
+        flex-shrink: 0;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .header-actions .btn,
+    .header-actions .user-badge {
+        width: 100%;
+    }
+
+    .production-lot-actions,
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+}
 
 @media (max-width: 640px) {
     .modal {
@@ -414,33 +419,4 @@
     .modal__actions .btn {
         width: 100%;
     }
-}
-
-.production-lot-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-.production-lot-actions .btn {
-    min-width: max-content;
-}
-
-.btn-history-lot {
-    background: #237a35;
-    border-color: #237a35;
-    color: #ffffff;
-}
-
-.btn-history-lot:hover:not(:disabled) {
-    background: #1c672b;
-    border-color: #1c672b;
-}
-
-.btn-create-farm-log {
-    background: #237a35;
-    border-color: #237a35;
-    color: #ffffff;
->>>>>>> feature/view-farm-log
 }

@@ -2,13 +2,12 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
         name="viewport"
-        content="width=device-width,
-        initial-scale=1.0">
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>
         Production Lots | Nguồn Gốc Số
@@ -16,38 +15,44 @@
 
     <link
         rel="stylesheet"
-        href="../../../css/reset.css">
+        href="../../../css/reset.css"
+    >
 
     <link
         rel="stylesheet"
-        href="../../../css/variables.css">
+        href="../../../css/variables.css"
+    >
 
     <link
         rel="stylesheet"
-        href="../../../css/global.css">
+        href="../../../css/global.css"
+    >
 
     <link
         rel="stylesheet"
-        href="../../../css/layouts/dashboard-layout.css">
+        href="../../../css/layouts/dashboard-layout.css"
+    >
 
     <link
         rel="stylesheet"
-        href="../../../css/components/button.css">
+        href="../../../css/components/button.css"
+    >
 
     <link
         rel="stylesheet"
-        href="../../../css/pages/cooperative/dashboard.css">
+        href="../../../css/pages/cooperative/dashboard.css"
+    >
 
     <link
         rel="stylesheet"
-        href="../../../css/pages/cooperative/production-lots.css">
-
+        href="../../../css/pages/cooperative/production-lots.css"
+    >
 </head>
 
 <body>
-
     <div class="dashboard-layout">
 
+        <!-- Sidebar -->
         <aside class="sidebar">
 
             <div class="sidebar-logo">
@@ -57,48 +62,64 @@
             <nav class="sidebar-menu">
 
                 <a
-    id="dashboardMenu"
-    href="/frontend/pages/cooperative/dashboard.html"
->
-    Dashboard
-</a>
+                    id="dashboardMenu"
+                    href="/frontend/pages/cooperative/dashboard.html"
+                >
+                    Dashboard
+                </a>
 
-<a
-    id="farmAreasMenu"
-    href="/frontend/pages/cooperative/farm-areas/index.html"
->
-    Farm Areas
-</a>
+                <a
+                    id="farmAreasMenu"
+                    href="/frontend/pages/cooperative/farm-areas/index.html"
+                >
+                    Farm Areas
+                </a>
 
-<a
-    id="productionLotsMenu"
-    href="/frontend/pages/cooperative/production-lots/index.html"
-    class="active"
->
-    Production Lots
-</a>
+                <a
+                    id="productionLotsMenu"
+                    href="/frontend/pages/cooperative/production-lots/index.html"
+                    class="active"
+                >
+                    Production Lots
+                </a>
 
-<a
-    id="organizationProfileMenu"
-    href="/frontend/pages/cooperative/profile.html"
->
-    Organization Profile
-</a>
+                <a
+                    id="organizationProfileMenu"
+                    href="/frontend/pages/cooperative/profile.html"
+                >
+                    Organization Profile
+                </a>
 
             </nav>
 
-            <div class="sidebar-user" id="sidebarUser">
-                <div class="sidebar-user-avatar" id="sidebarUserAvatar"></div>
+            <div
+                class="sidebar-user"
+                id="sidebarUser"
+            >
+                <div
+                    class="sidebar-user-avatar"
+                    id="sidebarUserAvatar"
+                ></div>
+
                 <div class="sidebar-user-info">
-                    <strong id="sidebarUserName">—</strong>
-                    <span id="sidebarUserOrg">—</span>
+
+                    <strong id="sidebarUserName">
+                        —
+                    </strong>
+
+                    <span id="sidebarUserOrg">
+                        —
+                    </span>
+
                 </div>
             </div>
 
         </aside>
 
+        <!-- Main -->
         <main class="dashboard-main">
 
+            <!-- Header -->
             <header class="dashboard-header">
 
                 <div>
@@ -113,126 +134,265 @@
 
                 <div class="header-actions">
 
-                    <div class="user-badge" id="headerUserBadge">
-                        <span id="headerUserRole" class="user-role-badge">—</span>
-                        <span id="headerUserName">—</span>
-                        <span class="user-org-sep">|</span>
-                        <span id="headerUserOrg">—</span>
+                    <div
+                        class="user-badge"
+                        id="headerUserBadge"
+                    >
+                        <span
+                            id="headerUserRole"
+                            class="user-role-badge"
+                        >
+                            —
+                        </span>
+
+                        <span id="headerUserName">
+                            —
+                        </span>
+
+                        <span class="user-org-sep">
+                            |
+                        </span>
+
+                        <span id="headerUserOrg">
+                            —
+                        </span>
                     </div>
 
                     <button
                         id="logoutButton"
-                        class="btn btn-secondary">
-
+                        class="btn btn-secondary"
+                        type="button"
+                    >
                         Logout
-
                     </button>
 
                 </div>
 
             </header>
 
+            <!-- Content -->
             <section class="dashboard-content">
 
-                <!-- Loading State -->
-                <div id="loadingState" class="state-container" style="display: none;">
+                <!-- Loading state -->
+                <div
+                    id="loadingState"
+                    class="state-container"
+                    style="display: none;"
+                >
                     <div class="state-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M12 6v6l4 2" />
+                        <svg
+                            width="48"
+                            height="48"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <circle
+                                cx="12"
+                                cy="12"
+                                r="10"
+                            ></circle>
+
+                            <path d="M12 6v6l4 2"></path>
                         </svg>
                     </div>
-                    <p class="state-text">Loading production lots...</p>
+
+                    <p class="state-text">
+                        Loading production lots...
+                    </p>
                 </div>
 
-                <!-- Error State -->
-                <div id="errorState" class="state-container" style="display: none;">
+                <!-- Error state -->
+                <div
+                    id="errorState"
+                    class="state-container"
+                    style="display: none;"
+                >
                     <div class="state-icon state-error-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="8" x2="12" y2="12" />
-                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        <svg
+                            width="48"
+                            height="48"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <circle
+                                cx="12"
+                                cy="12"
+                                r="10"
+                            ></circle>
+
+                            <line
+                                x1="12"
+                                y1="8"
+                                x2="12"
+                                y2="12"
+                            ></line>
+
+                            <line
+                                x1="12"
+                                y1="16"
+                                x2="12.01"
+                                y2="16"
+                            ></line>
                         </svg>
                     </div>
-                    <p id="errorMessage" class="state-text state-error-text">An error occurred.</p>
-                    <button id="retryButton" class="btn btn-secondary">Retry</button>
+
+                    <p
+                        id="errorMessage"
+                        class="state-text state-error-text"
+                    >
+                        An error occurred.
+                    </p>
+
+                    <button
+                        id="retryButton"
+                        class="btn btn-secondary"
+                        type="button"
+                    >
+                        Retry
+                    </button>
                 </div>
 
-                <!-- Unauthorized State -->
-                <div id="unauthorizedState" class="state-container" style="display: none;">
+                <!-- Unauthorized state -->
+                <div
+                    id="unauthorizedState"
+                    class="state-container"
+                    style="display: none;"
+                >
                     <div class="state-icon state-error-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        <svg
+                            width="48"
+                            height="48"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <rect
+                                x="3"
+                                y="11"
+                                width="18"
+                                height="11"
+                                rx="2"
+                                ry="2"
+                            ></rect>
+
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                     </div>
-                    <p class="state-text state-error-text">You do not have permission to access this page.</p>
-                    <a href="/frontend/pages/auth/login.html" class="btn btn-secondary">Back to Login</a>
+
+                    <p class="state-text state-error-text">
+                        You do not have permission to access this page.
+                    </p>
+
+                    <a
+                        href="/frontend/pages/auth/login.html"
+                        class="btn btn-secondary"
+                    >
+                        Back to Login
+                    </a>
                 </div>
 
-                <!-- Main Content -->
-                <div id="mainContent" style="display: none;">
+                <!-- Main content -->
+                <div
+                    id="mainContent"
+                    style="display: none;"
+                >
 
                     <div class="production-lots-header">
-                        <h2>All Production Lots</h2>
+
+                        <h2>
+                            All Production Lots
+                        </h2>
+
                         <div class="production-lots-header-actions">
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                             <input
                                 type="text"
-                                id="searchProductionLot"
+                                id="productionLotSearchInput"
                                 class="table-search"
-                                placeholder="Search production lot...">
+                                placeholder="Search production lot..."
+                            >
 
                             <a
                                 href="/frontend/pages/cooperative/production-lots/create.html"
-                                class="btn btn-primary">
-
-=======
-                            <a href="/frontend/pages/cooperative/production-lots/create.html" class="btn btn-primary">
->>>>>>> feature/view-farm-log
+                                class="btn btn-primary production-lot-create-button"
+                            >
                                 + New
                             </a>
-<<<<<<< HEAD
 
-=======
-                            <a
-    href="/frontend/pages/cooperative/production-lots/create.html"
-    class="btn btn-primary production-lot-create-button"
->
-    + New
-</a>
->>>>>>> feature/create-farm-log
-=======
->>>>>>> feature/view-farm-log
                         </div>
+
                     </div>
 
                     <div class="production-lots-card">
 
-                        <!-- Empty State -->
-                        <div id="emptyState" class="empty-state-container" style="display: none;">
+                        <!-- Empty state -->
+                        <div
+                            id="emptyState"
+                            class="empty-state-container"
+                            style="display: none;"
+                        >
                             <div class="empty-state-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                    <polyline points="14 2 14 8 20 8" />
-                                    <line x1="12" y1="18" x2="12" y2="12" />
-                                    <line x1="9" y1="15" x2="15" y2="15" />
+                                <svg
+                                    width="48"
+                                    height="48"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                                    ></path>
+
+                                    <polyline
+                                        points="14 2 14 8 20 8"
+                                    ></polyline>
+
+                                    <line
+                                        x1="12"
+                                        y1="18"
+                                        x2="12"
+                                        y2="12"
+                                    ></line>
+
+                                    <line
+                                        x1="9"
+                                        y1="15"
+                                        x2="15"
+                                        y2="15"
+                                    ></line>
                                 </svg>
                             </div>
-                            <p class="empty-state-text">No production lots yet</p>
-                            <p class="empty-state-hint">Create your first production lot to get started.</p>
+
+                            <p class="empty-state-text">
+                                No production lots yet
+                            </p>
+
+                            <p class="empty-state-hint">
+                                Create your first production lot to get started.
+                            </p>
+
                             <a
-    href="/frontend/pages/cooperative/production-lots/create.html"
-    class="btn btn-primary production-lot-create-button"
->
-    + New Production Lot
-</a>
+                                href="/frontend/pages/cooperative/production-lots/create.html"
+                                class="btn btn-primary production-lot-create-button"
+                            >
+                                + New Production Lot
+                            </a>
                         </div>
 
-                        <!-- Table -->
+                        <!-- Production lots table -->
                         <div class="production-lots-table-wrapper">
-                            <table id="productionLotsTable" class="production-lots-table" style="display: none;">
+
+                            <table
+                                id="productionLotsTable"
+                                class="production-lots-table"
+                                style="display: none;"
+                            >
                                 <thead>
                                     <tr>
                                         <th>Name</th>
@@ -245,9 +405,11 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
+
                                 <tbody id="productionLotsTableBody">
                                 </tbody>
                             </table>
+
                         </div>
 
                     </div>
@@ -260,164 +422,207 @@
 
     </div>
 
-    <script
-        type="module"
-        src="../../../js/pages/cooperative/production-lots/production-lots.page.js">
-    </script>
-    
-<div id="editLotModal" class="modal" hidden>
-    <div id="editLotOverlay" class="modal__overlay"></div>
-
-    <section
-        class="modal__content"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="editLotTitle"
+    <!-- Edit production lot modal -->
+    <div
+        id="editLotModal"
+        class="modal"
+        hidden
     >
-        <header class="modal__header">
-            <div>
-                <h2 id="editLotTitle">Sửa lô sản xuất</h2>
-                <p>Cập nhật thông tin lô sản xuất</p>
-            </div>
-
-            <button
-                id="closeEditLotButton"
-                class="modal__close"
-                type="button"
-            >
-                ×
-            </button>
-        </header>
-
         <div
-            id="editLotMessage"
-            class="modal-message"
-            hidden
+            id="editLotOverlay"
+            class="modal__overlay"
         ></div>
 
-        <form id="editLotForm" novalidate>
-            <input id="editLotId" type="hidden">
+        <section
+            class="modal__content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="editLotTitle"
+        >
+            <header class="modal__header">
 
-            <div class="modal-form-grid">
-                <div class="form-group">
-                    <label for="editLotName">
-                        Tên lô sản xuất
-                        <span>*</span>
-                    </label>
+                <div>
+                    <h2 id="editLotTitle">
+                        Sửa lô sản xuất
+                    </h2>
 
-                    <input
-                        id="editLotName"
-                        type="text"
-                        maxlength="255"
-                        required
-                    >
-
-                    <small
-                        id="editLotNameError"
-                        class="field-error"
-                    ></small>
+                    <p>
+                        Cập nhật thông tin lô sản xuất
+                    </p>
                 </div>
 
-                <div class="form-group">
-                    <label for="editFarmAreaId">
-                        Khu vực canh tác
-                        <span>*</span>
-                    </label>
-
-                    <select id="editFarmAreaId" required>
-                        <option value="">
-                            -- Chọn khu vực canh tác --
-                        </option>
-                    </select>
-
-                    <small
-                        id="editFarmAreaIdError"
-                        class="field-error"
-                    ></small>
-                </div>
-
-                <div class="form-group">
-                    <label for="editProductCategoryId">
-                        Loại nông sản
-                        <span>*</span>
-                    </label>
-
-                    <select id="editProductCategoryId" required>
-                        <option value="">
-                            -- Chọn loại nông sản --
-                        </option>
-                    </select>
-
-                    <small
-                        id="editProductCategoryIdError"
-                        class="field-error"
-                    ></small>
-                </div>
-
-                <div class="form-group">
-                    <label for="editExpectedQuantity">
-                        Sản lượng dự kiến
-                        <span>*</span>
-                    </label>
-
-                    <input
-                        id="editExpectedQuantity"
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        required
-                    >
-
-                    <small
-                        id="editExpectedQuantityError"
-                        class="field-error"
-                    ></small>
-                </div>
-
-                <div class="form-group modal-form-grid__full">
-                    <label for="editPlantingDate">
-                        Ngày xuống giống
-                        <span>*</span>
-                    </label>
-
-                    <input
-                        id="editPlantingDate"
-                        type="date"
-                        required
-                    >
-
-                    <small
-                        id="editPlantingDateError"
-                        class="field-error"
-                    ></small>
-                </div>
-            </div>
-
-            <footer class="modal__actions">
                 <button
-                    id="cancelEditLotButton"
-                    class="btn btn-secondary"
+                    id="closeEditLotButton"
+                    class="modal__close"
                     type="button"
+                    aria-label="Đóng"
                 >
-                    Hủy
+                    ×
                 </button>
 
-                <button
-                    id="updateEditLotButton"
-                    class="btn btn-primary"
-                    type="submit"
+            </header>
+
+            <div
+                id="editLotMessage"
+                class="modal-message"
+                hidden
+            ></div>
+
+            <form
+                id="editLotForm"
+                novalidate
+            >
+                <input
+                    id="editLotId"
+                    type="hidden"
                 >
-                    Cập nhật
-                </button>
-            </footer>
-        </form>
-    </section>
-</div>
+
+                <div class="modal-form-grid">
+
+                    <!-- Lot name -->
+                    <div class="form-group">
+
+                        <label for="editLotName">
+                            Tên lô sản xuất
+                            <span>*</span>
+                        </label>
+
+                        <input
+                            id="editLotName"
+                            type="text"
+                            maxlength="255"
+                            required
+                        >
+
+                        <small
+                            id="editLotNameError"
+                            class="field-error"
+                        ></small>
+
+                    </div>
+
+                    <!-- Farm area -->
+                    <div class="form-group">
+
+                        <label for="editFarmAreaId">
+                            Khu vực canh tác
+                            <span>*</span>
+                        </label>
+
+                        <select
+                            id="editFarmAreaId"
+                            required
+                        >
+                            <option value="">
+                                -- Chọn khu vực canh tác --
+                            </option>
+                        </select>
+
+                        <small
+                            id="editFarmAreaIdError"
+                            class="field-error"
+                        ></small>
+
+                    </div>
+
+                    <!-- Product category -->
+                    <div class="form-group">
+
+                        <label for="editProductCategoryId">
+                            Loại nông sản
+                            <span>*</span>
+                        </label>
+
+                        <select
+                            id="editProductCategoryId"
+                            required
+                        >
+                            <option value="">
+                                -- Chọn loại nông sản --
+                            </option>
+                        </select>
+
+                        <small
+                            id="editProductCategoryIdError"
+                            class="field-error"
+                        ></small>
+
+                    </div>
+
+                    <!-- Expected quantity -->
+                    <div class="form-group">
+
+                        <label for="editExpectedQuantity">
+                            Sản lượng dự kiến
+                            <span>*</span>
+                        </label>
+
+                        <input
+                            id="editExpectedQuantity"
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            required
+                        >
+
+                        <small
+                            id="editExpectedQuantityError"
+                            class="field-error"
+                        ></small>
+
+                    </div>
+
+                    <!-- Planting date -->
+                    <div class="form-group modal-form-grid__full">
+
+                        <label for="editPlantingDate">
+                            Ngày xuống giống
+                            <span>*</span>
+                        </label>
+
+                        <input
+                            id="editPlantingDate"
+                            type="date"
+                            required
+                        >
+
+                        <small
+                            id="editPlantingDateError"
+                            class="field-error"
+                        ></small>
+
+                    </div>
+
+                </div>
+
+                <footer class="modal__actions">
+
+                    <button
+                        id="cancelEditLotButton"
+                        class="btn btn-secondary"
+                        type="button"
+                    >
+                        Hủy
+                    </button>
+
+                    <button
+                        id="updateEditLotButton"
+                        class="btn btn-primary"
+                        type="submit"
+                    >
+                        Cập nhật
+                    </button>
+
+                </footer>
+            </form>
+
+        </section>
+    </div>
 
     <script
         type="module"
-        src="../../../js/pages/cooperative/production-lots/production-lots.page.js">
-    </script>
+        src="../../../js/pages/cooperative/production-lots/production-lots.page.js"
+    ></script>
 
 </body>
 
