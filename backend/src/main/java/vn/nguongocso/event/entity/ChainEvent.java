@@ -36,9 +36,9 @@ public class ChainEvent {
     @Column(name = "event_type", nullable = false)
     private ChainEventType eventType;
 
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "event_data", columnDefinition = "json")
-    private Map<String, Object> eventData;
+    private String eventData;
+
 
     @Column(name = "location", columnDefinition = "geometry")
     private Point location;
