@@ -34,5 +34,5 @@ public class ShipmentResponse {
     private String createdByName;
 
     private LocalDateTime createdAt;
-
+    
 }

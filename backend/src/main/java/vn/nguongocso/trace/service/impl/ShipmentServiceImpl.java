@@ -26,6 +26,7 @@ import vn.nguongocso.trace.enums.TraceCodeStatus;
 import vn.nguongocso.trace.repository.CodeRangeRepository;
 import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
+import vn.nguongocso.trace.service.QRCodeService;
 import vn.nguongocso.trace.service.ShipmentService;
 import vn.nguongocso.trace.dto.response.TraceCodeResponse;
 
@@ -41,6 +42,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 	private final TraceCodeRepository traceCodeRepository;
 	private final CodeRangeRepository codeRangeRepository;
 	private final ProductionLotRepository productionLotRepository;
+	private final QRCodeService qrCodeService;
 
 	private static final String ORG_MANAGER_ROLE = "VT-02";
 
@@ -239,14 +241,24 @@ public class ShipmentServiceImpl implements ShipmentService {
 		List<TraceCode> traceCodes = new ArrayList<>();
 
 		long startSequence = codeRange.getUsedCount() + 1;
+		
+	    UUID organizationId = shipment.getOrganization().getOrganizationId();
+	    UUID productionLotId = shipment.getProductionLot().getId();
+	    UUID shipmentId = shipment.getId();
 
 		for (long i = 0; i < quantity; i++) {
+			
+			String codeValue = generateUniqueCode(codeRange.getPrefix(), startSequence + i);
+			
+			String qrImagePath = qrCodeService.generateQRCode(codeValue, organizationId, productionLotId, shipmentId);
 
 			TraceCode traceCode = new TraceCode();
+			
+			traceCode.setQrImage(qrImagePath); 
 
 			traceCode.setShipment(shipment);
-
-			traceCode.setCodeValue(generateUniqueCode(codeRange.getPrefix(), startSequence + i));
+			
+			traceCode.setCodeValue(codeValue);
 
 			traceCode.setStatus(TraceCodeStatus.INACTIVE);
 

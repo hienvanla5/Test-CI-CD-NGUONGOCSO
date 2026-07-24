@@ -41,7 +41,7 @@ Request Body
 Ví dụ đường dẫn truy xuất chi tiết lô hàng sau khi tạo:
 
 ```
-GET http://localhost:8080/api/v1/shipments/{shipmentId}
+GET http://localhost:8080/files/qr/{organizationId}/{productionLotId}/{shipmentId}/{codeValue}.png
 ```
 
 ## 3. Điều kiện
@@ -178,35 +178,47 @@ Content-Type: application/json
 ```
 
 HTTP 201 Created
+```json
+{
+  "productionLotId": "f86a4deb-0ba3-4f36-9f52-7c8de90a854b",
+  "name": "Lô hàng chè Long Cốc T7/2026",
+  "totalQuantity": 2,
+  "packagingInfo": "Túi 500g, đóng thùng 20 túi/thùng"
+}
+```
+
+Response
 
 ```json
 {
     "success": true,
-    "status": 201,
+    "status": 200,
     "data": {
-        "id": "3f1a9c2e-1234-4a11-9e21-9c1a2b3c4d5e",
-        "productionLotId": "85d91b0c-c3b8-4c1f-bcb0-2b86737d1406",
-        "productionLotName": "Chè Long Cốc",
+        "id": "ecde1d21-18e3-437a-9695-ffb4d2a4c23a",
+        "productionLotId": "f86a4deb-0ba3-4f36-9f52-7c8de90a854b",
+        "productionLotName": "Lô chè xuân 2026",
         "name": "Lô hàng chè Long Cốc T7/2026",
-        "totalQuantity": 200.0,
+        "totalQuantity": 2,
         "packagingInfo": "Túi 500g, đóng thùng 20 túi/thùng",
-        "status": "CODEPRINTED",
+        "status": "CODE_PRINTED",
         "traceCodes": [
             {
-                "id": "a1b2c3d4-0001-4a11-9e21-9c1a2b3c4d5e",
-                "codeValue": "VN-LC-000201",
-                "qrImage": "/files/qr/VN-LC-000201.png",
+                "id": "0007084a-a41e-4c44-a958-23e8a233ab92",
+                "codeValue": "HX00000029",
+                "qrImage": "/files/qr/4d2f480f-5e0f-4530-b325-2506cb41ebf8/f86a4deb-0ba3-4f36-9f52-7c8de90a854b/ecde1d21-18e3-437a-9695-ffb4d2a4c23a/HX00000029.png",
                 "status": "INACTIVE"
             },
             {
-                "id": "a1b2c3d4-0002-4a11-9e21-9c1a2b3c4d5e",
-                "codeValue": "VN-LC-000202",
-                "qrImage": "/files/qr/VN-LC-000202.png",
+                "id": "2a34e24d-e0ed-4ce7-984e-b4bd4ec77ae4",
+                "codeValue": "HX00000030",
+                "qrImage": "/files/qr/4d2f480f-5e0f-4530-b325-2506cb41ebf8/f86a4deb-0ba3-4f36-9f52-7c8de90a854b/ecde1d21-18e3-437a-9695-ffb4d2a4c23a/HX00000030.png",
                 "status": "INACTIVE"
             }
-        ]
+        ],
+        "createdByName": "Trần Trọng Nghĩa",
+        "createdAt": "2026-07-24T08:27:31.9445502"
     },
-    "timestamp": "2026-07-23T04:10:22.764994Z"
+    "timestamp": "2026-07-24T01:27:31.999946500Z"
 }
 ```
 
