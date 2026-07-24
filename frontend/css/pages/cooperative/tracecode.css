@@ -1,0 +1,621 @@
+/* ==========================================================================
+   TRACECODE & SHIPMENT MANAGEMENT STYLES
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Dashboard Header & User Badge
+   -------------------------------------------------------------------------- */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.dashboard-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+}
+
+.text-muted {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #334155;
+}
+
+.user-role-badge {
+    padding: 2px 6px;
+    background-color: #e8f5e9;
+    color: #15803d;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.user-org-sep {
+    color: #cbd5e1;
+}
+
+/* --------------------------------------------------------------------------
+   2. Action Bar (Search & Create Button)
+   -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   2. Action Bar (Search & Create Button) - FIX LỖI BỊ BÉO/TRÀN
+   -------------------------------------------------------------------------- */
+.content-action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    width: 100%;
+}
+
+/* Ép ô Search chiếm phần còn lại của hàng */
+.content-action-bar .search-wrapper {
+    flex: 1 1 auto;
+    max-width: 420px; /* Độ rộng tối đa chuẩn theo thiết kế */
+}
+
+.content-action-bar .search-input {
+    width: 100%;
+    height: 42px; /* Cố định chiều cao cho vừa vặn */
+    padding: 0 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    font-size: 0.9rem;
+    color: #334155;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.content-action-bar .search-input:focus {
+    border-color: #15803d;
+    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+}
+
+/* Khống chế nút Tạo Lô Hàng không bị dãn tràn màn hình */
+.content-action-bar #openCreateShipmentModalBtn,
+.content-action-bar .btn-primary {
+    flex: 0 0 auto !important; /* Không cho phép button tự phình to */
+    width: auto !important;     /* Ghi đè style width: 100% từ button.css */
+    height: 42px;               /* Chiều cao bằng ô search */
+    padding: 0 20px;
+    background-color: #15803d;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;       /* Giữ chữ trên 1 hàng */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.content-action-bar #openCreateShipmentModalBtn:hover,
+.content-action-bar .btn-primary:hover {
+    background-color: #166534;
+}
+
+.search-wrapper {
+    flex: 1;
+    max-width: 420px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    font-size: 0.9rem;
+    color: #334155;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+    border-color: #15803d;
+    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+}
+
+.btn-primary {
+    background-color: #15803d;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #166534;
+}
+
+/* --------------------------------------------------------------------------
+   3. Main Layout Container (Grid 2 cột)
+   -------------------------------------------------------------------------- */
+.shipment-view-container {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* --- Thẻ bên trái: Thông tin lô hàng --- */
+.shipment-info-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 20px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.shipment-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.shipment-id {
+    display: block;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 6px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #e2e8f0;
+    word-break: break-all;
+}
+
+.shipment-meta-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.meta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.meta-label {
+    color: #64748b;
+}
+
+.meta-value {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.link-text {
+    color: #15803d;
+    font-family: monospace;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.725rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.badge-blue {
+    background-color: #e0f2fe;
+    color: #0284c7;
+}
+
+.badge-orange {
+    background-color: #ffedd5;
+    color: #ea580c;
+}
+
+.badge-green {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+/* --------------------------------------------------------------------------
+   4. Khối bên phải: Lưới Mã Tem QR
+   -------------------------------------------------------------------------- */
+.tracecode-section {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tracecode-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.tracecode-section-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.btn-secondary {
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.825rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+}
+
+.btn-icon, .btn-icon-xs {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.btn-icon:hover, .btn-icon-xs:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+/* --- QR Card Grid --- */
+.tracecode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.qr-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.qr-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.qr-card-header {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.qr-image-wrapper {
+    width: 120px;
+    height: 120px;
+    margin: 8px 0;
+    padding: 6px;
+    background-color: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.qr-card-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.qr-code-val {
+    font-family: monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.qr-card-actions {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px dashed #e2e8f0;
+}
+
+.btn-action-text {
+    background: transparent;
+    border: none;
+    color: #15803d;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 2px;
+    cursor: pointer;
+}
+
+.btn-action-text:hover {
+    text-decoration: underline;
+}
+
+.btn-action-solid {
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-success-sm {
+    background-color: #15803d;
+    color: #ffffff;
+}
+
+.btn-success-sm:hover {
+    background-color: #166534;
+}
+
+/* --------------------------------------------------------------------------
+   5. Pagination Component
+   -------------------------------------------------------------------------- */
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 20px;
+}
+
+.pagination-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 6px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    color: #334155;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    border-color: #15803d;
+    color: #15803d;
+}
+
+.pagination-btn.active {
+    background-color: #15803d;
+    border-color: #15803d;
+    color: #ffffff;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   6. Modal Component & Form Styling
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: #ffffff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #94a3b8;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group-full {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.required {
+    color: #dc2626;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #15803d;
+    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+}
+
+.field-error {
+    color: #dc2626;
+    font-size: 0.75rem;
+}
+
+.form-message {
+    margin-top: 12px;
+    font-size: 0.85rem;
+}
+
+/* --------------------------------------------------------------------------
+   7. Responsive Breakdown
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+    .shipment-view-container {
+        grid-template-columns: 1fr;
+    }
+
+    .shipment-info-card {
+        position: static;
+    }
+}
+
+@media (max-width: 640px) {
+    .content-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-wrapper {
+        max-width: 100%;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group-full {
+        grid-column: span 1;
+    }
+
+    .tracecode-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+}
