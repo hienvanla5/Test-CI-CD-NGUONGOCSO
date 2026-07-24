@@ -16,11 +16,6 @@
 
 .production-lots-header-actions {
     display: flex;
-    gap: 12px;
-}
-
-.production-lots-header-actions {
-    display: flex;
     align-items: center;
     gap: 12px;
 }
@@ -29,8 +24,10 @@
 #productionLotSearchInput {
     height: 40px;
     padding: 0 16px;
+
     border: 1px solid var(--color-border);
     border-radius: 20px;
+
     font-size: 0.95rem;
     outline: none;
 }
@@ -41,13 +38,14 @@
 
 /* New button */
 .production-lots-header-actions .btn {
-    height: 40px;
-    padding: 0 18px;
-    border-radius: 20px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
+    height: 40px;
+    padding: 0 18px;
+
+    border-radius: 20px;
 }
 
 /* List card */
@@ -64,6 +62,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
     padding: 80px 24px;
     text-align: center;
 }
@@ -75,13 +74,16 @@
 
 .empty-state-text {
     margin-bottom: 8px;
+
     font-size: 1.1rem;
     font-weight: 600;
+
     color: var(--color-text);
 }
 
 .empty-state-hint {
     margin-bottom: 20px;
+
     font-size: 0.9rem;
     color: var(--color-text-muted);
 }
@@ -102,20 +104,25 @@
 
 .production-lots-table th {
     padding: 12px 16px;
+
     text-align: left;
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+
     color: var(--color-text-muted);
+
     border-bottom: 1px solid var(--color-border);
     white-space: nowrap;
 }
 
 .production-lots-table td {
     padding: 14px 16px;
+
     font-size: 0.9rem;
     color: var(--color-text);
+
     border-bottom: 1px solid var(--color-border);
     vertical-align: middle;
 }
@@ -128,11 +135,19 @@
     background: var(--color-primary-light);
 }
 
+/* Căn giữa cột thao tác */
+.production-lots-table th:last-child,
+.production-lots-table td:last-child {
+    text-align: center;
+}
+
 /* Status badges */
 .status-badge {
     display: inline-block;
+
     padding: 4px 10px;
     border-radius: 20px;
+
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -178,8 +193,10 @@
 .edit-planting-date {
     width: 100%;
     padding: 8px 10px;
+
     border: 1px solid #d1d5db;
     border-radius: 8px;
+
     font-size: 14px;
     background: #ffffff;
 }
@@ -242,20 +259,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
     gap: 8px;
     white-space: nowrap;
 }
 
 .action-buttons .btn,
 .production-lot-actions .btn {
-    margin: 0;
-    min-width: 82px;
-    height: 32px;
-    padding: 0 14px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
+    min-width: 82px;
+    height: 32px;
+    margin: 0;
+    padding: 0 14px;
 
     border: none;
     border-radius: 20px;
@@ -268,11 +286,17 @@
     white-space: nowrap;
 }
 
+.production-lot-actions .btn {
+    min-width: max-content;
+}
+
 .btn-sm {
     min-width: 82px;
     height: 32px;
     padding: 0 14px;
+
     border-radius: 20px;
+
     font-size: 14px;
     font-weight: 600;
 }
@@ -289,11 +313,16 @@
     opacity: 0.8;
 }
 
-/* Nút sửa và attachment */
+/* Nút sửa và đính kèm */
 .btn-edit,
 .btn-attachment-lot {
     background: #f3f4f6;
     color: #374151;
+}
+
+.btn-edit:hover:not(:disabled),
+.btn-attachment-lot:hover:not(:disabled) {
+    background: #e5e7eb;
 }
 
 /* Nút lịch sử và ghi nhật ký */
@@ -310,12 +339,21 @@
     border-color: #1c672b;
 }
 
-.btn-edit:hover:not(:disabled),
-.btn-attachment-lot:hover:not(:disabled) {
-    background: #e5e7eb;
+/* Nút farm log dùng chung */
+.btn-farm-log {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 110px;
+    min-height: 36px;
+    padding: 8px 14px;
+
+    font-size: 0.82rem;
+    white-space: nowrap;
 }
 
-/* Responsive */
+/* Responsive tablet */
 @media (max-width: 768px) {
     .production-lots-header {
         flex-direction: column;
@@ -327,8 +365,13 @@
         width: 100%;
     }
 
-    .production-lots-header-actions .btn {
+    #productionLotSearchInput {
         flex: 1;
+        min-width: 0;
+    }
+
+    .production-lots-header-actions .btn {
+        flex-shrink: 0;
     }
 
     .dashboard-header {
@@ -346,151 +389,7 @@
         width: 100%;
     }
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-/* ===== Inline Input ===== */
 
-.inline-input {
-    width: 100%;
-    padding: 8px 10px;
-
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-
-    font-size: 14px;
-    background: #fff;
-}
-
-.inline-input:focus {
-    outline: none;
-
-    border-color: #3b82f6;
-
-    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
-}
-/* ===== Status Dropdown ===== */
-
-.inline-status{
-    appearance:none !important;
-    -webkit-appearance:none !important;
-    -moz-appearance:none !important;
-
-    background:#60A5FA !important;
-    color:#fff !important;
-
-    border:none !important;
-    outline:none;
-
-    border-radius:8px;
-
-    min-width:80px;
-    height:34px;
-    padding:0 14px;
-
-    font-weight:600;
-
-    cursor:pointer;
-}
-.inline-status:hover{
-
-    background:#3B82F6;
-
-    transform:translateY(-1px);
-
-    box-shadow:0 4px 12px rgba(59,130,246,.25);
-}
-.inline-status:active{
-
-    background:#2563EB;
-
-    transform:scale(.98);
-}
-.inline-status:focus{
-
-    outline:none;
-
-    box-shadow:0 0 0 3px rgba(59,130,246,.25);
-}
-.inline-status::-ms-expand{
-    display:none;
-}
-/* ===== Action Buttons ===== */
-
-.action-buttons{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    white-space:nowrap;
-}
-
-.action-buttons .btn{
-    margin:0;
-}
-
-.btn-sm{
-    min-width:72px;
-    height:36px;
-
-    padding:0 16px;
-
-    border-radius:8px;
-
-    font-size:14px;
-    font-weight:600;
-}
-
-.btn-save,
-.btn-edit,
-.btn-cancel,
-.status-button {
-    cursor: pointer;
-}
-
-.btn-save,
-.btn-edit,
-.btn-cancel {
-    margin-right: 8px;
-}
-
-.status-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.8;
-}
-=======
->>>>>>> feature/farm-log-attachment
-
-<<<<<<< HEAD
-.edit-lot-name,
-.edit-farm-area,
-.edit-product-category,
-.edit-expected-quantity,
-.edit-planting-date {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #d5d9dd;
-    border-radius: 6px;
-=======
-
-.btn-farm-log {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    min-width: 110px;
-    min-height: 36px;
-
-    padding: 8px 14px;
-
-    font-size: 0.82rem;
-    white-space: nowrap;
-}
-
-.production-lots-table th:last-child,
-.production-lots-table td:last-child {
-    text-align: center;
->>>>>>> feature/create-farm-log
-=======
 /* Modal responsive */
 @media (max-width: 640px) {
     .modal {
@@ -518,35 +417,3 @@
         width: 100%;
     }
 }
-
-<<<<<<< HEAD
-.production-lot-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-.production-lot-actions .btn {
-    min-width: max-content;
-}
-
-.btn-history-lot {
-    background: #237a35;
-    border-color: #237a35;
-    color: #ffffff;
-}
-
-.btn-history-lot:hover:not(:disabled) {
-    background: #1c672b;
-    border-color: #1c672b;
-}
-
-.btn-create-farm-log {
-    background: #237a35;
-    border-color: #237a35;
-    color: #ffffff;
->>>>>>> feature/view-farm-log
-}
-=======
->>>>>>> feature/farm-log-attachment
