@@ -1,221 +1,703 @@
-import {
-    requireAuth,
-    setupLogout
-} from "../../../core/auth-guard.js";
+/* ============================================================
+ * TraceCode Management
+ * NCL-04-CN-002
+ * Tạo lô hàng & Sinh mã truy xuất
+ * ============================================================
+ */
 
-import {
-    getUser
-} from "../../../core/storage.js";
+import { requireAuth, setupLogout } from "../../../core/auth-guard.js";
+import { getUser } from "../../../core/storage.js";
+import { getHttpClient } from "../../../services/http-client.js";
 
-import {
-    createProductionLot,
-    getFarmAreas,
-    getProductCategories
-} from "../../../services/production-lot.service.js";
-/* =====================================================
-   1. AUTHENTICATION & ROLE CHECK
-===================================================== */
+/* ============================================================
+ * CONSTANTS
+ * ============================================================
+ */
+
+const http = getHttpClient();
+
+const API = {
+    SHIPMENTS: "/api/v1/shipments",
+    PRODUCTION_LOTS: "/api/v1/production-lots"
+};
+const BASE_URL = "http://localhost:8080";
+const STATE = {
+    shipment: null,
+    traceCodes: [],
+    packagedLots: [],
+    loading: false
+};
+
+/* ============================================================
+ * AUTH
+ * ============================================================
+ */
+
 if (!requireAuth()) {
-    // Auth-guard tự redirect nếu chưa đăng nhập
+    throw new Error("Unauthorized");
 }
 
-const user = getUser() || {};
-const roleCode = user.roleCode || "";
+const currentUser = getUser();
 
-// Chỉ cho phép VT-02 (Quản lý HTX)
-if (roleCode !== "VT-02") {
-    const loadingState = document.getElementById("loadingState");
-    const unauthorizedState = document.getElementById("unauthorizedState");
-    const mainContent = document.getElementById("mainContent");
-
-    if (loadingState) loadingState.style.display = "none";
-    if (unauthorizedState) unauthorizedState.style.display = "flex";
-    if (mainContent) mainContent.style.display = "none";
-
-    console.warn("Access denied: User is not VT-02");
+if (!currentUser) {
+    window.location.href = "/frontend/pages/auth/login.html";
 }
 
-/* =====================================================
-   2. SAFE USER INFO POPULATE (FIX LỖI GÓC DƯỚI BÊN TRÁI)
-===================================================== */
-function populateUserInfo() {
-    const displayName = user.fullName || user.username || "Lê Văn A";
-    const orgName = user.organizationName || "Công ty Tester";
-    const avatarChar = displayName.charAt(0).toUpperCase() || "U";
+if (currentUser.roleCode !== "VT-02") {
 
-    // Quét tất cả ID có thể có ở góc dưới bên trái (Sidebar)
-    const sidebarName = document.getElementById("sidebarUserName") || document.getElementById("userFullName");
-    const sidebarOrg = document.getElementById("sidebarUserOrg") || document.getElementById("userOrgName");
-    const sidebarAvatar = document.getElementById("sidebarUserAvatar") || document.getElementById("userAvatar");
+    document.body.innerHTML = `
+        <div class="unauthorized-container">
+            <h2>403</h2>
+            <p>Bạn không có quyền truy cập chức năng này.</p>
+        </div>
+    `;
 
-    // Quét các ID trên Header
-    const headerName = document.getElementById("headerUserName");
-    const headerOrg = document.getElementById("headerUserOrg");
-    const headerRole = document.getElementById("headerUserRole");
-
-    // Render an toàn (Chỉ gán nếu phần tử tồn tại)
-    if (sidebarName) sidebarName.textContent = displayName;
-    if (sidebarOrg) sidebarOrg.textContent = orgName;
-    if (sidebarAvatar) sidebarAvatar.textContent = avatarChar;
-
-    if (headerName) headerName.textContent = displayName;
-    if (headerOrg) headerOrg.textContent = orgName;
-    if (headerRole) headerRole.textContent = roleCode || "VT-02";
+    throw new Error("Forbidden");
 }
 
-/* =====================================================
-   3. API SERVICES & STATE
-===================================================== */
-const httpClient = getHttpClient();
-let currentShipment = null;
-let currentTraceCodes = [];
+/* ============================================================
+ * DOM
+ * ============================================================
+ */
 
-// Gọi API POST /api/v1/shipments
-async function createShipmentAPI(payload) {
-    return await httpClient.post("/api/v1/shipments", payload);
+const DOM = {
+
+    headerName:
+        document.getElementById("headerUserName"),
+
+    headerOrg:
+        document.getElementById("headerUserOrg"),
+
+    headerRole:
+        document.getElementById("headerUserRole"),
+
+    sidebarName:
+        document.getElementById("sidebarUserName"),
+
+    sidebarOrg:
+        document.getElementById("sidebarUserOrg"),
+
+    sidebarAvatar:
+        document.getElementById("sidebarUserAvatar"),
+
+    modal:
+        document.getElementById("createShipmentModal"),
+
+    form:
+        document.getElementById("createShipmentForm"),
+
+    message:
+        document.getElementById("shipmentFormMessage"),
+
+    btnOpen:
+        document.getElementById("openCreateShipmentModalBtn"),
+
+    btnClose:
+        document.getElementById("createShipmentClose"),
+
+    btnCancel:
+        document.getElementById("createShipmentCancel"),
+
+    productionLotSelect:
+        document.getElementById("productionLotSelect"),
+
+    shipmentName:
+        document.getElementById("shipmentName"),
+
+    totalQuantity:
+        document.getElementById("totalQuantity"),
+
+    packagingInfo:
+        document.getElementById("packagingInfo"),
+    
+    shipmentTitle:
+    document.getElementById("shipmentTitle"),
+
+    shipmentId:
+        document.getElementById("shipmentIdDisplay"),
+
+    productionLot:
+        document.getElementById("productionLotDisplay"),
+
+    totalQuantityDisplay:
+        document.getElementById("totalQuantityDisplay"),
+
+    shipmentStatus:
+        document.getElementById("shipmentStatusBadge"),
+
+    traceGrid:
+        document.getElementById("traceCodeGrid"),
+};
+
+/* ============================================================
+ * USER INFO
+ * ============================================================
+ */
+
+function renderCurrentUser() {
+
+    const fullName =
+        currentUser.fullName ||
+        currentUser.username ||
+        "Unknown";
+
+    const organization =
+        currentUser.organizationName ||
+        "";
+
+    const avatar =
+        fullName.charAt(0).toUpperCase();
+
+    DOM.headerName.textContent = fullName;
+    DOM.headerOrg.textContent = organization;
+    DOM.headerRole.textContent = currentUser.roleCode;
+
+    DOM.sidebarName.textContent = fullName;
+    DOM.sidebarOrg.textContent = organization;
+    DOM.sidebarAvatar.textContent = avatar;
 }
 
-// Gọi API Lấy danh sách lô sản xuất đã PACKAGED
-async function fetchPackagedLots() {
+/* ============================================================
+ * MODAL
+ * ============================================================
+ */
+
+function openModal() {
+
+    DOM.modal.style.display = "flex";
+
+}
+
+function closeModal() {
+
+    DOM.modal.style.display = "none";
+
+    DOM.form.reset();
+
+    DOM.message.textContent = "";
+
+}
+
+/* ============================================================
+ * API
+ * ============================================================
+ */
+
+async function loadPackagedLots() {
+
     try {
-        const res = await httpClient.get("/api/v1/production-lots");
-        let lots = [];
-        if (res && Array.isArray(res.data)) lots = res.data;
-        else if (res && res.data && Array.isArray(res.data.items)) lots = res.data.items;
 
-        const packaged = lots.filter(l => String(l.status).toUpperCase() === "PACKAGED");
-        populateLotSelectOptions(packaged);
-    } catch (err) {
-        console.error("Lỗi tải danh sách lô sản xuất:", err);
+        const response =
+            await http.get(API.PRODUCTION_LOTS);
+
+        const lots =
+            response.data.data || [];
+
+        STATE.packagedLots =
+            lots.filter(
+                x => x.status === "PACKAGED"
+            );
+
+        renderProductionLots();
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "Không tải được danh sách lô sản xuất.",
+            "error"
+        );
     }
+
 }
 
-function populateLotSelectOptions(lots) {
-    const selectElem = document.getElementById("selectProductionLot") || document.getElementById("productionLotId");
-    if (!selectElem) return;
+async function createShipment(payload) {
 
-    selectElem.innerHTML = '<option value="">-- Chọn lô sản xuất đã đóng gói --</option>';
-    if (lots.length === 0) {
-        selectElem.innerHTML += '<option value="" disabled>Không có lô nào ở trạng thái PACKAGED</option>';
+    return await http.post(
+        API.SHIPMENTS,
+        payload
+    );
+
+}
+
+/* ============================================================
+ * RENDER PRODUCTION LOTS
+ * ============================================================
+ */
+
+function renderProductionLots() {
+
+    DOM.productionLotSelect.innerHTML = "";
+
+    const defaultOption =
+        document.createElement("option");
+
+    defaultOption.value = "";
+
+    defaultOption.textContent =
+        "-- Chọn lô sản xuất --";
+
+    DOM.productionLotSelect.appendChild(
+        defaultOption
+    );
+
+    STATE.packagedLots.forEach(lot => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = lot.id;
+
+        option.textContent =
+            `${lot.name} (${lot.id.substring(0,8)})`;
+
+        DOM.productionLotSelect.appendChild(
+            option
+        );
+
+    });
+
+}
+
+/* ============================================================
+ * MESSAGE
+ * ============================================================
+ */
+
+function showMessage(text, type = "error") {
+
+    DOM.message.textContent = text;
+
+    DOM.message.style.color =
+        type === "success"
+            ? "#16a34a"
+            : "#dc2626";
+
+}
+
+/* ============================================================
+ * SUBMIT
+ * ============================================================
+ */
+
+async function submitShipment(event) {
+
+    event.preventDefault();
+
+    showMessage("");
+
+    const payload = {
+
+        productionLotId:
+            DOM.productionLotSelect.value,
+
+        name:
+            DOM.shipmentName.value.trim(),
+
+        totalQuantity:
+            Number(DOM.totalQuantity.value),
+
+        packagingInfo:
+            DOM.packagingInfo.value.trim()
+
+    };
+
+    if (
+        !payload.productionLotId ||
+        !payload.name ||
+        payload.totalQuantity <= 0
+    ) {
+
+        showMessage(
+            "Vui lòng nhập đầy đủ thông tin lô hàng."
+        );
+
         return;
     }
 
-    lots.forEach(lot => {
-        const opt = document.createElement("option");
-        opt.value = lot.id;
-        opt.textContent = `${lot.name} (ID: ${lot.id.substring(0, 8)}...)`;
-        selectElem.appendChild(opt);
-    });
-}
+    try {
 
-/* =====================================================
-   4. MODAL & FORM HANDLERS
-===================================================== */
-function setupModalEvents() {
-    const createBtn = document.getElementById("openCreateShipmentModalBtn") || document.querySelector(".btn-primary");
-    const modal = document.getElementById("createShipmentModal");
-    const closeBtn = document.getElementById("closeCreateShipmentModalBtn");
-    const cancelBtn = document.getElementById("cancelCreateShipmentBtn");
-    const form = document.getElementById("createShipmentForm");
+        const response =
+            await createShipment(payload);
 
-    if (createBtn && modal) {
-        createBtn.addEventListener("click", () => {
-            modal.hidden = false;
-            modal.style.display = "flex";
-            fetchPackagedLots(); // Tải danh sách lô PACKAGED vào dropdown
-        });
-    }
+        if (!response.data.success) {
 
-    const closeModal = () => {
-        if (modal) {
-            modal.hidden = true;
-            modal.style.display = "none";
+            showMessage(
+                response.data.message
+            );
+
+            return;
         }
-    };
 
-    if (closeBtn) closeBtn.addEventListener("click", closeModal);
-    if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+        STATE.shipment =
+            response.data.data;
 
-    // Xử lý Submit Tạo Lô Hàng & Sinh Mã (POST /api/v1/shipments)
-    if (form) {
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const lotId = (document.getElementById("selectProductionLot") || document.getElementById("productionLotId"))?.value;
-            const name = document.getElementById("shipmentNameInput")?.value?.trim();
-            const totalQuantity = Number(document.getElementById("totalQuantityInput")?.value);
-            const packagingInfo = document.getElementById("packagingInfoInput")?.value?.trim();
-            const msgElem = document.getElementById("formMessage");
+        STATE.traceCodes =
+            STATE.shipment.traceCodes;
 
-            if (!lotId || !name || !totalQuantity) {
-                if (msgElem) {
-                    msgElem.textContent = "Vui lòng nhập đầy đủ thông tin bắt buộc (*)";
-                    msgElem.style.color = "red";
-                }
-                return;
-            }
+        showMessage(
+            "Tạo lô hàng thành công.",
+            "success"
+        );
+        renderShipment();
 
-            const payload = {
-                productionLotId: lotId,
-                name: name,
-                totalQuantity: totalQuantity,
-                packagingInfo: packagingInfo
-            };
+        renderTraceCodes();
 
-            try {
-                const res = await createShipmentAPI(payload);
-                if (res && (res.success || res.status === 201 || res.status === 200)) {
-                    alert("Tạo lô hàng & Sinh mã thành công!");
-                    closeModal();
-                    window.location.reload(); // Reload để cập nhật dữ liệu mới sinh
-                } else {
-                    if (msgElem) {
-                        msgElem.textContent = res.message || "Tạo thất bại.";
-                        msgElem.style.color = "red";
-                    }
-                }
-            } catch (err) {
-                console.error("Lỗi API createShipment:", err);
-                let errorMsg = "Lỗi hệ thống khi sinh mã.";
-                if (err.status === 403) errorMsg = "Bạn không thuộc tổ chức hoặc không có quyền VT-02.";
-                if (err.status === 404) errorMsg = "Không tìm thấy lô sản xuất.";
-                if (err.status === 409) errorMsg = err.message || "Lô chưa đóng gói hoặc vượt hạn mức dải mã.";
+        closeModal();
 
-                if (msgElem) {
-                    msgElem.textContent = errorMsg;
-                    msgElem.style.color = "red";
-                }
-            }
-        });
+        /*
+         * Phần 2
+         * renderShipment()
+         * renderTraceCodes()
+         */
+
+    } catch (error) {
+
+        const status =
+            error.response?.status;
+
+        const message =
+            error.response?.data?.message;
+
+        switch (status) {
+
+            case 400:
+
+                showMessage(
+                    message ||
+                    "Vui lòng nhập đầy đủ thông tin."
+                );
+
+                break;
+
+            case 403:
+
+                showMessage(
+                    message ||
+                    "Bạn không có quyền thực hiện."
+                );
+
+                break;
+
+            case 404:
+
+                showMessage(
+                    message ||
+                    "Không tìm thấy lô sản xuất."
+                );
+
+                break;
+
+            case 409:
+
+                showMessage(
+                    message ||
+                    "Không thể tạo lô hàng."
+                );
+
+                break;
+
+            default:
+
+                showMessage(
+                    "Lỗi hệ thống."
+                );
+
+        }
+
     }
+
 }
 
-/* =====================================================
-   5. LOGOUT HANDLER (SAFE FIX)
-===================================================== */
-function setupSafeLogout() {
-    // Quét tất cả các nút Logout có thể có trên màn hình
-    const logoutBtns = document.querySelectorAll("#logoutBtn, #btnLogout, .btn-logout, button:contains('Logout')");
+/* ============================================================
+ * EVENTS
+ * ============================================================
+ */
 
-    // Nếu dùng setupLogout từ auth-guard.js
+function registerEvents() {
+
+    DOM.btnOpen.addEventListener(
+        "click",
+        () => {
+
+            loadPackagedLots();
+
+            openModal();
+
+        }
+    );
+
+    DOM.btnClose.addEventListener(
+        "click",
+        closeModal
+    );
+
+    DOM.btnCancel.addEventListener(
+        "click",
+        closeModal
+    );
+
+    DOM.form.addEventListener(
+        "submit",
+        submitShipment
+    );
+
     setupLogout();
 
-    // Bổ sung bắt sự kiện thủ công dự phòng trường hợp ID không khớp
-    document.addEventListener("click", (e) => {
-        const target = e.target.closest("button, a");
-        if (target && (target.id === "logoutBtn" || target.id === "btnLogout" || target.textContent.trim().toLowerCase().includes("logout"))) {
-            e.preventDefault();
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.href = "/frontend/pages/auth/login.html";
-        }
-    });
 }
 
-/* =====================================================
-   6. KHỞI TẠO TRANG (DOM READY)
-===================================================== */
-document.addEventListener("DOMContentLoaded", () => {
-    populateUserInfo();
-    setupModalEvents();
-    setupSafeLogout();
-});
+/* ============================================================
+ * INIT
+ * ============================================================
+ */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        renderCurrentUser();
+
+        registerEvents();
+
+    }
+);
+function badgeClass(status){
+
+    switch(status){
+
+        case "ACTIVE":
+            return "badge-green";
+
+        case "INACTIVE":
+            return "badge-orange";
+
+        case "CODE_PRINTED":
+            return "badge-blue";
+
+        default:
+            return "badge-blue";
+
+    }
+
+}
+function renderShipment(){
+
+    if(!STATE.shipment)
+        return;
+
+    DOM.shipmentTitle.textContent =
+        STATE.shipment.name;
+
+    DOM.shipmentId.textContent =
+        STATE.shipment.id;
+
+    DOM.productionLot.textContent =
+        STATE.shipment.productionLotName;
+
+    DOM.totalQuantityDisplay.textContent =
+        `${STATE.shipment.totalQuantity} mã`;
+
+    DOM.shipmentStatus.textContent =
+        STATE.shipment.status;
+
+    DOM.shipmentStatus.className =
+        `status-badge ${badgeClass(STATE.shipment.status)}`;
+
+}
+function renderTraceCodes(){
+
+    DOM.traceGrid.innerHTML="";
+
+    if(!STATE.traceCodes.length){
+
+        DOM.traceGrid.innerHTML=`
+
+            <div class="empty-state">
+
+                Không có mã QR
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+    STATE.traceCodes.forEach(trace=>{
+
+        const card=createTraceCard(trace);
+
+        DOM.traceGrid.appendChild(card);
+
+    });
+
+}
+function createTraceCard(trace){
+
+    const card=document.createElement("div");
+
+    card.className="qr-card";
+
+    card.innerHTML=`
+
+        <div class="qr-card-header">
+
+            <button class="btn-icon-xs">
+
+                ⋮
+
+            </button>
+
+        </div>
+
+        <div class="qr-image-wrapper">
+
+            <img
+                class="qr-img"
+                src="${BASE_URL}${trace.qrImage}"
+                alt="${trace.codeValue}"
+            >
+
+        </div>
+
+        <div class="qr-card-info">
+
+            <span class="qr-code-val">
+
+                ${trace.codeValue}
+
+            </span>
+
+            <span class="status-badge ${badgeClass(trace.status)}">
+
+                ${trace.status}
+
+            </span>
+
+        </div>
+
+        <div class="qr-card-actions">
+
+            <button
+                class="btn-action-text download-btn">
+
+                Tải QR
+
+            </button>
+
+            <button
+                class="btn-action-text print-btn">
+
+                In Tem
+
+            </button>
+
+            <button
+                class="btn-action-solid btn-success-sm activate-btn">
+
+                Kích hoạt
+
+            </button>
+
+        </div>
+
+    `;
+
+    setupCardEvents(card,trace);
+
+    return card;
+
+}
+function downloadQR(trace){
+
+    const a=document.createElement("a");
+
+    a.href=
+        BASE_URL+trace.qrImage;
+
+    a.download=
+        `${trace.codeValue}.png`;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+}
+function printQR(trace){
+
+    const win=window.open("");
+
+    win.document.write(`
+
+        <html>
+
+        <head>
+
+            <title>${trace.codeValue}</title>
+
+        </head>
+
+        <body style="text-align:center">
+
+            <h2>
+
+                ${trace.codeValue}
+
+            </h2>
+
+            <img
+                src="${BASE_URL}${trace.qrImage}"
+                style="width:320px">
+
+            <script>
+
+                window.onload=function(){
+
+                    window.print();
+
+                }
+
+            </script>
+
+        </body>
+
+        </html>
+
+    `);
+
+    win.document.close();
+
+}
+function setupCardEvents(card,trace){
+
+    card
+        .querySelector(".download-btn")
+        .addEventListener("click",()=>{
+
+            downloadQR(trace);
+
+        });
+
+    card
+        .querySelector(".print-btn")
+        .addEventListener("click",()=>{
+
+            printQR(trace);
+
+        });
+
+    card
+        .querySelector(".activate-btn")
+        .addEventListener("click",()=>{
+
+            alert(
+                "Story kích hoạt tem chưa được triển khai."
+            );
+
+        });
+
+}

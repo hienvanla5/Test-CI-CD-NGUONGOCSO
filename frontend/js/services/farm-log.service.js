@@ -2,13 +2,33 @@ import {
     apiRequest
 } from "../core/api-client.js";
 
+<<<<<<< HEAD
+/**
+ * Tạo một nhật ký canh tác.
+ *
+ * POST /api/v1/farm-logs
+ *
+ * @param {Object} farmLogData
+ * @returns {Promise<Object>}
+ */
+export async function createFarmLog(
+    farmLogData
+=======
 export async function createFarmLog(
     requestBody
+>>>>>>> feature/view-farm-log
 ) {
     return apiRequest(
         "/farm-logs",
         {
             method: "POST",
+<<<<<<< HEAD
+            body: JSON.stringify(
+                farmLogData
+            )
+        }
+    );
+=======
 
             body: JSON.stringify(
                 requestBody
@@ -41,4 +61,5 @@ export async function getFarmLogHistory(
             method: "GET"
         }
     );
+>>>>>>> feature/view-farm-log
 }

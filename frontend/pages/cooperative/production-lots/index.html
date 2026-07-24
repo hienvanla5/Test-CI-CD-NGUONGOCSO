@@ -61,13 +61,19 @@
 
             <nav class="sidebar-menu">
 
-                <a href="/frontend/pages/cooperative/dashboard.html">
-                    Dashboard
-                </a>
+                <a
+    id="dashboardMenu"
+    href="/frontend/pages/cooperative/dashboard.html"
+>
+    Dashboard
+</a>
 
-                <a href="/frontend/pages/cooperative/farm-areas/index.html">
-                    Farm Areas
-                </a>
+<a
+    id="farmAreasMenu"
+    href="/frontend/pages/cooperative/farm-areas/index.html"
+>
+    Farm Areas
+</a>
 
                 <a
                     href="/frontend/pages/cooperative/production-lots/index.html"
@@ -75,10 +81,20 @@
                 >
                     Production Lots
                 </a>
+<a
+    id="productionLotsMenu"
+    href="/frontend/pages/cooperative/production-lots/index.html"
+    class="active"
+>
+    Production Lots
+</a>
 
-                <a href="/frontend/pages/cooperative/profile.html">
-                    Organization Profile
-                </a>
+<a
+    id="organizationProfileMenu"
+    href="/frontend/pages/cooperative/profile.html"
+>
+    Organization Profile
+</a>
 
             </nav>
 
@@ -297,6 +313,7 @@
                         </h2>
 
                         <div class="production-lots-header-actions">
+<<<<<<< HEAD
 
                             <input
                                 type="text"
@@ -312,6 +329,37 @@
                                 + New
                             </a>
 
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+                            <input
+                                type="text"
+                                id="searchProductionLot"
+                                class="table-search"
+                                placeholder="Search production lot...">
+
+                            <a
+                                href="/frontend/pages/cooperative/production-lots/create.html"
+                                class="btn btn-primary">
+
+=======
+                            <a href="/frontend/pages/cooperative/production-lots/create.html" class="btn btn-primary">
+>>>>>>> feature/view-farm-log
+                                + New
+                            </a>
+<<<<<<< HEAD
+
+=======
+                            <a
+    href="/frontend/pages/cooperative/production-lots/create.html"
+    class="btn btn-primary production-lot-create-button"
+>
+    + New
+</a>
+>>>>>>> feature/create-farm-log
+=======
+>>>>>>> feature/view-farm-log
+>>>>>>> 28b8674934db449c6ade064b624ad54c5de38a72
                         </div>
 
                     </div>
@@ -356,6 +404,7 @@
                                     ></line>
                                 </svg>
                             </div>
+<<<<<<< HEAD
 
                             <p class="empty-state-text">
                                 No production lots yet
@@ -371,6 +420,16 @@
                             >
                                 + New Production Lot
                             </a>
+=======
+                            <p class="empty-state-text">No production lots yet</p>
+                            <p class="empty-state-hint">Create your first production lot to get started.</p>
+                            <a
+    href="/frontend/pages/cooperative/production-lots/create.html"
+    class="btn btn-primary production-lot-create-button"
+>
+    + New Production Lot
+</a>
+>>>>>>> 28b8674934db449c6ade064b624ad54c5de38a72
                         </div>
 
                         <!-- Production lots table -->

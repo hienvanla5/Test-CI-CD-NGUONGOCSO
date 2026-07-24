@@ -183,7 +183,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResult<Void>> handleMediaType(
             HttpMediaTypeNotSupportedException e,
             HttpServletRequest request) {
-
         return build(
                 HttpStatus.UNSUPPORTED_MEDIA_TYPE,
                 "Content-Type không được hỗ trợ",
@@ -198,7 +197,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResult<Void>> handleException(
             Exception e,
             HttpServletRequest request) {
-
         log.error("Unexpected error", e);
 
         return build(
