@@ -14,6 +14,9 @@ import vn.nguongocso.trace.dto.request.CreateShipmentRequest;
 import vn.nguongocso.trace.dto.response.ShipmentResponse;
 import vn.nguongocso.trace.service.ShipmentService;
 
+/**
+ * API quản lý lô hàng.
+ */
 @RestController
 @RequestMapping("/api/v1/shipments")
 @RequiredArgsConstructor
@@ -21,6 +24,12 @@ public class ShipmentController {
 
 	private final ShipmentService shipmentService;
 
+    /**
+     * Tạo lô hàng và sinh mã truy xuất.
+     *
+     * @param request thông tin tạo lô hàng
+     * @return thông tin lô hàng
+     */
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public ApiResult<ShipmentResponse> createShipment(@Valid @RequestBody CreateShipmentRequest request) {

@@ -7,6 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
+/**
+ * Yêu cầu tạo lô hàng.
+ */
 @Data
 public class CreateShipmentRequest {
 

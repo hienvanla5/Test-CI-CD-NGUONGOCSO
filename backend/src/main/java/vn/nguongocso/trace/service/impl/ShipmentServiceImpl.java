@@ -27,6 +27,7 @@ import vn.nguongocso.trace.enums.TraceCodeStatus;
 import vn.nguongocso.trace.repository.CodeRangeRepository;
 import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
+import vn.nguongocso.trace.service.QRCodeService;
 import vn.nguongocso.trace.service.ShipmentService;
 import vn.nguongocso.trace.dto.response.TraceCodeResponse;
 
@@ -42,6 +43,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 	private final TraceCodeRepository traceCodeRepository;
 	private final CodeRangeRepository codeRangeRepository;
 	private final ProductionLotRepository productionLotRepository;
+	private final QRCodeService qrCodeService;
 
 	private final NotificationService notificationService;
 
@@ -97,6 +99,11 @@ public class ShipmentServiceImpl implements ShipmentService {
 		return buildShipmentResponse(shipment, traceCodes, currentUser.getFullName());
 	}
 
+	/**
+	 * Lấy thông tin người dùng đang đăng nhập từ SecurityContext.
+	 *
+	 * @return thông tin người dùng hiện tại
+	 */
 	private CustomUserDetails getCurrentUser() {
 
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -104,6 +111,14 @@ public class ShipmentServiceImpl implements ShipmentService {
 		return (CustomUserDetails) authentication.getPrincipal();
 	}
 
+	/**
+	 * Kiểm tra người dùng có đúng vai trò được phép thực hiện nghiệp vụ.
+	 *
+	 * @param currentUser người dùng hiện tại
+	 * @param expectedRole mã vai trò yêu cầu
+	 * @param message thông báo lỗi nếu không đủ quyền
+	 * @throws BusinessException nếu người dùng không có quyền
+	 */
 	private void validateRole(CustomUserDetails currentUser, String expectedRole, String message) {
 
 		if (!expectedRole.equals(currentUser.getRoleCode())) {
@@ -111,12 +126,27 @@ public class ShipmentServiceImpl implements ShipmentService {
 		}
 	}
 
+	/**
+	 * Tìm lô sản xuất theo id.
+	 *
+	 * @param productionLotId id lô sản xuất
+	 * @return lô sản xuất
+	 * @throws BusinessException nếu không tìm thấy lô sản xuất
+	 */
 	private ProductionLot findProductionLot(UUID productionLotId) {
 
 		return productionLotRepository.findById(productionLotId)
 				.orElseThrow(() -> new BusinessException(PRODUCTION_LOT_NOT_FOUND_MESSAGE));
 	}
 
+	/**
+	 * Kiểm tra người dùng có quyền thao tác trên lô sản xuất
+	 * thuộc tổ chức của mình.
+	 *
+	 * @param currentUser người dùng hiện tại
+	 * @param productionLot lô sản xuất cần kiểm tra
+	 * @throws BusinessException nếu khác tổ chức
+	 */
 	private void validateOrganization(CustomUserDetails currentUser, ProductionLot productionLot) {
 
 		if (!productionLot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
@@ -125,6 +155,13 @@ public class ShipmentServiceImpl implements ShipmentService {
 		}
 	}
 
+	/**
+	 * Kiểm tra lô sản xuất đã ở trạng thái đóng gói
+	 * trước khi tạo lô hàng.
+	 *
+	 * @param productionLot lô sản xuất
+	 * @throws BusinessException nếu trạng thái không hợp lệ
+	 */
 	private void validateProductionLotStatus(ProductionLot productionLot) {
 
 		if (productionLot.getStatus() != ProductionLotStatus.PACKAGED) {
@@ -133,12 +170,28 @@ public class ShipmentServiceImpl implements ShipmentService {
 		}
 	}
 
+	
+	/**
+	 * Lấy dải mã truy xuất còn hiệu lực của tổ chức.
+	 *
+	 * @param currentUser người dùng hiện tại
+	 * @return dải mã truy xuất
+	 * @throws BusinessException nếu tổ chức chưa được cấp dải mã
+	 */
 	private CodeRange findAvailableCodeRange(CustomUserDetails currentUser) {
 
 		return codeRangeRepository.findByOrganizationOrganizationId(currentUser.getOrganizationId())
 				.orElseThrow(() -> new BusinessException(CODE_RANGE_NOT_FOUND_MESSAGE));
 	}
 
+	/**
+	 * Kiểm tra số lượng tem cần sinh có vượt quá
+	 * số lượng mã còn lại trong dải mã hay không.
+	 *
+	 * @param codeRange dải mã truy xuất
+	 * @param requiredQuantity số lượng tem cần sinh
+	 * @throws BusinessException nếu vượt quá hạn mức
+	 */
 	private void validateCodeRangeLimit(CodeRange codeRange, long requiredQuantity) {
 
 		long remaining = Math.max(0, codeRange.getTotalLimit() - codeRange.getUsedCount());
@@ -149,6 +202,14 @@ public class ShipmentServiceImpl implements ShipmentService {
 		}
 	}
 
+	/**
+	 * Khởi tạo đối tượng lô hàng từ yêu cầu tạo lô hàng.
+	 *
+	 * @param request thông tin tạo lô hàng
+	 * @param productionLot lô sản xuất
+	 * @param currentUser người dùng tạo
+	 * @return đối tượng lô hàng
+	 */
 	private Shipment createShipmentEntity(CreateShipmentRequest request, ProductionLot productionLot,
 			CustomUserDetails currentUser) {
 
@@ -171,19 +232,37 @@ public class ShipmentServiceImpl implements ShipmentService {
 		return shipment;
 	}
 
+	/**
+	 * Sinh danh sách mã truy xuất cho lô hàng.
+	 *
+	 * @param shipment lô hàng
+	 * @param codeRange dải mã truy xuất
+	 * @param quantity số lượng mã cần sinh
+	 * @return danh sách mã truy xuất
+	 */
 	private List<TraceCode> generateTraceCodes(Shipment shipment, CodeRange codeRange, long quantity) {
 
 		List<TraceCode> traceCodes = new ArrayList<>();
 
 		long startSequence = codeRange.getUsedCount() + 1;
+		
+	    UUID organizationId = shipment.getOrganization().getOrganizationId();
+	    UUID productionLotId = shipment.getProductionLot().getId();
+	    UUID shipmentId = shipment.getId();
 
 		for (long i = 0; i < quantity; i++) {
+			
+			String codeValue = generateUniqueCode(codeRange.getPrefix(), startSequence + i);
+			
+			String qrImagePath = qrCodeService.generateQRCode(codeValue, organizationId, productionLotId, shipmentId);
 
 			TraceCode traceCode = new TraceCode();
+			
+			traceCode.setQrImage(qrImagePath); 
 
 			traceCode.setShipment(shipment);
-
-			traceCode.setCodeValue(generateUniqueCode(codeRange.getPrefix(), startSequence + i));
+			
+			traceCode.setCodeValue(codeValue);
 
 			traceCode.setStatus(TraceCodeStatus.INACTIVE);
 
@@ -193,6 +272,14 @@ public class ShipmentServiceImpl implements ShipmentService {
 		return traceCodes;
 	}
 
+	/**
+	 * Sinh giá trị mã truy xuất duy nhất từ tiền tố
+	 * và số thứ tự trong dải mã.
+	 *
+	 * @param prefix tiền tố mã
+	 * @param sequence số thứ tự
+	 * @return mã truy xuất
+	 */
 	private String generateUniqueCode(String prefix, long sequence) {
 
 		return prefix + String.format("%08d", sequence);
@@ -203,6 +290,15 @@ public class ShipmentServiceImpl implements ShipmentService {
 		codeRange.setUsedCount(codeRange.getUsedCount() + quantity);
 	}
 
+	/**
+	 * Xây dựng dữ liệu phản hồi sau khi tạo lô hàng
+	 * và sinh mã truy xuất thành công.
+	 *
+	 * @param shipment lô hàng
+	 * @param traceCodes danh sách mã truy xuất
+	 * @param createdByName tên người tạo
+	 * @return thông tin phản hồi
+	 */
 	private ShipmentResponse buildShipmentResponse(Shipment shipment, List<TraceCode> traceCodes,
 			String createdByName) {
 
