@@ -16,6 +16,7 @@ import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
+import vn.nguongocso.notification.NotificationService;
 import vn.nguongocso.trace.dto.request.CreateShipmentRequest;
 import vn.nguongocso.trace.dto.response.ShipmentResponse;
 import vn.nguongocso.trace.entity.CodeRange;
@@ -41,6 +42,8 @@ public class ShipmentServiceImpl implements ShipmentService {
 	private final TraceCodeRepository traceCodeRepository;
 	private final CodeRangeRepository codeRangeRepository;
 	private final ProductionLotRepository productionLotRepository;
+
+	private final NotificationService notificationService;
 
 	private static final String ORG_MANAGER_ROLE = "VT-02";
 
@@ -87,6 +90,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 		traceCodes = traceCodeRepository.saveAll(traceCodes);
 
 		updateCodeRange(codeRange, request.getTotalQuantity());
+		codeRangeRepository.save(codeRange);
 
 		shipment.setStatus(ShipmentStatus.CODE_PRINTED);
 
@@ -212,5 +216,18 @@ public class ShipmentServiceImpl implements ShipmentService {
 								.status(traceCode.getStatus()).build())
 						.toList())
 				.createdByName(createdByName).createdAt(shipment.getCreatedAt()).build();
+	}
+
+	private void checkAndSendAlert(CodeRange range) {
+		double percent = (double) range.getUsedCount() / range.getTotalLimit() * 100;
+		if (percent >= 80 && percent < 100) {
+			notificationService.sendAlert(
+					"Cảnh báo: Dải mã " + range.getPrefix() + " đã sử dụng " + range.getUsedCount() + "/" + range.getTotalLimit() + " (gần mức hết hạn)"
+			);
+		} else if (percent >= 100) {
+			notificationService.sendAlert(
+					"Cảnh báo: Dải mã " + range.getPrefix() + " đã vượt hạn mức " + range.getTotalLimit() + "!"
+			);
+		}
 	}
 }
