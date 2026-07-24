@@ -1,5 +1,6 @@
 package vn.nguongocso.trace.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
@@ -44,6 +46,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 	private final CodeRangeRepository codeRangeRepository;
 	private final ProductionLotRepository productionLotRepository;
 	private final QRCodeService qrCodeService;
+	private final UserRepository userRepository;
 
 	private final NotificationService notificationService;
 
@@ -98,6 +101,65 @@ public class ShipmentServiceImpl implements ShipmentService {
 
 		return buildShipmentResponse(shipment, traceCodes, currentUser.getFullName());
 	}
+
+	/**
+	 * Kích hoạt tem cho lô hàng và cập nhật trạng thái tem liên kết.
+	 *
+	 * @param shipmentId id lô hàng cần kích hoạt
+	 * @return thông tin lô hàng sau khi kích hoạt
+	 * @throws BusinessException nếu không đủ điều kiện kích hoạt tem
+	 */
+	@Override
+	public ShipmentResponse activateShipmentStamps(UUID shipmentId) {
+		CustomUserDetails currentUser = getCurrentUser();
+
+		validateRole(currentUser, ORG_MANAGER_ROLE, "Bạn không có quyền kích hoạt tem.");
+
+		Shipment shipment = shipmentRepository.findById(shipmentId)
+				.orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng."));
+
+		if (!shipment.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
+			throw new BusinessException("Bạn không có quyền kích hoạt tem của tổ chức khác.");
+		}
+
+		ProductionLot productionLot = shipment.getProductionLot();
+		if (productionLot == null || productionLot.getStatus() != ProductionLotStatus.PACKAGED) {
+			throw new BusinessException(INVALID_LOT_STATUS_MESSAGE);
+		}
+
+		if (shipment.getStatus() == ShipmentStatus.ACTIVATED) {
+			throw new BusinessException("Tem đã được kích hoạt trước đó.");
+		}
+
+		if (shipment.getStatus() != ShipmentStatus.CODE_PRINTED) {
+			throw new BusinessException("Lô hàng chưa được cấp hoặc in mã tem.");
+		}
+
+		User actor = userRepository.findById(currentUser.getUserId())
+				.orElseThrow(() -> new BusinessException("Người dùng không tồn tại."));
+
+		shipment.setStatus(ShipmentStatus.ACTIVATED);
+		shipmentRepository.save(shipment);
+
+		List<TraceCode> traceCodes = traceCodeRepository.findByShipmentId(shipmentId);
+		LocalDateTime now = LocalDateTime.now();
+		for (TraceCode tc : traceCodes) {
+			tc.setStatus(TraceCodeStatus.ACTIVE);
+			tc.setActivatedAt(now);
+			tc.setActivatedBy(actor);
+		}
+		traceCodeRepository.saveAll(traceCodes);
+
+		String createdByName = null;
+		if (shipment.getCreatedBy() != null) {
+			createdByName = userRepository.findById(shipment.getCreatedBy().getUserId())
+					.map(User::getFullName)
+					.orElse(null);
+		}
+
+		return buildShipmentResponse(shipment, traceCodes, createdByName);
+	}
+
 
 	/**
 	 * Lấy thông tin người dùng đang đăng nhập từ SecurityContext.
@@ -297,7 +359,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 	 * @param shipment lô hàng
 	 * @param traceCodes danh sách mã truy xuất
 	 * @param createdByName tên người tạo
-	 * @return thông tin phản hồi
+	 * @return thông tin phản hồiF
 	 */
 	private ShipmentResponse buildShipmentResponse(Shipment shipment, List<TraceCode> traceCodes,
 			String createdByName) {
