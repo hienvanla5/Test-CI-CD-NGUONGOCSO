@@ -68,7 +68,7 @@ public class ProductionLotController {
         List<CreateProductionLotResponse> response = productionLotService.getAllProductionLots(userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
-
+    
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('VT-02')")
     public ResponseEntity<ApiResult<CreateProductionLotResponse>> submitForApproval(
