@@ -12,7 +12,6 @@ import java.util.UUID;
 public interface ChainEventService {
     ChainEventResponse recordHarvestEvent(RecordHarvestEventRequest request, CustomUserDetails currentUser);
     ChainEventResponse recordPackagingEvent(RecordPackagingEventRequest request, CustomUserDetails currentUser);
-    // Đính chính sự kiện đóng gói
     ChainEventResponse correctPackagingEvent(UUID originalEventId, CorrectPackagingEventRequest request, CustomUserDetails currentUser);
 }
 
