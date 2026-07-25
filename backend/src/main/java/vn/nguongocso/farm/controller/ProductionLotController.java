@@ -68,7 +68,7 @@ public class ProductionLotController {
         List<CreateProductionLotResponse> response = productionLotService.getAllProductionLots(userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
-
+    
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('VT-02')")
     public ResponseEntity<ApiResult<CreateProductionLotResponse>> submitForApproval(
@@ -87,32 +87,4 @@ public class ProductionLotController {
         CreateProductionLotResponse response = productionLotService.approveProductionLot(id, request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
-    // Thêm import:
-    /**
-     * API gửi duyệt nhật ký lô sản xuất.
-     * Chuyển trạng thái: DRAFT -> PENDING.
-     */
-    @PutMapping("/{id}/submit")
-    @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
-    public ResponseEntity<ApiResult<CreateProductionLotResponse>> submit(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        CreateProductionLotResponse response = productionLotService.submitProductionLot(id, userDetails);
-        return ResponseEntity.ok(ApiResult.success(response));
-    }
-
-    /**
-     * API phê duyệt hoặc từ chối nhật ký lô sản xuất.
-     * Chuyển trạng thái: PENDING -> APPROVED hoặc trả về DRAFT.
-     */
-    @PutMapping("/{id}/approve")
-    @PreAuthorize("hasAnyRole('VT-02', 'VT-05')")
-    public ResponseEntity<ApiResult<CreateProductionLotResponse>> approve(
-            @PathVariable UUID id,
-            @Valid @RequestBody ApproveProductionLotRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        CreateProductionLotResponse response = productionLotService.approveProductionLot(id, request, userDetails);
-        return ResponseEntity.ok(ApiResult.success(response));
-    }
-
 }
