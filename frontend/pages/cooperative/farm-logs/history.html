@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Lịch sử nhật ký canh tác | Nguồn Gốc Số
+    </title>
+
+    <!-- CSS dùng chung của dự án -->
+    <link
+        rel="stylesheet"
+        href="../../../css/reset.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../../../css/variables.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../../../css/global.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../../../css/layouts/dashboard-layout.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../../../css/components/button.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../../../css/pages/cooperative/dashboard.css"
+    >
+
+    <!-- CSS riêng của màn lịch sử -->
+    <link
+        rel="stylesheet"
+        href="../../../css/pages/cooperative/farm-log-history.css"
+    >
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <div class="sidebar-logo">
+                Nguồn Gốc Số
+            </div>
+
+            <nav class="sidebar-menu"></nav>
+
+            <div
+                class="sidebar-user"
+                id="sidebarUser"
+            >
+                <div
+                    class="sidebar-user-avatar"
+                    id="sidebarUserAvatar"
+                ></div>
+
+                <div class="sidebar-user-info">
+
+                    <strong id="sidebarUserName">
+                        —
+                    </strong>
+
+                    <span id="sidebarUserOrg">
+                        —
+                    </span>
+
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- NỘI DUNG CHÍNH -->
+        <main class="dashboard-main">
+
+            <!-- HEADER -->
+            <header class="dashboard-header">
+
+                <div class="history-page-title">
+
+                    <button
+                        type="button"
+                        id="backButton"
+                        class="btn btn-secondary history-back-button"
+                    >
+                        ←
+                    </button>
+
+                    <div>
+                        <h1>
+                            Lịch sử nhật ký canh tác
+                        </h1>
+
+                        <p class="text-muted">
+                            Xem các hoạt động canh tác đã ghi nhận của lô sản xuất.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="header-actions">
+
+                    <div
+                        class="user-badge"
+                        id="headerUserBadge"
+                    >
+                        <span
+                            id="headerUserRole"
+                            class="user-role-badge"
+                        >
+                            —
+                        </span>
+
+                        <span id="headerUserName">
+                            —
+                        </span>
+
+                        <span class="user-org-sep">
+                            |
+                        </span>
+
+                        <span id="headerUserOrg">
+                            —
+                        </span>
+                    </div>
+
+                    <button
+                        type="button"
+                        id="logoutButton"
+                        class="btn btn-secondary"
+                    >
+                        Logout
+                    </button>
+
+                </div>
+
+            </header>
+
+            <!-- CONTENT -->
+            <section class="dashboard-content">
+
+                <!-- ĐANG TẢI -->
+                <div
+                    id="loadingState"
+                    class="state-container"
+                >
+                    <div class="state-icon">
+                        <svg
+                            width="48"
+                            height="48"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 6v6l4 2"></path>
+                        </svg>
+                    </div>
+
+                    <p class="state-text">
+                        Đang tải lịch sử nhật ký...
+                    </p>
+                </div>
+
+                <!-- LỖI -->
+                <div
+                    id="errorState"
+                    class="state-container"
+                    style="display: none;"
+                >
+                    <div class="state-icon state-error-icon">
+                        <svg
+                            width="48"
+                            height="48"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </div>
+
+                    <p
+                        id="errorMessage"
+                        class="state-text state-error-text"
+                    >
+                        Không thể tải lịch sử nhật ký.
+                    </p>
+
+                    <button
+                        type="button"
+                        id="retryButton"
+                        class="btn btn-secondary"
+                    >
+                        Thử lại
+                    </button>
+                </div>
+
+                <!-- KHÔNG CÓ QUYỀN -->
+                <div
+                    id="unauthorizedState"
+                    class="state-container"
+                    style="display: none;"
+                >
+                    <div class="state-icon state-error-icon">
+                        <svg
+                            width="48"
+                            height="48"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <rect
+                                x="3"
+                                y="11"
+                                width="18"
+                                height="11"
+                                rx="2"
+                                ry="2"
+                            ></rect>
+
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+
+                    <p class="state-text state-error-text">
+                        Bạn không có quyền xem lịch sử nhật ký canh tác.
+                    </p>
+
+                    <a
+                        href="/frontend/pages/cooperative/production-lots/index.html"
+                        class="btn btn-secondary"
+                    >
+                        Quay lại danh sách lô
+                    </a>
+                </div>
+
+                <!-- NỘI DUNG LỊCH SỬ -->
+                <div
+                    id="mainContent"
+                    style="display: none;"
+                >
+
+                    <!-- THÔNG TIN LÔ -->
+                    <section class="production-lot-summary">
+
+                        <div class="production-lot-summary-item">
+
+                            <span class="summary-label">
+                                Lô sản xuất
+                            </span>
+
+                            <strong id="productionLotName">
+                                —
+                            </strong>
+
+                        </div>
+
+                        <div class="production-lot-summary-item">
+
+                            <span class="summary-label">
+                                Tổng số hoạt động
+                            </span>
+
+                            <strong id="totalElements">
+                                0
+                            </strong>
+
+                        </div>
+
+                    </section>
+
+                    <!-- TIÊU ĐỀ DANH SÁCH -->
+                    <div class="history-section-header">
+
+                        <h2>
+                            Danh sách nhật ký
+                        </h2>
+
+                        <p class="text-muted">
+                            Có
+                            <strong id="activityCount">0</strong>
+                            hoạt động
+                        </p>
+
+                    </div>
+
+                    <!-- KHUNG BẢNG -->
+                    <div class="history-card">
+
+                        <!-- KHÔNG CÓ DỮ LIỆU -->
+                        <div
+                            id="emptyState"
+                            class="empty-state-container"
+                            style="display: none;"
+                        >
+                            <div class="empty-state-icon">
+                                <svg
+                                    width="48"
+                                    height="48"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                                    ></path>
+
+                                    <polyline
+                                        points="14 2 14 8 20 8"
+                                    ></polyline>
+
+                                    <line
+                                        x1="8"
+                                        y1="13"
+                                        x2="16"
+                                        y2="13"
+                                    ></line>
+
+                                    <line
+                                        x1="8"
+                                        y1="17"
+                                        x2="16"
+                                        y2="17"
+                                    ></line>
+                                </svg>
+                            </div>
+
+                            <p class="empty-state-text">
+                                Chưa có nhật ký canh tác
+                            </p>
+
+                            <p class="empty-state-hint">
+                                Lô sản xuất này chưa có hoạt động canh tác nào
+                                được ghi nhận.
+                            </p>
+                        </div>
+
+                        <!-- BẢNG LỊCH SỬ -->
+                        <div class="history-table-wrapper">
+
+                            <table
+                                id="historyTable"
+                                class="history-table"
+                                style="display: none;"
+                            >
+                                <thead>
+                                    <tr>
+                                        <th>Ngày thực hiện</th>
+                                        <th>Loại hoạt động</th>
+                                        <th>Vật tư</th>
+                                        <th>Số lượng</th>
+                                        <th>Đơn vị</th>
+                                        <th>Người tạo</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Ghi chú</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="historyTableBody">
+                                    <!-- JavaScript sẽ render dữ liệu ở đây -->
+                                </tbody>
+                            </table>
+
+                        </div>
+
+                        <!-- PHÂN TRANG -->
+                        <div
+                            id="paginationContainer"
+                            class="pagination-container"
+                            style="display: none;"
+                        >
+
+                            <div class="pagination-size">
+
+                                <label for="pageSizeSelect">
+                                    Hiển thị
+                                </label>
+
+                                <select id="pageSizeSelect">
+                                    <option value="5">5</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="20">20</option>
+                                </select>
+
+                                <span>
+                                    bản ghi mỗi trang
+                                </span>
+
+                            </div>
+
+                            <div
+                                id="paginationButtons"
+                                class="pagination-buttons"
+                            >
+                                <!-- JavaScript sẽ tạo nút phân trang -->
+                            </div>
+
+                            <div class="pagination-info">
+
+                                Trang
+                                <strong id="currentPageText">1</strong>
+                                /
+                                <strong id="totalPagesText">1</strong>
+
+                                <span class="pagination-divider">•</span>
+
+                                Tổng
+                                <strong id="paginationTotalElements">0</strong>
+                                bản ghi
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script
+        type="module"
+        src="../../../js/pages/cooperative/farm-logs/farm-log-history.page.js"
+    ></script>
+    <script type="module" src="../../component/VT-02/nav.js"></script>
+</body>
+
+</html>
