@@ -9,9 +9,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.event.dto.request.CorrectPackagingEventRequest;
 import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
+import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.service.ChainEventService;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/chain-events")
@@ -33,5 +37,32 @@ public class ChainEventController {
         ChainEventResponse response = chainEventService.recordHarvestEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(response));
     }
+    /**
+     * API ghi nhận sự kiện đóng gói cho lô sản xuất.
+     */
+    @PostMapping("/packaging")
+    @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
+    public ResponseEntity<ApiResult<ChainEventResponse>> recordPackaging(
+            @Valid @RequestBody RecordPackagingEventRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        ChainEventResponse response = chainEventService.recordPackagingEvent(request, currentUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
+    }
+
+    /**
+     * API tạo sự kiện đính chính thông tin đóng gói (giữ nguyên gốc).
+     */
+    @PostMapping("/packaging/{id}/correct")
+    @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
+    public ResponseEntity<ApiResult<ChainEventResponse>> correctPackaging(
+            @PathVariable("id") UUID originalEventId,
+            @Valid @RequestBody CorrectPackagingEventRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        ChainEventResponse response = chainEventService.correctPackagingEvent(originalEventId, request, currentUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
+    }
+
 }
 
