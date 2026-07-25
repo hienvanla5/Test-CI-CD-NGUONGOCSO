@@ -22,6 +22,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import vn.nguongocso.auth.service.CustomUserDetailsService;
 import vn.nguongocso.config.JwtTokenProvider;
 import vn.nguongocso.config.SecurityConfig;
+import vn.nguongocso.event.dto.request.CorrectPackagingEventRequest;
+import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
@@ -165,4 +167,179 @@ class ChainEventControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Lô sản xuất chưa được duyệt, không thể ghi sự kiện thu hoạch."));
     }
+    // ==========================================
+    // UNIT TESTS CHO GHI SỰ KIỆN ĐÓNG GÓI (PACKAGING)
+    // ==========================================
+
+    /**
+     * Case 5: Ghi nhận sự kiện đóng gói thành công khi người dùng có quyền (VT-03)
+     */
+    @Test
+    @WithMockUser(roles = "VT-03")
+    void recordPackaging_Success_WithAuthorizedUser() throws Exception {
+        // Given
+        UUID productionLotId = UUID.randomUUID();
+        RecordPackagingEventRequest packagingRequest = new RecordPackagingEventRequest();
+        packagingRequest.setProductionLotId(productionLotId);
+        packagingRequest.setPackagingSpecification("Túi hút chân không 500g");
+        packagingRequest.setPackagingDate(LocalDate.of(2026, 7, 25));
+        packagingRequest.setLatitude(21.0285);
+        packagingRequest.setLongitude(105.8542);
+
+        Map<String, Object> eventDataMap = new HashMap<>();
+        eventDataMap.put("productionLotId", productionLotId.toString());
+        eventDataMap.put("packagingSpecification", "Túi hút chân không 500g");
+        eventDataMap.put("packagingDate", "2026-07-25");
+
+        ChainEventResponse packagingResponse = ChainEventResponse.builder()
+                .id(UUID.randomUUID())
+                .eventType(ChainEventType.PACKAGING)
+                .eventData(eventDataMap)
+                .latitude(21.0285)
+                .longitude(105.8542)
+                .recordedAt(LocalDateTime.now())
+                .recordedByName("Nguyễn Văn Ghi")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(chainEventService.recordPackagingEvent(any(RecordPackagingEventRequest.class), any()))
+                .thenReturn(packagingResponse);
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/chain-events/packaging")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(packagingRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.eventType").value("PACKAGING"))
+                .andExpect(jsonPath("$.data.eventData.packagingSpecification").value("Túi hút chân không 500g"))
+                .andExpect(jsonPath("$.data.recordedByName").value("Nguyễn Văn Ghi"));
+    }
+
+    /**
+     * Case 6: Trả về 403 Forbidden khi ghi nhận đóng gói với vai trò không được cấp quyền (VT-06)
+     */
+    @Test
+    @WithMockUser(roles = "VT-06")
+    void recordPackaging_ThrowForbidden_WithUnauthorizedUser() throws Exception {
+        RecordPackagingEventRequest packagingRequest = new RecordPackagingEventRequest();
+        packagingRequest.setProductionLotId(UUID.randomUUID());
+        packagingRequest.setPackagingSpecification("Túi hút chân không 500g");
+        packagingRequest.setPackagingDate(LocalDate.of(2026, 7, 25));
+
+        mockMvc.perform(post("/api/v1/chain-events/packaging")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(packagingRequest)))
+                .andExpect(status().isForbidden());
+    }
+
+    /**
+     * Case 7: Trả về 400 Bad Request khi thiếu trường bắt buộc (thiếu quy cách đóng gói)
+     */
+    @Test
+    @WithMockUser(roles = "VT-03")
+    void recordPackaging_ThrowBadRequest_WhenValidationFails() throws Exception {
+        RecordPackagingEventRequest invalidRequest = new RecordPackagingEventRequest();
+        invalidRequest.setProductionLotId(UUID.randomUUID());
+        invalidRequest.setPackagingSpecification(""); // Invalid: Bị trống
+        invalidRequest.setPackagingDate(LocalDate.of(2026, 7, 25));
+
+        mockMvc.perform(post("/api/v1/chain-events/packaging")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+
+    // ==========================================
+    // UNIT TESTS CHO ĐÍNH CHÍNH SỰ KIỆN ĐÓNG GÓI (CORRECT)
+    // ==========================================
+
+    /**
+     * Case 8: Đính chính sự kiện đóng gói thành công khi người dùng có quyền (VT-02)
+     */
+    @Test
+    @WithMockUser(roles = "VT-02")
+    void correctPackaging_Success_WithAuthorizedUser() throws Exception {
+        // Given
+        UUID originalEventId = UUID.randomUUID();
+        CorrectPackagingEventRequest correctRequest = new CorrectPackagingEventRequest();
+        correctRequest.setPackagingSpecification("Túi hút chân không 1kg");
+        correctRequest.setPackagingDate(LocalDate.of(2026, 7, 25));
+        correctRequest.setCorrectionReason("Đính chính do nhập sai quy cách từ 500g sang 1kg");
+
+        Map<String, Object> eventDataMap = new HashMap<>();
+        eventDataMap.put("productionLotId", UUID.randomUUID().toString());
+        eventDataMap.put("packagingSpecification", "Túi hút chân không 1kg");
+        eventDataMap.put("packagingDate", "2026-07-25");
+        eventDataMap.put("correctionReason", "Đính chính do nhập sai quy cách từ 500g sang 1kg");
+        eventDataMap.put("parentEventId", originalEventId.toString());
+
+        ChainEventResponse correctResponse = ChainEventResponse.builder()
+                .id(UUID.randomUUID())
+                .eventType(ChainEventType.PACKAGING)
+                .eventData(eventDataMap)
+                .recordedAt(LocalDateTime.now())
+                .recordedByName("Quản Lý HTX")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(chainEventService.correctPackagingEvent(any(UUID.class), any(CorrectPackagingEventRequest.class), any()))
+                .thenReturn(correctResponse);
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/chain-events/packaging/{id}/correct", originalEventId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(correctRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.eventData.packagingSpecification").value("Túi hút chân không 1kg"))
+                .andExpect(jsonPath("$.data.eventData.correctionReason").value("Đính chính do nhập sai quy cách từ 500g sang 1kg"))
+                .andExpect(jsonPath("$.data.eventData.parentEventId").value(originalEventId.toString()));
+    }
+
+    /**
+     * Case 9: Trả về 403 Forbidden khi đính chính sự kiện với vai trò không phù hợp (VT-06)
+     */
+    @Test
+    @WithMockUser(roles = "VT-06")
+    void correctPackaging_ThrowForbidden_WithUnauthorizedUser() throws Exception {
+        UUID originalEventId = UUID.randomUUID();
+        CorrectPackagingEventRequest correctRequest = new CorrectPackagingEventRequest();
+        correctRequest.setPackagingSpecification("Túi hút chân không 1kg");
+        correctRequest.setPackagingDate(LocalDate.of(2026, 7, 25));
+        correctRequest.setCorrectionReason("Sửa sai");
+
+        mockMvc.perform(post("/api/v1/chain-events/packaging/{id}/correct", originalEventId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(correctRequest)))
+                .andExpect(status().isForbidden());
+    }
+
+    /**
+     * Case 10: Trả về 400 Bad Request khi đính chính thiếu lý do đính chính (correctionReason)
+     */
+    @Test
+    @WithMockUser(roles = "VT-03")
+    void correctPackaging_ThrowBadRequest_WhenValidationFails() throws Exception {
+        UUID originalEventId = UUID.randomUUID();
+        CorrectPackagingEventRequest invalidRequest = new CorrectPackagingEventRequest();
+        invalidRequest.setPackagingSpecification("Túi hút chân không 1kg");
+        invalidRequest.setPackagingDate(LocalDate.of(2026, 7, 25));
+        invalidRequest.setCorrectionReason(""); // Invalid: Lý do bị rỗng
+
+        mockMvc.perform(post("/api/v1/chain-events/packaging/{id}/correct", originalEventId)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
 }

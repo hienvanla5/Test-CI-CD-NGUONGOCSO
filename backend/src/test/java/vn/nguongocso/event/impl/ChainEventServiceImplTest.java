@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
@@ -194,4 +195,65 @@ class ChainEventServiceImplTest {
         verifyNoMoreInteractions(productionLotRepository);
         verifyNoInteractions(chainEventRepository);
     }
+    @Test
+    void recordPackagingEvent_Success() throws JsonProcessingException {
+        // Given
+        when(validUser.getRoleCode()).thenReturn("VT-03");
+        when(validUser.getOrganizationId()).thenReturn(organization.getOrganizationId());
+        when(validUser.getUserId()).thenReturn(userId);
+
+        productionLot.setStatus(ProductionLotStatus.HARVESTED); // Đã thu hoạch
+        productionLot.setHarvestDate(LocalDate.of(2026, 7, 24));
+
+        RecordPackagingEventRequest packagingRequest = new RecordPackagingEventRequest();
+        packagingRequest.setProductionLotId(productionLot.getId());
+        packagingRequest.setPackagingSpecification("Túi 500g");
+        packagingRequest.setPackagingDate(LocalDate.of(2026, 7, 25));
+
+        when(productionLotRepository.findById(productionLot.getId())).thenReturn(Optional.of(productionLot));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+
+        ChainEvent mockSavedEvent = ChainEvent.builder()
+                .id(UUID.randomUUID())
+                .eventType(ChainEventType.PACKAGING)
+                .eventData("{\"productionLotId\":\"" + productionLot.getId() + "\",\"packagingSpecification\":\"Túi 500g\",\"packagingDate\":\"2026-07-25\"}")
+                .recordedAt(LocalDateTime.now())
+                .recordedBy(actor)
+                .createdAt(LocalDateTime.now())
+                .isCorrection(false)
+                .build();
+
+        when(chainEventRepository.save(any(ChainEvent.class))).thenReturn(mockSavedEvent);
+
+        // When
+        ChainEventResponse response = chainEventService.recordPackagingEvent(packagingRequest, validUser);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getEventType()).isEqualTo(ChainEventType.PACKAGING);
+        assertThat(productionLot.getStatus()).isEqualTo(ProductionLotStatus.PACKAGED);
+        verify(productionLotRepository, times(1)).save(productionLot);
+    }
+
+    @Test
+    void recordPackagingEvent_ThrowException_WhenLotNotHarvested() {
+        // Given
+        when(validUser.getRoleCode()).thenReturn("VT-03");
+        when(validUser.getOrganizationId()).thenReturn(organization.getOrganizationId());
+
+        productionLot.setStatus(ProductionLotStatus.APPROVED); // Chưa thu hoạch
+
+        RecordPackagingEventRequest packagingRequest = new RecordPackagingEventRequest();
+        packagingRequest.setProductionLotId(productionLot.getId());
+        packagingRequest.setPackagingSpecification("Túi 500g");
+        packagingRequest.setPackagingDate(LocalDate.of(2026, 7, 25));
+
+        when(productionLotRepository.findById(productionLot.getId())).thenReturn(Optional.of(productionLot));
+
+        // When & Then
+        assertThatThrownBy(() -> chainEventService.recordPackagingEvent(packagingRequest, validUser))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Chỉ được ghi nhận sự kiện đóng gói cho lô đã thu hoạch.");
+    }
+
 }
