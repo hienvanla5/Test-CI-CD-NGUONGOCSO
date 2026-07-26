@@ -8,7 +8,12 @@ import {
 } from "../../../core/storage.js";
 
 import {
-    getProductionLots
+    getProductionLots,
+    submitProductionLot,
+    approveProductionLot,
+    updateProductionLot,
+    getFarmAreas,
+    getProductCategories
 } from "../../../services/production-lot.service.js";
 
 /* =====================================================
@@ -257,6 +262,11 @@ const editLotMessage =
         "editLotMessage"
     );
 
+const updateEditLotButton =
+    document.getElementById(
+        "updateEditLotButton"
+    );
+
 const editFields = {
     id:
         document.getElementById(
@@ -306,28 +316,6 @@ const USE_MOCK_DATA = false;
  * Khi tích hợp hoàn chỉnh có thể thay bằng API vùng trồng
  * và API danh mục nông sản.
  */
-const mockFarmAreas = [
-    {
-        id: "farm-001",
-        name: "Khu vực canh tác A1"
-    },
-    {
-        id: "farm-002",
-        name: "Khu vực canh tác B1"
-    }
-];
-
-const mockProductCategories = [
-    {
-        id: "category-001",
-        name: "Cà chua"
-    },
-    {
-        id: "category-002",
-        name: "Xoài Cát Chu"
-    }
-];
-
 /* =====================================================
    FORMAT HELPERS
 ===================================================== */
@@ -598,12 +586,60 @@ function createAttachmentButton(lot) {
         lot.id;
 
     attachmentButton.textContent =
-        "Attachment";
+        "Chứng từ";
 
     attachmentButton.title =
         "Quản lý tệp đính kèm của lô sản xuất";
 
     return attachmentButton;
+}
+
+function createApproveButton(lot) {
+    const button =
+        document.createElement(
+            "button"
+        );
+
+    button.type =
+        "button";
+
+    button.className =
+        "btn btn-approve-lot";
+
+    button.dataset.id =
+        lot.id;
+
+    button.textContent =
+        "Duyệt";
+
+    button.title =
+        "Duyệt lô sản xuất";
+
+    return button;
+}
+
+function createRejectButton(lot) {
+    const button =
+        document.createElement(
+            "button"
+        );
+
+    button.type =
+        "button";
+
+    button.className =
+        "btn btn-reject-lot";
+
+    button.dataset.id =
+        lot.id;
+
+    button.textContent =
+        "Trả lại";
+
+    button.title =
+        "Trả lô về trạng thái nháp";
+
+    return button;
 }
 
 function renderActionButtons(
@@ -622,6 +658,16 @@ function renderActionButtons(
                 lot,
                 normalizedStatus
             )
+        );
+    }
+
+    if (normalizedStatus === "PENDING") {
+        actionCell.appendChild(
+            createApproveButton(lot)
+        );
+
+        actionCell.appendChild(
+            createRejectButton(lot)
         );
     }
 
@@ -783,17 +829,23 @@ function renderProductionLots(lots) {
                 "td"
             );
 
-        const statusBadge =
-            document.createElement(
-                "span"
-            );
-
         const normalizedStatus =
             String(
                 lot.status || "DRAFT"
             )
                 .trim()
                 .toUpperCase();
+
+        const canSubmitFromDraft =
+            roleCode === "VT-02" &&
+            normalizedStatus === "DRAFT";
+
+        const statusBadge =
+            document.createElement(
+                canSubmitFromDraft
+                    ? "button"
+                    : "span"
+            );
 
         statusBadge.className =
             "status-badge " +
@@ -803,6 +855,22 @@ function renderProductionLots(lots) {
 
         statusBadge.textContent =
             normalizedStatus;
+
+        if (canSubmitFromDraft) {
+            statusBadge.type =
+                "button";
+
+            statusBadge.classList.add(
+                "status-badge--clickable",
+                "btn-submit-lot"
+            );
+
+            statusBadge.dataset.id =
+                lot.id;
+
+            statusBadge.title =
+                "Bấm để gửi duyệt lô này (DRAFT → PENDING)";
+        }
 
         statusCell.appendChild(
             statusBadge
@@ -927,18 +995,94 @@ function fillSelect(
     });
 }
 
-function loadEditSelectOptions() {
-    fillSelect(
-        editFields.farmAreaId,
-        mockFarmAreas,
-        "-- Chọn khu vực canh tác --"
-    );
+async function loadEditSelectOptions(
+    selectedFarmAreaId,
+    selectedProductCategoryId
+) {
+    if (editFields.farmAreaId) {
+        editFields.farmAreaId.innerHTML =
+            "<option value=\"\">Đang tải...</option>";
 
-    fillSelect(
-        editFields.productCategoryId,
-        mockProductCategories,
-        "-- Chọn loại nông sản --"
-    );
+        editFields.farmAreaId.disabled =
+            true;
+    }
+
+    if (editFields.productCategoryId) {
+        editFields.productCategoryId.innerHTML =
+            "<option value=\"\">Đang tải...</option>";
+
+        editFields.productCategoryId.disabled =
+            true;
+    }
+
+    try {
+        const [
+            farmAreaResponse,
+            productCategoryResponse
+        ] = await Promise.all([
+            getFarmAreas(),
+            getProductCategories()
+        ]);
+
+        const farmAreas =
+            (farmAreaResponse &&
+                farmAreaResponse.data) ||
+            [];
+
+        const productCategories =
+            (productCategoryResponse &&
+                productCategoryResponse.data) ||
+            [];
+
+        fillSelect(
+            editFields.farmAreaId,
+            farmAreas,
+            "-- Chọn khu vực canh tác --"
+        );
+
+        fillSelect(
+            editFields.productCategoryId,
+            productCategories,
+            "-- Chọn loại nông sản --"
+        );
+    } catch (error) {
+        console.error(
+            "Load farm areas / product categories error:",
+            error
+        );
+
+        if (editFields.farmAreaId) {
+            editFields.farmAreaId.innerHTML =
+                "<option value=\"\">Không thể tải dữ liệu</option>";
+        }
+
+        if (editFields.productCategoryId) {
+            editFields.productCategoryId.innerHTML =
+                "<option value=\"\">Không thể tải dữ liệu</option>";
+        }
+
+        return;
+    } finally {
+        if (editFields.farmAreaId) {
+            editFields.farmAreaId.disabled =
+                false;
+        }
+
+        if (editFields.productCategoryId) {
+            editFields.productCategoryId.disabled =
+                false;
+        }
+    }
+
+    if (editFields.farmAreaId) {
+        editFields.farmAreaId.value =
+            selectedFarmAreaId || "";
+    }
+
+    if (editFields.productCategoryId) {
+        editFields.productCategoryId.value =
+            selectedProductCategoryId || "";
+    }
 }
 
 /* =====================================================
@@ -962,8 +1106,6 @@ function openEditLotModal(lotId) {
         return;
     }
 
-    loadEditSelectOptions();
-
     if (editFields.id) {
         editFields.id.value =
             lot.id || "";
@@ -974,18 +1116,10 @@ function openEditLotModal(lotId) {
             lot.name || "";
     }
 
-    if (editFields.farmAreaId) {
-        editFields.farmAreaId.value =
-            lot.farmAreaId || "";
-    }
-
-    if (
-        editFields.productCategoryId
-    ) {
-        editFields.productCategoryId.value =
-            lot.productCategoryId ||
-            "";
-    }
+    loadEditSelectOptions(
+        lot.farmAreaId,
+        lot.productCategoryId
+    );
 
     if (
         editFields.expectedQuantity
@@ -1040,7 +1174,7 @@ function closeEditLotModal() {
  * chỉ tạo payload và in ra Console,
  * chưa gọi API PUT cập nhật lô.
  */
-function handleEditLotSubmit(event) {
+async function handleEditLotSubmit(event) {
     event.preventDefault();
 
     const lotId =
@@ -1048,68 +1182,205 @@ function handleEditLotSubmit(event) {
             ? editFields.id.value
             : "";
 
-    const payload = {
-        farmAreaId:
-            editFields.farmAreaId
-                ? editFields
-                    .farmAreaId
-                    .value
-                : "",
+    const name =
+        editFields.name
+            ? editFields
+                .name
+                .value
+                .trim()
+            : "";
 
-        productCategoryId:
-            editFields
+    const farmAreaId =
+        editFields.farmAreaId
+            ? editFields
+                .farmAreaId
+                .value
+            : "";
+
+    const productCategoryId =
+        editFields
+            .productCategoryId
+            ? editFields
                 .productCategoryId
-                ? editFields
-                    .productCategoryId
+                .value
+            : "";
+
+    const expectedQuantity =
+        editFields
+            .expectedQuantity
+            ? Number(
+                editFields
+                    .expectedQuantity
                     .value
-                : "",
+            )
+            : 0;
 
-        name:
-            editFields.name
-                ? editFields
-                    .name
-                    .value
-                    .trim()
-                : "",
-
-        expectedQuantity:
-            editFields
-                .expectedQuantity
-                ? Number(
-                    editFields
-                        .expectedQuantity
-                        .value
-                )
-                : 0,
-
-        plantingDate:
-            editFields
+    const plantingDate =
+        editFields
+            .plantingDate
+            ? editFields
                 .plantingDate
-                ? editFields
-                    .plantingDate
-                    .value
-                : ""
+                .value
+            : "";
+
+    /*
+     * Validate cơ bản ở phía client, khớp với các ràng buộc
+     * @NotBlank / @NotNull / @Positive của UpdateProductionLotRequest
+     * ở backend — giúp báo lỗi ngay tại chỗ thay vì chờ round-trip API.
+     */
+    if (!lotId) {
+        showEditLotMessage(
+            "Không xác định được lô sản xuất cần cập nhật.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!name) {
+        showEditLotMessage(
+            "Tên lô không được để trống.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!farmAreaId) {
+        showEditLotMessage(
+            "Vui lòng chọn khu vực canh tác.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!productCategoryId) {
+        showEditLotMessage(
+            "Vui lòng chọn loại nông sản.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        !expectedQuantity ||
+        expectedQuantity <= 0 ||
+        Number.isNaN(
+            expectedQuantity
+        )
+    ) {
+        showEditLotMessage(
+            "Sản lượng dự kiến phải lớn hơn 0.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!plantingDate) {
+        showEditLotMessage(
+            "Ngày xuống giống không được để trống.",
+            "error"
+        );
+
+        return;
+    }
+
+    const payload = {
+        name: name,
+        farmAreaId: farmAreaId,
+        productCategoryId: productCategoryId,
+        expectedQuantity: expectedQuantity,
+        plantingDate: plantingDate
     };
 
-    console.log(
-        `PUT /api/v1/production-lots/${lotId}`
-    );
-
-    console.log(
-        "Update payload:",
-        payload
-    );
-
-    if (editLotMessage) {
-        editLotMessage.textContent =
-            "Giao diện đã sẵn sàng. Dữ liệu cập nhật đã được tạo trong Console.";
-
-        editLotMessage.className =
-            "modal-message success";
-
-        editLotMessage.hidden =
-            false;
+    if (updateEditLotButton) {
+        updateEditLotButton.disabled = true;
     }
+
+    try {
+        const response =
+            await updateProductionLot(
+                lotId,
+                payload
+            );
+
+        if (
+            response &&
+            response.success === false
+        ) {
+            throw new Error(
+                response.message ||
+                "Không thể cập nhật lô sản xuất."
+            );
+        }
+
+        showEditLotMessage(
+            "Cập nhật lô sản xuất thành công.",
+            "success"
+        );
+
+        await loadProductionLots();
+
+        closeEditLotModal();
+    } catch (error) {
+        console.error(
+            "Update production lot error:",
+            error
+        );
+
+        /*
+         * Các mã lỗi theo ProductionLotServiceImpl.updateProductionLot:
+         * 400 - Lô không ở trạng thái DRAFT / dữ liệu không hợp lệ
+         * 403 - Không có quyền / lô không thuộc tổ chức của bạn
+         * 404 - Không tìm thấy lô
+         */
+        const status = error.status;
+
+        let message =
+            error.message ||
+            "Không thể cập nhật lô sản xuất.";
+
+        if (status === 403) {
+            message =
+                "Bạn không có quyền chỉnh sửa lô sản xuất này.";
+        } else if (status === 404) {
+            message =
+                "Không tìm thấy lô sản xuất. Vui lòng tải lại trang.";
+        }
+
+        showEditLotMessage(
+            message,
+            "error"
+        );
+    } finally {
+        if (updateEditLotButton) {
+            updateEditLotButton.disabled = false;
+        }
+    }
+}
+
+function showEditLotMessage(
+    text,
+    type
+) {
+    if (!editLotMessage) {
+        return;
+    }
+
+    editLotMessage.textContent =
+        text;
+
+    editLotMessage.className =
+        "modal-message " +
+        (type === "success"
+            ? "success"
+            : "error");
+
+    editLotMessage.hidden =
+        false;
 }
 
 /* =====================================================
@@ -1445,6 +1716,54 @@ if (productionLotsTableBody) {
             }
 
             /*
+             * Nút gửi duyệt lô (DRAFT -> PENDING)
+             */
+            if (
+                button.classList.contains(
+                    "btn-submit-lot"
+                )
+            ) {
+                handleSubmitProductionLot(
+                    lot,
+                    button
+                );
+
+                return;
+            }
+            /*
+ * Duyệt lô PENDING -> APPROVED
+ */
+if (
+    button.classList.contains(
+        "btn-approve-lot"
+    )
+) {
+    handleReviewProductionLot(
+        lot,
+        button,
+        true
+    );
+
+    return;
+}
+
+/*
+ * Trả lô PENDING -> DRAFT
+ */
+if (
+    button.classList.contains(
+        "btn-reject-lot"
+    )
+) {
+    handleReviewProductionLot(
+        lot,
+        button,
+        false
+    );
+
+    return;
+}
+            /*
              * Nút quản lý tệp đính kèm
              */
             if (
@@ -1458,6 +1777,208 @@ if (productionLotsTableBody) {
 }
         }
     );
+}
+
+/* =====================================================
+   SUBMIT PRODUCTION LOT (DRAFT -> PENDING)
+===================================================== */
+
+async function handleSubmitProductionLot(
+    lot,
+    button
+) {
+    const confirmed =
+        window.confirm(
+            `Gửi duyệt lô "${lot.name || ""}"? ` +
+            "Sau khi gửi, lô sẽ chuyển sang trạng thái Chờ duyệt " +
+            "và không thể chỉnh sửa cho đến khi được xử lý."
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    if (button) {
+        button.disabled = true;
+    }
+
+    try {
+        const response =
+            await submitProductionLot(
+                lot.id
+            );
+
+        if (
+            response &&
+            response.success === false
+        ) {
+            throw new Error(
+                response.message ||
+                "Không thể gửi duyệt lô sản xuất."
+            );
+        }
+
+        window.alert(
+            "Đã gửi duyệt lô sản xuất thành công."
+        );
+
+        await loadProductionLots();
+    } catch (error) {
+        console.error(
+            "Submit production lot error:",
+            error
+        );
+
+        /*
+         * Các mã lỗi theo API docs:
+         * 400 - Lô không ở trạng thái DRAFT
+         * 400 - Thiếu thông tin bắt buộc (vùng trồng, sản lượng)
+         * 403 - Không có quyền
+         * 404 - Không tìm thấy lô
+         */
+        const status = error.status;
+
+        let message =
+            error.message ||
+            "Không thể gửi duyệt lô sản xuất.";
+
+        if (status === 403) {
+            message =
+                "Bạn không có quyền gửi duyệt lô sản xuất này.";
+        } else if (status === 404) {
+            message =
+                "Không tìm thấy lô sản xuất. Vui lòng tải lại trang.";
+        }
+
+        window.alert(message);
+
+        if (button) {
+            button.disabled = false;
+        }
+    }
+}
+
+/* =====================================================
+   REVIEW PRODUCTION LOT
+   PENDING -> APPROVED hoặc DRAFT
+===================================================== */
+
+async function handleReviewProductionLot(
+    lot,
+    button,
+    approved
+) {
+    const normalizedStatus =
+        String(
+            lot?.status || ""
+        )
+            .trim()
+            .toUpperCase();
+
+    if (normalizedStatus !== "PENDING") {
+        window.alert(
+            "Chỉ có thể xử lý lô đang ở trạng thái PENDING."
+        );
+
+        return;
+    }
+
+    let reason = null;
+
+    if (approved) {
+        const confirmed =
+            window.confirm(
+                `Bạn có chắc muốn duyệt lô "${lot.name || ""}"?`
+            );
+
+        if (!confirmed) {
+            return;
+        }
+    } else {
+        const inputReason =
+            window.prompt(
+                `Nhập lý do trả lại lô "${lot.name || ""}":`
+            );
+
+        if (inputReason === null) {
+            return;
+        }
+
+        reason =
+            inputReason.trim();
+
+        if (!reason) {
+            window.alert(
+                "Vui lòng nhập lý do trả lại lô."
+            );
+
+            return;
+        }
+    }
+
+    const originalText =
+        button?.textContent || "";
+
+    if (button) {
+        button.disabled = true;
+
+        button.textContent =
+            approved
+                ? "Đang duyệt..."
+                : "Đang trả lại...";
+    }
+
+    try {
+        const response =
+            await approveProductionLot(
+                lot.id,
+                approved,
+                reason
+            );
+
+        if (
+            response &&
+            response.success === false
+        ) {
+            throw new Error(
+                response.message ||
+                "Không thể xử lý lô sản xuất."
+            );
+        }
+
+        window.alert(
+            approved
+                ? "Duyệt lô sản xuất thành công."
+                : "Đã trả lô về trạng thái nháp."
+        );
+
+        await loadProductionLots();
+    } catch (error) {
+        console.error(
+            "Review production lot error:",
+            error
+        );
+
+        let message =
+            error.message ||
+            "Không thể xử lý lô sản xuất.";
+
+        if (error.status === 403) {
+            message =
+                "Bạn không có quyền duyệt lô sản xuất này.";
+        } else if (error.status === 404) {
+            message =
+                "Không tìm thấy lô sản xuất. Vui lòng tải lại trang.";
+        }
+
+        window.alert(message);
+
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                originalText;
+        }
+    }
 }
 
 /* =====================================================
