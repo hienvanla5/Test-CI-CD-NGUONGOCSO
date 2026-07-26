@@ -1522,7 +1522,7 @@ if (retryButton) {
 
 const productionLotSearchInput =
     document.getElementById(
-        "productionLotSearchInput"
+        "searchProductionLot"
     );
 
 if (productionLotSearchInput) {

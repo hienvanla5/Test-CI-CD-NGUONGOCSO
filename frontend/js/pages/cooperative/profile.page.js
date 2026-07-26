@@ -25,8 +25,17 @@ if (!user || !user.roleCode) {
     throw new Error("User not authenticated.");
 }
 
-// Roles allowed to edit profile
-const EDIT_ALLOWED_ROLES = ["VT-01", "VT-02"];
+/*
+ * Hồ sơ tổ chức trong khu vực cooperative
+ * chỉ dành cho Quản lý hợp tác xã (VT-02).
+ */
+if (user.roleCode !== "VT-02") {
+    window.location.href =
+        "/frontend/pages/cooperative/production-lots/index.html";
+    throw new Error("Access denied.");
+}
+
+const EDIT_ALLOWED_ROLES = ["VT-02"];
 const canEdit = EDIT_ALLOWED_ROLES.includes(user.roleCode);
 
 // ---- Profile state ----

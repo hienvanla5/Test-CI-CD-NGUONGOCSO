@@ -2,33 +2,32 @@ import {
     apiRequest
 } from "../core/api-client.js";
 
-<<<<<<< HEAD
 /**
  * Tạo một nhật ký canh tác.
  *
+ * Chỉ VT-03 được phép thực hiện.
+ *
  * POST /api/v1/farm-logs
  *
- * @param {Object} farmLogData
- * @returns {Promise<Object>}
+ * @param {Object} requestBody
+ * @returns {Promise<unknown>}
  */
 export async function createFarmLog(
-    farmLogData
-=======
-export async function createFarmLog(
     requestBody
->>>>>>> feature/view-farm-log
 ) {
+    if (
+        !requestBody ||
+        typeof requestBody !== "object"
+    ) {
+        throw new TypeError(
+            "Dữ liệu nhật ký không hợp lệ."
+        );
+    }
+
     return apiRequest(
         "/farm-logs",
         {
             method: "POST",
-<<<<<<< HEAD
-            body: JSON.stringify(
-                farmLogData
-            )
-        }
-    );
-=======
 
             body: JSON.stringify(
                 requestBody
@@ -37,22 +36,57 @@ export async function createFarmLog(
     );
 }
 
+/**
+ * Lấy lịch sử nhật ký của một lô
+ * sản xuất theo phân trang.
+ *
+ * Chỉ VT-02 được phép thực hiện.
+ *
+ * GET /api/v1/farm-logs
+ *
+ * @param {string} productionLotId
+ * @param {number} page Trang bắt đầu từ 0
+ * @param {number} size Số bản ghi mỗi trang
+ * @returns {Promise<unknown>}
+ */
 export async function getFarmLogHistory(
     productionLotId,
     page = 0,
     size = 10
 ) {
-    if (!productionLotId) {
-        throw new Error(
-            "Thiếu productionLotId."
+    const normalizedProductionLotId =
+        String(
+            productionLotId || ""
+        ).trim();
+
+    if (!normalizedProductionLotId) {
+        throw new TypeError(
+            "Thiếu mã lô sản xuất."
         );
     }
 
+    const normalizedPage =
+        Number.isInteger(Number(page)) &&
+        Number(page) >= 0
+            ? Number(page)
+            : 0;
+
+    const normalizedSize =
+        Number.isInteger(Number(size)) &&
+        Number(size) > 0
+            ? Number(size)
+            : 10;
+
     const queryParams =
         new URLSearchParams({
-            productionLotId,
-            page: String(page),
-            size: String(size)
+            productionLotId:
+                normalizedProductionLotId,
+
+            page:
+                String(normalizedPage),
+
+            size:
+                String(normalizedSize)
         });
 
     return apiRequest(
@@ -61,5 +95,4 @@ export async function getFarmLogHistory(
             method: "GET"
         }
     );
->>>>>>> feature/view-farm-log
 }

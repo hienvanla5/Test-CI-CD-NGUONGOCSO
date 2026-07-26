@@ -245,8 +245,134 @@
         width: 100%;
     }
 }
-<<<<<<< HEAD
-/* ===== Inline Input ===== */
+body.modal-open {
+    overflow: hidden;
+}
+
+/* ===== Edit Production Lot Modal ===== */
+
+.modal[hidden] {
+    display: none;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.modal__overlay {
+    position: absolute;
+    inset: 0;
+
+    background: rgb(0 0 0 / 50%);
+}
+
+.modal__content {
+    position: relative;
+
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: var(--color-surface);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 24px 24px 16px;
+
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modal__header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.modal__header p {
+    margin-top: 4px;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
+.modal__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    border: none;
+    background: transparent;
+
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--color-text-muted);
+
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+
+    transition: background var(--transition);
+}
+
+.modal__close:hover {
+    background: var(--color-background);
+    color: var(--color-text);
+}
+
+.modal-message {
+    margin: 16px 24px 0;
+    padding: 10px 14px;
+
+    border-radius: var(--border-radius-sm);
+
+    font-size: 0.9rem;
+}
+
+.modal-message[hidden] {
+    display: none;
+}
+
+#editLotForm {
+    padding: 24px;
+}
+
+.modal-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+
+    margin-bottom: 20px;
+}
+
+.modal-form-grid__full {
+    grid-column: 1 / -1;
+}
+
+.modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+
 
 .inline-input {
     width: 100%;
@@ -356,7 +482,6 @@
     opacity: 0.8;
 }
 
-<<<<<<< HEAD
 .edit-lot-name,
 .edit-farm-area,
 .edit-product-category,
@@ -366,7 +491,7 @@
     padding: 8px;
     border: 1px solid #d5d9dd;
     border-radius: 6px;
-=======
+}
 
 .btn-farm-log {
     display: inline-flex;
@@ -385,8 +510,8 @@
 .production-lots-table th:last-child,
 .production-lots-table td:last-child {
     text-align: center;
->>>>>>> feature/create-farm-log
-=======
+}
+
 /* Modal responsive */
 
 @media (max-width: 640px) {
@@ -442,5 +567,4 @@
     background: #237a35;
     border-color: #237a35;
     color: #ffffff;
->>>>>>> feature/view-farm-log
 }
