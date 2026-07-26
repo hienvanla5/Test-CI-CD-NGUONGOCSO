@@ -11,7 +11,7 @@
         initial-scale=1.0">
 
     <title>
-        Production Lots | Nguồn Gốc Số
+        Lô sản xuất | Nguồn Gốc Số
     </title>
 
     <link
@@ -67,7 +67,7 @@
     id="farmAreasMenu"
     href="/frontend/pages/cooperative/farm-areas/index.html"
 >
-    Farm Areas
+    Vùng trồng
 </a>
 
 <a
@@ -75,14 +75,14 @@
     href="/frontend/pages/cooperative/production-lots/index.html"
     class="active"
 >
-    Production Lots
+    Lô sản xuất
 </a>
 
 <a
     id="organizationProfileMenu"
     href="/frontend/pages/cooperative/profile.html"
 >
-    Organization Profile
+    Hồ sơ tổ chức
 </a>
 
             </nav>
@@ -103,11 +103,11 @@
 
                 <div>
                     <h1>
-                        Production Lots
+                        Lô sản xuất
                     </h1>
 
                     <p class="text-muted">
-                        Manage production lots for your organization.
+                        Quản lý các lô sản xuất của hợp tác xã.
                     </p>
                 </div>
 
@@ -124,7 +124,7 @@
                         id="logoutButton"
                         class="btn btn-secondary">
 
-                        Logout
+                        Đăng xuất
 
                     </button>
 
@@ -142,7 +142,7 @@
                             <path d="M12 6v6l4 2" />
                         </svg>
                     </div>
-                    <p class="state-text">Loading production lots...</p>
+                    <p class="state-text">Đang tải danh sách lô sản xuất...</p>
                 </div>
 
                 <!-- Error State -->
@@ -154,8 +154,8 @@
                             <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                     </div>
-                    <p id="errorMessage" class="state-text state-error-text">An error occurred.</p>
-                    <button id="retryButton" class="btn btn-secondary">Retry</button>
+                    <p id="errorMessage" class="state-text state-error-text">Đã xảy ra lỗi.</p>
+                    <button id="retryButton" class="btn btn-secondary">Thử lại</button>
                 </div>
 
                 <!-- Unauthorized State -->
@@ -166,26 +166,26 @@
                             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                         </svg>
                     </div>
-                    <p class="state-text state-error-text">You do not have permission to access this page.</p>
-                    <a href="/frontend/pages/auth/login.html" class="btn btn-secondary">Back to Login</a>
+                    <p class="state-text state-error-text">Bạn không có quyền truy cập trang này.</p>
+                    <a href="/frontend/pages/auth/login.html" class="btn btn-secondary">Quay lại đăng nhập</a>
                 </div>
 
                 <!-- Main Content -->
                 <div id="mainContent" style="display: none;">
 
                     <div class="production-lots-header">
-                        <h2>All Production Lots</h2>
+                        <h2>Danh sách lô sản xuất</h2>
                         <div class="production-lots-header-actions">
                             <input
                                 type="text"
                                 id="searchProductionLot"
                                 class="search-input"
-                                placeholder="Search production lot...">
+                                placeholder="Tìm kiếm lô sản xuất...">
 
                             <a
                                 href="/frontend/pages/cooperative/production-lots/create.html"
                                 class="btn btn-primary production-lot-create-button">
-                                + New
+                                + Tạo lô mới
                             </a>
                         </div>
                     </div>
@@ -202,13 +202,13 @@
                                     <line x1="9" y1="15" x2="15" y2="15" />
                                 </svg>
                             </div>
-                            <p class="empty-state-text">No production lots yet</p>
-                            <p class="empty-state-hint">Create your first production lot to get started.</p>
+                            <p class="empty-state-text">Chưa có lô sản xuất</p>
+                            <p class="empty-state-hint">Hãy tạo lô sản xuất đầu tiên để bắt đầu.</p>
                             <a
     href="/frontend/pages/cooperative/production-lots/create.html"
     class="btn btn-primary production-lot-create-button"
 >
-    + New Production Lot
+    + Tạo lô sản xuất
 </a>
                         </div>
 
@@ -217,14 +217,14 @@
                             <table id="productionLotsTable" class="production-lots-table" style="display: none;">
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
-                                        <th>Farm Area</th>
-                                        <th>Product Category</th>
-                                        <th>Expected Qty</th>
-                                        <th>Planting Date</th>
-                                        <th>Status</th>
-                                        <th>Created</th>
-                                        <th>Actions</th>
+                                        <th>Tên lô</th>
+                                        <th>Vùng trồng</th>
+                                        <th>Loại nông sản</th>
+                                        <th>Sản lượng dự kiến</th>
+                                        <th>Ngày gieo trồng</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody id="productionLotsTableBody">

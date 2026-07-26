@@ -10,6 +10,7 @@ import {
 import {
     getProductionLots,
     submitProductionLot,
+    approveProductionLot,
     updateProductionLot,
     getFarmAreas,
     getProductCategories
@@ -585,12 +586,60 @@ function createAttachmentButton(lot) {
         lot.id;
 
     attachmentButton.textContent =
-        "Attachment";
+        "Chứng từ";
 
     attachmentButton.title =
         "Quản lý tệp đính kèm của lô sản xuất";
 
     return attachmentButton;
+}
+
+function createApproveButton(lot) {
+    const button =
+        document.createElement(
+            "button"
+        );
+
+    button.type =
+        "button";
+
+    button.className =
+        "btn btn-approve-lot";
+
+    button.dataset.id =
+        lot.id;
+
+    button.textContent =
+        "Duyệt";
+
+    button.title =
+        "Duyệt lô sản xuất";
+
+    return button;
+}
+
+function createRejectButton(lot) {
+    const button =
+        document.createElement(
+            "button"
+        );
+
+    button.type =
+        "button";
+
+    button.className =
+        "btn btn-reject-lot";
+
+    button.dataset.id =
+        lot.id;
+
+    button.textContent =
+        "Trả lại";
+
+    button.title =
+        "Trả lô về trạng thái nháp";
+
+    return button;
 }
 
 function renderActionButtons(
@@ -609,6 +658,16 @@ function renderActionButtons(
                 lot,
                 normalizedStatus
             )
+        );
+    }
+
+    if (normalizedStatus === "PENDING") {
+        actionCell.appendChild(
+            createApproveButton(lot)
+        );
+
+        actionCell.appendChild(
+            createRejectButton(lot)
         );
     }
 
@@ -1671,7 +1730,39 @@ if (productionLotsTableBody) {
 
                 return;
             }
+            /*
+ * Duyệt lô PENDING -> APPROVED
+ */
+if (
+    button.classList.contains(
+        "btn-approve-lot"
+    )
+) {
+    handleReviewProductionLot(
+        lot,
+        button,
+        true
+    );
 
+    return;
+}
+
+/*
+ * Trả lô PENDING -> DRAFT
+ */
+if (
+    button.classList.contains(
+        "btn-reject-lot"
+    )
+) {
+    handleReviewProductionLot(
+        lot,
+        button,
+        false
+    );
+
+    return;
+}
             /*
              * Nút quản lý tệp đính kèm
              */
@@ -1763,6 +1854,129 @@ async function handleSubmitProductionLot(
 
         if (button) {
             button.disabled = false;
+        }
+    }
+}
+
+/* =====================================================
+   REVIEW PRODUCTION LOT
+   PENDING -> APPROVED hoặc DRAFT
+===================================================== */
+
+async function handleReviewProductionLot(
+    lot,
+    button,
+    approved
+) {
+    const normalizedStatus =
+        String(
+            lot?.status || ""
+        )
+            .trim()
+            .toUpperCase();
+
+    if (normalizedStatus !== "PENDING") {
+        window.alert(
+            "Chỉ có thể xử lý lô đang ở trạng thái PENDING."
+        );
+
+        return;
+    }
+
+    let reason = null;
+
+    if (approved) {
+        const confirmed =
+            window.confirm(
+                `Bạn có chắc muốn duyệt lô "${lot.name || ""}"?`
+            );
+
+        if (!confirmed) {
+            return;
+        }
+    } else {
+        const inputReason =
+            window.prompt(
+                `Nhập lý do trả lại lô "${lot.name || ""}":`
+            );
+
+        if (inputReason === null) {
+            return;
+        }
+
+        reason =
+            inputReason.trim();
+
+        if (!reason) {
+            window.alert(
+                "Vui lòng nhập lý do trả lại lô."
+            );
+
+            return;
+        }
+    }
+
+    const originalText =
+        button?.textContent || "";
+
+    if (button) {
+        button.disabled = true;
+
+        button.textContent =
+            approved
+                ? "Đang duyệt..."
+                : "Đang trả lại...";
+    }
+
+    try {
+        const response =
+            await approveProductionLot(
+                lot.id,
+                approved,
+                reason
+            );
+
+        if (
+            response &&
+            response.success === false
+        ) {
+            throw new Error(
+                response.message ||
+                "Không thể xử lý lô sản xuất."
+            );
+        }
+
+        window.alert(
+            approved
+                ? "Duyệt lô sản xuất thành công."
+                : "Đã trả lô về trạng thái nháp."
+        );
+
+        await loadProductionLots();
+    } catch (error) {
+        console.error(
+            "Review production lot error:",
+            error
+        );
+
+        let message =
+            error.message ||
+            "Không thể xử lý lô sản xuất.";
+
+        if (error.status === 403) {
+            message =
+                "Bạn không có quyền duyệt lô sản xuất này.";
+        } else if (error.status === 404) {
+            message =
+                "Không tìm thấy lô sản xuất. Vui lòng tải lại trang.";
+        }
+
+        window.alert(message);
+
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                originalText;
         }
     }
 }

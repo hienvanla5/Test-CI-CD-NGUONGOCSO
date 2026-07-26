@@ -11,7 +11,7 @@
         initial-scale=1.0">
 
     <title>
-        Organization Profile | Nguồn Gốc Số
+        Hồ sơ tổ chức | Nguồn Gốc Số
     </title>
 
     <link
@@ -76,11 +76,11 @@
 
                 <div>
                     <h1>
-                        Organization Profile
+                        Hồ sơ tổ chức
                     </h1>
 
                     <p class="text-muted">
-                        View and manage your organization profile information.
+                        Xem và quản lý thông tin hồ sơ của tổ chức.
                     </p>
                 </div>
 
@@ -97,7 +97,7 @@
                         id="logoutButton"
                         class="btn btn-secondary">
 
-                        Logout
+                        Đăng xuất
 
                     </button>
 
@@ -115,7 +115,7 @@
                             <path d="M12 6v6l4 2" />
                         </svg>
                     </div>
-                    <p class="state-text">Loading organization profile...</p>
+                    <p class="state-text">Đang tải hồ sơ tổ chức...</p>
                 </div>
 
                 <!-- Error State -->
@@ -127,8 +127,8 @@
                             <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                     </div>
-                    <p id="errorMessage" class="state-text state-error-text">An error occurred while loading the profile.</p>
-                    <button id="retryButton" class="btn btn-secondary">Retry</button>
+                    <p id="errorMessage" class="state-text state-error-text">Đã xảy ra lỗi khi tải hồ sơ tổ chức.</p>
+                    <button id="retryButton" class="btn btn-secondary">Thử lại</button>
                 </div>
 
                 <!-- Main Content -->
@@ -150,42 +150,42 @@
                                 id="editProfileButton"
                                 class="btn btn-primary profile-edit-btn"
                                 style="display: none;">
-                                Edit Profile
+                                Chỉnh sửa hồ sơ
                             </button>
                         </div>
 
                         <!-- View Mode -->
                         <div id="viewMode" class="profile-body">
 
-                            <div class="profile-section-title">Profile Information</div>
+                            <div class="profile-section-title">Thông tin hồ sơ</div>
 
                             <div class="profile-info-grid">
                                 <div class="profile-info-item">
-                                    <span class="profile-info-label">Organization ID</span>
+                                    <span class="profile-info-label">ID tổ chức</span>
                                     <span class="profile-info-value" id="viewOrgId">—</span>
                                 </div>
                                 <div class="profile-info-item">
-                                    <span class="profile-info-label">Organization Name</span>
+                                    <span class="profile-info-label">Tên tổ chức</span>
                                     <span class="profile-info-value" id="viewOrgName">—</span>
                                 </div>
                                 <div class="profile-info-item">
-                                    <span class="profile-info-label">Organization Code</span>
+                                    <span class="profile-info-label">Mã tổ chức</span>
                                     <span class="profile-info-value" id="viewOrgCode">—</span>
                                 </div>
                                 <div class="profile-info-item">
-                                    <span class="profile-info-label">Organization Type</span>
+                                    <span class="profile-info-label">Loại hình tổ chức</span>
                                     <span class="profile-info-value" id="viewOrgType">—</span>
                                 </div>
                                 <div class="profile-info-item">
-                                    <span class="profile-info-label">Status</span>
+                                    <span class="profile-info-label">Trạng thái</span>
                                     <span class="profile-info-value" id="viewOrgStatus">—</span>
                                 </div>
                                 <div class="profile-info-item">
-                                    <span class="profile-info-label">Address</span>
+                                    <span class="profile-info-label">Địa chỉ</span>
                                     <span class="profile-info-value" id="viewOrgAddress">—</span>
                                 </div>
                                 <div class="profile-info-item">
-                                    <span class="profile-info-label">Phone</span>
+                                    <span class="profile-info-label">Số điện thoại</span>
                                     <span class="profile-info-value" id="viewOrgPhone">—</span>
                                 </div>
                                 <div class="profile-info-item">
@@ -193,11 +193,11 @@
                                     <span class="profile-info-value" id="viewOrgEmail">—</span>
                                 </div>
                                 <div class="profile-info-item">
-                                    <span class="profile-info-label">Created At</span>
+                                    <span class="profile-info-label">Ngày tạo</span>
                                     <span class="profile-info-value" id="viewCreatedAt">—</span>
                                 </div>
                                 <div class="profile-info-item">
-                                    <span class="profile-info-label">Last Updated At</span>
+                                    <span class="profile-info-label">Cập nhật lần cuối</span>
                                     <span class="profile-info-value" id="viewUpdatedAt">—</span>
                                 </div>
                             </div>
@@ -207,34 +207,34 @@
                         <!-- Edit Mode -->
                         <div id="editMode" class="profile-body" style="display: none;">
 
-                            <div class="profile-section-title">Edit Profile Information</div>
+                            <div class="profile-section-title">Chỉnh sửa thông tin hồ sơ</div>
 
                             <form id="profileForm" novalidate>
 
                                 <div class="profile-form-grid">
 
                                     <div class="form-group form-group-readonly">
-                                        <label>Organization ID</label>
+                                        <label>ID tổ chức</label>
                                         <input type="text" id="editOrgId" readonly disabled />
                                     </div>
 
                                     <div class="form-group form-group-readonly">
-                                        <label>Organization Code</label>
+                                        <label>Mã tổ chức</label>
                                         <input type="text" id="editOrgCode" readonly disabled />
                                     </div>
 
                                     <div class="form-group form-group-readonly">
-                                        <label>Organization Type</label>
+                                        <label>Loại hình tổ chức</label>
                                         <input type="text" id="editOrgType" readonly disabled />
                                     </div>
 
                                     <div class="form-group form-group-readonly">
-                                        <label>Status</label>
+                                        <label>Trạng thái</label>
                                         <input type="text" id="editOrgStatus" readonly disabled />
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="editName">Organization Name <span class="required">*</span></label>
+                                        <label for="editName">Tên tổ chức <span class="required">*</span></label>
                                         <input
                                             type="text"
                                             id="editName"
@@ -246,7 +246,7 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="editAddress">Address</label>
+                                        <label for="editAddress">Địa chỉ</label>
                                         <input
                                             type="text"
                                             id="editAddress"
@@ -257,13 +257,13 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="editPhone">Phone</label>
+                                        <label for="editPhone">Số điện thoại</label>
                                         <input
                                             type="tel"
                                             id="editPhone"
                                             name="phone"
                                             maxlength="11"
-                                            placeholder="e.g., 0912345678"
+                                            placeholder="Ví dụ: 0912345678"
                                         />
                                         <small id="editPhoneError" class="field-error"></small>
                                     </div>
@@ -275,18 +275,18 @@
                                             id="editEmail"
                                             name="email"
                                             maxlength="255"
-                                            placeholder="e.g., contact@example.com"
+                                            placeholder="Ví dụ: contact@example.com"
                                         />
                                         <small id="editEmailError" class="field-error"></small>
                                     </div>
 
                                     <div class="form-group form-group-readonly">
-                                        <label>Created At</label>
+                                        <label>Ngày tạo</label>
                                         <input type="text" id="editCreatedAt" readonly disabled />
                                     </div>
 
                                     <div class="form-group form-group-readonly">
-                                        <label>Last Updated At</label>
+                                        <label>Cập nhật lần cuối</label>
                                         <input type="text" id="editUpdatedAt" readonly disabled />
                                     </div>
 
@@ -296,10 +296,10 @@
 
                                 <div class="profile-form-actions">
                                     <button type="button" class="btn btn-secondary" id="cancelButton">
-                                        Cancel
+                                        Hủy
                                     </button>
                                     <button type="submit" class="btn btn-primary" id="saveButton">
-                                        Save Changes
+                                        Lưu thay đổi
                                     </button>
                                 </div>
 

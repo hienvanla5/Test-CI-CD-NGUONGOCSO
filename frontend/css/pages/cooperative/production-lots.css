@@ -445,6 +445,7 @@ body.modal-open {
 }
 
 .production-lot-actions .btn {
+    width: auto;
     min-width: max-content;
 }
 
@@ -453,7 +454,9 @@ body.modal-open {
 .btn-edit-lot,
 .btn-history-lot,
 .btn-attachment-lot,
-.btn-create-farm-log {
+.btn-create-farm-log,
+.btn-approve-lot,
+.btn-reject-lot {
     height: 34px;
 
     padding: 0 14px;
@@ -556,4 +559,32 @@ body.modal-open {
     background: #237a35;
     border-color: #237a35;
     color: #ffffff;
+}
+
+.btn-approve-lot {
+    background: #237a35;
+    border: 1px solid #237a35;
+    color: #ffffff;
+}
+
+.btn-approve-lot:hover:not(:disabled) {
+    background: #1c672b;
+    border-color: #1c672b;
+}
+
+.btn-reject-lot {
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    color: #c2410c;
+}
+
+.btn-reject-lot:hover:not(:disabled) {
+    background: #ffedd5;
+    border-color: #fb923c;
+}
+
+.btn-approve-lot:disabled,
+.btn-reject-lot:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
 }
