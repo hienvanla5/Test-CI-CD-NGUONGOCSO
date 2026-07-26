@@ -1,0 +1,27 @@
+body {
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background-color:
+        var(--color-background);
+
+    color:
+        var(--color-text);
+}
+
+button,
+input {
+    outline: none;
+}
+
+a {
+    color:
+        inherit;
+
+    text-decoration: none;
+}
