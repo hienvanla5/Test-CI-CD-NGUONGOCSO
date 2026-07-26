@@ -8,7 +8,8 @@ import {
 } from "../../../core/storage.js";
 
 import {
-    getProductionLots
+    getProductionLots,
+    submitProductionLot
 } from "../../../services/production-lot.service.js";
 
 /* =====================================================
@@ -783,17 +784,23 @@ function renderProductionLots(lots) {
                 "td"
             );
 
-        const statusBadge =
-            document.createElement(
-                "span"
-            );
-
         const normalizedStatus =
             String(
                 lot.status || "DRAFT"
             )
                 .trim()
                 .toUpperCase();
+
+        const canSubmitFromDraft =
+            roleCode === "VT-02" &&
+            normalizedStatus === "DRAFT";
+
+        const statusBadge =
+            document.createElement(
+                canSubmitFromDraft
+                    ? "button"
+                    : "span"
+            );
 
         statusBadge.className =
             "status-badge " +
@@ -803,6 +810,22 @@ function renderProductionLots(lots) {
 
         statusBadge.textContent =
             normalizedStatus;
+
+        if (canSubmitFromDraft) {
+            statusBadge.type =
+                "button";
+
+            statusBadge.classList.add(
+                "status-badge--clickable",
+                "btn-submit-lot"
+            );
+
+            statusBadge.dataset.id =
+                lot.id;
+
+            statusBadge.title =
+                "Bấm để gửi duyệt lô này (DRAFT → PENDING)";
+        }
 
         statusCell.appendChild(
             statusBadge
@@ -1445,6 +1468,22 @@ if (productionLotsTableBody) {
             }
 
             /*
+             * Nút gửi duyệt lô (DRAFT -> PENDING)
+             */
+            if (
+                button.classList.contains(
+                    "btn-submit-lot"
+                )
+            ) {
+                handleSubmitProductionLot(
+                    lot,
+                    button
+                );
+
+                return;
+            }
+
+            /*
              * Nút quản lý tệp đính kèm
              */
             if (
@@ -1458,6 +1497,85 @@ if (productionLotsTableBody) {
 }
         }
     );
+}
+
+/* =====================================================
+   SUBMIT PRODUCTION LOT (DRAFT -> PENDING)
+===================================================== */
+
+async function handleSubmitProductionLot(
+    lot,
+    button
+) {
+    const confirmed =
+        window.confirm(
+            `Gửi duyệt lô "${lot.name || ""}"? ` +
+            "Sau khi gửi, lô sẽ chuyển sang trạng thái Chờ duyệt " +
+            "và không thể chỉnh sửa cho đến khi được xử lý."
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    if (button) {
+        button.disabled = true;
+    }
+
+    try {
+        const response =
+            await submitProductionLot(
+                lot.id
+            );
+
+        if (
+            response &&
+            response.success === false
+        ) {
+            throw new Error(
+                response.message ||
+                "Không thể gửi duyệt lô sản xuất."
+            );
+        }
+
+        window.alert(
+            "Đã gửi duyệt lô sản xuất thành công."
+        );
+
+        await loadProductionLots();
+    } catch (error) {
+        console.error(
+            "Submit production lot error:",
+            error
+        );
+
+        /*
+         * Các mã lỗi theo API docs:
+         * 400 - Lô không ở trạng thái DRAFT
+         * 400 - Thiếu thông tin bắt buộc (vùng trồng, sản lượng)
+         * 403 - Không có quyền
+         * 404 - Không tìm thấy lô
+         */
+        const status = error.status;
+
+        let message =
+            error.message ||
+            "Không thể gửi duyệt lô sản xuất.";
+
+        if (status === 403) {
+            message =
+                "Bạn không có quyền gửi duyệt lô sản xuất này.";
+        } else if (status === 404) {
+            message =
+                "Không tìm thấy lô sản xuất. Vui lòng tải lại trang.";
+        }
+
+        window.alert(message);
+
+        if (button) {
+            button.disabled = false;
+        }
+    }
 }
 
 /* =====================================================

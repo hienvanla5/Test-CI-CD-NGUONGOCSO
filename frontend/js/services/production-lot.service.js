@@ -60,3 +60,23 @@ export async function getProductionLots() {
         }
     );
 }
+
+/**
+ * Gửi duyệt lô sản xuất (DRAFT -> PENDING).
+ *
+ * POST /api/v1/production-lots/{id}/submit
+ *
+ * Lỗi thường gặp (theo API docs):
+ * - 400: Lô không ở trạng thái DRAFT
+ * - 400: Thiếu thông tin bắt buộc (vùng trồng, sản lượng)
+ * - 403: Không có quyền
+ * - 404: Không tìm thấy lô
+ */
+export async function submitProductionLot(id) {
+    return apiRequest(
+        `/production-lots/${id}/submit`,
+        {
+            method: "POST"
+        }
+    );
+}

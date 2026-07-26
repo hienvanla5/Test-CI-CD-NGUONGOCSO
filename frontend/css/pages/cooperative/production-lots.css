@@ -552,6 +552,49 @@ body.modal-open {
     min-width: max-content;
 }
 
+/* Common sizing for the row action buttons (Sửa / Lịch sử / Attachment)
+   so they line up consistently regardless of which combination renders. */
+.btn-edit-lot,
+.btn-history-lot,
+.btn-attachment-lot,
+.btn-create-farm-log {
+    height: 34px;
+
+    padding: 0 14px;
+
+    border-radius: var(--border-radius-sm);
+
+    font-size: 0.82rem;
+    font-weight: 600;
+
+    transition:
+        background var(--transition),
+        border-color var(--transition),
+        box-shadow var(--transition),
+        transform var(--transition);
+}
+
+/* "Sửa" — outlined neutral style; previously relied on the
+   non-existent .btn-secondary class and rendered unstyled. */
+.btn-edit-lot {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.btn-edit-lot:hover:not(:disabled) {
+    background: var(--color-background);
+    border-color: #9ca3af;
+}
+
+.btn-edit-lot:disabled {
+    background: #f3f4f6;
+    border-color: var(--color-border);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+}
+
+/* "Lịch sử" — solid green, kept but softened with a subtle hover lift. */
 .btn-history-lot {
     background: #237a35;
     border-color: #237a35;
@@ -561,6 +604,56 @@ body.modal-open {
 .btn-history-lot:hover:not(:disabled) {
     background: #1c672b;
     border-color: #1c672b;
+    box-shadow: 0 4px 10px rgb(35 122 53 / 25%);
+    transform: translateY(-1px);
+}
+
+/* "Attachment" — outlined blue to read as a secondary/document action,
+   distinct from the neutral "Sửa" and the solid green "Lịch sử". */
+.btn-attachment-lot {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+}
+
+.btn-attachment-lot:hover:not(:disabled) {
+    background: #dbeafe;
+    border-color: #93c5fd;
+}
+
+/* Status badge as a button — used only for the DRAFT badge when the
+   current user (VT-02) can submit the lot for approval. Resets the
+   browser's default <button> chrome so it still looks like a badge,
+   just interactive. */
+.status-badge--clickable {
+    border: none;
+    cursor: pointer;
+
+    font-family: inherit;
+
+    transition:
+        background var(--transition),
+        box-shadow var(--transition),
+        transform var(--transition);
+}
+
+.status-badge--clickable:hover:not(:disabled) {
+    background: #e5e7eb;
+    box-shadow: 0 0 0 2px #d1d5db;
+}
+
+.status-badge--clickable:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.status-badge--clickable:focus-visible {
+    outline: 2px solid #6b7280;
+    outline-offset: 2px;
+}
+
+.status-badge--clickable:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .btn-create-farm-log {
