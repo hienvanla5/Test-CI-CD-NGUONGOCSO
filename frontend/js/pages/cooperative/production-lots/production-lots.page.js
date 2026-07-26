@@ -9,7 +9,10 @@ import {
 
 import {
     getProductionLots,
-    submitProductionLot
+    submitProductionLot,
+    updateProductionLot,
+    getFarmAreas,
+    getProductCategories
 } from "../../../services/production-lot.service.js";
 
 /* =====================================================
@@ -258,6 +261,11 @@ const editLotMessage =
         "editLotMessage"
     );
 
+const updateEditLotButton =
+    document.getElementById(
+        "updateEditLotButton"
+    );
+
 const editFields = {
     id:
         document.getElementById(
@@ -307,28 +315,6 @@ const USE_MOCK_DATA = false;
  * Khi tích hợp hoàn chỉnh có thể thay bằng API vùng trồng
  * và API danh mục nông sản.
  */
-const mockFarmAreas = [
-    {
-        id: "farm-001",
-        name: "Khu vực canh tác A1"
-    },
-    {
-        id: "farm-002",
-        name: "Khu vực canh tác B1"
-    }
-];
-
-const mockProductCategories = [
-    {
-        id: "category-001",
-        name: "Cà chua"
-    },
-    {
-        id: "category-002",
-        name: "Xoài Cát Chu"
-    }
-];
-
 /* =====================================================
    FORMAT HELPERS
 ===================================================== */
@@ -950,18 +936,94 @@ function fillSelect(
     });
 }
 
-function loadEditSelectOptions() {
-    fillSelect(
-        editFields.farmAreaId,
-        mockFarmAreas,
-        "-- Chọn khu vực canh tác --"
-    );
+async function loadEditSelectOptions(
+    selectedFarmAreaId,
+    selectedProductCategoryId
+) {
+    if (editFields.farmAreaId) {
+        editFields.farmAreaId.innerHTML =
+            "<option value=\"\">Đang tải...</option>";
 
-    fillSelect(
-        editFields.productCategoryId,
-        mockProductCategories,
-        "-- Chọn loại nông sản --"
-    );
+        editFields.farmAreaId.disabled =
+            true;
+    }
+
+    if (editFields.productCategoryId) {
+        editFields.productCategoryId.innerHTML =
+            "<option value=\"\">Đang tải...</option>";
+
+        editFields.productCategoryId.disabled =
+            true;
+    }
+
+    try {
+        const [
+            farmAreaResponse,
+            productCategoryResponse
+        ] = await Promise.all([
+            getFarmAreas(),
+            getProductCategories()
+        ]);
+
+        const farmAreas =
+            (farmAreaResponse &&
+                farmAreaResponse.data) ||
+            [];
+
+        const productCategories =
+            (productCategoryResponse &&
+                productCategoryResponse.data) ||
+            [];
+
+        fillSelect(
+            editFields.farmAreaId,
+            farmAreas,
+            "-- Chọn khu vực canh tác --"
+        );
+
+        fillSelect(
+            editFields.productCategoryId,
+            productCategories,
+            "-- Chọn loại nông sản --"
+        );
+    } catch (error) {
+        console.error(
+            "Load farm areas / product categories error:",
+            error
+        );
+
+        if (editFields.farmAreaId) {
+            editFields.farmAreaId.innerHTML =
+                "<option value=\"\">Không thể tải dữ liệu</option>";
+        }
+
+        if (editFields.productCategoryId) {
+            editFields.productCategoryId.innerHTML =
+                "<option value=\"\">Không thể tải dữ liệu</option>";
+        }
+
+        return;
+    } finally {
+        if (editFields.farmAreaId) {
+            editFields.farmAreaId.disabled =
+                false;
+        }
+
+        if (editFields.productCategoryId) {
+            editFields.productCategoryId.disabled =
+                false;
+        }
+    }
+
+    if (editFields.farmAreaId) {
+        editFields.farmAreaId.value =
+            selectedFarmAreaId || "";
+    }
+
+    if (editFields.productCategoryId) {
+        editFields.productCategoryId.value =
+            selectedProductCategoryId || "";
+    }
 }
 
 /* =====================================================
@@ -985,8 +1047,6 @@ function openEditLotModal(lotId) {
         return;
     }
 
-    loadEditSelectOptions();
-
     if (editFields.id) {
         editFields.id.value =
             lot.id || "";
@@ -997,18 +1057,10 @@ function openEditLotModal(lotId) {
             lot.name || "";
     }
 
-    if (editFields.farmAreaId) {
-        editFields.farmAreaId.value =
-            lot.farmAreaId || "";
-    }
-
-    if (
-        editFields.productCategoryId
-    ) {
-        editFields.productCategoryId.value =
-            lot.productCategoryId ||
-            "";
-    }
+    loadEditSelectOptions(
+        lot.farmAreaId,
+        lot.productCategoryId
+    );
 
     if (
         editFields.expectedQuantity
@@ -1063,7 +1115,7 @@ function closeEditLotModal() {
  * chỉ tạo payload và in ra Console,
  * chưa gọi API PUT cập nhật lô.
  */
-function handleEditLotSubmit(event) {
+async function handleEditLotSubmit(event) {
     event.preventDefault();
 
     const lotId =
@@ -1071,68 +1123,205 @@ function handleEditLotSubmit(event) {
             ? editFields.id.value
             : "";
 
-    const payload = {
-        farmAreaId:
-            editFields.farmAreaId
-                ? editFields
-                    .farmAreaId
-                    .value
-                : "",
+    const name =
+        editFields.name
+            ? editFields
+                .name
+                .value
+                .trim()
+            : "";
 
-        productCategoryId:
-            editFields
+    const farmAreaId =
+        editFields.farmAreaId
+            ? editFields
+                .farmAreaId
+                .value
+            : "";
+
+    const productCategoryId =
+        editFields
+            .productCategoryId
+            ? editFields
                 .productCategoryId
-                ? editFields
-                    .productCategoryId
+                .value
+            : "";
+
+    const expectedQuantity =
+        editFields
+            .expectedQuantity
+            ? Number(
+                editFields
+                    .expectedQuantity
                     .value
-                : "",
+            )
+            : 0;
 
-        name:
-            editFields.name
-                ? editFields
-                    .name
-                    .value
-                    .trim()
-                : "",
-
-        expectedQuantity:
-            editFields
-                .expectedQuantity
-                ? Number(
-                    editFields
-                        .expectedQuantity
-                        .value
-                )
-                : 0,
-
-        plantingDate:
-            editFields
+    const plantingDate =
+        editFields
+            .plantingDate
+            ? editFields
                 .plantingDate
-                ? editFields
-                    .plantingDate
-                    .value
-                : ""
+                .value
+            : "";
+
+    /*
+     * Validate cơ bản ở phía client, khớp với các ràng buộc
+     * @NotBlank / @NotNull / @Positive của UpdateProductionLotRequest
+     * ở backend — giúp báo lỗi ngay tại chỗ thay vì chờ round-trip API.
+     */
+    if (!lotId) {
+        showEditLotMessage(
+            "Không xác định được lô sản xuất cần cập nhật.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!name) {
+        showEditLotMessage(
+            "Tên lô không được để trống.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!farmAreaId) {
+        showEditLotMessage(
+            "Vui lòng chọn khu vực canh tác.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!productCategoryId) {
+        showEditLotMessage(
+            "Vui lòng chọn loại nông sản.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        !expectedQuantity ||
+        expectedQuantity <= 0 ||
+        Number.isNaN(
+            expectedQuantity
+        )
+    ) {
+        showEditLotMessage(
+            "Sản lượng dự kiến phải lớn hơn 0.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!plantingDate) {
+        showEditLotMessage(
+            "Ngày xuống giống không được để trống.",
+            "error"
+        );
+
+        return;
+    }
+
+    const payload = {
+        name: name,
+        farmAreaId: farmAreaId,
+        productCategoryId: productCategoryId,
+        expectedQuantity: expectedQuantity,
+        plantingDate: plantingDate
     };
 
-    console.log(
-        `PUT /api/v1/production-lots/${lotId}`
-    );
-
-    console.log(
-        "Update payload:",
-        payload
-    );
-
-    if (editLotMessage) {
-        editLotMessage.textContent =
-            "Giao diện đã sẵn sàng. Dữ liệu cập nhật đã được tạo trong Console.";
-
-        editLotMessage.className =
-            "modal-message success";
-
-        editLotMessage.hidden =
-            false;
+    if (updateEditLotButton) {
+        updateEditLotButton.disabled = true;
     }
+
+    try {
+        const response =
+            await updateProductionLot(
+                lotId,
+                payload
+            );
+
+        if (
+            response &&
+            response.success === false
+        ) {
+            throw new Error(
+                response.message ||
+                "Không thể cập nhật lô sản xuất."
+            );
+        }
+
+        showEditLotMessage(
+            "Cập nhật lô sản xuất thành công.",
+            "success"
+        );
+
+        await loadProductionLots();
+
+        closeEditLotModal();
+    } catch (error) {
+        console.error(
+            "Update production lot error:",
+            error
+        );
+
+        /*
+         * Các mã lỗi theo ProductionLotServiceImpl.updateProductionLot:
+         * 400 - Lô không ở trạng thái DRAFT / dữ liệu không hợp lệ
+         * 403 - Không có quyền / lô không thuộc tổ chức của bạn
+         * 404 - Không tìm thấy lô
+         */
+        const status = error.status;
+
+        let message =
+            error.message ||
+            "Không thể cập nhật lô sản xuất.";
+
+        if (status === 403) {
+            message =
+                "Bạn không có quyền chỉnh sửa lô sản xuất này.";
+        } else if (status === 404) {
+            message =
+                "Không tìm thấy lô sản xuất. Vui lòng tải lại trang.";
+        }
+
+        showEditLotMessage(
+            message,
+            "error"
+        );
+    } finally {
+        if (updateEditLotButton) {
+            updateEditLotButton.disabled = false;
+        }
+    }
+}
+
+function showEditLotMessage(
+    text,
+    type
+) {
+    if (!editLotMessage) {
+        return;
+    }
+
+    editLotMessage.textContent =
+        text;
+
+    editLotMessage.className =
+        "modal-message " +
+        (type === "success"
+            ? "success"
+            : "error");
+
+    editLotMessage.hidden =
+        false;
 }
 
 /* =====================================================

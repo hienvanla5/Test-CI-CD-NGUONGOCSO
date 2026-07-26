@@ -22,8 +22,26 @@
 
 .production-lots-header-actions {
     display: flex;
+    align-items: center;
 
     gap: 12px;
+}
+
+/* "+ New" button — override .btn-primary's full-width/48px default
+   (meant for full-width form buttons) so it sits at a normal size
+   next to the 40px-tall search input instead of towering over it. */
+.production-lot-create-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: auto;
+    height: 40px;
+
+    padding: 0 18px;
+
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* List card */
@@ -350,6 +368,18 @@ body.modal-open {
     display: none;
 }
 
+.modal-message.success {
+    background: #d1fae5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.modal-message.error {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
 #editLotForm {
     padding: 24px;
 }
@@ -372,140 +402,6 @@ body.modal-open {
     gap: 12px;
 }
 
-
-
-.inline-input {
-    width: 100%;
-    padding: 8px 10px;
-
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-
-    font-size: 14px;
-    background: #fff;
-}
-
-.inline-input:focus {
-    outline: none;
-
-    border-color: #3b82f6;
-
-    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
-}
-/* ===== Status Dropdown ===== */
-
-.inline-status{
-    appearance:none !important;
-    -webkit-appearance:none !important;
-    -moz-appearance:none !important;
-
-    background:#60A5FA !important;
-    color:#fff !important;
-
-    border:none !important;
-    outline:none;
-
-    border-radius:8px;
-
-    min-width:80px;
-    height:34px;
-    padding:0 14px;
-
-    font-weight:600;
-
-    cursor:pointer;
-}
-.inline-status:hover{
-
-    background:#3B82F6;
-
-    transform:translateY(-1px);
-
-    box-shadow:0 4px 12px rgba(59,130,246,.25);
-}
-.inline-status:active{
-
-    background:#2563EB;
-
-    transform:scale(.98);
-}
-.inline-status:focus{
-
-    outline:none;
-
-    box-shadow:0 0 0 3px rgba(59,130,246,.25);
-}
-.inline-status::-ms-expand{
-    display:none;
-}
-/* ===== Action Buttons ===== */
-
-.action-buttons{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    white-space:nowrap;
-}
-
-.action-buttons .btn{
-    margin:0;
-}
-
-.btn-sm{
-    min-width:72px;
-    height:36px;
-
-    padding:0 16px;
-
-    border-radius:8px;
-
-    font-size:14px;
-    font-weight:600;
-}
-
-.btn-save,
-.btn-edit,
-.btn-cancel,
-.status-button {
-    cursor: pointer;
-}
-
-.btn-save,
-.btn-edit,
-.btn-cancel {
-    margin-right: 8px;
-}
-
-.status-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.8;
-}
-
-.edit-lot-name,
-.edit-farm-area,
-.edit-product-category,
-.edit-expected-quantity,
-.edit-planting-date {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #d5d9dd;
-    border-radius: 6px;
-}
-
-.btn-farm-log {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    min-width: 110px;
-    min-height: 36px;
-
-    padding: 8px 14px;
-
-    font-size: 0.82rem;
-    white-space: nowrap;
-}
 
 .production-lots-table th:last-child,
 .production-lots-table td:last-child {

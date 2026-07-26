@@ -80,3 +80,33 @@ export async function submitProductionLot(id) {
         }
     );
 }
+
+/**
+ * Cập nhật lô sản xuất.
+ *
+ * PUT /api/v1/production-lots/{id}
+ * Quyền: VT-02, VT-03
+ *
+ * Body: { name, farmAreaId, productCategoryId, expectedQuantity, plantingDate }
+ *
+ * Lỗi thường gặp (theo ProductionLotServiceImpl):
+ * - 400: Lô không ở trạng thái DRAFT (chỉ được sửa khi DRAFT)
+ * - 400: Không tìm thấy loại nông sản / khu vực canh tác đã chọn,
+ *        hoặc khu vực canh tác không thuộc tổ chức của bạn
+ * - 403: Không có quyền / lô không thuộc tổ chức của bạn
+ * - 404: Không tìm thấy lô
+ */
+export async function updateProductionLot(
+    id,
+    productionLotData
+) {
+    return apiRequest(
+        `/production-lots/${id}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(
+                productionLotData
+            )
+        }
+    );
+}
