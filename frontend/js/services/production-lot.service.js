@@ -60,3 +60,106 @@ export async function getProductionLots() {
         }
     );
 }
+
+/**
+ * Gửi duyệt lô sản xuất (DRAFT -> PENDING).
+ *
+ * POST /api/v1/production-lots/{id}/submit
+ *
+ * Lỗi thường gặp (theo API docs):
+ * - 400: Lô không ở trạng thái DRAFT
+ * - 400: Thiếu thông tin bắt buộc (vùng trồng, sản lượng)
+ * - 403: Không có quyền
+ * - 404: Không tìm thấy lô
+ */
+export async function submitProductionLot(id) {
+    return apiRequest(
+        `/production-lots/${id}/submit`,
+        {
+            method: "POST"
+        }
+    );
+}
+
+/**
+ * Duyệt hoặc trả lại lô đang ở trạng thái PENDING.
+ *
+ * approved = true  -> APPROVED
+ * approved = false -> DRAFT
+ *
+ * POST /api/v1/production-lots/{id}/approve
+ */
+export async function approveProductionLot(
+    id,
+    approved,
+    reason = null
+) {
+    if (!id) {
+        throw new TypeError(
+            "Thiếu mã lô sản xuất."
+        );
+    }
+
+    if (typeof approved !== "boolean") {
+        throw new TypeError(
+            "Trạng thái duyệt không hợp lệ."
+        );
+    }
+
+    const normalizedReason =
+        typeof reason === "string"
+            ? reason.trim()
+            : null;
+
+    if (
+        approved === false &&
+        !normalizedReason
+    ) {
+        throw new TypeError(
+            "Vui lòng nhập lý do trả lại lô."
+        );
+    }
+
+    return apiRequest(
+        `/production-lots/${id}/approve`,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                approved: approved,
+                reason:
+                    approved
+                        ? null
+                        : normalizedReason
+            })
+        }
+    );
+}
+/**
+ * Cập nhật lô sản xuất.
+ *
+ * PUT /api/v1/production-lots/{id}
+ * Quyền: VT-02, VT-03
+ *
+ * Body: { name, farmAreaId, productCategoryId, expectedQuantity, plantingDate }
+ *
+ * Lỗi thường gặp (theo ProductionLotServiceImpl):
+ * - 400: Lô không ở trạng thái DRAFT (chỉ được sửa khi DRAFT)
+ * - 400: Không tìm thấy loại nông sản / khu vực canh tác đã chọn,
+ *        hoặc khu vực canh tác không thuộc tổ chức của bạn
+ * - 403: Không có quyền / lô không thuộc tổ chức của bạn
+ * - 404: Không tìm thấy lô
+ */
+export async function updateProductionLot(
+    id,
+    productionLotData
+) {
+    return apiRequest(
+        `/production-lots/${id}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(
+                productionLotData
+            )
+        }
+    );
+}

@@ -125,7 +125,7 @@ function formatDate(dateStr) {
     if (!dateStr) return "—";
     try {
         var date = new Date(dateStr);
-        return date.toLocaleString("en-US", {
+        return date.toLocaleString("vi-VN", {
             year: "numeric",
             month: "short",
             day: "numeric",
@@ -139,17 +139,17 @@ function formatDate(dateStr) {
 
 function getTypeDisplayName(typeValue) {
     var names = {
-        "COOPERATIVE": "Cooperative",
-        "ENTERPRISE": "Enterprise",
-        "GOVERNMENT": "Government",
-        "SYSTEM": "System"
+        "COOPERATIVE": "Hợp tác xã",
+        "ENTERPRISE": "Doanh nghiệp",
+        "GOVERNMENT": "Cơ quan nhà nước",
+        "SYSTEM": "Hệ thống"
     };
     return names[typeValue] || typeValue || "—";
 }
 
 function getStatusDisplayName(statusValue) {
-    if (statusValue === "ACTIVE") return "Active";
-    if (statusValue === "INACTIVE") return "Inactive";
+    if (statusValue === "ACTIVE") return "Đang hoạt động";
+    if (statusValue === "INACTIVE") return "Ngừng hoạt động";
     return statusValue || "—";
 }
 
@@ -241,7 +241,7 @@ function showEditMode() {
     editProfileButton.style.display = "none";
 
     saveButton.disabled = false;
-    saveButton.textContent = "Save Changes";
+    saveButton.textContent = "Lưu thay đổi";
 }
 
 // ---- Clear field errors ----
@@ -335,17 +335,17 @@ function validateProfileForm() {
 
     // Name is required
     if (!name) {
-        errors.name = "Organization name is required.";
+        errors.name = "Vui lòng nhập tên tổ chức.";
     }
 
     // Phone validation (optional, but if provided must be 10-11 digits)
     if (phone && !/^[0-9]{10,11}$/.test(phone)) {
-        errors.phone = "Phone number must contain 10-11 digits.";
+        errors.phone = "Số điện thoại phải gồm 10–11 chữ số.";
     }
 
     // Email validation (optional, but if provided must be valid)
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        errors.email = "Please enter a valid email address.";
+        errors.email = "Vui lòng nhập địa chỉ email hợp lệ.";
     }
 
     return {
@@ -370,13 +370,13 @@ async function loadProfile() {
         var response = await getOrganizationProfile();
 
         if (!response.success) {
-            throw new Error(response.message || "Failed to load organization profile.");
+            throw new Error(response.message || "Không thể tải hồ sơ tổ chức.");
         }
 
         var data = response.data;
 
         if (!data) {
-            throw new Error("Organization profile not found.");
+            throw new Error("Không tìm thấy hồ sơ tổ chức.");
         }
 
         loadingState.style.display = "none";
@@ -391,11 +391,11 @@ async function loadProfile() {
         loadingState.style.display = "none";
         mainContent.style.display = "none";
 
-        var msg = error.message || "An unexpected error occurred while loading the profile.";
+        var msg = error.message || "Đã xảy ra lỗi không mong muốn khi tải hồ sơ tổ chức.";
 
         // Handle 404 specifically
         if (msg.indexOf("404") !== -1 || msg.toLowerCase().indexOf("not found") !== -1) {
-            msg = "Organization profile not found.";
+            msg = "Không tìm thấy hồ sơ tổ chức.";
         }
 
         errorMessage.textContent = msg;
@@ -417,7 +417,7 @@ async function handleSave(event) {
 
     // Disable button and prevent duplicate submission
     saveButton.disabled = true;
-    saveButton.textContent = "Saving...";
+    saveButton.textContent = "Đang lưu...";
     editFormMessage.textContent = "";
     editFormMessage.className = "form-message";
 
@@ -425,7 +425,7 @@ async function handleSave(event) {
         var response = await updateOrganizationProfile(validation.data);
 
         if (!response.success) {
-            throw new Error(response.message || "Failed to update organization profile.");
+            throw new Error(response.message || "Không thể cập nhật hồ sơ tổ chức.");
         }
 
         // Update profile data with response
@@ -434,7 +434,7 @@ async function handleSave(event) {
             profileData = updatedData;
         }
 
-        editFormMessage.textContent = "Organization profile updated successfully.";
+        editFormMessage.textContent = "Cập nhật hồ sơ tổ chức thành công.";
         editFormMessage.className = "form-message success";
 
         // Return to view mode after short delay
@@ -445,7 +445,7 @@ async function handleSave(event) {
     } catch (error) {
         console.error("Save profile error:", error);
 
-        var msg = error.message || "Unable to update organization profile. Please try again later.";
+        var msg = error.message || "Không thể cập nhật hồ sơ tổ chức. Vui lòng thử lại sau.";
 
         // Handle specific error codes
         if (msg.indexOf("401") !== -1) {
@@ -454,17 +454,17 @@ async function handleSave(event) {
         }
 
         if (msg.indexOf("403") !== -1) {
-            msg = "You do not have permission to edit this organization profile.";
+            msg = "Bạn không có quyền chỉnh sửa hồ sơ tổ chức này.";
         }
 
         if (msg.indexOf("500") !== -1) {
-            msg = "Unable to update organization profile. Please try again later.";
+            msg = "Không thể cập nhật hồ sơ tổ chức. Vui lòng thử lại sau.";
         }
 
         editFormMessage.textContent = msg;
         editFormMessage.className = "form-message error";
         saveButton.disabled = false;
-        saveButton.textContent = "Save Changes";
+        saveButton.textContent = "Lưu thay đổi";
     }
 }
 
