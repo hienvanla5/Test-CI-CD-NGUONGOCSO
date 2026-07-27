@@ -172,3 +172,20 @@ export function canViewChainEventTimeline(
             .VIEW_CHAIN_EVENT_TIMELINE
     );
 }
+
+/**
+ * Kiểm tra quyền ghi sự kiện vận chuyển (TRANSPORT).
+ *
+ * Khớp với @PreAuthorize ở ChainEventController
+ * cho POST /api/v1/chain-events/transport:
+ * chỉ VT-03 (Người ghi sự kiện) được phép,
+ * khác với các sự kiện khác vốn cho phép cả VT-02.
+ */
+export function canRecordTransportEvent(
+    roleCode
+) {
+    return (
+        normalizeRoleCode(roleCode) ===
+        ROLES.EVENT_RECORDER
+    );
+}

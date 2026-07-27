@@ -13,7 +13,8 @@
     <link rel="stylesheet" href="../../../css/components/page-state.css">
     <link rel="stylesheet" href="../../../css/components/form.css">
     <link rel="stylesheet" href="../../../css/pages/cooperative/dashboard.css">
-    <link rel="stylesheet" href="../../../css/pages/cooperative/chain-events/create.css">
+    <link rel="stylesheet" href="../../../css/components/date-picker.css">
+    <link rel="stylesheet" href="../../../css/pages/cooperative/chain-event/create.css">
 </head>
 <body>
 <div class="dashboard-layout">
@@ -55,7 +56,7 @@
         <section class="dashboard-content">
             <div id="loadingState" class="state-container">
                 <div class="state-icon" aria-hidden="true">◷</div>
-                <p class="state-text">Đang tải danh sách lô sản xuất...</p>
+                <p class="state-text">Đang tải trang ghi sự kiện...</p>
             </div>
 
             <div id="errorState" class="state-container is-hidden">
@@ -99,6 +100,8 @@
                                 <div class="scan-controls">
                                     <button id="startScanButton" class="btn btn-secondary" type="button">Bật camera</button>
                                     <button id="stopScanButton" class="btn btn-secondary is-hidden" type="button">Tắt camera</button>
+                                    <button id="chooseQrImageButton" class="btn btn-secondary" type="button">Chọn ảnh QR từ thiết bị</button>
+                                    <input id="qrImageInput" type="file" accept="image/*" class="is-hidden" aria-label="Chọn ảnh chứa mã QR">
                                     <span id="scanStatus" class="scan-status">Camera đang tắt</span>
                                 </div>
 
@@ -117,7 +120,7 @@
                                 </div>
 
                                 <p class="scan-hint">
-                                    Mã truy xuất được lưu lại làm tham chiếu cho sự kiện bên dưới. Backend hiện chưa có API tra cứu lô hàng theo mã quét, vì vậy bạn cần chọn đúng lô sản xuất tương ứng trong form.
+                                    Với sự kiện <strong>Vận chuyển</strong>, mã truy xuất quét/nhập ở đây sẽ được gửi thẳng làm <code>codeValue</code> khi lưu sự kiện. Với sự kiện Thu hoạch/Đóng gói, mã này chỉ mang tính tham chiếu — bạn vẫn cần chọn đúng lô sản xuất tương ứng trong form bên dưới.
                                 </p>
                             </div>
                         </section>
@@ -136,9 +139,8 @@
                                 <button type="button" class="event-type-tab" data-event-type="PACKAGING" role="tab" aria-selected="false">
                                     📦 Đóng gói
                                 </button>
-                                <button type="button" class="event-type-tab is-coming-soon" data-event-type="TRANSPORT" role="tab" aria-selected="false" title="API ghi nhận vận chuyển chưa sẵn sàng ở backend">
+                                <button type="button" class="event-type-tab" data-event-type="TRANSPORT" role="tab" aria-selected="false">
                                     🚚 Vận chuyển
-                                    <span class="coming-soon-badge">Sắp có</span>
                                 </button>
                                 <button type="button" class="event-type-tab is-coming-soon" data-event-type="PROCUREMENT" role="tab" aria-selected="false" title="API ghi nhận thu mua chưa sẵn sàng ở backend">
                                     🏢 Thu mua
@@ -153,12 +155,18 @@
                             <form id="chainEventForm" novalidate>
                                 <div id="formMessage" class="form-message is-hidden" role="alert"></div>
 
-                                <div class="form-group">
+                                <div id="productionLotFieldGroup" class="form-group">
                                     <label for="productionLotId">Lô sản xuất <span class="required">*</span></label>
                                     <select id="productionLotId" name="productionLotId" aria-describedby="productionLotIdError" required>
                                         <option value="">-- Chọn lô sản xuất --</option>
                                     </select>
                                     <small id="productionLotIdError" class="field-error"></small>
+                                </div>
+
+                                <div id="transportCodeHint" class="form-group is-hidden">
+                                    <label>Mã truy xuất lô hàng <span class="required">*</span></label>
+                                    <p class="text-muted">Dùng mã đã quét hoặc nhập ở khối "Quét mã truy xuất" phía trên làm <code>codeValue</code> cho sự kiện vận chuyển.</p>
+                                    <small id="transportCodeError" class="field-error"></small>
                                 </div>
 
                                 <!-- TRƯỜNG RIÊNG: THU HOẠCH -->
@@ -194,8 +202,31 @@
                                     </div>
                                 </div>
 
+                                <!-- TRƯỜNG RIÊNG: VẬN CHUYỂN -->
+                                <div id="transportFields" class="event-fields is-hidden">
+                                    <div class="chain-event-field-row">
+                                        <div class="form-group">
+                                            <label for="fromLocation">Điểm đi <span class="required">*</span></label>
+                                            <input id="fromLocation" name="fromLocation" type="text" maxlength="255" placeholder="Ví dụ: Xã Long Cốc, huyện Tân Sơn, Phú Thọ" aria-describedby="fromLocationError">
+                                            <small id="fromLocationError" class="field-error"></small>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="toLocation">Điểm đến <span class="required">*</span></label>
+                                            <input id="toLocation" name="toLocation" type="text" maxlength="255" placeholder="Ví dụ: Kho trung chuyển Việt Trì, Phú Thọ" aria-describedby="toLocationError">
+                                            <small id="toLocationError" class="field-error"></small>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="transportTime">Thời điểm vận chuyển <span class="required">*</span></label>
+                                        <input id="transportTime" name="transportTime" type="datetime-local" aria-describedby="transportTimeError">
+                                        <small id="transportTimeError" class="field-error"></small>
+                                    </div>
+                                </div>
+
                                 <!-- VỊ TRÍ (DÙNG CHUNG) -->
-                                <div class="chain-event-field-row">
+                                <div id="locationFieldsRow" class="chain-event-field-row">
                                     <div class="form-group">
                                         <label for="latitude">Vĩ độ <span class="optional-label">(tùy chọn)</span></label>
                                         <input id="latitude" name="latitude" type="number" step="0.000001" placeholder="Ví dụ: 21.028511" aria-describedby="latitudeError">
