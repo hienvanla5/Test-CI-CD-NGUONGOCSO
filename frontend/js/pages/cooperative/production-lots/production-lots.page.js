@@ -474,6 +474,21 @@ function goToAttachments(lot) {
         `./attachment.html?${queryParams.toString()}`;
 }
 
+function goToCreateShipment(lot) {
+    if (!lot || !lot.id) {
+        return;
+    }
+
+    const queryParams =
+        new URLSearchParams({
+            productionLotId:
+                lot.id
+        });
+
+    window.location.href =
+        `../shipments/index.html?${queryParams.toString()}`;
+}
+
 /* =====================================================
    CREATE ACTION BUTTONS
 ===================================================== */
@@ -594,6 +609,82 @@ function createAttachmentButton(lot) {
     return attachmentButton;
 }
 
+function createShipmentButton(lot) {
+    const button =
+        document.createElement(
+            "button"
+        );
+
+    button.type = "button";
+    button.className =
+        "btn btn-create-shipment";
+    button.dataset.id = lot.id;
+    button.textContent = "Tạo QR";
+    button.title =
+        "Tạo lô hàng và sinh mã QR";
+
+    return button;
+}
+
+function createChainEventButton(
+    lot,
+    eventType
+) {
+    const isHarvest =
+        eventType === "HARVEST";
+    const button =
+        document.createElement(
+            "button"
+        );
+
+    button.type = "button";
+    button.className =
+        isHarvest
+            ? "btn btn-record-harvest"
+            : "btn btn-record-packaging";
+    button.dataset.id = lot.id;
+    button.dataset.lotName =
+        lot.name || "";
+    button.dataset.plantingDate =
+        lot.plantingDate || "";
+    button.dataset.harvestDate =
+        lot.harvestDate || "";
+    button.textContent =
+        isHarvest
+            ? "Thu hoạch"
+            : "Đóng gói";
+    button.title =
+        isHarvest
+            ? "Ghi nhận thu hoạch cho lô đã duyệt"
+            : "Ghi nhận đóng gói cho lô đã thu hoạch";
+
+    return button;
+}
+
+function appendChainEventButton(
+    actionCell,
+    lot,
+    normalizedStatus
+) {
+    if (normalizedStatus === "APPROVED") {
+        actionCell.appendChild(
+            createChainEventButton(
+                lot,
+                "HARVEST"
+            )
+        );
+    }
+
+    if (normalizedStatus === "HARVESTED") {
+        actionCell.appendChild(
+            createChainEventButton(
+                lot,
+                "PACKAGING"
+            )
+        );
+    }
+}
+
 function createApproveButton(lot) {
     const button =
         document.createElement(
@@ -652,35 +743,47 @@ function renderActionButtons(
      * Có quyền sửa lô, xem lịch sử và quản lý attachment.
      */
     if (roleCode === "VT-02") {
-    if (normalizedStatus === "DRAFT") {
+        if (normalizedStatus === "DRAFT") {
+            actionCell.appendChild(
+                createEditButton(
+                    lot,
+                    normalizedStatus
+                )
+            );
+        }
+
+        if (normalizedStatus === "PENDING") {
+            actionCell.appendChild(
+                createApproveButton(lot)
+            );
+
+            actionCell.appendChild(
+                createRejectButton(lot)
+            );
+        }
+
         actionCell.appendChild(
-            createEditButton(
-                lot,
-                normalizedStatus
-            )
+            createHistoryButton(lot)
         );
+
+        actionCell.appendChild(
+            createAttachmentButton(lot)
+        );
+
+        appendChainEventButton(
+            actionCell,
+            lot,
+            normalizedStatus
+        );
+
+        if (normalizedStatus === "PACKAGED") {
+            actionCell.appendChild(
+                createShipmentButton(lot)
+            );
+        }
+
+        return;
     }
-
-    if (normalizedStatus === "PENDING") {
-        actionCell.appendChild(
-            createApproveButton(lot)
-        );
-
-        actionCell.appendChild(
-            createRejectButton(lot)
-        );
-    }
-
-    actionCell.appendChild(
-        createHistoryButton(lot)
-    );
-
-    actionCell.appendChild(
-        createAttachmentButton(lot)
-    );
-
-    return;
-}
 
     /*
      * VT-03: Người ghi nhật ký.
@@ -702,6 +805,12 @@ function renderActionButtons(
 
         actionCell.appendChild(
             attachmentButton
+        );
+
+        appendChainEventButton(
+            actionCell,
+            lot,
+            normalizedStatus
         );
 
         return;
@@ -1730,51 +1839,64 @@ if (productionLotsTableBody) {
 
                 return;
             }
+
             /*
- * Duyệt lô PENDING -> APPROVED
- */
-if (
-    button.classList.contains(
-        "btn-approve-lot"
-    )
-) {
-    handleReviewProductionLot(
-        lot,
-        button,
-        true
-    );
+             * Duyệt lô PENDING -> APPROVED
+             */
+            if (
+                button.classList.contains(
+                    "btn-approve-lot"
+                )
+            ) {
+                handleReviewProductionLot(
+                    lot,
+                    button,
+                    true
+                );
 
-    return;
-}
+                return;
+            }
 
-/*
- * Trả lô PENDING -> DRAFT
- */
-if (
-    button.classList.contains(
-        "btn-reject-lot"
-    )
-) {
-    handleReviewProductionLot(
-        lot,
-        button,
-        false
-    );
+            /*
+             * Trả lô PENDING -> DRAFT
+             */
+            if (
+                button.classList.contains(
+                    "btn-reject-lot"
+                )
+            ) {
+                handleReviewProductionLot(
+                    lot,
+                    button,
+                    false
+                );
 
-    return;
-}
+                return;
+            }
+
             /*
              * Nút quản lý tệp đính kèm
              */
             if (
-    button.classList.contains(
-        "btn-attachment-lot"
-    )
-) {
-    goToAttachments(lot);
+                button.classList.contains(
+                    "btn-attachment-lot"
+                )
+            ) {
+                goToAttachments(lot);
 
-    return;
-}
+                return;
+            }
+
+            /*
+             * Tạo lô hàng và sinh mã QR cho lô PACKAGED.
+             */
+            if (
+                button.classList.contains(
+                    "btn-create-shipment"
+                )
+            ) {
+                goToCreateShipment(lot);
+            }
         }
     );
 }
@@ -2099,6 +2221,11 @@ if (productionLotSearchInput) {
         }
     );
 }
+
+document.addEventListener(
+    "production-lot:status-updated",
+    loadProductionLots
+);
 
 /* =====================================================
    CREATE PRODUCTION LOT BUTTON
