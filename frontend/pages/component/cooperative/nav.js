@@ -59,6 +59,38 @@ function normalizePathname(pathname) {
 }
 
 /**
+ * Kiểm tra pathname hiện tại có thuộc nhóm trang
+ * được khai báo trong data-active-prefixes hay không.
+ */
+function matchesActivePrefix(
+    menuLink,
+    currentPath
+) {
+    const prefixes =
+        String(
+            menuLink.dataset
+                .activePrefixes || ""
+        )
+            .split(",")
+            .map(function (prefix) {
+                return prefix.trim();
+            })
+            .filter(Boolean)
+            .map(normalizePathname);
+
+    return prefixes.some(
+        function (prefix) {
+            return (
+                currentPath === prefix ||
+                currentPath.startsWith(
+                    `${prefix}/`
+                )
+            );
+        }
+    );
+}
+
+/**
  * Đánh dấu menu ứng với trang đang mở.
  */
 function markActiveMenu(navElement) {
@@ -85,7 +117,11 @@ function markActiveMenu(navElement) {
             );
 
         const isActive =
-            currentPath === linkPath;
+            currentPath === linkPath ||
+            matchesActivePrefix(
+                menuLink,
+                currentPath
+            );
 
         menuLink.classList.toggle(
             "active",
