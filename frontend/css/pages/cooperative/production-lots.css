@@ -454,6 +454,9 @@ body.modal-open {
 .btn-edit-lot,
 .btn-history-lot,
 .btn-attachment-lot,
+.btn-create-shipment,
+.btn-record-harvest,
+.btn-record-packaging,
 .btn-create-farm-log,
 .btn-approve-lot,
 .btn-reject-lot {
@@ -518,6 +521,90 @@ body.modal-open {
 .btn-attachment-lot:hover:not(:disabled) {
     background: #dbeafe;
     border-color: #93c5fd;
+}
+
+.btn-create-shipment {
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary-light);
+    color: var(--color-primary-dark);
+}
+
+.btn-create-shipment:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: #ffffff;
+}
+
+.btn-record-harvest {
+    border: 1px solid #f59e0b;
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.btn-record-harvest:hover:not(:disabled) {
+    background: #f59e0b;
+    color: #ffffff;
+}
+
+.btn-record-packaging {
+    border: 1px solid #7c3aed;
+    background: #f5f3ff;
+    color: #6d28d9;
+}
+
+.btn-record-packaging:hover:not(:disabled) {
+    background: #7c3aed;
+    color: #ffffff;
+}
+
+#productionLotEventForm {
+    padding: 24px;
+}
+
+#harvestQuantityGroup[hidden],
+#packagingSpecificationGroup[hidden] {
+    display: none;
+}
+
+#productionLotEventForm textarea {
+    width: 100%;
+    padding: 12px 14px;
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+
+    color: var(--color-text);
+    font: inherit;
+    resize: vertical;
+}
+
+#productionLotEventForm textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgb(46 125 50 / 12%);
+}
+
+#productionLotEventForm input[readonly] {
+    background: var(--color-background);
+    color: var(--color-text-muted);
+}
+
+.field-hint {
+    display: block;
+    margin-top: 7px;
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+}
+
+.modal-message--error {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+@media (max-width: 640px) {
+    #productionLotEventForm {
+        padding: 18px;
+    }
 }
 
 /* Status badge as a button — used only for the DRAFT badge when the
