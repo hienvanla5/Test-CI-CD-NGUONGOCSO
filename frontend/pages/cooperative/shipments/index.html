@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Tạo mã QR | Nguồn Gốc Số</title>
+
+    <link rel="stylesheet" href="../../../css/reset.css">
+    <link rel="stylesheet" href="../../../css/variables.css">
+    <link rel="stylesheet" href="../../../css/global.css">
+    <link rel="stylesheet" href="../../../css/layouts/dashboard-layout.css">
+    <link rel="stylesheet" href="../../../css/components/button.css">
+    <link rel="stylesheet" href="../../../css/components/modal.css">
+    <link rel="stylesheet" href="../../../css/components/page-state.css">
+    <link rel="stylesheet" href="../../../css/pages/cooperative/dashboard.css">
+    <link rel="stylesheet" href="../../../css/pages/cooperative/shipments/index.css">
+</head>
+
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                Nguồn Gốc Số
+            </div>
+
+            <nav class="sidebar-menu"></nav>
+
+            <div class="sidebar-user" id="sidebarUser">
+                <div
+                    class="sidebar-user-avatar"
+                    id="sidebarUserAvatar"
+                ></div>
+
+                <div class="sidebar-user-info">
+                    <strong id="sidebarUserName">—</strong>
+                    <span id="sidebarUserOrg">—</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div>
+                    <h1>Tạo và hiển thị mã QR</h1>
+                    <p class="text-muted">
+                        Tạo lô hàng từ lô sản xuất đã đóng gói và sinh mã truy xuất.
+                    </p>
+                </div>
+
+                <div class="header-actions">
+                    <div class="user-badge" id="headerUserBadge">
+                        <span
+                            id="headerUserRole"
+                            class="user-role-badge"
+                        >—</span>
+                        <span id="headerUserName">—</span>
+                        <span class="user-org-sep">|</span>
+                        <span id="headerUserOrg">—</span>
+                    </div>
+
+                    <button
+                        id="logoutButton"
+                        class="btn btn-secondary"
+                        type="button"
+                    >
+                        Đăng xuất
+                    </button>
+                </div>
+            </header>
+
+            <section class="dashboard-content">
+                <div
+                    id="loadingState"
+                    class="state-container"
+                    hidden
+                >
+                    <div class="state-icon" aria-hidden="true">⌛</div>
+                    <p class="state-text">
+                        Đang tải danh sách lô sản xuất...
+                    </p>
+                </div>
+
+                <div
+                    id="errorState"
+                    class="state-container"
+                    hidden
+                >
+                    <div
+                        class="state-icon state-error-icon"
+                        aria-hidden="true"
+                    >!</div>
+                    <p
+                        id="errorMessage"
+                        class="state-text state-error-text"
+                    >
+                        Không thể tải dữ liệu.
+                    </p>
+                    <button
+                        id="retryButton"
+                        class="btn btn-secondary"
+                        type="button"
+                    >
+                        Thử lại
+                    </button>
+                </div>
+
+                <div
+                    id="unauthorizedState"
+                    class="state-container"
+                    hidden
+                >
+                    <div
+                        class="state-icon state-error-icon"
+                        aria-hidden="true"
+                    >!</div>
+                    <p class="state-text state-error-text">
+                        Chỉ quản lý hợp tác xã được phép tạo mã QR.
+                    </p>
+                    <a
+                        href="/frontend/pages/cooperative/dashboard.html"
+                        class="btn btn-secondary"
+                    >
+                        Về trang chính
+                    </a>
+                </div>
+
+                <div id="mainContent" hidden>
+                    <div
+                        id="pageMessage"
+                        class="tc-message"
+                        role="status"
+                        hidden
+                    ></div>
+
+                    <div class="tc-toolbar">
+                        <div>
+                            <h2>Lô hàng và mã truy xuất</h2>
+                            <p class="text-muted">
+                                Chỉ lô sản xuất ở trạng thái PACKAGED mới có thể tạo mã.
+                            </p>
+                        </div>
+
+                        <button
+                            id="openCreateShipmentButton"
+                            class="btn btn-primary tc-btn-inline"
+                            type="button"
+                        >
+                            + Tạo mã QR
+                        </button>
+                    </div>
+
+                    <div class="tc-body">
+                        <article
+                            id="shipmentInfoCard"
+                            class="shipment-card"
+                            hidden
+                        >
+                            <div class="shipment-card-header">
+                                <h3 id="shipmentName">—</h3>
+
+                                <div class="tc-menu">
+                                    <button
+                                        id="shipmentMenuToggle"
+                                        class="tc-menu-toggle"
+                                        type="button"
+                                        aria-label="Tùy chọn lô hàng"
+                                        aria-expanded="false"
+                                    >⋮</button>
+
+                                    <div
+                                        id="shipmentMenuDropdown"
+                                        class="tc-menu-dropdown"
+                                        hidden
+                                    >
+                                        <button
+                                            id="copyShipmentIdButton"
+                                            type="button"
+                                        >
+                                            Sao chép ID
+                                        </button>
+                                        <button
+                                            id="printAllFromMenuButton"
+                                            type="button"
+                                        >
+                                            In tất cả mã tem
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="shipment-id">
+                                ID: <span id="shipmentId">—</span>
+                            </p>
+
+                            <dl class="shipment-meta">
+                                <div>
+                                    <dt>Lô sản xuất:</dt>
+                                    <dd
+                                        id="shipmentProductionLot"
+                                        class="text-accent"
+                                    >—</dd>
+                                </div>
+                                <div>
+                                    <dt>Tổng số mã:</dt>
+                                    <dd id="shipmentQuantity">—</dd>
+                                </div>
+                                <div>
+                                    <dt>Trạng thái:</dt>
+                                    <dd>
+                                        <span
+                                            id="shipmentStatusBadge"
+                                            class="badge"
+                                        >—</span>
+                                    </dd>
+                                </div>
+                            </dl>
+
+                            <button
+                                id="activateStampButton"
+                                class="btn btn-primary shipment-activate-button"
+                                type="button"
+                                hidden
+                            >
+                                Kích hoạt tem
+                            </button>
+                        </article>
+
+                        <div
+                            id="noShipmentState"
+                            class="empty-state-container"
+                        >
+                            <p class="empty-state-text">
+                                Chưa có lô hàng
+                            </p>
+                            <p class="empty-state-hint">
+                                Chọn “Tạo mã QR” để bắt đầu.
+                            </p>
+                        </div>
+
+                        <section
+                            id="traceCodeSection"
+                            class="trace-code-section"
+                            hidden
+                        >
+                            <div class="trace-code-header">
+                                <h3>Mã tem QR</h3>
+                                <button
+                                    id="printBatchButton"
+                                    class="btn btn-secondary tc-btn-inline"
+                                    type="button"
+                                >
+                                    In hàng loạt
+                                </button>
+                            </div>
+
+                            <div id="traceCodeGrid" class="trace-grid"></div>
+                            <div
+                                id="pagination"
+                                class="tc-pagination"
+                                aria-label="Phân trang mã QR"
+                            ></div>
+                        </section>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div
+        id="createShipmentModal"
+        class="modal-overlay"
+        hidden
+    >
+        <div
+            class="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="createShipmentTitle"
+        >
+            <div class="modal-header">
+                <h2 id="createShipmentTitle">Tạo lô hàng và sinh mã QR</h2>
+                <button
+                    id="createShipmentModalClose"
+                    class="modal-close"
+                    type="button"
+                    aria-label="Đóng"
+                >&times;</button>
+            </div>
+
+            <form id="generateShipmentForm" novalidate>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="productionLotId">
+                            Lô sản xuất <span class="required">*</span>
+                        </label>
+                        <select id="productionLotId" required>
+                            <option value="">Chọn lô sản xuất</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shipmentNameInput">
+                            Tên lô hàng <span class="required">*</span>
+                        </label>
+                        <input
+                            id="shipmentNameInput"
+                            type="text"
+                            maxlength="255"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="totalQuantityInput">
+                            Số lượng mã QR <span class="required">*</span>
+                        </label>
+                        <input
+                            id="totalQuantityInput"
+                            type="number"
+                            min="1"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="packagingInfoInput">
+                            Thông tin đóng gói
+                        </label>
+                        <textarea
+                            id="packagingInfoInput"
+                            rows="3"
+                            maxlength="1000"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button
+                        id="cancelCreateShipmentButton"
+                        type="button"
+                        class="btn btn-secondary"
+                    >
+                        Hủy
+                    </button>
+                    <button
+                        id="generateButton"
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Tạo mã QR
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="printModal" class="modal-overlay" hidden>
+        <div
+            class="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="printModalTitle"
+        >
+            <div class="modal-header">
+                <h2 id="printModalTitle">In tem QR</h2>
+                <button
+                    id="printModalClose"
+                    class="modal-close"
+                    type="button"
+                    aria-label="Đóng"
+                >&times;</button>
+            </div>
+
+            <div class="modal-body" id="printContent"></div>
+
+            <div class="modal-footer">
+                <button
+                    id="printButton"
+                    class="btn btn-primary"
+                    type="button"
+                >
+                    In tem
+                </button>
+                <button
+                    id="cancelPrintButton"
+                    class="btn btn-secondary"
+                    type="button"
+                >
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <template id="traceCardTemplate">
+        <article class="trace-card">
+            <div class="trace-image">
+                <img
+                    class="trace-qr-image"
+                    src=""
+                    alt="Mã QR"
+                    loading="lazy"
+                >
+            </div>
+
+            <div class="trace-content">
+                <h4 class="trace-code-value"></h4>
+                <span class="badge trace-status"></span>
+            </div>
+
+            <div class="trace-actions">
+                <button
+                    class="tc-link-btn btn-download"
+                    type="button"
+                >
+                    Tải QR
+                </button>
+                <button
+                    class="tc-link-btn btn-print"
+                    type="button"
+                >
+                    In tem
+                </button>
+            </div>
+        </article>
+    </template>
+
+    <script
+        type="module"
+        src="../../../js/pages/cooperative/shipments/index.page.js"
+    ></script>
+    <script
+        type="module"
+        src="../../component/cooperative/nav.js"
+    ></script>
+</body>
+
+</html>
