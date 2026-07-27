@@ -169,6 +169,32 @@
         var(--color-text-muted);
 }
 
+/* Add member button — override .btn-primary's full-width/48px
+   default so it sits inline next to the search box instead of
+   pushing the section title to its own line. */
+.btn-add-member {
+    width: auto;
+    height: 36px;
+
+    padding: 0 16px;
+
+    gap: 6px;
+
+    border-radius:
+        var(--border-radius-sm);
+
+    font-size: 0.85rem;
+
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.btn-add-member__icon {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
 /* Data Table */
 .table-wrapper {
     overflow-x: auto;

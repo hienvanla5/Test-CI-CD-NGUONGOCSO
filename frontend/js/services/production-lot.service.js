@@ -3,14 +3,9 @@ import {
 } from "../core/api-client.js";
 
 /**
- * Create a new production lot.
- *
- * POST /api/v1/production-lots
- *
- * @param {Object} productionLotData
- * @returns {Promise<Object>}
+ * Tạo lô sản xuất.
  */
-export async function createProductionLot(
+export function createProductionLot(
     productionLotData
 ) {
     return apiRequest(
@@ -25,14 +20,9 @@ export async function createProductionLot(
 }
 
 /**
- * Fetch all farm areas for the
- * authenticated organization.
- *
- * GET /api/v1/farm-areas
- *
- * @returns {Promise<Object>}
+ * Lấy danh sách vùng trồng phục vụ form tạo lô.
  */
-export async function getFarmAreas() {
+export function getFarmAreas() {
     return apiRequest(
         "/farm-areas",
         {
@@ -42,13 +32,9 @@ export async function getFarmAreas() {
 }
 
 /**
- * Fetch all product categories.
- *
- * GET /api/v1/product-categories
- *
- * @returns {Promise<Object>}
+ * Lấy danh mục sản phẩm phục vụ form tạo lô.
  */
-export async function getProductCategories() {
+export function getProductCategories() {
     return apiRequest(
         "/product-categories",
         {
@@ -58,12 +44,13 @@ export async function getProductCategories() {
 }
 
 /**
- * Fetch all production lots for the
- * authenticated organization.
+ * Lấy danh sách lô sản xuất
+ * thuộc tổ chức của người dùng hiện tại.
  *
  * GET /api/v1/production-lots
  *
- * @returns {Promise<Object>}
+ * API trả về:
+ * ApiResult<Array<CreateProductionLotResponse>>
  */
 export async function getProductionLots() {
     return apiRequest(
@@ -75,46 +62,17 @@ export async function getProductionLots() {
 }
 
 /**
- * Update a production lot.
- *
- * Chỉ lô có trạng thái DRAFT
- * mới được chỉnh sửa.
- *
- * PUT /api/v1/production-lots/{id}
- *
- * @param {string} id
- * @param {Object} productionLotData
- * @returns {Promise<Object>}
- */
-export async function updateProductionLot(
-    id,
-    productionLotData
-) {
-    return apiRequest(
-        `/production-lots/${encodeURIComponent(id)}`,
-        {
-            method: "PUT",
-            body: JSON.stringify(
-                productionLotData
-            )
-        }
-    );
-}
-
-/**
- * Submit a production lot for approval.
- *
- * Chuyển trạng thái:
- * DRAFT -> PENDING
+ * Gửi duyệt lô sản xuất (DRAFT -> PENDING).
  *
  * POST /api/v1/production-lots/{id}/submit
  *
- * @param {string} id
- * @returns {Promise<Object>}
+ * Lỗi thường gặp (theo API docs):
+ * - 400: Lô không ở trạng thái DRAFT
+ * - 400: Thiếu thông tin bắt buộc (vùng trồng, sản lượng)
+ * - 403: Không có quyền
+ * - 404: Không tìm thấy lô
  */
-export async function submitProductionLot(
-    id
-) {
+export async function submitProductionLot(id) {
     return apiRequest(
         `/production-lots/${id}/submit`,
         {
@@ -124,52 +82,84 @@ export async function submitProductionLot(
 }
 
 /**
- * Approve or reject a production lot.
+ * Duyệt hoặc trả lại lô đang ở trạng thái PENDING.
  *
- * Chuyển trạng thái:
- * PENDING -> APPROVED (when approved: true)
+ * approved = true  -> APPROVED
+ * approved = false -> DRAFT
  *
  * POST /api/v1/production-lots/{id}/approve
- *
- * @param {string} id
- * @returns {Promise<Object>}
  */
-export async function approveProductionLot(id) {
+export async function approveProductionLot(
+    id,
+    approved,
+    reason = null
+) {
+    if (!id) {
+        throw new TypeError(
+            "Thiếu mã lô sản xuất."
+        );
+    }
+
+    if (typeof approved !== "boolean") {
+        throw new TypeError(
+            "Trạng thái duyệt không hợp lệ."
+        );
+    }
+
+    const normalizedReason =
+        typeof reason === "string"
+            ? reason.trim()
+            : null;
+
+    if (
+        approved === false &&
+        !normalizedReason
+    ) {
+        throw new TypeError(
+            "Vui lòng nhập lý do trả lại lô."
+        );
+    }
+
     return apiRequest(
         `/production-lots/${id}/approve`,
         {
             method: "POST",
             body: JSON.stringify({
-                approved: true,
-                reason: ""
+                approved: approved,
+                reason:
+                    approved
+                        ? null
+                        : normalizedReason
             })
         }
     );
 }
-
 /**
- * Return a production lot to draft.
+ * Cập nhật lô sản xuất.
  *
- * Chuyển trạng thái:
- * PENDING -> DRAFT
+ * PUT /api/v1/production-lots/{id}
+ * Quyền: VT-02, VT-03
  *
- * POST /api/v1/production-lots/{id}/approve false
+ * Body: { name, farmAreaId, productCategoryId, expectedQuantity, plantingDate }
  *
- * @param {string} id
- * @returns {Promise<Object>}
+ * Lỗi thường gặp (theo ProductionLotServiceImpl):
+ * - 400: Lô không ở trạng thái DRAFT (chỉ được sửa khi DRAFT)
+ * - 400: Không tìm thấy loại nông sản / khu vực canh tác đã chọn,
+ *        hoặc khu vực canh tác không thuộc tổ chức của bạn
+ * - 403: Không có quyền / lô không thuộc tổ chức của bạn
+ * - 404: Không tìm thấy lô
  */
-export async function returnToDraftProductionLot(id, reason) {
+export async function updateProductionLot(
+    id,
+    productionLotData
+) {
     return apiRequest(
-        `/production-lots/${id}/approve`,
+        `/production-lots/${id}`,
         {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                approved: false,
-                reason: reason.trim()
-            })
+            method: "PUT",
+            body: JSON.stringify(
+                productionLotData
+            )
         }
     );
 }

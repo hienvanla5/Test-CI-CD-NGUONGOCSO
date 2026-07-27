@@ -53,28 +53,7 @@
             <div class="sidebar-logo">
                 Nguồn Gốc Số
             </div>
-
-            <nav class="sidebar-menu">
-
-                <a href="/frontend/pages/cooperative/dashboard.html" class="active">
-                    Bảng điều khiển
-                </a>
-
-                <a href="/frontend/pages/cooperative/farm-areas/index.html">
-                    Vùng trồng
-                </a>
-
-                <a href="/frontend/pages/cooperative/production-lots/index.html">
-                    Lô sản xuất
-                </a>
-
-                <a href="/frontend/pages/cooperative/profile.html">
-                    Hồ sơ tổ chức
-                </a>
-                <a href="/frontend/pages/cooperative/shipment/tracecode.html">Trace code</a>
-
-            </nav>
-
+            <nav class="sidebar-menu"></nav>
             <div class="sidebar-user" id="sidebarUser">
                 <div class="sidebar-user-avatar" id="sidebarUserAvatar"></div>
                 <div class="sidebar-user-info">
@@ -203,21 +182,21 @@
                                         />
                                     </div>
                                     <button
-    id="addMemberButton"
-    type="button"
-    class="btn btn-primary btn-add-member"
->
-    <span
-        class="btn-add-member__icon"
-        aria-hidden="true"
-    >
-        +
-    </span>
+                                        id="addMemberButton"
+                                        type="button"
+                                        class="btn btn-primary btn-add-member"
+                                    >
+                                        <span
+                                            class="btn-add-member__icon"
+                                            aria-hidden="true"
+                                        >
+                                            +
+                                        </span>
 
-    <span>
-        Thêm thành viên
-    </span>
-</button>
+                                        <span>
+                                            Thêm thành viên
+                                        </span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -419,6 +398,7 @@
         type="module"
         src="../../js/pages/cooperative/dashboard.page.js">
     </script>
+    <script type="module" src="../component/cooperative/nav.js"></script>
 
 </body>
 
