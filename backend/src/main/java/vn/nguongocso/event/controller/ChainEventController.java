@@ -17,6 +17,24 @@ import vn.nguongocso.event.service.ChainEventService;
 
 import java.util.UUID;
 
+/**
+ * Controller REST quản lý các sự kiện trong chuỗi cung ứng.
+ * <p>
+ * Cung cấp các API để ghi nhận và quản lý các sự kiện như:
+ * <ul>
+ *   <li>Thu hoạch (HARVEST)</li>
+ *   <li>Đóng gói (PACKAGING)</li>
+ *   <li>Sửa lỗi đóng gói (CORRECTION)</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Tất cả các API đều yêu cầu xác thực và phân quyền.
+ * Chỉ người dùng có vai trò VT-02 (Quản lý HTX) hoặc VT-03 (Người ghi sự kiện)
+ * mới được phép thực hiện các thao tác này.</p>
+ *
+ * @author Team WEB !
+ */
+
 @RestController
 @RequestMapping("/api/v1/chain-events")
 @RequiredArgsConstructor
