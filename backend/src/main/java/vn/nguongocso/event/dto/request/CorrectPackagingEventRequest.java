@@ -8,6 +8,26 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
+/**
+ * DTO yêu cầu đính chính (sửa lỗi) sự kiện đóng gói.
+ * <p>
+ * Được sử dụng khi người dùng cần điều chỉnh thông tin của một sự kiện
+ * đóng gói đã được ghi nhận trước đó. Sự kiện gốc sẽ được giữ nguyên
+ * và sự kiện đính chính sẽ được tạo mới như một sự kiện riêng biệt
+ * với tham chiếu đến sự kiện gốc.
+ * </p>
+ *
+ * <p>Trường bắt buộc:
+ * <ul>
+ *   <li>packagingSpecification - Quy cách đóng gói mới</li>
+ *   <li>packagingDate - Ngày đóng gói (không được trong tương lai)</li>
+ *   <li>correctionReason - Lý do đính chính</li>
+ * </ul>
+ * </p>
+ *
+ * @author Team WEB 1
+ */
+
 @Getter
 @Setter
 public class CorrectPackagingEventRequest {
