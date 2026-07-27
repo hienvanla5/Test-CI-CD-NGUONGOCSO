@@ -58,6 +58,10 @@ public class ProcurementEventServiceImpl implements ProcurementEventService {
             throw new BusinessException("Lô hàng đã bị thu hồi, không thể ghi sự kiện.");
         }
 
+        if (shipment.getStatus() != ShipmentStatus.ACTIVATED) {
+            throw new BusinessException("Lô hàng chưa được kích hoạt, không thể ghi sự kiện thu mua.");
+        }
+
         // 5. Tạo điểm vị trí (nếu có)
         Point locationPoint = null;
         if (request.getLatitude() != null && request.getLongitude() != null) {
