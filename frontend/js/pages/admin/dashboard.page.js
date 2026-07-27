@@ -20,7 +20,7 @@ if (!requireAuth()) {
 const user = getUser();
 
 if (!user || !user.roleCode) {
-    window.location.href = "/pages/auth/login.html";
+    window.location.href = "/frontend/pages/auth/login.html";
 }
 
 const roleCode = user.roleCode;

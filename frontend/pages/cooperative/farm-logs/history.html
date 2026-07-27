@@ -41,13 +41,18 @@
 
     <link
         rel="stylesheet"
+        href="../../../css/components/page-state.css"
+    >
+
+    <link
+        rel="stylesheet"
         href="../../../css/pages/cooperative/dashboard.css"
     >
 
     <!-- CSS riêng của màn lịch sử -->
     <link
         rel="stylesheet"
-        href="../../../css/pages/cooperative/farm-log-history.css"
+        href="../../../css/pages/cooperative/farm-logs/history.css"
     >
 </head>
 
@@ -62,34 +67,7 @@
                 Nguồn Gốc Số
             </div>
 
-            <nav class="sidebar-menu">
-
-                <a
-                    href="/frontend/pages/cooperative/dashboard.html"
-                >
-                    Dashboard
-                </a>
-
-                <a
-                    href="/frontend/pages/cooperative/farm-areas/index.html"
-                >
-                    Farm Areas
-                </a>
-
-                <a
-                    href="/frontend/pages/cooperative/production-lots/index.html"
-                    class="active"
-                >
-                    Production Lots
-                </a>
-
-                <a
-                    href="/frontend/pages/cooperative/profile.html"
-                >
-                    Organization Profile
-                </a>
-
-            </nav>
+            <nav class="sidebar-menu"></nav>
 
             <div
                 class="sidebar-user"
@@ -476,9 +454,9 @@
 
     <script
         type="module"
-        src="../../../js/pages/cooperative/farm-logs/farm-log-history.page.js"
+        src="../../../js/pages/cooperative/farm-logs/history.page.js"
     ></script>
-
+    <script type="module" src="../../component/cooperative/nav.js"></script>
 </body>
 
 </html>

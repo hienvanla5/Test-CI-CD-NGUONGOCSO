@@ -22,8 +22,26 @@
 
 .production-lots-header-actions {
     display: flex;
+    align-items: center;
 
     gap: 12px;
+}
+
+/* "+ New" button — override .btn-primary's full-width/48px default
+   (meant for full-width form buttons) so it sits at a normal size
+   next to the 40px-tall search input instead of towering over it. */
+.production-lot-create-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: auto;
+    height: 40px;
+
+    padding: 0 18px;
+
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* List card */
@@ -245,148 +263,151 @@
         width: 100%;
     }
 }
-<<<<<<< HEAD
-/* ===== Inline Input ===== */
-
-.inline-input {
-    width: 100%;
-    padding: 8px 10px;
-
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-
-    font-size: 14px;
-    background: #fff;
+body.modal-open {
+    overflow: hidden;
 }
 
-.inline-input:focus {
-    outline: none;
+/* ===== Edit Production Lot Modal ===== */
 
-    border-color: #3b82f6;
-
-    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
-}
-/* ===== Status Dropdown ===== */
-
-.inline-status{
-    appearance:none !important;
-    -webkit-appearance:none !important;
-    -moz-appearance:none !important;
-
-    background:#60A5FA !important;
-    color:#fff !important;
-
-    border:none !important;
-    outline:none;
-
-    border-radius:8px;
-
-    min-width:80px;
-    height:34px;
-    padding:0 14px;
-
-    font-weight:600;
-
-    cursor:pointer;
-}
-.inline-status:hover{
-
-    background:#3B82F6;
-
-    transform:translateY(-1px);
-
-    box-shadow:0 4px 12px rgba(59,130,246,.25);
-}
-.inline-status:active{
-
-    background:#2563EB;
-
-    transform:scale(.98);
-}
-.inline-status:focus{
-
-    outline:none;
-
-    box-shadow:0 0 0 3px rgba(59,130,246,.25);
-}
-.inline-status::-ms-expand{
-    display:none;
-}
-/* ===== Action Buttons ===== */
-
-.action-buttons{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    white-space:nowrap;
+.modal[hidden] {
+    display: none;
 }
 
-.action-buttons .btn{
-    margin:0;
-}
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
 
-.btn-sm{
-    min-width:72px;
-    height:36px;
-
-    padding:0 16px;
-
-    border-radius:8px;
-
-    font-size:14px;
-    font-weight:600;
-}
-
-.btn-save,
-.btn-edit,
-.btn-cancel,
-.status-button {
-    cursor: pointer;
-}
-
-.btn-save,
-.btn-edit,
-.btn-cancel {
-    margin-right: 8px;
-}
-
-.status-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.8;
-}
-
-<<<<<<< HEAD
-.edit-lot-name,
-.edit-farm-area,
-.edit-product-category,
-.edit-expected-quantity,
-.edit-planting-date {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #d5d9dd;
-    border-radius: 6px;
-=======
-
-.btn-farm-log {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
 
-    min-width: 110px;
-    min-height: 36px;
-
-    padding: 8px 14px;
-
-    font-size: 0.82rem;
-    white-space: nowrap;
+    padding: 20px;
 }
+
+.modal__overlay {
+    position: absolute;
+    inset: 0;
+
+    background: rgb(0 0 0 / 50%);
+}
+
+.modal__content {
+    position: relative;
+
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: var(--color-surface);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 24px 24px 16px;
+
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modal__header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.modal__header p {
+    margin-top: 4px;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+}
+
+.modal__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    border: none;
+    background: transparent;
+
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--color-text-muted);
+
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+
+    transition: background var(--transition);
+}
+
+.modal__close:hover {
+    background: var(--color-background);
+    color: var(--color-text);
+}
+
+.modal-message {
+    margin: 16px 24px 0;
+    padding: 10px 14px;
+
+    border-radius: var(--border-radius-sm);
+
+    font-size: 0.9rem;
+}
+
+.modal-message[hidden] {
+    display: none;
+}
+
+.modal-message.success {
+    background: #d1fae5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.modal-message.error {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+#editLotForm {
+    padding: 24px;
+}
+
+.modal-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+
+    margin-bottom: 20px;
+}
+
+.modal-form-grid__full {
+    grid-column: 1 / -1;
+}
+
+.modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
 
 .production-lots-table th:last-child,
 .production-lots-table td:last-child {
     text-align: center;
->>>>>>> feature/create-farm-log
-=======
+}
+
 /* Modal responsive */
 
 @media (max-width: 640px) {
@@ -424,9 +445,55 @@
 }
 
 .production-lot-actions .btn {
+    width: auto;
     min-width: max-content;
 }
 
+/* Common sizing for the row action buttons (Sửa / Lịch sử / Attachment)
+   so they line up consistently regardless of which combination renders. */
+.btn-edit-lot,
+.btn-history-lot,
+.btn-attachment-lot,
+.btn-create-farm-log,
+.btn-approve-lot,
+.btn-reject-lot {
+    height: 34px;
+
+    padding: 0 14px;
+
+    border-radius: var(--border-radius-sm);
+
+    font-size: 0.82rem;
+    font-weight: 600;
+
+    transition:
+        background var(--transition),
+        border-color var(--transition),
+        box-shadow var(--transition),
+        transform var(--transition);
+}
+
+/* "Sửa" — outlined neutral style; previously relied on the
+   non-existent .btn-secondary class and rendered unstyled. */
+.btn-edit-lot {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
+.btn-edit-lot:hover:not(:disabled) {
+    background: var(--color-background);
+    border-color: #9ca3af;
+}
+
+.btn-edit-lot:disabled {
+    background: #f3f4f6;
+    border-color: var(--color-border);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+}
+
+/* "Lịch sử" — solid green, kept but softened with a subtle hover lift. */
 .btn-history-lot {
     background: #237a35;
     border-color: #237a35;
@@ -436,11 +503,88 @@
 .btn-history-lot:hover:not(:disabled) {
     background: #1c672b;
     border-color: #1c672b;
+    box-shadow: 0 4px 10px rgb(35 122 53 / 25%);
+    transform: translateY(-1px);
+}
+
+/* "Attachment" — outlined blue to read as a secondary/document action,
+   distinct from the neutral "Sửa" and the solid green "Lịch sử". */
+.btn-attachment-lot {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+}
+
+.btn-attachment-lot:hover:not(:disabled) {
+    background: #dbeafe;
+    border-color: #93c5fd;
+}
+
+/* Status badge as a button — used only for the DRAFT badge when the
+   current user (VT-02) can submit the lot for approval. Resets the
+   browser's default <button> chrome so it still looks like a badge,
+   just interactive. */
+.status-badge--clickable {
+    border: none;
+    cursor: pointer;
+
+    font-family: inherit;
+
+    transition:
+        background var(--transition),
+        box-shadow var(--transition),
+        transform var(--transition);
+}
+
+.status-badge--clickable:hover:not(:disabled) {
+    background: #e5e7eb;
+    box-shadow: 0 0 0 2px #d1d5db;
+}
+
+.status-badge--clickable:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.status-badge--clickable:focus-visible {
+    outline: 2px solid #6b7280;
+    outline-offset: 2px;
+}
+
+.status-badge--clickable:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .btn-create-farm-log {
     background: #237a35;
     border-color: #237a35;
     color: #ffffff;
->>>>>>> feature/view-farm-log
+}
+
+.btn-approve-lot {
+    background: #237a35;
+    border: 1px solid #237a35;
+    color: #ffffff;
+}
+
+.btn-approve-lot:hover:not(:disabled) {
+    background: #1c672b;
+    border-color: #1c672b;
+}
+
+.btn-reject-lot {
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    color: #c2410c;
+}
+
+.btn-reject-lot:hover:not(:disabled) {
+    background: #ffedd5;
+    border-color: #fb923c;
+}
+
+.btn-approve-lot:disabled,
+.btn-reject-lot:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
 }
