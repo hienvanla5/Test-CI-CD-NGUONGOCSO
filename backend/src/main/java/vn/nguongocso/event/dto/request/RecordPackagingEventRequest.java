@@ -9,6 +9,12 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * DTO ghi nhận sự kiện đóng gói.
+ *
+ * @author Team WEB 1
+ */
+
 @Getter
 @Setter
 public class RecordPackagingEventRequest {
@@ -17,16 +23,12 @@ public class RecordPackagingEventRequest {
     private UUID productionLotId;
 
     @NotBlank(message = "Quy cách đóng gói không được để trống")
-    @Size(
-            max = 255,
-            message = "Quy cách đóng gói không được vượt quá 255 ký tự"
-    )
+    @Size(max = 255, message = "Quy cách đóng gói không được vượt quá 255 ký tự")
     private String packagingSpecification;
 
     @NotNull(message = "Vui lòng chọn ngày đóng gói")
     private LocalDate packagingDate;
 
     private Double latitude;
-
     private Double longitude;
 }

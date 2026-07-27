@@ -1,5 +1,6 @@
 package vn.nguongocso.event.dto.request;
 
+
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
@@ -7,6 +8,12 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.UUID;
+
+/**
+ * DTO ghi nhận sự kiện thu hoạch.
+ *
+ * @author Team WEB 1
+ */
 
 @Getter
 @Setter
@@ -23,6 +30,6 @@ public class RecordHarvestEventRequest {
     private Double quantity;
 
     private Double latitude;
-
     private Double longitude;
 }
+
