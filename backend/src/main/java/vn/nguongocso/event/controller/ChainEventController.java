@@ -14,6 +14,7 @@ import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
 import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.service.ChainEventService;
+import vn.nguongocso.event.dto.request.RecordTransportEventRequest;
 
 import java.util.UUID;
 
@@ -53,7 +54,7 @@ public class ChainEventController {
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         ChainEventResponse response = chainEventService.recordHarvestEvent(request, currentUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(response));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
     /**
      * API ghi nhận sự kiện đóng gói cho lô sản xuất.
@@ -66,6 +67,23 @@ public class ChainEventController {
 
         ChainEventResponse response = chainEventService.recordPackagingEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
+    }
+    
+    /**
+     * API ghi nhận sự kiện vận chuyển cho lô hàng.
+     * Chỉ chấp nhận vai trò VT-03 (Người ghi sự kiện).
+     */
+    @PostMapping("/transport")
+    @PreAuthorize("hasRole('VT-03')")
+    public ResponseEntity<ApiResult<ChainEventResponse>> recordTransport(
+            @Valid @RequestBody RecordTransportEventRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        ChainEventResponse response =
+                chainEventService.recordTransportEvent(request, currentUser);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
 
     /**

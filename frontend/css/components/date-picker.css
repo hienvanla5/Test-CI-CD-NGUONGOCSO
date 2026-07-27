@@ -1,0 +1,214 @@
+/* ===== Date / Datetime Picker tự build ===== */
+
+.dp-wrapper {
+    position: relative;
+}
+
+.dp-input {
+    cursor: pointer;
+    background-image:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px 18px;
+    padding-right: 42px !important;
+}
+
+.dp-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgb(46 125 50 / 12%);
+}
+
+/* Popup: dùng fixed + toạ độ tính bằng JS (xem positionPopup trong
+   date-picker.js) để không bao giờ tràn ra ngoài viewport và không
+   bị cắt bởi overflow của bất kỳ container cha nào. */
+.dp-popup {
+    position: fixed;
+    z-index: 1000;
+    width: 300px;
+    max-width: calc(100vw - 16px);
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
+}
+
+.dp-popup.is-hidden {
+    display: none;
+}
+
+/* Header: tháng/năm + điều hướng */
+.dp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.dp-month-label {
+    border: 0;
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: default;
+}
+
+.dp-nav-group {
+    display: flex;
+    gap: 6px;
+}
+
+.dp-nav-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color var(--transition), background-color var(--transition);
+}
+
+.dp-nav-button:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+    color: var(--color-primary-dark);
+}
+
+/* Hàng thứ trong tuần */
+.dp-weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;
+}
+
+.dp-weekday-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    color: var(--color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Lưới ngày */
+.dp-day-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.dp-day-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius-sm);
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color var(--transition), background-color var(--transition), color var(--transition);
+}
+
+.dp-day-cell:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+.dp-day-cell.is-outside {
+    color: #c2c8d1;
+}
+
+.dp-day-cell.is-today {
+    border-color: var(--color-border);
+    font-weight: 700;
+}
+
+.dp-day-cell.is-selected {
+    border-color: var(--color-primary-dark);
+    background: var(--color-primary);
+    color: #fff;
+    font-weight: 700;
+}
+
+/* Hàng chọn giờ:phút */
+.dp-time-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+.dp-time-select {
+    height: 36px;
+    padding: 0 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+
+.dp-time-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgb(46 125 50 / 12%);
+}
+
+.dp-time-separator {
+    color: var(--color-text-muted);
+    font-weight: 700;
+}
+
+/* Footer: Xóa / Hôm nay */
+.dp-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+.dp-text-button {
+    border: 0;
+    background: none;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.dp-text-button:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+}
+
+.dp-text-button--primary {
+    color: var(--color-primary-dark);
+}
+
+@media (max-width: 360px) {
+    .dp-popup {
+        width: 260px;
+    }
+}

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,11 +25,16 @@ import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
+import vn.nguongocso.event.dto.request.RecordTransportEventRequest;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.organization.entity.Organization;
+import vn.nguongocso.trace.entity.Shipment;
+import vn.nguongocso.trace.entity.TraceCode;
+import vn.nguongocso.trace.enums.ShipmentStatus;
+import vn.nguongocso.trace.repository.TraceCodeRepository;
 import vn.nguongocso.event.entity.ChainEvent;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
@@ -53,6 +59,9 @@ class ChainEventServiceImplTest {
 
     @InjectMocks
     private ChainEventServiceImpl chainEventService;
+    
+    @Mock
+    private TraceCodeRepository traceCodeRepository;
 
     private CustomUserDetails validUser; // Mocked UserDetails
     private ProductionLot productionLot;
@@ -60,6 +69,10 @@ class ChainEventServiceImplTest {
     private RecordHarvestEventRequest request;
     private User actor;
     private UUID userId;
+
+    private TraceCode traceCode;
+    private Shipment shipment;
+    private RecordTransportEventRequest transportRequest;
 
     @BeforeEach
     void setUp() {
@@ -88,6 +101,23 @@ class ChainEventServiceImplTest {
         actor = new User();
         actor.setUserId(userId);
         actor.setFullName("Nguyễn Văn Ghi");
+        
+        // ===== Transport event =====
+        shipment = new Shipment();
+        shipment.setId(UUID.randomUUID());
+        shipment.setOrganization(organization);
+        shipment.setStatus(ShipmentStatus.ACTIVATED);
+
+        traceCode = new TraceCode();
+        traceCode.setId(UUID.randomUUID());
+        traceCode.setCodeValue("HX00000029");
+        traceCode.setShipment(shipment);
+
+        transportRequest = new RecordTransportEventRequest();
+        transportRequest.setCodeValue("HX00000029");
+        transportRequest.setFromLocation("Xã Long Cốc, huyện Tân Sơn, Phú Thọ");
+        transportRequest.setToLocation("Kho trung chuyển Việt Trì, Phú Thọ");
+        transportRequest.setTransportTime(LocalDateTime.of(2026, 7, 24, 9, 0, 0));
     }
 
     @Test
@@ -254,6 +284,152 @@ class ChainEventServiceImplTest {
         assertThatThrownBy(() -> chainEventService.recordPackagingEvent(packagingRequest, validUser))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Chỉ được ghi nhận sự kiện đóng gói cho lô đã thu hoạch.");
+    }
+    
+    @Test
+    void recordTransportEvent_Success() throws JsonProcessingException {
+        // Given
+        when(validUser.getRoleCode()).thenReturn("VT-03");
+        when(validUser.getOrganizationId()).thenReturn(organization.getOrganizationId());
+        when(validUser.getUserId()).thenReturn(userId);
+
+        when(traceCodeRepository.findByCodeValue(transportRequest.getCodeValue()))
+                .thenReturn(Optional.of(traceCode));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+
+        // Mock JSON serialization (ObjectMapper spy)
+        String expectedJson = "{\"fromLocation\":\"Xã Long Cốc, huyện Tân Sơn, Phú Thọ\",\"toLocation\":\"Kho trung chuyển Việt Trì, Phú Thọ\"}";
+        doReturn(expectedJson).when(objectMapper).writeValueAsString(any(Map.class));
+
+        ChainEvent mockSavedEvent = ChainEvent.builder()
+                .id(UUID.randomUUID())
+                .shipment(shipment)
+                .eventType(ChainEventType.TRANSPORT)
+                .eventData(expectedJson)
+                .recordedAt(transportRequest.getTransportTime())
+                .recordedBy(actor)
+                .isCorrection(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(chainEventRepository.save(any(ChainEvent.class))).thenReturn(mockSavedEvent);
+
+        // When
+        ChainEventResponse response = chainEventService.recordTransportEvent(transportRequest, validUser);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getShipmentId()).isEqualTo(shipment.getId());
+        assertThat(response.getEventType()).isEqualTo(ChainEventType.TRANSPORT);
+        assertThat(response.getEventData())
+                .containsEntry("fromLocation", "Xã Long Cốc, huyện Tân Sơn, Phú Thọ")
+                .containsEntry("toLocation", "Kho trung chuyển Việt Trì, Phú Thọ");
+        assertThat(response.getRecordedAt()).isEqualTo(transportRequest.getTransportTime());
+        assertThat(response.getRecordedByName()).isEqualTo("Nguyễn Văn Ghi");
+
+        verify(chainEventRepository, times(1)).save(any(ChainEvent.class));
+        verify(traceCodeRepository, times(1)).findByCodeValue(transportRequest.getCodeValue());
+    }
+    
+    @Test
+    void recordTransportEvent_ThrowException_WhenRoleIsInvalid() {
+        // Given
+        when(validUser.getRoleCode()).thenReturn("VT-06"); // CONSUMER
+
+        // When & Then
+        assertThatThrownBy(() -> chainEventService.recordTransportEvent(transportRequest, validUser))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Bạn không có quyền ghi sự kiện vận chuyển.");
+
+        verifyNoInteractions(traceCodeRepository);
+        verifyNoInteractions(chainEventRepository);
+    }
+    
+    @Test
+    void recordTransportEvent_ThrowException_WhenTraceCodeNotFound() {
+        // Given
+        when(validUser.getRoleCode()).thenReturn("VT-03");
+        when(traceCodeRepository.findByCodeValue(transportRequest.getCodeValue()))
+                .thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> chainEventService.recordTransportEvent(transportRequest, validUser))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Mã lô hàng không tồn tại.");
+
+        verify(traceCodeRepository, times(1)).findByCodeValue(transportRequest.getCodeValue());
+        verifyNoInteractions(chainEventRepository);
+    }
+    
+    @Test
+    void recordTransportEvent_ThrowException_WhenShipmentIsNull() {
+        // Given
+        when(validUser.getRoleCode()).thenReturn("VT-03");
+        traceCode.setShipment(null);
+        when(traceCodeRepository.findByCodeValue(transportRequest.getCodeValue()))
+                .thenReturn(Optional.of(traceCode));
+
+        // When & Then
+        assertThatThrownBy(() -> chainEventService.recordTransportEvent(transportRequest, validUser))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Mã truy xuất chưa được gắn với lô hàng.");
+
+        verify(traceCodeRepository, times(1)).findByCodeValue(transportRequest.getCodeValue());
+        verifyNoInteractions(chainEventRepository);
+    }
+    
+    @Test
+    void recordTransportEvent_ThrowException_WhenShipmentRecalled() {
+        // Given
+        when(validUser.getRoleCode()).thenReturn("VT-03");
+        when(validUser.getOrganizationId()).thenReturn(organization.getOrganizationId()); // ✅ Thêm dòng này
+        shipment.setStatus(ShipmentStatus.RECALLED);
+        when(traceCodeRepository.findByCodeValue(transportRequest.getCodeValue()))
+                .thenReturn(Optional.of(traceCode));
+
+        // When & Then
+        assertThatThrownBy(() -> chainEventService.recordTransportEvent(transportRequest, validUser))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Lô hàng đã bị thu hồi, không thể ghi sự kiện vận chuyển.");
+
+        verify(traceCodeRepository, times(1)).findByCodeValue(transportRequest.getCodeValue());
+        verifyNoInteractions(chainEventRepository);
+    }
+
+    @Test
+    void recordTransportEvent_ThrowException_WhenShipmentNotActivated() {
+        // Given
+        when(validUser.getRoleCode()).thenReturn("VT-03");
+        when(validUser.getOrganizationId()).thenReturn(organization.getOrganizationId()); 
+        shipment.setStatus(ShipmentStatus.DRAFT);
+        when(traceCodeRepository.findByCodeValue(transportRequest.getCodeValue()))
+                .thenReturn(Optional.of(traceCode));
+
+        // When & Then
+        assertThatThrownBy(() -> chainEventService.recordTransportEvent(transportRequest, validUser))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Lô hàng chưa được kích hoạt, không thể ghi sự kiện vận chuyển.");
+
+        verify(traceCodeRepository, times(1)).findByCodeValue(transportRequest.getCodeValue());
+        verifyNoInteractions(chainEventRepository);
+    }
+    
+    
+    @Test
+    void recordTransportEvent_ThrowException_WhenOrganizationMismatch() {
+        // Given
+        when(validUser.getRoleCode()).thenReturn("VT-03");
+        when(validUser.getOrganizationId()).thenReturn(UUID.randomUUID()); // khác với shipment
+        when(traceCodeRepository.findByCodeValue(transportRequest.getCodeValue()))
+                .thenReturn(Optional.of(traceCode));
+
+        // When & Then
+        assertThatThrownBy(() -> chainEventService.recordTransportEvent(transportRequest, validUser))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Bạn không thuộc tổ chức quản lý của lô hàng.");
+
+        verify(traceCodeRepository, times(1)).findByCodeValue(transportRequest.getCodeValue());
+        verifyNoInteractions(chainEventRepository);
     }
 
 }

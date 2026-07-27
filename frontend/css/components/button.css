@@ -45,3 +45,42 @@
     transform:
         translateY(0);
 }
+/* Secondary Button */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font: inherit;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.btn-secondary {
+    background:
+        linear-gradient(
+            135deg,
+            var(--color-primary),
+            var(--color-primary-dark)
+        );
+
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    box-shadow:
+        0 8px 18px
+        rgb(46 125 50 / 25%);
+
+    transform:
+        translateY(-1px);
+}
+
+.btn-secondary:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}

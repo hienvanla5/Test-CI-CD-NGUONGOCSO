@@ -18,7 +18,13 @@ export const PERMISSIONS =
             "farm-log:create",
 
         VIEW_FARM_LOG_HISTORY:
-            "farm-log:view-history"
+            "farm-log:view-history",
+
+        RECORD_CHAIN_EVENT:
+            "chain-event:record",
+
+        VIEW_CHAIN_EVENT_TIMELINE:
+            "chain-event:view-timeline"
     });
 
 /**
@@ -38,13 +44,25 @@ const ROLE_PERMISSIONS =
         [ROLES.ORG_MANAGER]:
             Object.freeze([
                 PERMISSIONS
-                    .VIEW_FARM_LOG_HISTORY
+                    .VIEW_FARM_LOG_HISTORY,
+
+                PERMISSIONS
+                    .RECORD_CHAIN_EVENT,
+
+                PERMISSIONS
+                    .VIEW_CHAIN_EVENT_TIMELINE
             ]),
 
         [ROLES.EVENT_RECORDER]:
             Object.freeze([
                 PERMISSIONS
-                    .CREATE_FARM_LOG
+                    .CREATE_FARM_LOG,
+
+                PERMISSIONS
+                    .RECORD_CHAIN_EVENT,
+
+                PERMISSIONS
+                    .VIEW_CHAIN_EVENT_TIMELINE
             ]),
 
         [ROLES.ENTERPRISE]:
@@ -123,5 +141,51 @@ export function canViewFarmLogHistory(
         roleCode,
         PERMISSIONS
             .VIEW_FARM_LOG_HISTORY
+    );
+}
+
+/**
+ * Kiểm tra quyền ghi sự kiện chuỗi cung ứng
+ * (quét mã, nhập sự kiện vận chuyển/đóng gói...).
+ *
+ * Khớp với @PreAuthorize ở ChainEventController:
+ * VT-02, VT-03.
+ */
+export function canRecordChainEvent(
+    roleCode
+) {
+    return hasPermission(
+        roleCode,
+        PERMISSIONS.RECORD_CHAIN_EVENT
+    );
+}
+
+/**
+ * Kiểm tra quyền xem dòng sự kiện chuỗi cung ứng.
+ */
+export function canViewChainEventTimeline(
+    roleCode
+) {
+    return hasPermission(
+        roleCode,
+        PERMISSIONS
+            .VIEW_CHAIN_EVENT_TIMELINE
+    );
+}
+
+/**
+ * Kiểm tra quyền ghi sự kiện vận chuyển (TRANSPORT).
+ *
+ * Khớp với @PreAuthorize ở ChainEventController
+ * cho POST /api/v1/chain-events/transport:
+ * chỉ VT-03 (Người ghi sự kiện) được phép,
+ * khác với các sự kiện khác vốn cho phép cả VT-02.
+ */
+export function canRecordTransportEvent(
+    roleCode
+) {
+    return (
+        normalizeRoleCode(roleCode) ===
+        ROLES.EVENT_RECORDER
     );
 }
