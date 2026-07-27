@@ -3,7 +3,6 @@ import {
 } from "../core/api-client.js";
 
 /**
-<<<<<<< HEAD
  * Ghi sự kiện thu hoạch cho lô sản xuất.
  *
  * Chỉ VT-02, VT-03 được phép thực hiện.
@@ -25,33 +24,19 @@ export async function recordHarvestEvent(
         );
     }
 
-=======
- * Ghi nhận thu hoạch và chuyển lô:
- * APPROVED -> HARVESTED.
- */
-export function recordHarvestEvent(
-    harvestData
-) {
->>>>>>> ab796e3d5b867eb449e05f04beb63c178652194f
     return apiRequest(
         "/chain-events/harvest",
         {
             method: "POST",
-<<<<<<< HEAD
 
             body: JSON.stringify(
                 requestBody
-=======
-            body: JSON.stringify(
-                harvestData
->>>>>>> ab796e3d5b867eb449e05f04beb63c178652194f
             )
         }
     );
 }
 
 /**
-<<<<<<< HEAD
  * Ghi sự kiện đóng gói cho lô sản xuất.
  *
  * Chỉ VT-02, VT-03 được phép thực hiện.
@@ -73,31 +58,17 @@ export async function recordPackagingEvent(
         );
     }
 
-=======
- * Ghi nhận đóng gói và chuyển lô:
- * HARVESTED -> PACKAGED.
- */
-export function recordPackagingEvent(
-    packagingData
-) {
->>>>>>> ab796e3d5b867eb449e05f04beb63c178652194f
     return apiRequest(
         "/chain-events/packaging",
         {
             method: "POST",
-<<<<<<< HEAD
 
             body: JSON.stringify(
                 requestBody
-=======
-            body: JSON.stringify(
-                packagingData
->>>>>>> ab796e3d5b867eb449e05f04beb63c178652194f
             )
         }
     );
 }
-<<<<<<< HEAD
 
 /**
  * Ghi sự kiện vận chuyển cho lô hàng.
@@ -218,5 +189,3 @@ export async function getChainEventTimeline(
         }
     );
 }
-=======
->>>>>>> ab796e3d5b867eb449e05f04beb63c178652194f
