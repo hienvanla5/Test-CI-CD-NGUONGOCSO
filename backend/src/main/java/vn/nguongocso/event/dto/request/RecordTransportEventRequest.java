@@ -7,6 +7,11 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * DTO ghi nhận sự kiện vận chuyển
+ *
+ * @author Team WEB 1
+ */
 @Getter
 @Setter
 public class RecordTransportEventRequest {
