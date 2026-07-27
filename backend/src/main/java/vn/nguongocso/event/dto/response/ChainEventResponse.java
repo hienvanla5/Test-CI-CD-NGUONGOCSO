@@ -10,6 +10,11 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * DTO phản hồi chuỗi sự kiện cung ứng.
+ *
+ * @author Team WEB 1
+ */
 @Getter
 @Setter
 @Builder

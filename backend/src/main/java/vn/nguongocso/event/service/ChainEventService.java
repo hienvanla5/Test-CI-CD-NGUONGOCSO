@@ -4,10 +4,16 @@ import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.event.dto.request.CorrectPackagingEventRequest;
 import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
 import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
+import vn.nguongocso.event.dto.request.RecordTransportEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 
 import java.util.UUID;
 
+/**
+ * Service interface cho nghiệp vụ sự kiện chuỗi cung ứng.
+ *
+ * Team WEB 1
+ */
 public interface ChainEventService {
 	ChainEventResponse recordHarvestEvent(RecordHarvestEventRequest request, CustomUserDetails currentUser);
 
