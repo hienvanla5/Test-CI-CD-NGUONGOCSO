@@ -13,9 +13,11 @@ import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.repository.OrganizationRepository;
 import vn.nguongocso.trace.dto.request.CreateCodeRangeRequest;
 import vn.nguongocso.trace.dto.response.CodeRangeResponse;
+import vn.nguongocso.trace.dto.response.CodeRangeStatusResponse;
 import vn.nguongocso.trace.entity.CodeRange;
 import vn.nguongocso.trace.repository.CodeRangeRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -105,5 +107,87 @@ public class CodeRangeServiceTest  {
         assertThatThrownBy(() -> codeRangeService.createCodeRange(request, admin))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Chỉ quản trị viên nền tảng mới có quyền cấp dải mã");
+    }
+
+    @Test
+    void getCodeRangeStatus_shouldReturnCorrectStatus() {
+
+        // Given
+        Organization org = new Organization();
+        org.setOrganizationId(UUID.randomUUID());
+        org.setName("HTX Xanh");
+
+        CodeRange range = CodeRange.builder()
+                .id(UUID.randomUUID())
+                .organization(org)
+                .prefix("893001")
+                .totalLimit(100L)
+                .usedCount(85L)
+                .build();
+
+        when(codeRangeRepository.findAll()).thenReturn(List.of(range));
+
+        // When
+        List<CodeRangeStatusResponse> responses = codeRangeService.getCodeRangeStatus();
+
+        assertThat(responses).hasSize(1);
+        CodeRangeStatusResponse response = responses.get(0);
+        assertThat(response.getStatus()).isEqualTo("NEARLY_EXHAUSTED");
+        assertThat(response.getUsagePercent()).isEqualTo(85.0);
+        assertThat(response.getTotalLimit()).isEqualTo(100L);
+        assertThat(response.getUsedCount()).isEqualTo(85L);
+        assertThat(response.getOrganizationName()).isEqualTo("HTX Xanh");
+    }
+
+    @Test
+    void getCodeRangeStatus_shouldReturnExhausted_whenUsedCountEqualsLimit() {
+
+        // Given
+        Organization org = new Organization();
+        org.setOrganizationId(UUID.randomUUID());
+        org.setName("HTX Xanh");
+
+        CodeRange range = CodeRange.builder()
+                .id(UUID.randomUUID())
+                .organization(org)
+                .prefix("893001")
+                .totalLimit(100L)
+                .usedCount(100L)
+                .build();
+
+        when(codeRangeRepository.findAll()).thenReturn(List.of(range));
+
+        // When
+        List<CodeRangeStatusResponse> responses = codeRangeService.getCodeRangeStatus();
+
+        // Then
+        assertThat(responses.get(0).getStatus()).isEqualTo("EXHAUSTED");
+        assertThat(responses.get(0).getUsagePercent()).isEqualTo(100.0);
+    }
+
+    @Test
+    void getCodeRangeStatus_shouldReturnOk_whenUsedCountBelow80Percent() {
+
+        // Given
+        Organization org = new Organization();
+        org.setOrganizationId(UUID.randomUUID());
+        org.setName("HTX Xanh");
+
+        CodeRange range = CodeRange.builder()
+                .id(UUID.randomUUID())
+                .organization(org)
+                .prefix("893001")
+                .totalLimit(100L)
+                .usedCount(70L)
+                .build();
+
+        when(codeRangeRepository.findAll()).thenReturn(List.of(range));
+
+        // When
+        List<CodeRangeStatusResponse> responses = codeRangeService.getCodeRangeStatus();
+
+        // Then
+        assertThat(responses.get(0).getStatus()).isEqualTo("OK");
+        assertThat(responses.get(0).getUsagePercent()).isEqualTo(70.0);
     }
 }

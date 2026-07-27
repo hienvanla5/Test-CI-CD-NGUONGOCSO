@@ -10,8 +10,12 @@ import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.repository.OrganizationRepository;
 import vn.nguongocso.trace.dto.request.CreateCodeRangeRequest;
 import vn.nguongocso.trace.dto.response.CodeRangeResponse;
+import vn.nguongocso.trace.dto.response.CodeRangeStatusResponse;
 import vn.nguongocso.trace.entity.CodeRange;
 import vn.nguongocso.trace.repository.CodeRangeRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -65,6 +69,32 @@ public class CodeRangeService {
                 .totalLimit(codeRange.getTotalLimit())
                 .usedCount(codeRange.getUsedCount())
                 .createdAt(codeRange.getCreatedAt())
+                .build();
+    }
+
+    public List<CodeRangeStatusResponse> getCodeRangeStatus() {
+        List<CodeRange> ranges = codeRangeRepository.findAll();
+        return ranges.stream()
+                .map(this::toStatusResponse)
+                .collect(Collectors.toList());
+    }
+
+    private CodeRangeStatusResponse toStatusResponse(CodeRange range) {
+        double percent = (double) range.getUsedCount() / range.getTotalLimit() * 100;
+        String status;
+        if (percent >= 100) status = "EXHAUSTED";
+        else if (percent >= 80) status = "NEARLY_EXHAUSTED";
+        else status = "OK";
+
+        return CodeRangeStatusResponse.builder()
+                .id(range.getId())
+                .organizationId(range.getOrganization().getOrganizationId())
+                .organizationName(range.getOrganization().getName())
+                .prefix(range.getPrefix())
+                .totalLimit(range.getTotalLimit())
+                .usedCount(range.getUsedCount())
+                .usagePercent(Math.round(percent * 10) / 10.0)
+                .status(status)
                 .build();
     }
 }

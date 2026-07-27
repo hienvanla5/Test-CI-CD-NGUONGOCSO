@@ -37,10 +37,10 @@ public class FarmLogServiceImpl implements FarmLogService {
 
 	private final FarmLogRepository farmLogRepository;
 	private final ProductionLotRepository productionLotRepository;
-
+	
 	private static final String EVENT_RECORDER_ROLE = "VT-03";
 	private static final String ORG_MANAGER_ROLE = "VT-02";
-
+	
 	private static final String CREATE_PERMISSION_MESSAGE =
 	        "Bạn không có quyền ghi nhật ký canh tác.";
 	private static final String VIEW_PERMISSION_MESSAGE =
@@ -51,7 +51,7 @@ public class FarmLogServiceImpl implements FarmLogService {
 	        "Không tìm thấy lô sản xuất";
 	private static final String INVALID_LOT_STATUS_MESSAGE =
 	        "Chỉ được ghi nhật ký cho lô đã duyệt hoặc đang thu hoạch.";
-
+	
 	private static final Sort FARM_LOG_SORT =
 	        Sort.by(
 	                Sort.Order.desc("executedDate"),
@@ -67,13 +67,13 @@ public class FarmLogServiceImpl implements FarmLogService {
 	public FarmLogResponse create(CreateFarmLogRequest request) {
 
 		CustomUserDetails currentUser = getCurrentUser();
-
+		
 		validateRole(currentUser,EVENT_RECORDER_ROLE,CREATE_PERMISSION_MESSAGE);
 
 		ProductionLot productionLot = getProductionLot(request.getProductionLotId());
-
+		
 		validateProductionLotStatus(productionLot);
-
+		
 		validateOrganizationAccess(currentUser, productionLot);
 
 		FarmLog farmLog = buildFarmLog(request, productionLot, currentUser.getUser());
@@ -133,7 +133,7 @@ public class FarmLogServiceImpl implements FarmLogService {
 	            ORGANIZATION_ACCESS_MESSAGE);
 	    }
 	}
-
+	
 	private void validateRole(
 	        CustomUserDetails currentUser,
 	        String expectedRole,
@@ -143,7 +143,7 @@ public class FarmLogServiceImpl implements FarmLogService {
 	        throw new BusinessException(message);
 	    }
 	}
-
+	
 	private void validateProductionLotStatus(ProductionLot productionLot) {
 
 	    if (productionLot.getStatus() != ProductionLotStatus.APPROVED
@@ -186,7 +186,7 @@ public class FarmLogServiceImpl implements FarmLogService {
 
 	    return PageResponse.from(farmLogs, responses);
 	}
-
+	
 	private Page<FarmLogProjection> findFarmLogs(
 	        ProductionLot productionLot,
 	        int page,
@@ -198,11 +198,11 @@ public class FarmLogServiceImpl implements FarmLogService {
 	            productionLot,
 	            pageable);
 	}
-
+		
 	private Pageable buildPageable(int page, int size) {
 	    return PageRequest.of(page, size, FARM_LOG_SORT);
 	}
-
+	
 	private FarmLogResponse toResponse(FarmLogProjection projection) {
 	    return FarmLogResponse.builder()
 	            .id(projection.getId())
@@ -218,5 +218,5 @@ public class FarmLogServiceImpl implements FarmLogService {
 	            .createdAt(projection.getCreatedAt())
 	            .build();
 	}
-
+	
 }
