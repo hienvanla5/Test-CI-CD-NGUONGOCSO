@@ -33,6 +33,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Service xử lý nghiệp vụ sự kiện chuỗi cung ứng.
+ *
+ * @author Team WEB 1
+ */
+
+
+
 @Service
 @RequiredArgsConstructor
 public class ChainEventServiceImpl implements ChainEventService {

@@ -9,6 +9,12 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * DTO ghi nhận sự kiện đóng gói.
+ *
+ * @author Team WEB 1
+ */
+
 @Getter
 @Setter
 public class RecordPackagingEventRequest {
