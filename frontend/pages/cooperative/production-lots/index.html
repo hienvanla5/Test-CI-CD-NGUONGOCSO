@@ -393,9 +393,143 @@
     </section>
 </div>
 
+<div id="productionLotEventModal" class="modal" hidden>
+    <div
+        id="productionLotEventOverlay"
+        class="modal__overlay"
+    ></div>
+
+    <section
+        class="modal__content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="productionLotEventTitle"
+    >
+        <header class="modal__header">
+            <div>
+                <h2 id="productionLotEventTitle">
+                    Ghi nhận sự kiện
+                </h2>
+                <p id="productionLotEventDescription">
+                    Cập nhật trạng thái lô sản xuất.
+                </p>
+            </div>
+
+            <button
+                id="closeProductionLotEventButton"
+                class="modal__close"
+                type="button"
+                aria-label="Đóng"
+            >
+                ×
+            </button>
+        </header>
+
+        <div
+            id="productionLotEventMessage"
+            class="modal-message"
+            role="alert"
+            hidden
+        ></div>
+
+        <form id="productionLotEventForm" novalidate>
+            <input
+                id="productionLotEventLotId"
+                type="hidden"
+            >
+
+            <div class="modal-form-grid">
+                <div class="form-group modal-form-grid__full">
+                    <label for="productionLotEventLotName">
+                        Lô sản xuất
+                    </label>
+                    <input
+                        id="productionLotEventLotName"
+                        type="text"
+                        readonly
+                    >
+                </div>
+
+                <div class="form-group modal-form-grid__full">
+                    <label
+                        id="productionLotEventDateLabel"
+                        for="productionLotEventDate"
+                    >
+                        Ngày thực hiện
+                    </label>
+                    <input
+                        id="productionLotEventDate"
+                        type="date"
+                        required
+                    >
+                </div>
+
+                <div
+                    id="harvestQuantityGroup"
+                    class="form-group modal-form-grid__full"
+                >
+                    <label for="harvestQuantity">
+                        Sản lượng thực tế
+                        <span>*</span>
+                    </label>
+                    <input
+                        id="harvestQuantity"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        required
+                    >
+                    <small class="field-hint">
+                        Nhập sản lượng thu hoạch thực tế của lô.
+                    </small>
+                </div>
+
+                <div
+                    id="packagingSpecificationGroup"
+                    class="form-group modal-form-grid__full"
+                    hidden
+                >
+                    <label for="packagingSpecification">
+                        Quy cách đóng gói
+                        <span>*</span>
+                    </label>
+                    <textarea
+                        id="packagingSpecification"
+                        maxlength="255"
+                        rows="3"
+                        placeholder="Ví dụ: Túi 1 kg, thùng 20 túi"
+                    ></textarea>
+                </div>
+            </div>
+
+            <footer class="modal__actions">
+                <button
+                    id="cancelProductionLotEventButton"
+                    class="btn btn-secondary"
+                    type="button"
+                >
+                    Hủy
+                </button>
+
+                <button
+                    id="submitProductionLotEventButton"
+                    class="btn btn-primary"
+                    type="submit"
+                >
+                    Xác nhận
+                </button>
+            </footer>
+        </form>
+    </section>
+</div>
+
     <script
         type="module"
         src="../../../js/pages/cooperative/production-lots/production-lots.page.js">
+    </script>
+    <script
+        type="module"
+        src="../../../js/pages/cooperative/production-lots/production-lot-events.page.js">
     </script>
     <script type="module" src="../../component/cooperative/nav.js"></script>
 </body>
