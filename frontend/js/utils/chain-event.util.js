@@ -33,14 +33,15 @@ export const CHAIN_EVENT_ICONS =
 /**
  * Các loại sự kiện đã có API ghi nhận thật ở backend.
  *
- * TRANSPORT và PROCUREMENT tồn tại trong enum nhưng
- * chưa có endpoint tương ứng ở ChainEventController,
- * nên tạm thời chỉ cho phép chọn khi ghi sự kiện mới.
+ * TRANSPORT đã có endpoint POST /api/v1/chain-events/transport
+ * ở ChainEventController (chỉ VT-03). PROCUREMENT vẫn
+ * chưa có endpoint tương ứng, nên tạm thời chưa cho phép chọn.
  */
 export const SUPPORTED_RECORD_EVENT_TYPES =
     Object.freeze([
         "HARVEST",
-        "PACKAGING"
+        "PACKAGING",
+        "TRANSPORT"
     ]);
 
 /**

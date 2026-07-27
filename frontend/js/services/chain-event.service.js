@@ -71,6 +71,40 @@ export async function recordPackagingEvent(
 }
 
 /**
+ * Ghi sự kiện vận chuyển cho lô hàng.
+ *
+ * Chỉ VT-03 được phép thực hiện.
+ *
+ * POST /api/v1/chain-events/transport
+ *
+ * @param {Object} requestBody { codeValue, fromLocation, toLocation, transportTime }
+ * @returns {Promise<unknown>}
+ */
+export async function recordTransportEvent(
+    requestBody
+) {
+    if (
+        !requestBody ||
+        typeof requestBody !== "object"
+    ) {
+        throw new TypeError(
+            "Dữ liệu sự kiện vận chuyển không hợp lệ."
+        );
+    }
+
+    return apiRequest(
+        "/chain-events/transport",
+        {
+            method: "POST",
+
+            body: JSON.stringify(
+                requestBody
+            )
+        }
+    );
+}
+
+/**
  * Tạo sự kiện đính chính thông tin đóng gói.
  *
  * Giữ nguyên sự kiện gốc, tạo bản ghi mới.
