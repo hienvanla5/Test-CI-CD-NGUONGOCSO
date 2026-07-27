@@ -16,6 +16,7 @@ import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.event.dto.request.CorrectPackagingEventRequest;
 import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
+import vn.nguongocso.event.dto.request.RecordTransportEventRequest;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
@@ -26,12 +27,24 @@ import vn.nguongocso.event.repository.ChainEventRepository;
 import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.service.ChainEventService;
+import vn.nguongocso.trace.entity.TraceCode;
+import vn.nguongocso.trace.entity.Shipment;
+import vn.nguongocso.trace.enums.ShipmentStatus;
+import vn.nguongocso.trace.repository.TraceCodeRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+/**
+ * Service xử lý nghiệp vụ sự kiện chuỗi cung ứng.
+ *
+ * @author Team WEB 1
+ */
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +54,8 @@ public class ChainEventServiceImpl implements ChainEventService {
     private final ProductionLotRepository productionLotRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final TraceCodeRepository traceCodeRepository;
+    
 
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
@@ -289,6 +304,83 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .recordedAt(correctionEvent.getRecordedAt())
                 .recordedByName(actor.getFullName())
                 .createdAt(correctionEvent.getCreatedAt())
+                .build();
+    }
+    @Override
+    @Transactional
+    public ChainEventResponse recordTransportEvent(
+            RecordTransportEventRequest request,
+            CustomUserDetails currentUser) {
+
+        // 1. Kiểm tra quyền
+        if (!"VT-03".equals(currentUser.getRoleCode())) {
+            throw new BusinessException("Bạn không có quyền ghi sự kiện vận chuyển.");
+        }
+
+        // 2. Tìm mã truy xuất
+        TraceCode traceCode = traceCodeRepository.findByCodeValue(request.getCodeValue())
+                .orElseThrow(() -> new BusinessException("Mã lô hàng không tồn tại."));
+
+        // 3. Lấy lô hàng
+        Shipment shipment = traceCode.getShipment();
+        
+        if (shipment == null) {
+            throw new BusinessException("Mã truy xuất chưa được gắn với lô hàng.");
+        }
+        
+        if (!shipment.getOrganization().getOrganizationId()
+                .equals(currentUser.getOrganizationId())) {
+            throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô hàng.");
+        }
+        
+        // 4. Kiểm tra trạng thái lô hàng
+        if (shipment.getStatus() == ShipmentStatus.RECALLED) {
+            throw new BusinessException("Lô hàng đã bị thu hồi, không thể ghi sự kiện vận chuyển.");
+        }
+
+        if (shipment.getStatus() != ShipmentStatus.ACTIVATED) {
+            throw new BusinessException("Lô hàng chưa được kích hoạt, không thể ghi sự kiện vận chuyển.");
+        }
+
+        // 5. Dữ liệu sự kiện
+        Map<String, Object> eventDataMap = new HashMap<>();
+        eventDataMap.put("fromLocation", request.getFromLocation());
+        eventDataMap.put("toLocation", request.getToLocation());
+
+        String eventDataJson;
+        try {
+            eventDataJson = objectMapper.writeValueAsString(eventDataMap);
+        } catch (JsonProcessingException e) {
+            throw new BusinessException("Lỗi chuyển đổi dữ liệu sự kiện sang chuỗi JSON.");
+        }
+
+        // 6. Người ghi nhận
+        User actor = userRepository.findById(currentUser.getUserId())
+                .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin người ghi nhận."));
+
+        // 7. Tạo ChainEvent
+        ChainEvent chainEvent = ChainEvent.builder()
+                .shipment(shipment)
+                .eventType(ChainEventType.TRANSPORT)
+                .eventData(eventDataJson)
+                .recordedAt(request.getTransportTime())
+                .recordedBy(actor)
+                .isCorrection(false)
+                .build();
+
+        chainEvent = chainEventRepository.save(chainEvent);
+
+        // 8. Response
+        return ChainEventResponse.builder()
+                .id(chainEvent.getId())
+                .shipmentId(shipment.getId())
+                .eventType(chainEvent.getEventType())
+                .eventData(eventDataMap)
+                .latitude(null)
+                .longitude(null)
+                .recordedAt(chainEvent.getRecordedAt())
+                .recordedByName(actor.getFullName())
+                .createdAt(chainEvent.getCreatedAt())
                 .build();
     }
 

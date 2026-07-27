@@ -11,8 +11,29 @@ import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.trace.entity.Shipment;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
+
+/**
+ * Thực thể đại diện cho một sự kiện trong chuỗi cung ứng.
+ * <p>
+ * Mỗi sự kiện ghi lại một hoạt động cụ thể trong vòng đời của một lô hàng,
+ * bao gồm thông tin về loại sự kiện, dữ liệu chi tiết, vị trí, thời gian và
+ * người ghi nhận. Sự kiện có thể liên kết với nhau thông qua {@code parentEvent}
+ * để tạo thành một chuỗi các hoạt động.</p>
+ *
+ * <p>Các loại sự kiện bao gồm:
+ * <ul>
+ *   <li>THU HOẠCH - Ghi nhận quá trình thu hoạch</li>
+ *   <li>ĐÓNG GÓI - Ghi nhận quá trình đóng gói</li>
+ *   <li>VẬN CHUYỂN - Ghi nhận quá trình vận chuyển</li>
+ *   <li>THU MUA - Ghi nhận quá trình thu mua</li>
+ *   <li>SỬA LỖI - Điều chỉnh dữ liệu sự kiện trước đó</li>
+ * </ul>
+ * </p>
+ *
+ * @author Triệu Văn Đại
+ */
+
 
 @Entity
 @Table(name = "chain_events")
