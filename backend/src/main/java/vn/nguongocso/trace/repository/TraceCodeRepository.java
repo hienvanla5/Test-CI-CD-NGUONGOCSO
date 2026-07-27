@@ -1,6 +1,7 @@
 package vn.nguongocso.trace.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +22,9 @@ public interface TraceCodeRepository extends JpaRepository<TraceCode, UUID> {
      * Lấy mã theo lô hàng.
      */
 	List<TraceCode> findByShipmentId(UUID shipmentId);
+	
+	/**
+	 * Lấy mã code
+	 */
+	Optional<TraceCode> findByCodeValue(String codeValue);
 }
