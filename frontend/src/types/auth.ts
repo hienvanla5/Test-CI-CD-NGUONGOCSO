@@ -22,7 +22,7 @@ export interface UserInfo {
   orgainzationType: OrganizationType;
 }
 
-export type OrganizationType = | 'SYSTEM' | 'COOPERATIVE' | 'ENTERPRISE' | 'GOVERNMENT';
+export type OrganizationType = 'SYSTEM' | 'COOPERATIVE' | 'ENTERPRISE' | 'GOVERNMENT';
 
 export interface AuthState {
   user: UserInfo | null;

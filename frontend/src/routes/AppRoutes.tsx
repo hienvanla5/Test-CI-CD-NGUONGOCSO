@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from '../pages/auth/LoginPage';
 import { useAuth } from '../hooks/useAuth';
 import { type UserInfo } from '../types/auth';
+import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
 
 // Component bảo vệ route yêu cầu đăng nhập
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -25,6 +26,14 @@ const AppRoutes: React.FC = () => {
         element={
           <PrivateRoute>
             <DashboardPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path='/organizations/profile'
+        element={
+          <PrivateRoute>
+            <OrganizationProfilePage />
           </PrivateRoute>
         }
       />
