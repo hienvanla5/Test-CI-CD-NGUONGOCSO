@@ -28,3 +28,13 @@ export const organizationProfileSchema = z.object({
 });
 
 export type OrganizationProfileFormValues = z.infer<typeof organizationProfileSchema>;
+
+export const updateProductionLotSchema = z.object({
+  name: z.string().min(1, 'Tên lô không được để trống'),
+  farmAreaId: z.string().nullable().optional(),
+  productCategoryId: z.string().uuid('Vui lòng chọn loại nông sản'),
+  expectedQuantity: z.coerce.number().positive('Sản lượng dự kiến phải lớn hơn 0'),
+  plantingDate: z.string().min(1, 'Ngày xuống giống không được để trống'),
+});
+
+export type UpdateProductionLotFormValues = z.infer<typeof updateProductionLotSchema>;

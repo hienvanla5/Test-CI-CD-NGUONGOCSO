@@ -4,6 +4,7 @@ import LoginPage from '../pages/auth/LoginPage';
 import { useAuth } from '../hooks/useAuth';
 import { type UserInfo } from '../types/auth';
 import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
+import ProductionLotEditPage from '@/pages/farm/ProductionLotEditPage';
 
 // Component bảo vệ route yêu cầu đăng nhập
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -34,6 +35,14 @@ const AppRoutes: React.FC = () => {
         element={
           <PrivateRoute>
             <OrganizationProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/production-lots/:id/edit"
+        element={
+          <PrivateRoute>
+            <ProductionLotEditPage />
           </PrivateRoute>
         }
       />
