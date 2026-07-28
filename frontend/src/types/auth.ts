@@ -1,7 +1,7 @@
 export interface LoginRequest {
   username: string;
   password: string;
-  organization?: string;
+  organizationCode?: string;
 }
 
 export interface LoginResponse {
@@ -17,12 +17,26 @@ export interface UserInfo {
   fullName: string;
   roleCode: string;
   organizationId: string;
+  organizationName: string;
   organizationCode: string;
+  orgainzationType: OrganizationType;
 }
+
+export type OrganizationType = | 'SYSTEM' | 'COOPERATIVE' | 'ENTERPRISE' | 'GOVERNMENT';
 
 export interface AuthState {
   user: UserInfo | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+}
+
+export interface ApiResult<T> {
+  success: boolean;
+  status: number;
+  message?: string;
+  data: T;
+  errors?: unknown;
+  path?: string;
+  timestamp: string;
 }

@@ -1,8 +1,8 @@
-import type { LoginRequest, LoginResponse } from "@/types/auth";
+import type { ApiResult, LoginRequest, LoginResponse } from "@/types/auth";
 import apiClient from "./axiosConfig";
 
-export const login = async (data: LoginRequest): Promise<LoginResponse> => {
-  const response = await apiClient.post<LoginResponse>('/auth/login', data);
+export const login = async (data: LoginRequest): Promise<ApiResult<LoginResponse>> => {
+  const response = await apiClient.post<ApiResult<LoginResponse>>('/auth/login', data);
   return response.data;
 }
 

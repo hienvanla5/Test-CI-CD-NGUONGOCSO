@@ -33,7 +33,7 @@ export const LoginForm: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await login(data);
-      const { user, accessToken } = response;
+      const { user, accessToken } = response.data;
       authLogin(user, accessToken);
       toast.success('Đăng nhập thành công!');
       navigate('/'); // Chuyển đến trang dashboard
