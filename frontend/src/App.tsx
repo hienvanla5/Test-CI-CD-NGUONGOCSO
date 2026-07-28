@@ -1,38 +1,15 @@
-import { Search, Settings, Sprout } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-
-import './App.css'
+import React from 'react';
+import AppRoutes from './routes/AppRoutes';
+import { AuthProvider } from './contexts/AuthContext';
+import { Toaster } from 'sonner'; // hoặc react-hot-toast
 
 function App() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
-      <div className="flex items-center gap-4">
-        <Search size={20} />
-
-        <Settings
-          size={20}
-          className="text-gray-600"
-        />
-
-        <Sprout
-          size={24}
-          className="text-green-600"
-        />
-      </div>
-
-      <Button>
-        Test shadcn Button
-      </Button>
-
-      <Button variant="outline">
-        Outline Button
-      </Button>
-
-      <Button variant="destructive">
-        Delete
-      </Button>
-    </div>
-  )
+    <AuthProvider>
+      <AppRoutes />
+      <Toaster position="top-right" />
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
