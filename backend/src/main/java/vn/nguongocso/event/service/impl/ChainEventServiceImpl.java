@@ -306,6 +306,8 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .createdAt(correctionEvent.getCreatedAt())
                 .build();
     }
+    
+    
     @Override
     @Transactional
     public ChainEventResponse recordTransportEvent(
