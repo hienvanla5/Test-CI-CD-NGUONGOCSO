@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { loginSchema, LoginFormValues } from '../../utils/validators';
+import { loginSchema, type LoginFormValues } from '../../utils/validators';
 import { login } from '../../api/authApi';
 import { useAuth } from '../../hooks/useAuth';
 import { toast } from 'sonner'; // hoặc dùng react-hot-toast

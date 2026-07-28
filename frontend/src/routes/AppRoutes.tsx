@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from '../pages/auth/LoginPage';
 import { useAuth } from '../hooks/useAuth';
-import { UserInfo } from '../types/auth';
+import { type UserInfo } from '../types/auth';
 
 // Component bảo vệ route yêu cầu đăng nhập
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
