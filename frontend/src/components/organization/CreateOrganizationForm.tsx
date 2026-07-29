@@ -1,5 +1,3 @@
-// frontend/src/components/organization/CreateOrganizationForm.tsx
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createOrganizationSchema, type CreateOrganizationFormValues } from '@/utils/validators';
@@ -30,6 +28,7 @@ export function CreateOrganizationForm() {
       phone: '',
       email: '',
       managerPhone: '',
+      confirmPassword: '', // thêm
     },
   });
 
@@ -37,13 +36,14 @@ export function CreateOrganizationForm() {
 
   const onSubmit = async (values: CreateOrganizationFormValues) => {
     try {
-      const result = await createOrganization(values);
+      // Loại bỏ confirmPassword trước khi gửi (back-end không cần)
+      const { confirmPassword, ...submitData } = values;
+      const result = await createOrganization(submitData);
       toast.success(`Tổ chức "${result.data.organizationName}" đã được tạo thành công!`);
-      navigate('/organizations'); // hoặc navigate về trang danh sách
+      navigate('/organizations');
     } catch (error: any) {
       const response = error.response?.data;
       if (response?.status === 400 && response?.errors) {
-        // Set lỗi cho từng field dựa trên response errors
         Object.entries(response.errors).forEach(([key, message]) => {
           setError(key as keyof CreateOrganizationFormValues, {
             message: message as string,
@@ -65,7 +65,7 @@ export function CreateOrganizationForm() {
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-6">
-          {/* Thông tin tổ chức */}
+          {/* Thông tin tổ chức - giữ nguyên */}
           <div className="space-y-4">
             <h3 className="font-medium text-lg">Thông tin tổ chức</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -96,6 +96,10 @@ export function CreateOrganizationForm() {
             <div className="space-y-2">
               <Label htmlFor="organizationType">Loại tổ chức *</Label>
               <Select
+                items={Object.entries(ORGANIZATION_TYPES).map(([key, label]) => ({
+                  value: key,
+                  label,
+                }))}
                 value={organizationType}
                 onValueChange={(value) => setValue('organizationType', value as any)}
               >
@@ -192,6 +196,20 @@ export function CreateOrganizationForm() {
               />
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password.message}</p>
+              )}
+            </div>
+
+            {/* Thêm trường xác nhận mật khẩu */}
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                {...register('confirmPassword')}
+                placeholder="Nhập lại mật khẩu"
+              />
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
               )}
             </div>
 

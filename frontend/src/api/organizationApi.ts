@@ -30,6 +30,6 @@ export const updateOrganizationProfile = async (data: UpdateOrganizationRequest)
   return response.data.data;
 };
 export const createOrganization = async (data: CreateOrganizationRequest): Promise<CreateOrganizationResponse> => {
-  const response = await apiClient.post<CreateOrganizationResponse>('/api/v1/admin/organizations', data);
+  const response = await apiClient.post<CreateOrganizationResponse>('/admin/organizations', data);
   return response.data;
 };

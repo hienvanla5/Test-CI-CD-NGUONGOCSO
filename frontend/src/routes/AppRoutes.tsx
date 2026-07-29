@@ -2,11 +2,11 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from '../pages/auth/LoginPage';
 import { useAuth } from '../hooks/useAuth';
-import { type UserInfo } from '../types/auth';
 import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
 import { CreateOrganizationPage } from '@/pages/organization/CreateOrganizationPage';
 import { CreateFarmAreaPage } from '@/pages/farm-area/CreateFarmAreaPage';
 
+import ProductionLotEditPage from '@/pages/farm/ProductionLotEditPage';
 
 // Component bảo vệ route yêu cầu đăng nhập
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -27,8 +27,6 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const DashboardPage = () => <div>Dashboard (trang chủ)</div>;
 
 const AppRoutes: React.FC = () => {
-  const { user } = useAuth();
-
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
