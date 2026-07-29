@@ -17,6 +17,10 @@ import { CreateOrganizationPage } from '@/pages/organization/CreateOrganizationP
 import MemberPermissionsPage from '@/pages/organization/MemberPermissionsPage';
 import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
 
+// 👇 Import các trang mới từ nhánh frontend/code-ranges
+import CreateCodeRangePage from '@/pages/admin/CreateCodeRangePage';
+import CodeRangeListPage from '@/pages/admin/CodeRangeListPage';
+
 const COOPERATIVE_MANAGER_ROLES = [
   'VT-02',
 ] as const satisfies readonly AuthenticatedRoleCode[];
@@ -87,7 +91,7 @@ const AppRoutes = () => (
         </PrivateRoute>
       }
     >
-      {/* Dashboard thật, không dùng component tạm */}
+      {/* Dashboard thật */}
       <Route index element={<DashboardPage />} />
 
       {/* Tạo tổ chức — VT-01 */}
@@ -110,7 +114,7 @@ const AppRoutes = () => (
         }
       />
 
-      {/* Cấp quyền thành viên — giữ nguyên chức năng mới từ develop, chỉ VT-02 */}
+      {/* Cấp quyền thành viên — VT-02 */}
       <Route
         path="organizations/members"
         element={
@@ -136,6 +140,24 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={ROLE_ACCESS.productionLotEdit}>
             <ProductionLotEditPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* 👇 Các route quản lý dải mã — chỉ VT-01 (Admin) */}
+      <Route
+        path="admin/code-ranges"
+        element={
+          <RoleRoute allowedRoles={['VT-01']}>
+            <CodeRangeListPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="admin/code-ranges/create"
+        element={
+          <RoleRoute allowedRoles={['VT-01']}>
+            <CreateCodeRangePage />
           </RoleRoute>
         }
       />
