@@ -23,7 +23,10 @@ export interface ProductCategory {
 export interface ProductionLot {
   id: string;
   organizationName: string;
-  farmAreaName: string;
+  farmAreaId: string | null;
+  farmAreaName: string | null;
+  productCategoryId: string;
+  productCategoryName: string | null;
   name: string;
   expectedQuantity: number;
   actualQuantity: number | null;

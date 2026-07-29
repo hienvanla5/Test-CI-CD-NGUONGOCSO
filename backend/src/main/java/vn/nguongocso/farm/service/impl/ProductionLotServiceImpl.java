@@ -18,6 +18,7 @@ import vn.nguongocso.farm.repository.FarmAreaRepository;
 import vn.nguongocso.farm.repository.ProductCategoryRepository;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.exception.ResourceNotFoundException;
 import vn.nguongocso.farm.entity.FarmArea;
 import vn.nguongocso.farm.entity.ProductCategory;
 import vn.nguongocso.farm.entity.ProductionLot;
@@ -86,6 +87,15 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         log.info("Đã tạo thành công lô sản xuất với id={}", savedLot.getId());
 
         return mapToResponse(savedLot);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CreateProductionLotResponse getProductionLotById(UUID id) {
+        log.info("Lấy thông tin lô sản xuất id={}", id);
+        ProductionLot lot = productionLotRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Lô sản xuất không tồn tại"));
+        return mapToResponse(lot);
     }
 
     @Override
@@ -171,6 +181,8 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     private CreateProductionLotResponse mapToResponse(ProductionLot lot) {
         return CreateProductionLotResponse.builder()
                 .id(lot.getId())
+                .farmAreaId(lot.getFarmArea() != null ? lot.getFarmArea().getId() : null)
+                .productCategoryId(lot.getProductCategory().getId())
                 .organizationName(lot.getOrganization().getName())
                 .farmAreaName(lot.getFarmArea() != null ? lot.getFarmArea().getName() : null)
                 .productCategoryName(lot.getProductCategory().getName())

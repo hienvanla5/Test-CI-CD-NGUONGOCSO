@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Button } from "../ui/button";
 
 export const ProductionLotEditForm: React.FC = () => {
-  const { id } = useParams<{ id: string }>;
+  const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -55,8 +55,8 @@ export const ProductionLotEditForm: React.FC = () => {
 
         reset({
           name: lotData.name,
-          farmAreaId: lotData.farmAreaName ?? null,
-          productCategoryId: '',
+          farmAreaId: lotData.farmAreaId ?? null,
+          productCategoryId: lotData.productCategoryId,
           expectedQuantity: lotData.expectedQuantity,
           plantingDate: lotData.plantingDate.split('T')[0],
         });
