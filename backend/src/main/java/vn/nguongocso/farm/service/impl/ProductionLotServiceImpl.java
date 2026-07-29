@@ -24,10 +24,14 @@ import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.repository.OrganizationRepository;
+import vn.nguongocso.report.dto.response.ProductionLotDashboardResponse;
+import vn.nguongocso.report.service.ReportAccessLogService;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +45,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     private final ProductCategoryRepository productCategoryRepository;
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
+    private final ReportAccessLogService reportAccessLogService;
 
     @Override
     @Transactional
@@ -236,6 +241,115 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .status(savedLot.getStatus().name())
                 .updatedAt(savedLot.getUpdatedAt())
                 .build();
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public ProductionLotDashboardResponse getDashboard(
+            LocalDate startDate,
+            LocalDate endDate,
+            UUID targetOrganizationId,
+            String groupBy,
+            CustomUserDetails userDetails,
+            String ipAddress) {
+
+        UUID userOrgId = userDetails.getOrganizationId();
+        UUID userId = userDetails.getUserId();
+
+        // 1. Xác định tổ chức đích được yêu cầu
+        UUID finalTargetOrgId = (targetOrganizationId != null) ? targetOrganizationId : userOrgId;
+
+        // 2. Kiểm tra phân quyền cách ly dữ liệu (QTN-01)
+        boolean isAdmin = userDetails.getRoleCode().equals("VT-01");
+        if (!isAdmin && !finalTargetOrgId.equals(userOrgId)) {
+            // Ghi nhật ký truy cập trái phép (success = false)
+            reportAccessLogService.logAccess(userId, userOrgId, finalTargetOrgId, "YIELD_AND_LOT_DASHBOARD", false, ipAddress);
+            throw new org.springframework.security.access.AccessDeniedException("Từ chối truy cập: Bạn không có quyền truy cập dữ liệu của tổ chức này.");
+        }
+
+        // Ghi nhật ký truy cập hợp lệ (success = true)
+        reportAccessLogService.logAccess(userId, userOrgId, finalTargetOrgId, "YIELD_AND_LOT_DASHBOARD", true, ipAddress);
+
+        // 3. Lấy dữ liệu summary & byStatus
+        List<Object[]> summaryAndStatusList = productionLotRepository.getDashboardSummaryAndStatus(finalTargetOrgId, startDate, endDate);
+
+        // Khởi tạo trước tất cả trạng thái về 0L để đảm bảo đầy đủ khóa trong JSON response
+        Map<String, Long> byStatus = new LinkedHashMap<>();
+        for (ProductionLotStatus status : ProductionLotStatus.values()) {
+            byStatus.put(status.name(), 0L);
+        }
+
+        long totalLots = 0L;
+        double totalExpectedYield = 0.0;
+        double totalActualYield = 0.0;
+
+        for (Object[] row : summaryAndStatusList) {
+            ProductionLotStatus status = (ProductionLotStatus) row[0];
+            Long count = (Long) row[1];
+            Double expected = row[2] != null ? (Double) row[2] : 0.0;
+            Double actual = row[3] != null ? (Double) row[3] : 0.0;
+
+            byStatus.put(status.name(), count);
+
+            totalLots += count;
+            totalExpectedYield += expected;
+            totalActualYield += actual;
+        }
+
+        ProductionLotDashboardResponse.SummaryDto summary = ProductionLotDashboardResponse.SummaryDto.builder()
+                .totalLots(totalLots)
+                .totalExpectedYield(totalExpectedYield)
+                .totalActualYield(totalActualYield)
+                .build();
+
+        // 4. Lấy dữ liệu timeSeries và gom nhóm trên Java (để DB-agnostic giữa H2 & MySQL)
+        List<Object[]> timeSeriesList = productionLotRepository.getDashboardTimeSeriesData(finalTargetOrgId, startDate, endDate);
+
+        Map<String, ProductionLotDashboardResponse.TimeSeriesDto> timeSeriesMap = new LinkedHashMap<>();
+
+        for (Object[] row : timeSeriesList) {
+            LocalDate plantingDate = (LocalDate) row[0];
+            Double expected = row[1] != null ? (Double) row[1] : 0.0;
+            Double actual = row[2] != null ? (Double) row[2] : 0.0;
+
+            String period = formatPeriod(plantingDate, groupBy);
+
+            ProductionLotDashboardResponse.TimeSeriesDto tsDto = timeSeriesMap.computeIfAbsent(period, p -> ProductionLotDashboardResponse.TimeSeriesDto.builder()
+                    .period(p)
+                    .lotCount(0L)
+                    .expectedYield(0.0)
+                    .actualYield(0.0)
+                    .build());
+
+            tsDto.setLotCount(tsDto.getLotCount() + 1);
+            tsDto.setExpectedYield(tsDto.getExpectedYield() + expected);
+            tsDto.setActualYield(tsDto.getActualYield() + actual);
+        }
+
+        return ProductionLotDashboardResponse.builder()
+                .summary(summary)
+                .byStatus(byStatus)
+                .timeSeries(new ArrayList<>(timeSeriesMap.values()))
+                .build();
+    }
+
+    private String formatPeriod(LocalDate date, String groupBy) {
+        if (groupBy == null) {
+            groupBy = "MONTH";
+        }
+        switch (groupBy.toUpperCase()) {
+            case "DAY":
+                return date.toString(); // yyyy-MM-dd
+            case "WEEK":
+                WeekFields weekFields = WeekFields.ISO;
+                int week = date.get(weekFields.weekOfWeekBasedYear());
+                int year = date.get(weekFields.weekBasedYear());
+                return String.format("%d-W%02d", year, week);
+            case "YEAR":
+                return date.format(DateTimeFormatter.ofPattern("yyyy"));
+            case "MONTH":
+            default:
+                return date.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        }
     }
 
 }
