@@ -1,26 +1,42 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
+
 import LoginPage from '../pages/auth/LoginPage';
 import { useAuth } from '../hooks/useAuth';
-import { type UserInfo } from '../types/auth';
-import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
 
-// Component bảo vệ route yêu cầu đăng nhập
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
+import CreateProductionLotPage from '@/pages/production-lot/CreateProductionLotPage';
+
+import RoleRoute from './RoleRoute';
+
+// Bảo vệ những route yêu cầu đăng nhập
+const PrivateRoute: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
   const { user, isLoading } = useAuth();
-  if (isLoading) return <div>Loading...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+
+  if (isLoading) {
+    return <div>Đang tải...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   return <>{children}</>;
 };
 
 const DashboardPage = () => <div>Dashboard (trang chủ)</div>;
 
-const AppRoutes: React.FC = () => {
-  const { user } = useAuth();
+const UnauthorizedPage = () => (
+  <div>Bạn không có quyền truy cập trang này.</div>
+);
 
+const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+
       <Route
         path="/"
         element={
@@ -29,15 +45,36 @@ const AppRoutes: React.FC = () => {
           </PrivateRoute>
         }
       />
+
       <Route
-        path='/organizations/profile'
+        path="/organizations/profile"
         element={
           <PrivateRoute>
             <OrganizationProfilePage />
           </PrivateRoute>
         }
       />
-      {/* Thêm các route khác sau */}
+
+      <Route
+        path="/production-lots/create"
+        element={
+          <PrivateRoute>
+            <RoleRoute allowedRoles={['VT-02']}>
+              <CreateProductionLotPage />
+            </RoleRoute>
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/unauthorized"
+        element={<UnauthorizedPage />}
+      />
+
+      <Route
+        path="*"
+        element={<Navigate to="/" replace />}
+      />
     </Routes>
   );
 };
