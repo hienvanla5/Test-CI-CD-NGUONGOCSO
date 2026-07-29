@@ -52,3 +52,11 @@ export interface CreateOrganizationResponse {
   };
   timestamp: string;
 }
+export interface OrganizationSummary {
+  organizationID: string;
+  organizationName: string;
+  organizationCode: string;
+  organizationType: OrganizationType;
+  status: 'ACTIVE' | 'INACTIVE';
+  createdAt: string;
+}

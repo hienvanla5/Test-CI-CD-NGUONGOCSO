@@ -1,10 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 
 import { AdminDashboard } from './AdminDashboard';
-import { CooperativeDashboard } from './CooperativeDashboard';
-import { EventRecorderDashboard } from './EventRecorderDashboard';
-import { BuyerDashboard } from './BuyerDashboard';
-import { OfficerDashboard } from './OfficerDashboard';
+//import { CooperativeDashboard } from './CooperativeDashboard'; Chuẩn bị phát triển
 
 export function DashboardContent() {
   const { user } = useAuth();
@@ -13,17 +10,10 @@ export function DashboardContent() {
     case 'VT-01':
       return <AdminDashboard />;
 
-    case 'VT-02':
-      return <CooperativeDashboard />;
+    // case 'VT-02':
+    //   return <CooperativeDashboard />;
 
-    case 'VT-03':
-      return <EventRecorderDashboard />;
-
-    case 'VT-04':
-      return <BuyerDashboard />;
-
-    case 'VT-05':
-      return <OfficerDashboard />;
+    //phát triển các dashboard khác bằng cách return tại đây
 
     default:
       return (

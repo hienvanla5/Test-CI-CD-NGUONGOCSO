@@ -1,5 +1,5 @@
-import { DashboardForm } from '@/components/dashboard/DashboardForm';
+import { DashboardContent } from '@/components/dashboard/DashboardContent';
 
 export function DashboardPage() {
-  return <DashboardForm />;
+  return <DashboardContent />;
 }
