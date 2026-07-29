@@ -6,8 +6,6 @@ import {
 } from "@/api/productionLotApi";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  type ProductCategory,
-  type ProductionLot,
   type FarmArea,
 } from "@/types/farm";
 import {
@@ -38,6 +36,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Button } from "../ui/button";
+import type { ProductCategory, ProductionLot } from "@/types/productionLot";
 
 export const ProductionLotEditForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -79,9 +78,9 @@ export const ProductionLotEditForm: React.FC = () => {
 
         // Kiểm tra sự tồn tại
         const validCategory = cats.some(
-          (c) => c.id === lotData.productCategoryId,
+          (c: ProductCategory) => c.id === lotData.productCategoryId,
         );
-        const validFarmArea = areas.some((a) => a.id === lotData.farmAreaId);
+        const validFarmArea = areas.some((a: FarmArea) => a.id === lotData.farmAreaId);
 
         reset({
           name: lotData.name,
