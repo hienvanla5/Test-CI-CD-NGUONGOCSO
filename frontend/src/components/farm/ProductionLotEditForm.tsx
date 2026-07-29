@@ -1,19 +1,42 @@
 import { getFarmAreas } from "@/api/farmApi";
 import { getProductCategories } from "@/api/productCategoryApi";
-import { getProductionLotById, updateProductionLot } from "@/api/productionLotApi";
+import {
+  getProductionLotById,
+  updateProductionLot,
+} from "@/api/productionLotApi";
 import { useAuth } from "@/hooks/useAuth";
-import { type ProductCategory, type ProductionLot, type FarmArea } from "@/types/farm";
-import { updateProductionLotSchema, type UpdateProductionLotFormValues } from "@/utils/validators";
+import {
+  type ProductCategory,
+  type ProductionLot,
+  type FarmArea,
+} from "@/types/farm";
+import {
+  updateProductionLotSchema,
+  type UpdateProductionLotFormValues,
+} from "@/utils/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { Button } from "../ui/button";
 
 export const ProductionLotEditForm: React.FC = () => {
@@ -38,8 +61,8 @@ export const ProductionLotEditForm: React.FC = () => {
     resolver: zodResolver(updateProductionLotSchema),
   });
 
-  const selectedCategory = watch('productCategoryId');
-  const selectedFarmArea = watch('farmAreaId');
+  const selectedCategory = watch("productCategoryId");
+  const selectedFarmArea = watch("farmAreaId");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,11 +81,13 @@ export const ProductionLotEditForm: React.FC = () => {
           farmAreaId: lotData.farmAreaId ?? null,
           productCategoryId: lotData.productCategoryId,
           expectedQuantity: lotData.expectedQuantity,
-          plantingDate: lotData.plantingDate.split('T')[0],
+          plantingDate: lotData.plantingDate
+            ? lotData.plantingDate.split("T")[0]
+            : "",
         });
       } catch (error) {
-        toast.error('Không thể tải thông tin lô sản xuất');
-        navigate('/production-lots');
+        toast.error("Không thể tải thông tin lô sản xuất");
+        navigate("/");
       } finally {
         setLoading(false);
       }
@@ -70,28 +95,29 @@ export const ProductionLotEditForm: React.FC = () => {
     if (id) fetchData();
   }, [id, reset, navigate]);
 
-  const canEdit = user?.roleCode === 'VT-01' || user?.roleCode === 'VT-02';
-  const isDraft = lot?.status === 'DRAFT';
+  const canEdit = user?.roleCode === "VT-02" || user?.roleCode === "VT-03";
+  const isDraft = lot?.status === "DRAFT";
   const editable = canEdit && isDraft;
 
   const onSubmit = async (data: UpdateProductionLotFormValues) => {
     if (!editable) {
-      toast.error('Lô không ở trạng thái nháp hoặc bạn không có quyền');
+      toast.error("Lô không ở trạng thái nháp hoặc bạn không có quyền");
       return;
     }
     setSubmitting(true);
     try {
-      const updated = await updateProductionLot(id!, {
+      await updateProductionLot(id!, {
         name: data.name,
         farmAreaId: data.farmAreaId || null,
         productCategoryId: data.productCategoryId,
         expectedQuantity: data.expectedQuantity,
         plantingDate: data.plantingDate,
       });
-      toast.success('Cập nhật lô sản xuất thành công');
-      navigate(`/production-lots/${id}`);
+      toast.success("Cập nhật lô sản xuất thành công");
+      navigate("/");
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Cập nhật thất bại. Vui lòng thử lại.';
+      const message =
+        error.response?.data?.message || "Cập nhật thất bại. Vui lòng thử lại.";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -99,7 +125,7 @@ export const ProductionLotEditForm: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="flex justify-center p-8">Đang tải....</div>
+    return <div className="flex justify-center p-8">Đang tải....</div>;
   }
 
   if (!lot) {
@@ -111,9 +137,12 @@ export const ProductionLotEditForm: React.FC = () => {
       <CardHeader>
         <CardTitle>Chỉnh sửa lô sản xuất</CardTitle>
         <CardDescription>
-          {lot.name} – Trạng thái: <span className="font-semibold">{lot.status}</span>
+          {lot.name} – Trạng thái:{" "}
+          <span className="font-semibold">{lot.status}</span>
           {!editable && (
-            <span className="text-red-500 ml-2">(Chỉ sửa được khi lô ở trạng thái DRAFT)</span>
+            <span className="text-red-500 ml-2">
+              (Chỉ sửa được khi lô ở trạng thái DRAFT)
+            </span>
           )}
         </CardDescription>
       </CardHeader>
@@ -124,41 +153,55 @@ export const ProductionLotEditForm: React.FC = () => {
             <Label htmlFor="name">Tên lô *</Label>
             <Input
               id="name"
-              {...register('name')}
+              {...register("name")}
               disabled={!editable}
               placeholder="Nhập tên lô"
             />
-            {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+            {errors.name && (
+              <p className="text-sm text-red-500">{errors.name.message}</p>
+            )}
           </div>
 
           {/* Loại nông sản */}
           <div className="space-y-2">
             <Label htmlFor="productCategoryId">Loại nông sản *</Label>
             <Select
-              value={selectedCategory || ''}
-              onValueChange={(val) => setValue('productCategoryId', val ?? "", { shouldValidate: true })}
+              value={selectedCategory || ""}
+              onValueChange={(val) =>
+                setValue("productCategoryId", val ?? "", {
+                  shouldValidate: true,
+                })
+              }
               disabled={!editable}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn loại nông sản" />
               </SelectTrigger>
               <SelectContent>
-                {categories.filter(cat => cat.isActive).map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
+                {categories
+                  .filter((cat) => cat.isActive)
+                  .map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
-            {errors.productCategoryId && <p className="text-sm text-red-500">{errors.productCategoryId.message}</p>}
+            {errors.productCategoryId && (
+              <p className="text-sm text-red-500">
+                {errors.productCategoryId.message}
+              </p>
+            )}
           </div>
 
           {/* Vùng trồng */}
           <div className="space-y-2">
             <Label htmlFor="farmAreaId">Vùng trồng (không bắt buộc)</Label>
             <Select
-              value={selectedFarmArea || ''}
-              onValueChange={(val) => setValue('farmAreaId', val || null, { shouldValidate: true })}
+              value={selectedFarmArea || ""}
+              onValueChange={(val) =>
+                setValue("farmAreaId", val || null, { shouldValidate: true })
+              }
               disabled={!editable}
             >
               <SelectTrigger>
@@ -182,11 +225,15 @@ export const ProductionLotEditForm: React.FC = () => {
               id="expectedQuantity"
               type="number"
               step="0.01"
-              {...register('expectedQuantity')}
+              {...register("expectedQuantity")}
               disabled={!editable}
               placeholder="Nhập sản lượng dự kiến"
             />
-            {errors.expectedQuantity && <p className="text-sm text-red-500">{errors.expectedQuantity.message}</p>}
+            {errors.expectedQuantity && (
+              <p className="text-sm text-red-500">
+                {errors.expectedQuantity.message}
+              </p>
+            )}
           </div>
 
           {/* Ngày xuống giống */}
@@ -195,19 +242,23 @@ export const ProductionLotEditForm: React.FC = () => {
             <Input
               id="plantingDate"
               type="date"
-              {...register('plantingDate')}
+              {...register("plantingDate")}
               disabled={!editable}
             />
-            {errors.plantingDate && <p className="text-sm text-red-500">{errors.plantingDate.message}</p>}
+            {errors.plantingDate && (
+              <p className="text-sm text-red-500">
+                {errors.plantingDate.message}
+              </p>
+            )}
           </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={() => navigate(`/production-lots/${id}`)}>
+          <Button type="button" variant="outline" onClick={() => navigate("/")}>
             Hủy
           </Button>
           {editable && (
             <Button type="submit" disabled={submitting}>
-              {submitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+              {submitting ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           )}
         </CardFooter>

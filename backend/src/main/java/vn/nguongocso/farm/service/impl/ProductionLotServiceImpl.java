@@ -223,10 +223,13 @@ public class ProductionLotServiceImpl implements ProductionLotService {
             throw new vn.nguongocso.exception.BusinessException("Loại nông sản này hiện đang ngưng hoạt động");
         }
 
-        FarmArea farmArea = farmAreaRepository.findById(request.getFarmAreaId())
-                .orElseThrow(() -> new vn.nguongocso.exception.BusinessException("Không tìm thấy khu vực canh tác đã chọn"));
-        if (!farmArea.getOrganization().getOrganizationId().equals(orgId)) {
-            throw new vn.nguongocso.exception.BusinessException("Khu vực canh tác này không thuộc tổ chức của bạn");
+        FarmArea farmArea = null;
+        if (request.getFarmAreaId() != null) {
+            farmArea = farmAreaRepository.findById(request.getFarmAreaId())
+                    .orElseThrow(() -> new vn.nguongocso.exception.BusinessException("Không tìm thấy khu vực canh tác đã chọn"));
+            if (!farmArea.getOrganization().getOrganizationId().equals(orgId)) {
+                throw new vn.nguongocso.exception.BusinessException("Khu vực canh tác này không thuộc tổ chức của bạn");
+            }
         }
 
         productionLot.setName(request.getName());
