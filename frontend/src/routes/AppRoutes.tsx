@@ -1,158 +1,174 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import LoginPage from '../pages/auth/LoginPage';
-import { useAuth } from '../hooks/useAuth';
-
-import ProductionLotListPage from '@/pages/production-lot/ProductionLotListPage';
-import ProductionLotEditPage from '@/pages/farm/ProductionLotEditPage';
+import { MainLayout } from '@/components/layout/MainLayout';
+import {
+  AUTHENTICATED_ROLE_CODES,
+  ROLE_ACCESS,
+  hasAnyRole,
+  type AuthenticatedRoleCode,
+} from '@/config/roleAccess';
+import { useAuth } from '@/hooks/useAuth';
+import LoginPage from '@/pages/auth/LoginPage';
+import { DashboardPage } from '@/pages/daskboard/DashboardPase';
 import { CreateFarmAreaPage } from '@/pages/farm-area/CreateFarmAreaPage';
+import ProductionLotEditPage from '@/pages/farm/ProductionLotEditPage';
 import { CreateOrganizationPage } from '@/pages/organization/CreateOrganizationPage';
 import MemberPermissionsPage from '@/pages/organization/MemberPermissionsPage';
 import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
 import CreateProductionLotPage from '@/pages/production-lot/CreateProductionLotPage';
-import RoleRoute from './RoleRoute';
+import ProductionLotListPage from '@/pages/production-lot/ProductionLotListPage';
 
-// Bảo vệ những route yêu cầu đăng nhập
-const PrivateRoute: React.FC<{
-  children: React.ReactNode;
-}> = ({ children }) => {
+const COOPERATIVE_MANAGER_ROLES = [
+  'VT-02',
+] as const satisfies readonly AuthenticatedRoleCode[];
+
+function PageLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+      Đang tải...
+    </div>
+  );
+}
+
+function PrivateRoute({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
 
-  if (isLoading) {
-    return <div>Đang tải...</div>;
-  }
+  if (isLoading) return <PageLoader />;
+  if (!user) return <Navigate to="/login" replace />;
 
-  if (!user) {
+  // VT-06 chỉ tra cứu công khai, không sử dụng khu vực quản trị nội bộ.
+  if (!hasAnyRole(user.roleCode, AUTHENTICATED_ROLE_CODES)) {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
-};
+  return children;
+}
 
-const DashboardPage = () => (
-  <div>Dashboard (trang chủ)</div>
-);
+interface RoleRouteProps {
+  children: ReactNode;
+  allowedRoles: readonly AuthenticatedRoleCode[];
+}
 
-const UnauthorizedPage = () => (
-  <main className="grid min-h-screen place-items-center p-6 text-center">
-    <div>
-      <h1 className="text-2xl font-bold">
-        Bạn không có quyền truy cập
-      </h1>
+function RoleRoute({ children, allowedRoles }: RoleRouteProps) {
+  const { user, isLoading } = useAuth();
 
-      <p className="mt-2 text-slate-500">
-        Tài khoản của bạn không được phép truy cập màn hình này.
-      </p>
-    </div>
-  </main>
-);
+  if (isLoading) return <PageLoader />;
+  if (!user) return <Navigate to="/login" replace />;
 
-const AppRoutes: React.FC = () => {
+  if (!hasAnyRole(user.roleCode, allowedRoles)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return children;
+}
+
+function UnauthorizedPage() {
   return (
-    <Routes>
-      {/* Đăng nhập */}
-      <Route path="/login" element={<LoginPage />} />
+    <main className="grid min-h-[60vh] place-items-center p-6 text-center">
+      <div>
+        <h1 className="text-2xl font-bold">Bạn không có quyền truy cập</h1>
+        <p className="mt-2 text-muted-foreground">
+          Tài khoản hiện tại không được cấp quyền sử dụng chức năng này.
+        </p>
+      </div>
+    </main>
+  );
+}
 
-      {/* Trang chủ */}
+const AppRoutes = () => (
+  <Routes>
+    {/* Route công khai */}
+    <Route path="/login" element={<LoginPage />} />
+
+    {/* Toàn bộ route nội bộ dùng chung Header + Sidebar + Outlet */}
+    <Route
+      element={
+        <PrivateRoute>
+          <MainLayout />
+        </PrivateRoute>
+      }
+    >
+      {/* Dashboard thật, không dùng component tạm */}
+      <Route index element={<DashboardPage />} />
+
+      {/* Tạo tổ chức — VT-01 */}
       <Route
-        path="/"
+        path="organizations/create"
         element={
-          <PrivateRoute>
-            <DashboardPage />
-          </PrivateRoute>
+          <RoleRoute allowedRoles={ROLE_ACCESS.organizationCreate}>
+            <CreateOrganizationPage />
+          </RoleRoute>
         }
       />
 
-      {/* Hồ sơ tổ chức */}
+      {/* Hồ sơ tổ chức — VT-01, VT-02 */}
       <Route
-        path="/organizations/profile"
+        path="organizations/profile"
         element={
-          <PrivateRoute>
+          <RoleRoute allowedRoles={ROLE_ACCESS.organizationProfile}>
             <OrganizationProfilePage />
-          </PrivateRoute>
+          </RoleRoute>
         }
       />
 
       {/* Cấp quyền thành viên — VT-02 */}
       <Route
-        path="/organizations/members"
+        path="organizations/members"
         element={
-          <PrivateRoute>
-            <RoleRoute allowedRoles={['VT-02']}>
-              <MemberPermissionsPage />
-            </RoleRoute>
-          </PrivateRoute>
+          <RoleRoute allowedRoles={COOPERATIVE_MANAGER_ROLES}>
+            <MemberPermissionsPage />
+          </RoleRoute>
         }
       />
 
-      {/* Tạo tổ chức — VT-01 */}
+      {/* Tạo vùng trồng — VT-02 */}
       <Route
-        path="/organizations/create"
+        path="farm-areas/create"
         element={
-          <PrivateRoute>
-            <RoleRoute allowedRoles={['VT-01']}>
-              <CreateOrganizationPage />
-            </RoleRoute>
-          </PrivateRoute>
-        }
-      />
-
-      {/* Tạo vùng trồng */}
-      <Route
-        path="/farm-areas/create"
-        element={
-          <PrivateRoute>
+          <RoleRoute allowedRoles={ROLE_ACCESS.farmAreaCreate}>
             <CreateFarmAreaPage />
-          </PrivateRoute>
+          </RoleRoute>
+        }
+      />
+
+      {/* Danh sách lô sản xuất — VT-01, VT-02, VT-03 */}
+      <Route
+        path="production-lots"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.productionLotList}>
+            <ProductionLotListPage />
+          </RoleRoute>
         }
       />
 
       {/* Tạo lô sản xuất — VT-02 */}
       <Route
-        path="/production-lots/create"
+        path="production-lots/create"
         element={
-          <PrivateRoute>
-            <RoleRoute allowedRoles={['VT-02']}>
-              <CreateProductionLotPage />
-            </RoleRoute>
-          </PrivateRoute>
+          <RoleRoute allowedRoles={COOPERATIVE_MANAGER_ROLES}>
+            <CreateProductionLotPage />
+          </RoleRoute>
         }
       />
-      {/* Danh sách lô sản xuất */}
+
+      {/* Chỉnh sửa lô sản xuất — VT-02 */}
       <Route
-        path="/production-lots"
+        path="production-lots/:id/edit"
         element={
-          <PrivateRoute>
-            <RoleRoute allowedRoles={['VT-01', 'VT-02', 'VT-03']}>
-              <ProductionLotListPage />
-            </RoleRoute>
-          </PrivateRoute>
-        }
-      />
-      {/* Chỉnh sửa lô sản xuất */}
-      <Route
-        path="/production-lots/:id/edit"
-        element={
-          <PrivateRoute>
+          <RoleRoute allowedRoles={ROLE_ACCESS.productionLotEdit}>
             <ProductionLotEditPage />
-          </PrivateRoute>
+          </RoleRoute>
         }
       />
 
-      {/* Không có quyền */}
-      <Route
-        path="/unauthorized"
-        element={<UnauthorizedPage />}
-      />
+      {/* Trang báo không đủ quyền vẫn nằm trong layout */}
+      <Route path="unauthorized" element={<UnauthorizedPage />} />
+    </Route>
 
-      {/* Đường dẫn không tồn tại */}
-      <Route
-        path="*"
-        element={<Navigate to="/" replace />}
-      />
-    </Routes>
-  );
-};
+    {/* Route không tồn tại */}
+    <Route path="*" element={<Navigate to="/" replace />} />
+  </Routes>
+);
 
 export default AppRoutes;

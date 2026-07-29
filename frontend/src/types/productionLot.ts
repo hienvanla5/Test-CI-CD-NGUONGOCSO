@@ -3,16 +3,20 @@ export interface CreateProductionLotRequest {
   farmAreaId: string | null;
   productCategoryId: string;
   expectedQuantity: number;
+  expectedQuantityUnit: string;
   plantingDate: string | null;
 }
 
 export interface CreateProductionLotResponse {
   id: string;
+  farmAreaId: string | null;
+  productCategoryId: string;
   organizationName: string;
   farmAreaName: string | null;
   productCategoryName: string;
   name: string;
   expectedQuantity: number;
+  expectedQuantityUnit: string;
   actualQuantity: number | null;
   plantingDate: string | null;
   harvestDate: string | null;

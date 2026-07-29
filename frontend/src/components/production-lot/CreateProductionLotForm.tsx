@@ -43,6 +43,7 @@ const initialForm: CreateProductionLotRequest = {
   farmAreaId: null,
   productCategoryId: '',
   expectedQuantity: 0,
+  expectedQuantityUnit: 'kg',
   plantingDate: null,
 };
 
