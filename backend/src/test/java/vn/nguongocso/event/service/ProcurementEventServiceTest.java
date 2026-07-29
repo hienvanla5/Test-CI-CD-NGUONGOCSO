@@ -37,6 +37,7 @@ public class ProcurementEventServiceTest {
     @Mock private ChainEventRepository chainEventRepository;
     @Mock private UserRepository userRepository;
     @Mock private ObjectMapper objectMapper;
+    @Mock private EventValidationService eventValidationService;
 
     @InjectMocks
     private ProcurementEventServiceImpl service;
