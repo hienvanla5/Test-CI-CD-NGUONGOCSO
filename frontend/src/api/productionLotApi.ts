@@ -43,6 +43,14 @@ export const createProductionLot = async (
   return response.data.data;
 };
 
+export const getProductionLots = async (): Promise<ProductionLot[]> => {
+  const response = await apiClient.get<
+    ApiDataResponse<ProductionLot[]>
+  >('/production-lots');
+
+  return response.data.data;
+};
+
 export const getProductionLotById = async (
   id: string,
 ): Promise<ProductionLot> => {

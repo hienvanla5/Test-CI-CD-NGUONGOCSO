@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import LoginPage from '../pages/auth/LoginPage';
 import { useAuth } from '../hooks/useAuth';
 
+import ProductionLotListPage from '@/pages/production-lot/ProductionLotListPage';
 import ProductionLotEditPage from '@/pages/farm/ProductionLotEditPage';
 import { CreateFarmAreaPage } from '@/pages/farm-area/CreateFarmAreaPage';
 import { CreateOrganizationPage } from '@/pages/organization/CreateOrganizationPage';
@@ -118,7 +119,17 @@ const AppRoutes: React.FC = () => {
           </PrivateRoute>
         }
       />
-
+      {/* Danh sách lô sản xuất */}
+      <Route
+        path="/production-lots"
+        element={
+          <PrivateRoute>
+            <RoleRoute allowedRoles={['VT-01', 'VT-02', 'VT-03']}>
+              <ProductionLotListPage />
+            </RoleRoute>
+          </PrivateRoute>
+        }
+      />
       {/* Chỉnh sửa lô sản xuất */}
       <Route
         path="/production-lots/:id/edit"
