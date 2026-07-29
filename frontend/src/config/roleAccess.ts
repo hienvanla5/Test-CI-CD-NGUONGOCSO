@@ -28,6 +28,8 @@ export const ROLE_ACCESS = {
 
   packagingEventCreate: ['VT-02', 'VT-03'] as const,
   packagingEventCorrect: ['VT-02', 'VT-03'] as const,
+
+  codeRangeList: ['VT-01'] as const,
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
 export function hasAnyRole(
