@@ -1,7 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 
 import { AdminDashboard } from './AdminDashboard';
-//import { CooperativeDashboard } from './CooperativeDashboard'; Chuẩn bị phát triển
+import { CooperativeDashboard } from './CooperativeDashboard';
 
 export function DashboardContent() {
   const { user } = useAuth();
@@ -10,14 +10,12 @@ export function DashboardContent() {
     case 'VT-01':
       return <AdminDashboard />;
 
-    // case 'VT-02':
-    //   return <CooperativeDashboard />;
-
-    //phát triển các dashboard khác bằng cách return tại đây
+    case 'VT-02':
+      return <CooperativeDashboard />;
 
     default:
       return (
-        <div className="rounded-lg border p-6">
+        <div className="rounded-lg border bg-white p-6">
           Không có Dashboard phù hợp với vai trò hiện tại.
         </div>
       );
