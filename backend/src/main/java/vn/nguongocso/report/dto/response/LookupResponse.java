@@ -88,6 +88,6 @@ public class LookupResponse {
         private UUID id;
         private String eventType;
         private LocalDateTime eventDate;
-        private String description;
+        private String eventData;
     }
 }
