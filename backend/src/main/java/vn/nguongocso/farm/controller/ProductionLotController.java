@@ -1,7 +1,9 @@
 package vn.nguongocso.farm.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,7 +17,9 @@ import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.farm.dto.response.UpdateProductionLotResponse;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.report.dto.response.ProductionLotDashboardResponse;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -86,5 +90,26 @@ public class ProductionLotController {
         CustomUserDetails userDetails = SecurityUtils.getCurrentUserDetails();
         CreateProductionLotResponse response = productionLotService.approveProductionLot(id, request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
+    }
+    @GetMapping("/dashboard")
+    @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
+    public ResponseEntity<ApiResult<ProductionLotDashboardResponse>> getDashboard(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) UUID organizationId,
+            @RequestParam(required = false, defaultValue = "MONTH") String groupBy,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletRequest request) {
+        String ipAddress = getClientIp(request);
+        ProductionLotDashboardResponse response =
+                productionLotService.getDashboard(startDate, endDate, organizationId, groupBy, userDetails, ipAddress);
+        return ResponseEntity.ok(ApiResult.success(response));
+    }
+    private String getClientIp(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null || xfHeader.isEmpty() || "unknown".equalsIgnoreCase(xfHeader)) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0].trim();
     }
 }
