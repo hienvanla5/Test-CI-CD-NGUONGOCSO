@@ -27,10 +27,6 @@ export const createFarmArea = async (
 export const getCropTypes = async (): Promise<CropType[]> => {
   const response = await apiClient.get('/product-categories');
 
-  console.log("========== RESPONSE ==========");
-  console.log(response.data);
-  console.log("==============================");
-
   return response.data.data.map((item: any) => ({
     id: item.id,
     name: item.name,

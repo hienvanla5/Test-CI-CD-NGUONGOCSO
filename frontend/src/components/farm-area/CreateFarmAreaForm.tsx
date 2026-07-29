@@ -84,11 +84,9 @@ export function CreateFarmAreaForm() {
     const fetchCropTypes = async () => {
       try {
         const data = await getCropTypes();
-        console.log('✅ Crop types loaded:', data);
         setCropTypes(data);
         // Nếu có dữ liệu và selectedCropType đang có giá trị không tồn tại thì reset
       } catch (error) {
-        console.error('❌ Lỗi tải crop types:', error);
         toast.error('Không thể tải danh sách loại cây trồng');
       } finally {
         setLoadingCropTypes(false);
