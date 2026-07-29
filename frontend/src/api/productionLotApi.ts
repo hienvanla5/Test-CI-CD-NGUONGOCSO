@@ -1,11 +1,15 @@
+import apiClient from './axiosConfig';
+import type {
+  ProductionLot,
+  UpdateProductionLotRequest,
+  UpdateProductionLotResponse,
+} from '@/types/farm';
 import type {
   CreateProductionLotRequest,
   CreateProductionLotResponse,
   FarmAreaOption,
   ProductCategoryOption,
 } from '@/types/productionLot';
-
-import apiClient from './axiosConfig';
 
 interface ApiDataResponse<T> {
   data: T;
@@ -35,6 +39,27 @@ export const createProductionLot = async (
   const response = await apiClient.post<
     ApiDataResponse<CreateProductionLotResponse>
   >('/production-lots', payload);
+
+  return response.data.data;
+};
+
+export const getProductionLotById = async (
+  id: string,
+): Promise<ProductionLot> => {
+  const response = await apiClient.get<ApiDataResponse<ProductionLot>>(
+    `/production-lots/${id}`,
+  );
+
+  return response.data.data;
+};
+
+export const updateProductionLot = async (
+  id: string,
+  data: UpdateProductionLotRequest,
+): Promise<UpdateProductionLotResponse> => {
+  const response = await apiClient.put<
+    ApiDataResponse<UpdateProductionLotResponse>
+  >(`/production-lots/${id}`, data);
 
   return response.data.data;
 };

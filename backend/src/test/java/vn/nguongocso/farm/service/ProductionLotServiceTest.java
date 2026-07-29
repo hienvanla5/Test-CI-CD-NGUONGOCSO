@@ -107,6 +107,7 @@ public class ProductionLotServiceTest {
                 .productCategory(category)
                 .name("Test lot")
                 .expectedQuantity(100.0)
+                .expectedQuantityUnit("kg")
                 .status(ProductionLotStatus.PENDING)
                 .build();
 
