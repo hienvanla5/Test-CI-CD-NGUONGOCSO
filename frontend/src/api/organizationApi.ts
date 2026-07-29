@@ -5,6 +5,7 @@ import type {
   UpdateOrganizationRequest,
   CreateOrganizationRequest,
   CreateOrganizationResponse,
+  Organization,
 } from '@/types/organization';
 
 const apiClient = axios.create({
@@ -33,3 +34,8 @@ export const createOrganization = async (data: CreateOrganizationRequest): Promi
   const response = await apiClient.post<CreateOrganizationResponse>('/admin/organizations', data);
   return response.data;
 };
+
+export const getOrganizations = async (): Promise<Organization[]> => {
+  const response = await apiClient.get<{ data: Organization[] }>('/admin/organizations');
+  return response.data.data;
+};  

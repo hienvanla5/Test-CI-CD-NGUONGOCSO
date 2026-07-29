@@ -1,15 +1,20 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from '../pages/auth/LoginPage';
-import { useAuth } from '../hooks/useAuth';
-import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
-import { CreateOrganizationPage } from '@/pages/organization/CreateOrganizationPage';
-import { CreateFarmAreaPage } from '@/pages/farm-area/CreateFarmAreaPage';
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "../pages/auth/LoginPage";
+import { useAuth } from "../hooks/useAuth";
+import OrganizationProfilePage from "@/pages/organization/OrganizationProfilePage";
+import { CreateOrganizationPage } from "@/pages/organization/CreateOrganizationPage";
+import { CreateFarmAreaPage } from "@/pages/farm-area/CreateFarmAreaPage";
 
-import ProductionLotEditPage from '@/pages/farm/ProductionLotEditPage';
+import ProductionLotEditPage from "@/pages/farm/ProductionLotEditPage";
+import CreateCodeRangePage from "@/pages/admin/CreateCodeRangePage";
+import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
+import { RoleBasedRoute } from "@/components/auth/RoleBasedRoute";
 
 // Component bảo vệ route yêu cầu đăng nhập
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { user, isLoading } = useAuth();
   if (isLoading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
@@ -21,7 +26,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
   if (isLoading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
-  if (user.roleCode !== 'VT-01') return <Navigate to="/" replace />;
+  if (user.roleCode !== "VT-01") return <Navigate to="/" replace />;
   return <>{children}</>;
 };
 const DashboardPage = () => <div>Dashboard (trang chủ)</div>;
@@ -39,7 +44,7 @@ const AppRoutes: React.FC = () => {
         }
       />
       <Route
-        path='/organizations/profile'
+        path="/organizations/profile"
         element={
           <PrivateRoute>
             <OrganizationProfilePage />
@@ -50,7 +55,7 @@ const AppRoutes: React.FC = () => {
         path="/organizations/create"
         element={
           <AdminRoute>
-            <CreateOrganizationPage/>
+            <CreateOrganizationPage />
           </AdminRoute>
         }
       />
@@ -58,7 +63,35 @@ const AppRoutes: React.FC = () => {
         path="/farm-areas/create"
         element={
           <PrivateRoute>
-            <CreateFarmAreaPage/>
+            <CreateFarmAreaPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/production-lots/:id/edit"
+        element={
+          <PrivateRoute>
+            <ProductionLotEditPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/code-ranges"
+        element={
+          <PrivateRoute>
+            <RoleBasedRoute allowedRoles={["VT-01"]}>
+              <CodeRangeListPage />
+            </RoleBasedRoute>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/code-ranges/create"
+        element={
+          <PrivateRoute>
+            <RoleBasedRoute allowedRoles={["VT-01"]}>
+              <CreateCodeRangePage />
+            </RoleBasedRoute>
           </PrivateRoute>
         }
       />

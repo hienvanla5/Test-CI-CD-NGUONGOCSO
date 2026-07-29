@@ -105,3 +105,18 @@ export const updateProductionLotSchema = z.object({
 });
 
 export type UpdateProductionLotFormValues = z.infer<typeof updateProductionLotSchema>;
+
+export const createCodeRangeSchema = z.object({
+  organizationId: z.string().uuid('Vui lòng chọn tổ chức'),
+  prefix: z
+    .string()
+    .min(1, 'Tiền tố mã không được để trống')
+    .max(50, 'Tiền tố mã tối đa 50 ký tự')
+    .regex(/^[A-Z0-9]+$/, 'Tiền tố chỉ được chứa chữ hoa và số'),
+  totalLimit: z.coerce
+  .number()
+  .positive('Hạn mức phải lớn hơn 0')
+  .int('Hạn mức phải là số nguyên'),
+});
+
+export type CreateCodeRangeFormValues = z.infer<typeof createCodeRangeSchema>;

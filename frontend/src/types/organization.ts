@@ -52,3 +52,11 @@ export interface CreateOrganizationResponse {
   };
   timestamp: string;
 }
+
+export interface Organization {
+  id: string;
+  name: string;
+  code: string;
+  type: 'COOPERATIVE' | 'BUSINESS' | 'GOVERNMENT' | 'SYSTEM';
+  status: 'ACTIVE' | 'INACTIVE';
+}
