@@ -113,7 +113,7 @@ export const MemberPermissions = () => {
               <div>
                 <CardTitle>Thành viên tổ chức</CardTitle>
                 <CardDescription className="mt-1">
-                  Giữ cách quản lý bằng bảng của phiên bản cũ, chuyển sang component React.
+                  Danh sách thành viên hiện tại của tổ chức gồm vai trò và trạng thái hoạt động của họ.
                 </CardDescription>
               </div>
               <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
@@ -186,15 +186,24 @@ export const MemberPermissions = () => {
                           <button
                             type="button"
                             className={`group inline-flex h-8 items-center rounded-full border border-transparent px-1 text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                              inactive
-                                ? 'text-red-600 hover:border-red-200 hover:bg-red-50 hover:px-2.5 focus-visible:ring-red-500'
-                                : 'text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 hover:px-2.5 focus-visible:ring-emerald-500'
+                                inactive
+                                ? 'cursor-default text-red-600 hover:border-red-200 hover:bg-red-50 hover:px-2.5'
+                                : 'cursor-pointer text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 hover:px-2.5 focus-visible:ring-emerald-500'
                             }`}
-                            onClick={() => toggleMemberStatus(member)}
-                            aria-label={inactive ? `Kích hoạt lại ${member.fullName}` : `Vô hiệu hóa ${member.fullName}`}
-                            title={inactive ? 'Bấm để kích hoạt lại' : 'Bấm để vô hiệu hóa'}
-                          >
-                            <span
+                            onClick={() => deactivateMember(member)}
+                            disabled={inactive}
+                            aria-label={
+                                inactive
+                                ? `${member.fullName} đã bị vô hiệu hóa`
+                                : `Vô hiệu hóa ${member.fullName}`
+                            }
+                            title={
+                                inactive
+                                ? 'Tài khoản đã bị vô hiệu hóa'
+                                : 'Bấm để vô hiệu hóa'
+                            }
+                            >
+                                <span
                               className={`size-2 shrink-0 rounded-full ${
                                 inactive ? 'bg-red-500' : 'bg-emerald-600'
                               }`}
