@@ -27,6 +27,7 @@ import vn.nguongocso.event.repository.ChainEventRepository;
 import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.service.ChainEventService;
+import vn.nguongocso.event.service.EventValidationService;
 import vn.nguongocso.trace.entity.TraceCode;
 import vn.nguongocso.trace.entity.Shipment;
 import vn.nguongocso.trace.enums.ShipmentStatus;
@@ -55,6 +56,7 @@ public class ChainEventServiceImpl implements ChainEventService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final TraceCodeRepository traceCodeRepository;
+    private final EventValidationService eventValidationService;
     
 
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
@@ -70,14 +72,17 @@ public class ChainEventServiceImpl implements ChainEventService {
         ProductionLot lot = productionLotRepository.findById(request.getProductionLotId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô sản xuất."));
 
+        try {
+            if (!lot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
+                throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô sản xuất này.");
+            }
 
-        if (!lot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
-            throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô sản xuất này.");
-        }
-
-
-        if (lot.getStatus() != ProductionLotStatus.APPROVED) {
-            throw new BusinessException("Lô sản xuất chưa được duyệt, không thể ghi sự kiện thu hoạch.");
+            if (lot.getStatus() != ProductionLotStatus.APPROVED) {
+                throw new BusinessException("Lô sản xuất chưa được duyệt, không thể ghi sự kiện thu hoạch.");
+            }
+        } catch (BusinessException e) {
+            eventValidationService.logFailedAttempt(request.getProductionLotId(), lot.getName(), ChainEventType.HARVEST, e.getMessage(), currentUser);
+            throw e;
         }
 
 
@@ -147,22 +152,27 @@ public class ChainEventServiceImpl implements ChainEventService {
         ProductionLot lot = productionLotRepository.findById(request.getProductionLotId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô sản xuất."));
 
-        // 3. Kiểm tra tổ chức quản lý
-        if (!lot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
-            throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô sản xuất này.");
-        }
+        try {
+            // 3. Kiểm tra tổ chức quản lý
+            if (!lot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
+                throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô sản xuất này.");
+            }
 
-        // 4. Kiểm tra trạng thái lô sản xuất (Phải là HARVESTED)
-        if (lot.getStatus() != ProductionLotStatus.HARVESTED) {
-            throw new BusinessException("Chỉ được ghi nhận sự kiện đóng gói cho lô đã thu hoạch.");
-        }
+            // 4. Kiểm tra trạng thái lô sản xuất (Phải là HARVESTED)
+            if (lot.getStatus() != ProductionLotStatus.HARVESTED) {
+                throw new BusinessException("Chỉ được ghi nhận sự kiện đóng gói cho lô đã thu hoạch.");
+            }
 
-        // 5. Kiểm tra tính hợp lệ của ngày đóng gói
-        if (request.getPackagingDate().isAfter(LocalDate.now())) {
-            throw new BusinessException("Ngày đóng gói không được là ngày ở tương lai.");
-        }
-        if (lot.getHarvestDate() != null && request.getPackagingDate().isBefore(lot.getHarvestDate())) {
-            throw new BusinessException("Ngày đóng gói phải sau hoặc bằng ngày thu hoạch của lô sản xuất.");
+            // 5. Kiểm tra tính hợp lệ của ngày đóng gói
+            if (request.getPackagingDate().isAfter(LocalDate.now())) {
+                throw new BusinessException("Ngày đóng gói không được là ngày ở tương lai.");
+            }
+            if (lot.getHarvestDate() != null && request.getPackagingDate().isBefore(lot.getHarvestDate())) {
+                throw new BusinessException("Ngày đóng gói phải sau hoặc bằng ngày thu hoạch của lô sản xuất.");
+            }
+        } catch (BusinessException e) {
+            eventValidationService.logFailedAttempt(request.getProductionLotId(), lot.getName(), ChainEventType.PACKAGING, e.getMessage(), currentUser);
+            throw e;
         }
 
         // 6. Chuyển trạng thái lô sang PACKAGED
@@ -330,18 +340,23 @@ public class ChainEventServiceImpl implements ChainEventService {
             throw new BusinessException("Mã truy xuất chưa được gắn với lô hàng.");
         }
         
-        if (!shipment.getOrganization().getOrganizationId()
-                .equals(currentUser.getOrganizationId())) {
-            throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô hàng.");
-        }
-        
-        // 4. Kiểm tra trạng thái lô hàng
-        if (shipment.getStatus() == ShipmentStatus.RECALLED) {
-            throw new BusinessException("Lô hàng đã bị thu hồi, không thể ghi sự kiện vận chuyển.");
-        }
+        try {
+            if (!shipment.getOrganization().getOrganizationId()
+                    .equals(currentUser.getOrganizationId())) {
+                throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô hàng.");
+            }
+            
+            // 4. Kiểm tra trạng thái lô hàng
+            if (shipment.getStatus() == ShipmentStatus.RECALLED) {
+                throw new BusinessException("Lô hàng đã bị thu hồi, không thể ghi sự kiện vận chuyển.");
+            }
 
-        if (shipment.getStatus() != ShipmentStatus.ACTIVATED) {
-            throw new BusinessException("Lô hàng chưa được kích hoạt, không thể ghi sự kiện vận chuyển.");
+            if (shipment.getStatus() != ShipmentStatus.ACTIVATED) {
+                throw new BusinessException("Lô hàng chưa được kích hoạt, không thể ghi sự kiện vận chuyển.");
+            }
+        } catch (BusinessException e) {
+            eventValidationService.logFailedAttempt(shipment.getId(), shipment.getName(), ChainEventType.TRANSPORT, e.getMessage(), currentUser);
+            throw e;
         }
 
         // 5. Dữ liệu sự kiện

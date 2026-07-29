@@ -17,6 +17,7 @@ import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.entity.ChainEvent;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
+import vn.nguongocso.event.service.EventValidationService;
 import vn.nguongocso.event.service.ProcurementEventService;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.trace.entity.Shipment;
@@ -35,6 +36,7 @@ public class ProcurementEventServiceImpl implements ProcurementEventService {
     private final ChainEventRepository chainEventRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final EventValidationService eventValidationService;
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
 
@@ -53,13 +55,18 @@ public class ProcurementEventServiceImpl implements ProcurementEventService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng."));
 
 
-        // 4. Kiểm tra trạng thái lô: Không được thu hồi (QTN-05)
-        if (shipment.getStatus() == ShipmentStatus.RECALLED) {
-            throw new BusinessException("Lô hàng đã bị thu hồi, không thể ghi sự kiện.");
-        }
+        try {
+            // 4. Kiểm tra trạng thái lô: Không được thu hồi (QTN-05)
+            if (shipment.getStatus() == ShipmentStatus.RECALLED) {
+                throw new BusinessException("Lô hàng đã bị thu hồi, không thể ghi sự kiện.");
+            }
 
-        if (shipment.getStatus() != ShipmentStatus.ACTIVATED) {
-            throw new BusinessException("Lô hàng chưa được kích hoạt, không thể ghi sự kiện thu mua.");
+            if (shipment.getStatus() != ShipmentStatus.ACTIVATED) {
+                throw new BusinessException("Lô hàng chưa được kích hoạt, không thể ghi sự kiện thu mua.");
+            }
+        } catch (BusinessException e) {
+            eventValidationService.logFailedAttempt(shipment.getId(), shipment.getName(), ChainEventType.PROCUREMENT, e.getMessage(), currentUser);
+            throw e;
         }
 
         // 5. Tạo điểm vị trí (nếu có)

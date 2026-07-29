@@ -121,7 +121,7 @@ public class EventValidationServiceImpl implements EventValidationService {
                 throw new BusinessException("Không thể hủy bản nháp vì lô hàng đã được kích hoạt hoặc thu hồi.");
             }
 
-            // Hoàn lại hạn mức tem sử dụng
+            // Hoàn lại dải mã truy xuất của tổ chức
             CodeRange codeRange = codeRangeRepository.findByOrganizationOrganizationId(currentUser.getOrganizationId())
                     .orElse(null);
             if (codeRange != null) {
@@ -129,10 +129,10 @@ public class EventValidationServiceImpl implements EventValidationService {
                 codeRangeRepository.save(codeRange);
             }
 
-            // Xóa mã TraceCode liên quan
+            // Xóa trace codes
             traceCodeRepository.deleteByShipmentId(shipment.getId());
 
-            // Xóa Shipment nháp
+            // Xóa shipment
             shipmentRepository.delete(shipment);
             return;
         }

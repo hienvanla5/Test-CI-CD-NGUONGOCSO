@@ -16,7 +16,7 @@ public class LotValidationResponse {
     @Data
     @Builder
     public static class LotDetails {
-        private String lotType; // "PRODUCTION_LOT" hoặc "SHIPMENT"
+        private String lotType; // "PRODUCTION_LOT" or "SHIPMENT"
         private String currentStatus;
         private UUID organizationId;
     }
