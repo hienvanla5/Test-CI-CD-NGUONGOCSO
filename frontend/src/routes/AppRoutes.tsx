@@ -1,30 +1,32 @@
-import type { ReactNode } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import type { ReactNode } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 
-import { MainLayout } from '@/components/layout/MainLayout';
+import { MainLayout } from "@/components/layout/MainLayout";
 import {
   AUTHENTICATED_ROLE_CODES,
   ROLE_ACCESS,
   hasAnyRole,
   type AuthenticatedRoleCode,
-} from '@/config/roleAccess';
-import { useAuth } from '@/hooks/useAuth';
-import LoginPage from '@/pages/auth/LoginPage';
-import { DashboardPage } from '@/pages/daskboard/DashboardPase';
-import { CreateFarmAreaPage } from '@/pages/farm-area/CreateFarmAreaPage';
-import ProductionLotEditPage from '@/pages/farm/ProductionLotEditPage';
-import { CreateOrganizationPage } from '@/pages/organization/CreateOrganizationPage';
-import MemberPermissionsPage from '@/pages/organization/MemberPermissionsPage';
-import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
-import CreateProductionLotPage from '@/pages/production-lot/CreateProductionLotPage';
-import ProductionLotListPage from '@/pages/production-lot/ProductionLotListPage';
+} from "@/config/roleAccess";
+import { useAuth } from "@/hooks/useAuth";
+import LoginPage from "@/pages/auth/LoginPage";
+import { DashboardPage } from "@/pages/daskboard/DashboardPase";
+import { CreateFarmAreaPage } from "@/pages/farm-area/CreateFarmAreaPage";
+import ProductionLotEditPage from "@/pages/farm/ProductionLotEditPage";
+import { CreateOrganizationPage } from "@/pages/organization/CreateOrganizationPage";
+import MemberPermissionsPage from "@/pages/organization/MemberPermissionsPage";
+import OrganizationProfilePage from "@/pages/organization/OrganizationProfilePage";
+import CreateProductionLotPage from "@/pages/production-lot/CreateProductionLotPage";
+import ProductionLotListPage from "@/pages/production-lot/ProductionLotListPage";
 
 // 👇 Import các trang mới từ nhánh frontend/code-ranges
-import CreateCodeRangePage from '@/pages/admin/CreateCodeRangePage';
-import CodeRangeListPage from '@/pages/admin/CodeRangeListPage';
+import CreateCodeRangePage from "@/pages/admin/CreateCodeRangePage";
+import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
+import CreatePackagingEventPage from "@/pages/packaging-event/CreatePackagingEventPage";
+import CorrectPackagingEventPage from "@/pages/packaging-event/CorrectPackagingEventPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
-  'VT-02',
+  "VT-02",
 ] as const satisfies readonly AuthenticatedRoleCode[];
 
 function PageLoader() {
@@ -170,7 +172,7 @@ const AppRoutes = () => (
       <Route
         path="admin/code-ranges"
         element={
-          <RoleRoute allowedRoles={['VT-01']}>
+          <RoleRoute allowedRoles={["VT-01"]}>
             <CodeRangeListPage />
           </RoleRoute>
         }
@@ -178,7 +180,7 @@ const AppRoutes = () => (
       <Route
         path="admin/code-ranges/create"
         element={
-          <RoleRoute allowedRoles={['VT-01']}>
+          <RoleRoute allowedRoles={["VT-01"]}>
             <CreateCodeRangePage />
           </RoleRoute>
         }
@@ -187,6 +189,23 @@ const AppRoutes = () => (
       {/* Trang báo không đủ quyền vẫn nằm trong layout */}
       <Route path="unauthorized" element={<UnauthorizedPage />} />
     </Route>
+
+    <Route
+      path="packaging-events/create"
+      element={
+        <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCreate}>
+          <CreatePackagingEventPage />
+        </RoleRoute>
+      }
+    />
+    <Route
+      path="packaging-events/:id/correct"
+      element={
+        <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCorrect}>
+          <CorrectPackagingEventPage />
+        </RoleRoute>
+      }
+    />
 
     {/* Route không tồn tại */}
     <Route path="*" element={<Navigate to="/" replace />} />

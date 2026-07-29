@@ -1,4 +1,4 @@
-import type { ProductCategory } from "@/types/farm";
+import type { ProductCategory } from "@/types/productionLot";
 import apiClient from "./axiosConfig";
 
 export const getProductCategories = async (): Promise<ProductCategory[]> => {

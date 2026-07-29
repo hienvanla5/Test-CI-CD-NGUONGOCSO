@@ -25,6 +25,9 @@ export const ROLE_ACCESS = {
   farmAreaCreate: ['VT-02'],
   productionLotList: ['VT-01', 'VT-02', 'VT-03'],
   productionLotEdit: ['VT-02'],
+
+  packagingEventCreate: ['VT-02', 'VT-03'] as const,
+  packagingEventCorrect: ['VT-02', 'VT-03'] as const,
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
 export function hasAnyRole(

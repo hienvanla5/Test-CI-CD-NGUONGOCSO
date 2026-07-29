@@ -14,7 +14,7 @@ export interface CorrectPackagingRequest {
   correctionReason: string;
 }
 
-export interface ChainEventTypeResponse {
+export interface ChainEventResponse {
   id: string;
   shipmentId: string | null;
   eventType: 'PACKAGING' | 'HARVEST' | 'TRANSPORT' | 'PROCUREMENT' | 'CORRECTION';
