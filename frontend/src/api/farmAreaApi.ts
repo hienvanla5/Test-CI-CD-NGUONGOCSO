@@ -36,14 +36,3 @@ export const getCropTypes = async (): Promise<CropType[]> => {
     name: item.name,
   }));
 };
-
-// Mock data (dùng khi API chưa có hoặc lỗi)
-function getMockCropTypes(): CropType[] {
-  return [
-    { id: 'cd16698a-8384-11f1-a80c-e89c251cc2ec', name: 'Chè' },
-    { id: 'cd16698b-8384-11f1-a80c-e89c251cc2ec', name: 'Cà phê' },
-    { id: 'cd16698c-8384-11f1-a80c-e89c251cc2ec', name: 'Lúa' },
-    { id: 'cd16698d-8384-11f1-a80c-e89c251cc2ec', name: 'Ngô' },
-    { id: 'cd16698e-8384-11f1-a80c-e89c251cc2ec', name: 'Sắn' },
-  ];
-}

@@ -3,13 +3,17 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Building2,
   LayoutDashboard,
-  LogOut,
   MapPinned,
   PlusCircle,
   Sprout,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  ROLE_ACCESS,
+  hasAnyRole,
+  type AuthenticatedRoleCode,
+} from '@/config/roleAccess';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
@@ -17,7 +21,7 @@ interface MenuItem {
   icon: ReactNode;
   label: string;
   href: string;
-  roles?: string[];
+  allowedRoles: readonly AuthenticatedRoleCode[];
 }
 
 interface SidebarProps {
@@ -26,52 +30,49 @@ interface SidebarProps {
   showCloseButton?: boolean;
 }
 
+const MENU_ITEMS: MenuItem[] = [
+  {
+    icon: <LayoutDashboard className="h-5 w-5" />,
+    label: 'Dashboard',
+    href: '/',
+    allowedRoles: ROLE_ACCESS.dashboard,
+  },
+  {
+    icon: <PlusCircle className="h-5 w-5" />,
+    label: 'Tạo tổ chức',
+    href: '/organizations/create',
+    allowedRoles: ROLE_ACCESS.organizationCreate,
+  },
+  {
+    icon: <Building2 className="h-5 w-5" />,
+    label: 'Hồ sơ tổ chức',
+    href: '/organizations/profile',
+    allowedRoles: ROLE_ACCESS.organizationProfile,
+  },
+  {
+    icon: <MapPinned className="h-5 w-5" />,
+    label: 'Tạo vùng trồng',
+    href: '/farm-areas/create',
+    allowedRoles: ROLE_ACCESS.farmAreaCreate,
+  },
+];
+
 export function Sidebar({
   onNavigate,
   onClose,
   showCloseButton = false,
 }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
 
-  const menuItems: MenuItem[] = [
-    {
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      label: 'Dashboard',
-      href: '/',
-    },
-    {
-      icon: <Building2 className="h-5 w-5" />,
-      label: 'Hồ sơ tổ chức',
-      href: '/organizations/profile',
-    },
-    {
-      icon: <PlusCircle className="h-5 w-5" />,
-      label: 'Tạo tổ chức',
-      href: '/organizations/create',
-      roles: ['VT-01'],
-    },
-    {
-      icon: <MapPinned className="h-5 w-5" />,
-      label: 'Tạo vùng trồng',
-      href: '/farm-areas/create',
-      roles: ['VT-01', 'VT-02'],
-    },
-  ];
-
-  const visibleItems = menuItems.filter(
-    (item) => !item.roles || (user ? item.roles.includes(user.roleCode) : false),
+  const visibleItems = MENU_ITEMS.filter((item) =>
+    hasAnyRole(user?.roleCode, item.allowedRoles),
   );
 
   const isActive = (href: string) =>
     href === '/'
       ? location.pathname === '/'
       : location.pathname === href || location.pathname.startsWith(`${href}/`);
-
-  const handleLogout = () => {
-    logout();
-    onNavigate?.();
-  };
 
   return (
     <aside className="flex h-full min-h-0 flex-col border-r bg-background">
@@ -116,18 +117,6 @@ export function Sidebar({
           </Link>
         ))}
       </nav>
-
-      <div className="border-t p-3">
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-10 w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-          onClick={handleLogout}
-        >
-          <LogOut className="h-5 w-5" />
-          Đăng xuất
-        </Button>
-      </div>
     </aside>
   );
 }
