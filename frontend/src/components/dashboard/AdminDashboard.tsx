@@ -5,8 +5,8 @@ import type { Organization } from '@/types/organization';
 import { getOrganizations } from '@/api/organizationApi';
 
 export function AdminDashboard() {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setOrganizations] = useState<Organization[]>([]);
+  const [, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadOrganizations = async () => {

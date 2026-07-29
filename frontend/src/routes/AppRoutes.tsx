@@ -16,6 +16,8 @@ import ProductionLotEditPage from '@/pages/farm/ProductionLotEditPage';
 import { CreateOrganizationPage } from '@/pages/organization/CreateOrganizationPage';
 import MemberPermissionsPage from '@/pages/organization/MemberPermissionsPage';
 import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
+import CreateProductionLotPage from '@/pages/production-lot/CreateProductionLotPage';
+import ProductionLotListPage from '@/pages/production-lot/ProductionLotListPage';
 
 // 👇 Import các trang mới từ nhánh frontend/code-ranges
 import CreateCodeRangePage from '@/pages/admin/CreateCodeRangePage';
@@ -130,6 +132,26 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={ROLE_ACCESS.farmAreaCreate}>
             <CreateFarmAreaPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Danh sách lô sản xuất — VT-01, VT-02, VT-03 */}
+      <Route
+        path="production-lots"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.productionLotList}>
+            <ProductionLotListPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Tạo lô sản xuất — VT-02 */}
+      <Route
+        path="production-lots/create"
+        element={
+          <RoleRoute allowedRoles={COOPERATIVE_MANAGER_ROLES}>
+            <CreateProductionLotPage />
           </RoleRoute>
         }
       />

@@ -4,6 +4,7 @@ import {
   Building2,
   LayoutDashboard,
   MapPinned,
+  Package,
   PlusCircle,
   Sprout,
   X,
@@ -54,6 +55,12 @@ const MENU_ITEMS: MenuItem[] = [
     label: 'Tạo vùng trồng',
     href: '/farm-areas/create',
     allowedRoles: ROLE_ACCESS.farmAreaCreate,
+  },
+  {
+  icon: <Package className="h-5 w-5" />,
+  label: 'Lô sản xuất',
+  href: '/production-lots',
+  allowedRoles: ROLE_ACCESS.productionLotList,
   },
 ];
 
