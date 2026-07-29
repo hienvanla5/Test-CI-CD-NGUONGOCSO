@@ -1,44 +1,67 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import type { AssignableRoleCode, OrganizationMember } from '@/types/member';
+import {
+  assignMemberRole,
+  getOrganizationMembers,
+  getRoles,
+} from '@/api/memberApi';
+import type { OrganizationMember, RoleOption } from '@/types/member';
 import { Search, ShieldCheck, UserRoundCog, X } from 'lucide-react';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 
-const initialMembers: OrganizationMember[] = [
-  { id: 1, userId: 'u-01', username: 'tranvannhu', fullName: 'Trần Văn Nhu', email: 'nhu.tran@phuthinh.vn', phone: '0901 234 567', roleCode: 'VT-02', roleName: 'Quản lý hợp tác xã', status: 'ACTIVE' },
-  { id: 2, userId: 'u-02', username: 'nguyenthihuong', fullName: 'Nguyễn Thị Hương', email: 'huong.nguyen@phuthinh.vn', phone: '0912 536 789', roleCode: 'VT-03', roleName: 'Người ghi sự kiện', status: 'ACTIVE' },
-  { id: 3, userId: 'u-03', username: 'leminhhai', fullName: 'Lê Minh Hải', email: 'hai.le@phuthinh.vn', phone: '0987 112 345', roleCode: 'VT-03', roleName: 'Người ghi sự kiện', status: 'ACTIVE' },
-  { id: 4, userId: 'u-04', username: 'phamthuha', fullName: 'Phạm Thu Hà', email: 'ha.pham@phuthinh.vn', phone: '0908 442 190', roleCode: 'VT-03', roleName: 'Người ghi sự kiện', status: 'INACTIVE' },
-  { id: 5, userId: 'u-05', username: 'hoangngoclan', fullName: 'Hoàng Ngọc Lan', email: 'lan.hoang@phuthinh.vn', phone: '0974 320 118', roleCode: null, roleName: null, status: 'ACTIVE' },
-];
-
-const roleNames: Record<AssignableRoleCode, string> = {
-  'VT-02': 'Quản lý hợp tác xã',
-  'VT-03': 'Người ghi sự kiện',
-};
-
-const roleBadgeClasses: Record<AssignableRoleCode, string> = {
+const roleBadgeClasses: Record<string, string> = {
   'VT-02': 'bg-blue-100 text-blue-700',
   'VT-03': 'bg-purple-100 text-purple-700',
 };
 
-const getRoleBadgeClass = (roleCode: AssignableRoleCode | null) => {
+const getRoleBadgeClass = (roleCode: string | null) => {
   if (!roleCode) {
     return 'bg-slate-100 text-slate-500';
   }
 
-  return roleBadgeClasses[roleCode];
+  return roleBadgeClasses[roleCode] ?? 'bg-amber-100 text-amber-700';
 };
 
 export const MemberPermissions = () => {
-  const [members, setMembers] = useState(initialMembers);
+  const [members, setMembers] = useState<OrganizationMember[]>([]);
+  const [roles, setRoles] = useState<RoleOption[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [editingMember, setEditingMember] = useState<OrganizationMember | null>(null);
-  const [selectedRole, setSelectedRole] = useState<AssignableRoleCode>('VT-03');
+  const [selectedRoleId, setSelectedRoleId] = useState('');
+
+  const assignableRoles = useMemo(
+    () => roles.filter((role) => role.code !== 'VT-01'),
+    [roles],
+  );
+  const selectedRole = roles.find(
+    (role) => role.roleId === Number(selectedRoleId),
+  );
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const [memberData, roleData] = await Promise.all([
+          getOrganizationMembers(),
+          getRoles(),
+        ]);
+        setMembers(memberData);
+        setRoles(roleData);
+      } catch {
+        toast.error('Không thể tải danh sách thành viên');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadData();
+  }, []);
 
   const filteredMembers = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -58,32 +81,30 @@ export const MemberPermissions = () => {
 
   const openRoleDialog = (member: OrganizationMember) => {
     setEditingMember(member);
-    setSelectedRole(member.roleCode ?? 'VT-03');
+    setSelectedRoleId(String(member.roleId));
   };
 
-  const saveRole = (event: FormEvent<HTMLFormElement>) => {
+  const saveRole = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!editingMember) return;
-    setMembers((current) => current.map((member) => member.id === editingMember.id
-      ? { ...member, roleCode: selectedRole, roleName: roleNames[selectedRole] }
-      : member));
-    toast.success(`Đã cập nhật vai trò cho ${editingMember.fullName}`);
-    setEditingMember(null);
+    if (!editingMember || !selectedRoleId) return;
+
+    try {
+      setIsSaving(true);
+      const updatedMember = await assignMemberRole({
+        userId: editingMember.userId,
+        roleId: Number(selectedRoleId),
+      });
+      setMembers((current) => current.map((member) => (
+        member.id === updatedMember.id ? updatedMember : member
+      )));
+      toast.success(`Đã cập nhật vai trò cho ${editingMember.fullName}`);
+      setEditingMember(null);
+    } catch {
+      toast.error('Không thể cập nhật vai trò');
+    } finally {
+      setIsSaving(false);
+    }
   };
-
-  const deactivateMember = (selectedMember: OrganizationMember) => {
-  if (selectedMember.status === 'INACTIVE') return;
-
-  setMembers((current) =>
-    current.map((member) =>
-      member.id === selectedMember.id
-        ? { ...member, status: 'INACTIVE' }
-        : member,
-    ),
-  );
-
-  toast.success(`Đã vô hiệu hóa ${selectedMember.fullName}`);
-};
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 md:px-8">
@@ -167,7 +188,14 @@ export const MemberPermissions = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredMembers.map((member) => {
+                  {isLoading && (
+                    <tr>
+                      <td className="px-4 py-10 text-center text-slate-500" colSpan={7}>
+                        Đang tải danh sách thành viên...
+                      </td>
+                    </tr>
+                  )}
+                  {!isLoading && filteredMembers.map((member) => {
                     const inactive = member.status === 'INACTIVE';
                     return (
                       <tr className={inactive ? 'border-t bg-slate-50 opacity-70' : 'border-t hover:bg-emerald-50/30'} key={member.id}>
@@ -183,35 +211,20 @@ export const MemberPermissions = () => {
                           </span>
                         </td>
                         <td className="px-4 py-4">
-                          <button
-                            type="button"
-                            className={`group inline-flex h-8 items-center rounded-full border border-transparent px-1 text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
-                                inactive
-                                ? 'cursor-default text-red-600 hover:border-red-200 hover:bg-red-50 hover:px-2.5'
-                                : 'cursor-pointer text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 hover:px-2.5 focus-visible:ring-emerald-500'
+                          <span
+                            className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                              inactive
+                                ? 'bg-red-50 text-red-600'
+                                : 'bg-emerald-50 text-emerald-700'
                             }`}
-                            onClick={() => deactivateMember(member)}
-                            disabled={inactive}
-                            aria-label={
-                                inactive
-                                ? `${member.fullName} đã bị vô hiệu hóa`
-                                : `Vô hiệu hóa ${member.fullName}`
-                            }
-                            title={
-                                inactive
-                                ? 'Tài khoản đã bị vô hiệu hóa'
-                                : 'Bấm để vô hiệu hóa'
-                            }
-                            >
-                                <span
+                          >
+                            <span
                               className={`size-2 shrink-0 rounded-full ${
                                 inactive ? 'bg-red-500' : 'bg-emerald-600'
                               }`}
                             />
-                            <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:ml-2 group-hover:max-w-28 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-28 group-focus-visible:opacity-100">
-                              {inactive ? 'Đã vô hiệu hóa' : 'Đang hoạt động'}
-                            </span>
-                          </button>
+                            {inactive ? 'Đã vô hiệu hóa' : 'Đang hoạt động'}
+                          </span>
                         </td>
                         <td className="px-4 py-4">
                           <Button size="sm" variant="outline" disabled={inactive} onClick={() => openRoleDialog(member)}>
@@ -223,7 +236,7 @@ export const MemberPermissions = () => {
                   })}
                 </tbody>
               </table>
-              {!filteredMembers.length && (
+              {!isLoading && !filteredMembers.length && (
                 <div className="grid place-items-center px-4 py-16 text-center">
                   <UserRoundCog className="mb-3 size-9 text-slate-300" />
                   <p className="font-semibold">Không tìm thấy thành viên</p>
@@ -250,7 +263,10 @@ export const MemberPermissions = () => {
                 <p className="mb-2 text-sm font-semibold">Thành viên</p>
                 <div className="rounded-lg border bg-slate-50 px-3 py-2">
                   <p className="font-semibold">{editingMember.fullName}</p>
-                  <p className="text-xs text-slate-500">@{editingMember.username} · {editingMember.email}</p>
+                  <p className="text-xs text-slate-500">
+                    @{editingMember.username}
+                    {editingMember.email ? ` · ${editingMember.email}` : ''}
+                  </p>
                 </div>
               </div>
               <div>
@@ -261,22 +277,29 @@ export const MemberPermissions = () => {
                 Vai trò mới <span className="text-red-600">*</span>
                 <select
                   className="mt-2 h-10 w-full rounded-md border border-input bg-white px-3 font-normal outline-none focus:ring-2 focus:ring-ring"
-                  value={selectedRole}
-                  onChange={(event) => setSelectedRole(event.target.value as AssignableRoleCode)}
+                  value={selectedRoleId}
+                  onChange={(event) => setSelectedRoleId(event.target.value)}
+                  required
                 >
-                  <option value="VT-02">Quản lý hợp tác xã (VT-02)</option>
-                  <option value="VT-03">Người ghi sự kiện (VT-03)</option>
+                  <option value="">Chọn vai trò</option>
+                  {assignableRoles.map((role) => (
+                    <option key={role.roleId} value={role.roleId}>
+                      {role.name} ({role.code})
+                    </option>
+                  ))}
                 </select>
               </label>
               <p className="rounded-lg bg-emerald-50 p-3 text-xs leading-5 text-emerald-800">
-                {selectedRole === 'VT-02'
+                {selectedRole?.code === 'VT-02'
                   ? 'Quản lý dữ liệu và thành viên trong đúng phạm vi tổ chức.'
                   : 'Ghi nhật ký và sự kiện; không thể tự cấp quyền cho người khác.'}
               </p>
             </div>
             <div className="flex justify-end gap-2 border-t p-5">
               <Button type="button" variant="outline" onClick={() => setEditingMember(null)}>Hủy</Button>
-              <Button type="submit">Lưu vai trò</Button>
+              <Button type="submit" disabled={isSaving || !selectedRoleId}>
+                {isSaving ? 'Đang lưu...' : 'Lưu vai trò'}
+              </Button>
             </div>
           </form>
         </div>

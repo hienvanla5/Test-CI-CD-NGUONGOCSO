@@ -1,14 +1,39 @@
 export type MemberStatus = 'ACTIVE' | 'INACTIVE';
-export type AssignableRoleCode = 'VT-02' | 'VT-03';
+
+export interface RoleOption {
+  roleId: number;
+  code: string;
+  name: string;
+}
 
 export interface OrganizationMember {
-  id: number;
+  id: string;
+  organizationId: string;
   userId: string;
   username: string;
   fullName: string;
-  email: string | null;
-  phone: string | null;
-  roleCode: AssignableRoleCode | null;
+  roleId: number;
+  roleCode: string | null;
   roleName: string | null;
+  customPermissions: string | null;
   status: MemberStatus;
+  joinedAt: string;
+  
+  email?: string | null;
+  phone?: string | null;
+}
+
+export interface AssignRoleRequest {
+  userId: string;
+  roleId: number;
+}
+
+export interface ApiResult<T> {
+  success: boolean;
+  status: number;
+  message?: string;
+  data: T;
+  errors?: unknown;
+  path?: string;
+  timestamp?: string;
 }
