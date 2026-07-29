@@ -29,6 +29,8 @@ public class CreateProductionLotResponse {
 
         private Double expectedQuantity;
 
+        private String expectedQuantityUnit;
+
         private Double actualQuantity;
 
         private LocalDate plantingDate;

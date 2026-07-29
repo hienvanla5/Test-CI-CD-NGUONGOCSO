@@ -29,6 +29,7 @@ export interface ProductionLot {
   productCategoryName: string | null;
   name: string;
   expectedQuantity: number;
+  expectedQuantityUnit: string;
   actualQuantity: number | null;
   plantingDate: string;
   harvestDate: string | null;
@@ -45,6 +46,7 @@ export interface UpdateProductionLotRequest {
   farmAreaId?: string | null;
   productCategoryId: string;
   expectedQuantity: number;
+  expectedQuantityUnit: string;
   plantingDate: string;
 }
 
@@ -54,6 +56,7 @@ export interface UpdateProductionLotResponse {
   productCategoryId: string;
   name: string;
   expectedQuantity: number;
+  expectedQuantityUnit: string;
   plantingDate: string;
   status: string;
   updatedAt: string;

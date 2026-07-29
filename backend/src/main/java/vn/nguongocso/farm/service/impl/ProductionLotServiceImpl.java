@@ -78,6 +78,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .productCategory(productCategory)
                 .name(request.getName())
                 .expectedQuantity(request.getExpectedQuantity())
+                .expectedQuantityUnit(request.getExpectedQuantityUnit())
                 .plantingDate(request.getPlantingDate())
                 .status(ProductionLotStatus.DRAFT)
                 .createdBy(user)
@@ -188,6 +189,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .productCategoryName(lot.getProductCategory().getName())
                 .name(lot.getName())
                 .expectedQuantity(lot.getExpectedQuantity())
+                .expectedQuantityUnit(lot.getExpectedQuantityUnit())
                 .actualQuantity(lot.getActualQuantity())
                 .plantingDate(lot.getPlantingDate())
                 .harvestDate(lot.getHarvestDate())
@@ -236,6 +238,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         productionLot.setFarmArea(farmArea);
         productionLot.setProductCategory(productCategory);
         productionLot.setExpectedQuantity(request.getExpectedQuantity());
+        productionLot.setExpectedQuantityUnit(request.getExpectedQuantityUnit());
         productionLot.setPlantingDate(request.getPlantingDate());
 
         ProductionLot savedLot = productionLotRepository.save(productionLot);
@@ -247,6 +250,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .productCategoryId(savedLot.getProductCategory().getId())
                 .name(savedLot.getName())
                 .expectedQuantity(savedLot.getExpectedQuantity())
+                .expectedQuantityUnit(savedLot.getExpectedQuantityUnit())
                 .plantingDate(savedLot.getPlantingDate())
                 .status(savedLot.getStatus().name())
                 .updatedAt(savedLot.getUpdatedAt())

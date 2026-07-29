@@ -34,6 +34,7 @@ export const updateProductionLotSchema = z.object({
   farmAreaId: z.string().nullable().optional(),
   productCategoryId: z.string().uuid('Vui lòng chọn loại nông sản'),
   expectedQuantity: z.coerce.number().positive('Sản lượng dự kiến phải lớn hơn 0'),
+  expectedQuantityUnit: z.string().min(1, "Vui lòng chọn đơn vị sản lượng"),
   plantingDate: z.string().min(1, 'Ngày xuống giống không được để trống'),
 });
 

@@ -63,6 +63,7 @@ export const ProductionLotEditForm: React.FC = () => {
 
   const selectedCategory = watch("productCategoryId");
   const selectedFarmArea = watch("farmAreaId");
+  const selectedUnit = watch("expectedQuantityUnit");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,11 +77,18 @@ export const ProductionLotEditForm: React.FC = () => {
         setFarmAreas(areas);
         setCategories(cats);
 
+        // Kiểm tra sự tồn tại
+        const validCategory = cats.some(
+          (c) => c.id === lotData.productCategoryId,
+        );
+        const validFarmArea = areas.some((a) => a.id === lotData.farmAreaId);
+
         reset({
           name: lotData.name,
-          farmAreaId: lotData.farmAreaId ?? null,
-          productCategoryId: lotData.productCategoryId,
+          farmAreaId: validFarmArea ? lotData.farmAreaId : null,
+          productCategoryId: validCategory ? lotData.productCategoryId : "",
           expectedQuantity: lotData.expectedQuantity,
+          expectedQuantityUnit: lotData.expectedQuantityUnit || "kg",
           plantingDate: lotData.plantingDate
             ? lotData.plantingDate.split("T")[0]
             : "",
@@ -111,6 +119,7 @@ export const ProductionLotEditForm: React.FC = () => {
         farmAreaId: data.farmAreaId || null,
         productCategoryId: data.productCategoryId,
         expectedQuantity: data.expectedQuantity,
+        expectedQuantityUnit: data.expectedQuantityUnit, // ✅ Sửa: dùng đúng trường
         plantingDate: data.plantingDate,
       });
       toast.success("Cập nhật lô sản xuất thành công");
@@ -175,16 +184,17 @@ export const ProductionLotEditForm: React.FC = () => {
               disabled={!editable}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Chọn loại nông sản" />
+                <SelectValue placeholder="Chọn loại nông sản">
+                  {categories.find((cat) => cat.id === selectedCategory)
+                    ?.name || (selectedCategory ? selectedCategory : "")}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {categories
-                  .filter((cat) => cat.isActive)
-                  .map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name} {!cat.isActive && "(không hoạt động)"}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {errors.productCategoryId && (
@@ -205,7 +215,10 @@ export const ProductionLotEditForm: React.FC = () => {
               disabled={!editable}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Chọn vùng trồng" />
+                <SelectValue placeholder="Chọn vùng trồng">
+                  {farmAreas.find((area) => area.id === selectedFarmArea)
+                    ?.name || (selectedFarmArea ? selectedFarmArea : "")}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Không chọn</SelectItem>
@@ -232,6 +245,40 @@ export const ProductionLotEditForm: React.FC = () => {
             {errors.expectedQuantity && (
               <p className="text-sm text-red-500">
                 {errors.expectedQuantity.message}
+              </p>
+            )}
+          </div>
+
+          {/* Đơn vị sản lượng */}
+          <div className="space-y-2">
+            <Label htmlFor="expectedQuantityUnit">Đơn vị sản lượng *</Label>
+            <Select
+              value={selectedUnit || ""}
+              onValueChange={(val) => {
+                if (val !== undefined && val !== null) {
+                  setValue("expectedQuantityUnit", val, {
+                    shouldValidate: true,
+                  });
+                }
+              }}
+              disabled={!editable}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn đơn vị">
+                  {selectedUnit || ""}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="kg">Kg</SelectItem>
+                <SelectItem value="tấn">Tấn</SelectItem>
+                <SelectItem value="tạ">Tạ</SelectItem>
+                <SelectItem value="gói">Gói</SelectItem>
+                <SelectItem value="cái">Cái</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.expectedQuantityUnit && (
+              <p className="text-sm text-red-500">
+                {errors.expectedQuantityUnit.message}
               </p>
             )}
           </div>
