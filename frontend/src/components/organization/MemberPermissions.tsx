@@ -38,7 +38,6 @@ export const MemberPermissions = () => {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [editingMember, setEditingMember] = useState<OrganizationMember | null>(null);
-  const [revokeMember, setRevokeMember] = useState<OrganizationMember | null>(null);
   const [selectedRole, setSelectedRole] = useState<AssignableRoleCode>('VT-03');
 
   const filteredMembers = useMemo(() => {
@@ -72,14 +71,19 @@ export const MemberPermissions = () => {
     setEditingMember(null);
   };
 
-  const confirmRevoke = () => {
-    if (!revokeMember) return;
-    setMembers((current) => current.map((member) => member.id === revokeMember.id
-      ? { ...member, roleCode: null, roleName: null }
-      : member));
-    toast.success(`Đã thu quyền của ${revokeMember.fullName}`);
-    setRevokeMember(null);
-  };
+  const deactivateMember = (selectedMember: OrganizationMember) => {
+  if (selectedMember.status === 'INACTIVE') return;
+
+  setMembers((current) =>
+    current.map((member) =>
+      member.id === selectedMember.id
+        ? { ...member, status: 'INACTIVE' }
+        : member,
+    ),
+  );
+
+  toast.success(`Đã vô hiệu hóa ${selectedMember.fullName}`);
+};
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 md:px-8">
@@ -179,22 +183,31 @@ export const MemberPermissions = () => {
                           </span>
                         </td>
                         <td className="px-4 py-4">
-                          <span className={inactive ? 'text-xs font-semibold text-red-600' : 'text-xs font-semibold text-emerald-700'}>
-                            {inactive ? '● Đã vô hiệu hóa' : '● Đang hoạt động'}
-                          </span>
+                          <button
+                            type="button"
+                            className={`group inline-flex h-8 items-center rounded-full border border-transparent px-1 text-xs font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+                              inactive
+                                ? 'text-red-600 hover:border-red-200 hover:bg-red-50 hover:px-2.5 focus-visible:ring-red-500'
+                                : 'text-emerald-700 hover:border-emerald-200 hover:bg-emerald-50 hover:px-2.5 focus-visible:ring-emerald-500'
+                            }`}
+                            onClick={() => toggleMemberStatus(member)}
+                            aria-label={inactive ? `Kích hoạt lại ${member.fullName}` : `Vô hiệu hóa ${member.fullName}`}
+                            title={inactive ? 'Bấm để kích hoạt lại' : 'Bấm để vô hiệu hóa'}
+                          >
+                            <span
+                              className={`size-2 shrink-0 rounded-full ${
+                                inactive ? 'bg-red-500' : 'bg-emerald-600'
+                              }`}
+                            />
+                            <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:ml-2 group-hover:max-w-28 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-28 group-focus-visible:opacity-100">
+                              {inactive ? 'Đã vô hiệu hóa' : 'Đang hoạt động'}
+                            </span>
+                          </button>
                         </td>
                         <td className="px-4 py-4">
-                          <div className="flex items-center gap-2">
-                            <Button size="sm" variant="outline" disabled={inactive} onClick={() => openRoleDialog(member)}>
-                              {member.roleCode ? 'Đổi vai trò' : 'Cấp quyền'}
-                            </Button>
-                            {member.roleCode && (
-                              <Button size="sm" variant="ghost" className="text-red-600 hover:bg-red-50 hover:text-red-700" disabled={inactive} onClick={() => setRevokeMember(member)}>
-                                Thu quyền
-                              </Button>
-                            )}
-                            {inactive && <span className="text-[11px] text-red-600">Kích hoạt lại trước</span>}
-                          </div>
+                          <Button size="sm" variant="outline" disabled={inactive} onClick={() => openRoleDialog(member)}>
+                            {member.roleCode ? 'Đổi vai trò' : 'Cấp quyền'}
+                          </Button>
                         </td>
                       </tr>
                     );
@@ -260,24 +273,6 @@ export const MemberPermissions = () => {
         </div>
       )}
 
-      {revokeMember && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4">
-          <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl">
-            <div className="border-b p-5">
-              <h2 className="text-lg font-bold">Thu quyền thành viên?</h2>
-              <p className="mt-1 text-sm text-slate-500">Thao tác sẽ được lưu vào lịch sử phân quyền.</p>
-            </div>
-            <p className="p-5 text-sm leading-6 text-slate-600">
-              <strong className="text-slate-900">{revokeMember.fullName}</strong> sẽ không còn vai trò{' '}
-              <strong className="text-slate-900">{revokeMember.roleName}</strong>. Tài khoản vẫn thuộc tổ chức.
-            </p>
-            <div className="flex justify-end gap-2 border-t p-5">
-              <Button variant="outline" onClick={() => setRevokeMember(null)}>Quay lại</Button>
-              <Button className="bg-red-600 text-white hover:bg-red-700" onClick={confirmRevoke}>Thu quyền</Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
