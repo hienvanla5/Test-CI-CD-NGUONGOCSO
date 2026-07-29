@@ -4,6 +4,9 @@ import LoginPage from '../pages/auth/LoginPage';
 import { useAuth } from '../hooks/useAuth';
 import { type UserInfo } from '../types/auth';
 import OrganizationProfilePage from '@/pages/organization/OrganizationProfilePage';
+import { CreateOrganizationPage } from '@/pages/organization/CreateOrganizationPage';
+import { CreateFarmAreaPage } from '@/pages/farm-area/CreateFarmAreaPage';
+
 
 // Component bảo vệ route yêu cầu đăng nhập
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -13,6 +16,14 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   return <>{children}</>;
 };
 
+// Component bảo vệ yêu cầu quyền admin
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return <div>Loading...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.roleCode !== 'VT-01') return <Navigate to="/" replace />;
+  return <>{children}</>;
+};
 const DashboardPage = () => <div>Dashboard (trang chủ)</div>;
 
 const AppRoutes: React.FC = () => {
@@ -34,6 +45,22 @@ const AppRoutes: React.FC = () => {
         element={
           <PrivateRoute>
             <OrganizationProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/organizations/create"
+        element={
+          <AdminRoute>
+            <CreateOrganizationPage/>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/farm-areas/create"
+        element={
+          <PrivateRoute>
+            <CreateFarmAreaPage/>
           </PrivateRoute>
         }
       />
