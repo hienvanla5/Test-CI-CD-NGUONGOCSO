@@ -27,4 +27,8 @@ public interface TraceCodeRepository extends JpaRepository<TraceCode, UUID> {
 	 * Lấy mã code
 	 */
 	Optional<TraceCode> findByCodeValue(String codeValue);
+
+	// Thêm phương thức xóa tất cả tem thuộc một lô hàng (Shipment)
+	void deleteByShipmentId(UUID shipmentId);
+
 }
