@@ -15,6 +15,8 @@ public interface ProductionLotService {
 
     List<CreateProductionLotResponse> getAllProductionLots(CustomUserDetails userDetails);
 
+    CreateProductionLotResponse getProductionLotById(UUID id);
+
     UpdateProductionLotResponse updateProductionLot(UUID id, UpdateProductionLotRequest request, CustomUserDetails userDetails);
 
     CreateProductionLotResponse approveProductionLot(UUID lotId, ApproveProductionLotRequest request, CustomUserDetails userDetails);

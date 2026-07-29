@@ -24,3 +24,31 @@ export interface OrganizationProfileResponse {
   success: boolean;
   data: OrganizationProfile;
 }
+export interface CreateOrganizationRequest {
+  organizationName: string;
+  organizationCode: string;
+  organizationType: OrganizationType; // 'COOPERATIVE' | 'ENTERPRISE' | 'GOVERNMENT' | 'SYSTEM'
+  address?: string;
+  phone?: string;
+  email?: string;
+
+  userName: string;
+  password: string;
+  fullName: string;
+  managerPhone?: string;
+  managerEmail: string;
+}
+
+export interface CreateOrganizationResponse {
+  success: boolean;
+  status: number;
+  data: {
+    organizationID: string;
+    organizationName: string;
+    organizationCode: string;
+    organizationType: OrganizationType;
+    status: 'ACTIVE' | 'INACTIVE';
+    createdAt: string;
+  };
+  timestamp: string;
+}

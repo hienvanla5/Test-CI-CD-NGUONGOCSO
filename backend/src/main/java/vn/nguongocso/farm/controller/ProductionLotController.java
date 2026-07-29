@@ -45,6 +45,18 @@ public class ProductionLotController {
      * API cập nhật lô sản xuất.
      * Thêm vào đây, gọi thông qua đối tượng productionLotService viết thường
      */
+    /**
+     * API lấy thông tin chi tiết lô sản xuất.
+     * Yêu cầu người dùng đã đăng nhập.
+     * Trả về đầy đủ thông tin cần thiết cho trang chỉnh sửa.
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResult<CreateProductionLotResponse>> getById(@PathVariable UUID id) {
+        CreateProductionLotResponse response = productionLotService.getProductionLotById(id);
+        return ResponseEntity.ok(ApiResult.success(response));
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
     public ResponseEntity<ApiResult<UpdateProductionLotResponse>> update(
