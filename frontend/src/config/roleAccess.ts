@@ -23,6 +23,7 @@ export const ROLE_ACCESS = {
   organizationCreate: ['VT-01'],
   organizationProfile: ['VT-01', 'VT-02'],
   farmAreaCreate: ['VT-02'],
+  productionLotList: ['VT-01', 'VT-02', 'VT-03'],
   productionLotEdit: ['VT-02'],
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
