@@ -13,4 +13,6 @@ public class PublicChainEventItem {
     private String eventType;
     private Map<String, Object> eventData;
     private LocalDateTime recordedAt;
+    private Double latitude;
+    private Double longitude;
 }

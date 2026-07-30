@@ -82,15 +82,25 @@ public class PublicTraceServiceImpl implements PublicTraceService {
     }
 
     private PublicChainEventItem convertToPublicEvent(ChainEvent event) {
-        // Parse eventData từ JSON string sang Map
+        // Parse eventData JSON sang Map
         Map<String, Object> rawData = parseEventData(event.getEventData());
         // Lọc dữ liệu công khai
         Map<String, Object> filteredData = filterEventData(rawData, event.getEventType());
+
+        // Trích xuất latitude, longitude từ location
+        Double latitude = null;
+        Double longitude = null;
+        if (event.getLocation() != null) {
+            latitude = event.getLocation().getY(); // JTS Point: getY() = latitude
+            longitude = event.getLocation().getX(); // getX() = longitude
+        }
 
         return PublicChainEventItem.builder()
                 .eventType(event.getEventType().name())
                 .eventData(filteredData)
                 .recordedAt(event.getRecordedAt())
+                .latitude(latitude)   // 👈 thêm
+                .longitude(longitude) // 👈 thêm
                 .build();
     }
 
