@@ -20,7 +20,6 @@ import OrganizationProfilePage from "@/pages/organization/OrganizationProfilePag
 import CreateProductionLotPage from "@/pages/production-lot/CreateProductionLotPage";
 import ProductionLotListPage from "@/pages/production-lot/ProductionLotListPage";
 
-// 👇 Import các trang mới từ nhánh frontend/code-ranges
 import CreateCodeRangePage from "@/pages/admin/CreateCodeRangePage";
 import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
 import CreatePackagingEventPage from "@/pages/packaging-event/CreatePackagingEventPage";
@@ -28,6 +27,7 @@ import CorrectPackagingEventPage from "@/pages/packaging-event/CorrectPackagingE
 import { OrganizationListPage } from "@/pages/organization/OrganizationListPage";
 import CreateMemberPage from "@/pages/organization/CreateMemberPage";
 import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
+import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -236,14 +236,21 @@ const AppRoutes = () => (
       }
     />
     <Route
-    path="production-lots/:productionLotId/farm-logs"
-    element={
-      <RoleRoute allowedRoles={['VT-02']}>
-        <FarmLogHistoryPage/>
-    </RoleRoute>
-  }
-/>
-
+      path="production-lots/:productionLotId/farm-logs"
+      element={
+        <RoleRoute allowedRoles={["VT-02"]}>
+          <FarmLogHistoryPage />
+        </RoleRoute>
+      }
+    />
+    <Route
+      path="production-lots/:id"
+      element={
+        <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+          <ProductionLotDetailPage/>
+        </RoleRoute>
+      }
+    />
     {/* Route không tồn tại */}
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>

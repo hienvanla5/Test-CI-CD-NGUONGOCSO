@@ -1,4 +1,3 @@
-// src/components/production-lot/ProductionLotList.tsx
 import {
   AlertDialog,  
   AlertDialogCancel,
@@ -14,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import type { ProductionLot } from '@/types/productionLot';
 import { LoaderCircle, PackageOpen, Pencil, Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface ProductionLotListProps {
   lots: ProductionLot[];
@@ -63,6 +63,7 @@ export const ProductionLotList = ({
   onEdit,
   onSubmitForApproval,
 }: ProductionLotListProps) => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [confirmingLot, setConfirmingLot] = useState<ProductionLot | null>(null);
@@ -212,9 +213,19 @@ export const ProductionLotList = ({
                           <Pencil className="size-4" />
                           Chỉnh sửa
                         </Button>
+                        
                       ) : (
                         <span className="text-slate-400">—</span>
                       )}
+                    </td>
+                    <td className='px-4 py-4'>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => navigate(`/production-lots/${lot.id}`)}
+                      >
+                        Chi tiết
+                      </Button>
                     </td>
                   </tr>
                 ))}
