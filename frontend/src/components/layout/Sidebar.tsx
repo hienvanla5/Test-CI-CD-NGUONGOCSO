@@ -7,6 +7,7 @@ import {
   MapPinned,
   Package,
   Sprout,
+  Truck,
   UserCheck,
   Users,
   X,
@@ -63,6 +64,12 @@ const MENU_ITEMS: MenuItem[] = [
     label: 'Lô sản xuất',
     href: '/production-lots',
     allowedRoles: ROLE_ACCESS.productionLotList,
+  },
+  {
+    icon: <Truck className="h-5 w-5" />,
+    label: "Ghi sự kiện vận chuyển",
+    href: "/transport-events/record",
+    allowedRoles: ROLE_ACCESS.transportEventRecord,
   },
   {
     icon: <Hash className='h-5 w-5' />,
