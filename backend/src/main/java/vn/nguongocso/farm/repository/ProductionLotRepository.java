@@ -48,4 +48,26 @@ public interface ProductionLotRepository extends JpaRepository<ProductionLot, UU
             @Param("organizationId") UUID organizationId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+    /**
+     * Truy vấn danh sách các lô sản xuất phục vụ phân tích theo vùng trồng và mùa vụ.
+     * Sử dụng JOIN FETCH để tải trước các thực thể liên quan, tránh N+1 Query.
+     */
+    @Query("""
+        SELECT pl
+        FROM ProductionLot pl
+        JOIN FETCH pl.farmArea fa
+        JOIN FETCH pl.productCategory pc
+        JOIN FETCH pl.organization org
+        WHERE pl.plantingDate BETWEEN :startDate AND :endDate
+          AND (:farmAreaId IS NULL OR fa.id = :farmAreaId)
+          AND (:productCategoryId IS NULL OR pc.id = :productCategoryId)
+          AND (:organizationId IS NULL OR org.organizationId = :organizationId)
+    """)
+    List<ProductionLot> findLotsForAnalysis(
+            @Param("startDate") java.time.LocalDate startDate,
+            @Param("endDate") java.time.LocalDate endDate,
+            @Param("farmAreaId") java.util.UUID farmAreaId,
+            @Param("productCategoryId") java.util.UUID productCategoryId,
+            @Param("organizationId") java.util.UUID organizationId);
+
 }
