@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle2,
   Clock3,
@@ -9,15 +8,11 @@ import {
 import { toast } from 'sonner';
 
 import { getProductionLots } from '@/api/productionLotApi';
-import { ProductionLotList } from '@/components/production-lot/ProductionLotList';
+import { ProductionLotBoard } from '@/components/production-lot/ProductionLotBoard';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/hooks/useAuth';
 import type { ProductionLot } from '@/types/productionLot';
 
 export function CooperativeDashboard() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
   const [productionLots, setProductionLots] = useState<ProductionLot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -123,20 +118,7 @@ export function CooperativeDashboard() {
       </div>
 
       {/* Bảng danh sách lô sản xuất */}
-      <ProductionLotList
-        lots={productionLots}
-        isLoading={isLoading}
-        canCreate={user?.roleCode === 'VT-02'}
-        canEdit={user?.roleCode === 'VT-02'}
-        canRecordFarmLog={user?.roleCode === 'VT-03'}
-        onCreate={() => navigate('/production-lots/create')}
-        onEdit={(id) => navigate(`/production-lots/${id}/edit`)}
-        onRecordFarmLog={(id) =>
-          navigate(
-            `/farm-logs/create?productionLotId=${encodeURIComponent(id)}`,
-          )
-        }
-      />
+      <ProductionLotBoard />
     </div>
   );
 }

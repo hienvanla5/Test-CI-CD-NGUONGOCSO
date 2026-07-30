@@ -27,6 +27,7 @@ import CreatePackagingEventPage from "@/pages/packaging-event/CreatePackagingEve
 import CorrectPackagingEventPage from "@/pages/packaging-event/CorrectPackagingEventPage";
 import { OrganizationListPage } from "@/pages/organization/OrganizationListPage";
 import CreateMemberPage from "@/pages/organization/CreateMemberPage";
+import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -234,6 +235,14 @@ const AppRoutes = () => (
         </RoleRoute>
       }
     />
+    <Route
+    path="production-lots/:productionLotId/farm-logs"
+    element={
+      <RoleRoute allowedRoles={['VT-02']}>
+        <FarmLogHistoryPage/>
+    </RoleRoute>
+  }
+/>
 
     {/* Route không tồn tại */}
     <Route path="*" element={<Navigate to="/" replace />} />
