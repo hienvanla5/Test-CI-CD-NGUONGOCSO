@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.locationtech.jts.geom.Point;
@@ -17,10 +18,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import vn.nguongocso.organization.entity.Organization;
 
 /**
@@ -32,6 +29,7 @@ import vn.nguongocso.organization.entity.Organization;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class FarmArea {
 
 	@Id
