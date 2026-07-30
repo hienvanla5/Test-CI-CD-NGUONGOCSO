@@ -13,6 +13,8 @@ export function DashboardContent() {
     case 'VT-02':
       return <CooperativeDashboard />;
 
+    //phát triển các dashboard khác bằng cách return tại đây
+
     default:
       return (
         <div className="rounded-lg border bg-white p-6">

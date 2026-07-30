@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle2,
   Clock3,
@@ -8,20 +9,27 @@ import {
 import { toast } from 'sonner';
 
 import { getProductionLots } from '@/api/productionLotApi';
+import { ProductionLotList } from '@/components/production-lot/ProductionLotList';
 import { Card, CardContent } from '@/components/ui/card';
-import type { ProductionLot } from '@/types/farm';
+import { useAuth } from '@/hooks/useAuth';
+import type { ProductionLot } from '@/types/productionLot';
 
 export function CooperativeDashboard() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   const [productionLots, setProductionLots] = useState<ProductionLot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadProductionLots = async () => {
       try {
+        setIsLoading(true);
+
         const data = await getProductionLots();
         setProductionLots(data);
       } catch {
-        toast.error('Không thể tải thông tin lô sản xuất');
+        toast.error('Không thể tải danh sách lô sản xuất');
       } finally {
         setIsLoading(false);
       }
@@ -33,8 +41,15 @@ export function CooperativeDashboard() {
   const statistics = useMemo(() => {
     return {
       total: productionLots.length,
-      draft: productionLots.filter((lot) => lot.status === 'DRAFT').length,
-      pending: productionLots.filter((lot) => lot.status === 'PENDING').length,
+
+      draft: productionLots.filter(
+        (lot) => lot.status === 'DRAFT',
+      ).length,
+
+      pending: productionLots.filter(
+        (lot) => lot.status === 'PENDING',
+      ).length,
+
       approved: productionLots.filter(
         (lot) => lot.status === 'APPROVED',
       ).length,
@@ -80,6 +95,7 @@ export function CooperativeDashboard() {
         </p>
       </div>
 
+      {/* Bốn thẻ thống kê */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -97,9 +113,7 @@ export function CooperativeDashboard() {
                   </p>
                 </div>
 
-                <div
-                  className={`rounded-xl p-3 ${card.iconClass}`}
-                >
+                <div className={`rounded-xl p-3 ${card.iconClass}`}>
                   <Icon className="size-6" />
                 </div>
               </CardContent>
@@ -107,6 +121,22 @@ export function CooperativeDashboard() {
           );
         })}
       </div>
+
+      {/* Bảng danh sách lô sản xuất */}
+      <ProductionLotList
+        lots={productionLots}
+        isLoading={isLoading}
+        canCreate={user?.roleCode === 'VT-02'}
+        canEdit={user?.roleCode === 'VT-02'}
+        canRecordFarmLog={user?.roleCode === 'VT-03'}
+        onCreate={() => navigate('/production-lots/create')}
+        onEdit={(id) => navigate(`/production-lots/${id}/edit`)}
+        onRecordFarmLog={(id) =>
+          navigate(
+            `/farm-logs/create?productionLotId=${encodeURIComponent(id)}`,
+          )
+        }
+      />
     </div>
   );
 }
