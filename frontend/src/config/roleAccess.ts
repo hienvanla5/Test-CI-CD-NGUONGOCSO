@@ -3,14 +3,18 @@ export type AuthenticatedRoleCode = 'VT-01' | 'VT-02' | 'VT-03' | 'VT-04' | 'VT-
 export const AUTHENTICATED_ROLE_CODES: AuthenticatedRoleCode[] = ['VT-01', 'VT-02', 'VT-03', 'VT-04', 'VT-05'];
 
 export const ROLE_ACCESS = {
-  dashboard: ['VT-01', 'VT-02', 'VT-03', 'VT-04', 'VT-05'] as const,
-  organizationCreate: ['VT-01'] as const,
-  organizationProfile: ['VT-01', 'VT-02'] as const,
-  farmAreaCreate: ['VT-02'] as const,
-  productionLotList: ['VT-01', 'VT-02', 'VT-03'] as const,
-  productionLotEdit: ['VT-02'] as const,
-  // ... thêm các quyền khác nếu cần
-} as const;
+  dashboard: AUTHENTICATED_ROLE_CODES,
+  organizationCreate: ['VT-01'],
+  organizationProfile: ['VT-01', 'VT-02'],
+  farmAreaCreate: ['VT-02'],
+  productionLotList: ['VT-01', 'VT-02', 'VT-03'],
+  productionLotEdit: ['VT-02'],
+
+  packagingEventCreate: ['VT-02', 'VT-03'] as const,
+  packagingEventCorrect: ['VT-02', 'VT-03'] as const,
+
+  codeRangeList: ['VT-01'] as const,
+} as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
 export function hasAnyRole(
   userRole: string | undefined,

@@ -1,14 +1,12 @@
 import apiClient from './axiosConfig';
 import type {
-  ProductionLot,
-  UpdateProductionLotRequest,
-  UpdateProductionLotResponse,
-} from '@/types/farm';
-import type {
   CreateProductionLotRequest,
   CreateProductionLotResponse,
   FarmAreaOption,
   ProductCategoryOption,
+  ProductionLot,
+  UpdateProductionLotRequest,
+  UpdateProductionLotResponse,
 } from '@/types/productionLot';
 
 interface ApiDataResponse<T> {

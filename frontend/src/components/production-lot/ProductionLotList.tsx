@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import type { ProductionLot } from '@/types/farm';
+import type { ProductionLot } from '@/types/productionLot';
 import { PackageOpen, Pencil, Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
