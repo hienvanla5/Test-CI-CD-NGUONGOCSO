@@ -43,4 +43,6 @@ public interface FarmLogRepository extends JpaRepository<FarmLog, UUID> {
 		Page<FarmLogProjection> findByProductionLot(
 		        ProductionLot productionLot,
 		        Pageable pageable);
+
+	Page<FarmLog> findByProductionLotId(ProductionLot productionLot, Pageable pageable);
 }

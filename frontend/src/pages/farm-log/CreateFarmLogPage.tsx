@@ -214,9 +214,7 @@ const CreateFarmLogPage = () => {
               initialProductionLotId={
                 initialProductionLotId
               }
-              onCancel={() => {
-                void navigate('/production-lots');
-              }}
+              onCancel={() => navigate(-1)}
               onSubmit={handleSubmit}
             />
           </div>

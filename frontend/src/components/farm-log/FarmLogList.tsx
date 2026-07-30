@@ -1,11 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
-import { toast } from 'sonner';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { useState, useEffect, useMemo } from "react";
+import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -13,20 +8,36 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Search, FileText } from 'lucide-react';
-import { getFarmLogs } from '@/api/farmLogApi';
-import type { FarmLog, PageResponse } from '@/types/farmLog';
+} from "@/components/ui/select";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  FileText,
+  Plus,
+  Paperclip,
+} from "lucide-react";
+import { getFarmLogs } from "@/api/farmLogApi";
+import type { FarmLog, PageResponse } from "@/types/farmLog";
+import { useNavigate } from "react-router-dom";
+import { AttachmentManager } from "./AttachmentManager";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
+// 👇 Định nghĩa interface
 interface FarmLogListProps {
   productionLotId: string;
   productionLotName?: string;
@@ -34,24 +45,24 @@ interface FarmLogListProps {
 }
 
 const ACTIVITY_TYPE_LABELS: Record<string, string> = {
-  PLANTING: 'Gieo trồng',
-  WATERING: 'Tưới nước',
-  FERTILIZING: 'Bón phân',
-  PESTICIDE: 'Phun thuốc',
-  WEEDING: 'Làm cỏ',
-  HARVESTING: 'Thu hoạch',
-  OTHER: 'Khác',
+  PLANTING: "Gieo trồng",
+  WATERING: "Tưới nước",
+  FERTILIZING: "Bón phân",
+  PESTICIDE: "Phun thuốc",
+  WEEDING: "Làm cỏ",
+  HARVESTING: "Thu hoạch",
+  OTHER: "Khác",
 };
 
 const ACTIVITY_TYPE_OPTIONS = Object.entries(ACTIVITY_TYPE_LABELS).map(
-  ([value, label]) => ({ value, label })
+  ([value, label]) => ({ value, label }),
 );
 
 const formatDate = (dateStr: string) => {
   try {
     const d = new Date(dateStr);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
     const year = d.getFullYear();
     return `${day}/${month}/${year}`;
   } catch {
@@ -62,11 +73,11 @@ const formatDate = (dateStr: string) => {
 const formatDateTime = (dateStr: string) => {
   try {
     const d = new Date(dateStr);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
     const year = d.getFullYear();
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
     return `${day}/${month}/${year} ${hours}:${minutes}`;
   } catch {
     return dateStr;
@@ -75,11 +86,14 @@ const formatDateTime = (dateStr: string) => {
 
 export function FarmLogList({
   productionLotId,
-  productionLotName = '',
+  productionLotName = "",
   onBack,
 }: FarmLogListProps) {
+  const navigate = useNavigate();
   const [logs, setLogs] = useState<FarmLog[]>([]);
-  const [pageInfo, setPageInfo] = useState<Omit<PageResponse<FarmLog>, 'items'>>({
+  const [pageInfo, setPageInfo] = useState<
+    Omit<PageResponse<FarmLog>, "items">
+  >({
     page: 0,
     size: 10,
     totalElements: 0,
@@ -92,11 +106,19 @@ export function FarmLogList({
   const [size, setSize] = useState(10);
 
   // Bộ lọc client
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activityFilter, setActivityFilter] = useState<string>('ALL');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activityFilter, setActivityFilter] = useState<string>("ALL");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // State cho modal đính kèm
+  const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
+  const [selectedLogId, setSelectedLogId] = useState<string | null>(null);
+
+  const goToCreateLog = () => {
+    navigate(`/farm-logs/create?productionLotId=${productionLotId}`);
+  };
 
   const loadLogs = async () => {
     if (!productionLotId) return;
@@ -107,6 +129,7 @@ export function FarmLogList({
         page,
         size,
       });
+      console.log("Farm logs:", response.items);
       setLogs(response.items);
       setPageInfo({
         page: response.page,
@@ -119,7 +142,7 @@ export function FarmLogList({
     } catch (error: any) {
       const message =
         error.response?.data?.message ||
-        'Không thể tải lịch sử nhật ký canh tác.';
+        "Không thể tải lịch sử nhật ký canh tác.";
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -143,11 +166,11 @@ export function FarmLogList({
           log.createdByName.toLowerCase().includes(keyword) ||
           ACTIVITY_TYPE_LABELS[log.activityType]
             ?.toLowerCase()
-            .includes(keyword)
+            .includes(keyword),
       );
     }
 
-    if (activityFilter !== 'ALL') {
+    if (activityFilter !== "ALL") {
       result = result.filter((log) => log.activityType === activityFilter);
     }
 
@@ -161,7 +184,7 @@ export function FarmLogList({
     result.sort((a, b) => {
       const dateA = new Date(a.executedDate).getTime();
       const dateB = new Date(b.executedDate).getTime();
-      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
     });
 
     return result;
@@ -173,6 +196,16 @@ export function FarmLogList({
     }
   };
 
+  const openAttachmentModal = (logId: string) => {
+    setSelectedLogId(logId);
+    setAttachmentModalOpen(true);
+  };
+
+  const handleAttachmentUpdated = () => {
+    // Reload lại danh sách để cập nhật dữ liệu attachments mới
+    loadLogs();
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -181,16 +214,23 @@ export function FarmLogList({
           <h1 className="text-2xl font-bold">Lịch sử nhật ký canh tác</h1>
           {productionLotName && (
             <p className="text-sm text-muted-foreground">
-              Lô sản xuất: <span className="font-medium">{productionLotName}</span>
+              Lô sản xuất:{" "}
+              <span className="font-medium">{productionLotName}</span>
             </p>
           )}
         </div>
-        {onBack && (
-          <Button variant="outline" onClick={onBack}>
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Quay lại
+        <div className="flex gap-2">
+          {onBack && (
+            <Button variant="outline" onClick={onBack}>
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Quay lại
+            </Button>
+          )}
+          <Button onClick={goToCreateLog}>
+            <Plus className="h-4 w-4 mr-1" />
+            Tạo nhật ký
           </Button>
-        )}
+        </div>
       </div>
 
       {/* Bộ lọc */}
@@ -246,17 +286,17 @@ export function FarmLogList({
 
             <div className="flex items-center gap-2">
               <Button
-                variant={sortOrder === 'desc' ? 'default' : 'outline'}
+                variant={sortOrder === "desc" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSortOrder('desc')}
+                onClick={() => setSortOrder("desc")}
                 className="flex-1"
               >
                 Mới nhất
               </Button>
               <Button
-                variant={sortOrder === 'asc' ? 'default' : 'outline'}
+                variant={sortOrder === "asc" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSortOrder('asc')}
+                onClick={() => setSortOrder("asc")}
                 className="flex-1"
               >
                 Cũ nhất
@@ -283,7 +323,9 @@ export function FarmLogList({
             <div className="text-center py-12 text-muted-foreground">
               <FileText className="mx-auto h-12 w-12 text-muted-foreground/50" />
               <p className="mt-2 font-medium">Chưa có nhật ký canh tác</p>
-              <p className="text-sm">Hãy kiểm tra lại lô sản xuất hoặc bộ lọc.</p>
+              <p className="text-sm">
+                Hãy kiểm tra lại lô sản xuất hoặc bộ lọc.
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -297,6 +339,9 @@ export function FarmLogList({
                     <TableHead className="w-[80px]">Số lượng</TableHead>
                     <TableHead>Ghi chú</TableHead>
                     <TableHead className="w-[150px]">Thời gian tạo</TableHead>
+                    <TableHead className="w-[120px] text-center">
+                      Chứng từ
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -312,17 +357,28 @@ export function FarmLogList({
                             log.activityType}
                         </span>
                       </TableCell>
-                      <TableCell>{log.material || '—'}</TableCell>
+                      <TableCell>{log.material || "—"}</TableCell>
                       <TableCell>
                         {log.quantity !== null && log.unit
                           ? `${log.quantity} ${log.unit}`
-                          : '—'}
+                          : "—"}
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate">
-                        {log.notes || '—'}
+                        {log.notes || "—"}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {formatDateTime(log.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openAttachmentModal(log.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <Paperclip className="h-4 w-4" />
+                          <span>{log.attachmentCount ?? 0}</span>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -386,6 +442,21 @@ export function FarmLogList({
           )}
         </CardContent>
       </Card>
+
+      {/* Modal đính kèm */}
+      <Dialog open={attachmentModalOpen} onOpenChange={setAttachmentModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto sm:max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Quản lý chứng từ</DialogTitle>
+          </DialogHeader>
+          {selectedLogId && (
+            <AttachmentManager
+              logId={selectedLogId}
+              onUpdate={handleAttachmentUpdated}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
