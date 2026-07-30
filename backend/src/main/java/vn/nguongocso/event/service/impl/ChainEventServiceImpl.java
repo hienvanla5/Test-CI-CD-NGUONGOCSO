@@ -38,10 +38,7 @@ import vn.nguongocso.trace.repository.TraceCodeRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -397,43 +394,64 @@ public class ChainEventServiceImpl implements ChainEventService {
 
     @Override
     public List<ChainEventResponse> getShipmentTimeline(UUID shipmentId) {
-        // 4.1 Kiểm tra role (đã được @PreAuthorize bên controller, nhưng vẫn kiểm tra an toàn)
-        CustomUserDetails currentUser = getCurrentUser();
-        if (!ORG_MANAGER_ROLE.equals(currentUser.getRoleCode())) {
-            throw new BusinessException("Bạn không có quyền xem dòng sự kiện truy xuất.");
-        }
+        // Kiểm tra quyền, tồn tại shipment (đã có ở controller)
 
-        // 4.2 Kiểm tra tồn tại lô hàng
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new BusinessException("Lô hàng không tồn tại."));
 
-        // 4.3 Kiểm tra quyền truy cập theo tổ chức
-        if (!shipment.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
-            throw new BusinessException("Bạn không có quyền xem dòng sự kiện của lô hàng này.");
+        // Lấy events từ Shipment
+        List<ChainEvent> shipmentEvents = chainEventRepository.findByShipmentIdOrderByRecordedAtAsc(shipmentId);
+
+        // Lấy events từ ProductionLot (HARVEST, PACKAGING)
+        List<ChainEvent> productionLotEvents = Collections.emptyList();
+        if (shipment.getProductionLot() != null) {
+            UUID productionLotId = shipment.getProductionLot().getId();
+            List<ChainEvent> allUnassignedEvents = chainEventRepository.findByShipmentIsNullAndEventTypeIn(
+                    List.of(ChainEventType.HARVEST, ChainEventType.PACKAGING)
+            );
+            productionLotEvents = allUnassignedEvents.stream()
+                    .filter(e -> {
+                        Map<String, Object> data = parseEventData(e.getEventData());
+                        Object lotId = data.get("productionLotId");
+                        return lotId != null && lotId.toString().equals(productionLotId.toString());
+                    })
+                    .collect(Collectors.toList());
         }
 
-        // 4.4 Truy vấn dòng sự kiện
-        List<ChainEvent> events = chainEventRepository.findByShipmentIdOrderByRecordedAtAsc(shipmentId);
+        // Gộp và sắp xếp
+        List<ChainEvent> allEvents = new ArrayList<>();
+        allEvents.addAll(shipmentEvents);
+        allEvents.addAll(productionLotEvents);
+        allEvents.sort(Comparator.comparing(ChainEvent::getRecordedAt));
 
-        // 4.5, 4.6, 4.7 Ánh xạ sang response
-        return events.stream()
-                .map(this::convertToResponse)
+        // Chuyển đổi sang response
+        return allEvents.stream()
+                .map(this::toChainEventResponse)
                 .collect(Collectors.toList());
     }
 
-    private ChainEventResponse convertToResponse(ChainEvent event) {
-        // Parse eventData JSON sang Map
+    private Map<String, Object> parseEventData(String eventDataJson) {
+        if (eventDataJson == null || eventDataJson.isBlank()) {
+            return new HashMap<>();
+        }
+        try {
+            return objectMapper.readValue(eventDataJson, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            log.warn("Không thể parse eventData: {}", eventDataJson);
+            return new HashMap<>();
+        }
+    }
+
+    private ChainEventResponse toChainEventResponse(ChainEvent event) {
         Map<String, Object> eventDataMap = parseEventData(event.getEventData());
 
-        // Trích xuất latitude, longitude từ location (nếu có)
         Double latitude = null;
         Double longitude = null;
         if (event.getLocation() != null) {
-            latitude = event.getLocation().getY(); // JTS Point: getY() = latitude
-            longitude = event.getLocation().getX(); // getX() = longitude
+            latitude = event.getLocation().getY();
+            longitude = event.getLocation().getX();
         }
 
-        // Lấy tên người ghi
         String recordedByName = event.getRecordedBy() != null
                 ? event.getRecordedBy().getFullName()
                 : null;
@@ -449,23 +467,6 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .recordedByName(recordedByName)
                 .createdAt(event.getCreatedAt())
                 .build();
-    }
-
-    private Map<String, Object> parseEventData(String eventDataJson) {
-        if (eventDataJson == null || eventDataJson.isBlank()) {
-            return Map.of();
-        }
-        try {
-            return objectMapper.readValue(eventDataJson, new TypeReference<Map<String, Object>>() {});
-        } catch (Exception e) {
-            log.warn("Không thể parse eventData: {}", eventDataJson);
-            return Map.of();
-        }
-    }
-
-    private CustomUserDetails getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (CustomUserDetails) authentication.getPrincipal();
     }
 }
 

@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -8,33 +8,33 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { BadgeCheck, Plus, QrCode } from 'lucide-react';
-import { useShipments } from '@/hooks/useShipments';
-import type { Shipment, CreateShipmentPayload } from '@/types/shipment';
-import { CreateShipmentModal } from '@/components/shipment/CreateShipmentModal';
-import { QrCodeGrid } from '@/components/shipment/QrCodeGrid';
-import { ShipmentTimelineDialog } from '@/components/shipment/ShipmentTimelineDialog';
-import { ActivateShipmentDialog } from '@/components/shipment/ActivateShipmentDialog';
+} from "@/components/ui/dialog";
+import { BadgeCheck, Plus, QrCode } from "lucide-react";
+import { useShipments } from "@/hooks/useShipments";
+import type { Shipment, CreateShipmentPayload } from "@/types/shipment";
+import { CreateShipmentModal } from "@/components/shipment/CreateShipmentModal";
+import { QrCodeGrid } from "@/components/shipment/QrCodeGrid";
+import { ShipmentTimelineDialog } from "@/components/shipment/ShipmentTimelineDialog";
+import { ActivateShipmentDialog } from "@/components/shipment/ActivateShipmentDialog";
 
 const statusLabelMap: Record<string, string> = {
-  DRAFT: 'Nháp',
-  CODE_PRINTED: 'Đã in mã',
-  ACTIVATED: 'Đã kích hoạt',
-  RECALLED: 'Đã thu hồi',
+  DRAFT: "Nháp",
+  CODE_PRINTED: "Đã in mã",
+  ACTIVATED: "Đã kích hoạt",
+  RECALLED: "Đã thu hồi",
 };
 
 const statusColorMap: Record<string, string> = {
-  DRAFT: 'bg-slate-100 text-slate-700',
-  CODE_PRINTED: 'bg-blue-100 text-blue-700',
-  ACTIVATED: 'bg-emerald-100 text-emerald-700',
-  RECALLED: 'bg-red-100 text-red-700',
+  DRAFT: "bg-slate-100 text-slate-700",
+  CODE_PRINTED: "bg-blue-100 text-blue-700",
+  ACTIVATED: "bg-emerald-100 text-emerald-700",
+  RECALLED: "bg-red-100 text-red-700",
 };
 
 interface ShipmentListProps {
@@ -52,16 +52,20 @@ export const ShipmentList = ({
 }: ShipmentListProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
-  const [activatingShipment, setActivatingShipment] = useState<Shipment | null>(null);
+  const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(
+    null,
+  );
+  const [activatingShipment, setActivatingShipment] = useState<Shipment | null>(
+    null,
+  );
   const [timelineDialog, setTimelineDialog] = useState<{
     open: boolean;
     shipmentId: string;
     name: string;
   }>({
     open: false,
-    shipmentId: '',
-    name: '',
+    shipmentId: "",
+    name: "",
   });
 
   const {
@@ -84,7 +88,7 @@ export const ShipmentList = ({
 
   const formatDate = (dateStr: string) => {
     try {
-      return new Date(dateStr).toLocaleString('vi-VN');
+      return new Date(dateStr).toLocaleString("vi-VN");
     } catch {
       return dateStr;
     }
@@ -96,7 +100,7 @@ export const ShipmentList = ({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Danh sách lô hàng</CardTitle>
-            {canCreate && productionLotStatus === 'PACKAGED' && (
+            {canCreate && productionLotStatus === "PACKAGED" && (
               <Button onClick={() => setModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-1" />
                 Tạo lô hàng
@@ -128,42 +132,54 @@ export const ShipmentList = ({
                 <TableBody>
                   {shipments.map((shipment) => (
                     <TableRow key={shipment.id}>
-                      <TableCell className="font-medium">{shipment.name}</TableCell>
-                      <TableCell className="text-center">{shipment.totalQuantity}</TableCell>
-                      <TableCell>{shipment.packagingInfo || '—'}</TableCell>
+                      <TableCell className="font-medium">
+                        {shipment.name}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {shipment.totalQuantity}
+                      </TableCell>
+                      <TableCell>{shipment.packagingInfo || "—"}</TableCell>
                       <TableCell>
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                            statusColorMap[shipment.status] || 'bg-gray-100 text-gray-700'
+                            statusColorMap[shipment.status] ||
+                            "bg-gray-100 text-gray-700"
                           }`}
                         >
                           {statusLabelMap[shipment.status] || shipment.status}
                         </span>
                       </TableCell>
                       <TableCell>{formatDate(shipment.createdAt)}</TableCell>
-                      <TableCell className="text-center">{shipment.traceCodes?.length || 0}</TableCell>
                       <TableCell className="text-center">
-                        <div className="flex flex-wrap justify-center gap-2">
-                          {canActivate && shipment.status === 'CODE_PRINTED' && (
-                            <Button
-                              size="sm"
-                              onClick={() => setActivatingShipment(shipment)}
-                            >
-                              <BadgeCheck className="mr-1 h-4 w-4" />
-                              Kích hoạt tem
-                            </Button>
-                          )}
+                        {shipment.traceCodes?.length || 0}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex flex-wrap justify-center gap-1.5">
+                          {canActivate &&
+                            shipment.status === "CODE_PRINTED" && (
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="px-2.5 py-1 text-xs h-auto"
+                                onClick={() => setActivatingShipment(shipment)}
+                              >
+                                <BadgeCheck className="mr-1 h-3 w-3" />
+                                Kích hoạt
+                              </Button>
+                            )}
                           <Button
                             size="sm"
                             variant="outline"
+                            className="px-2.5 py-1 text-xs h-auto"
                             onClick={() => openQrDialog(shipment)}
                           >
-                            <QrCode className="mr-1 h-4 w-4" />
-                            Xem QR
+                            <QrCode className="mr-1 h-3 w-3" />
+                            QR
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
+                            className="px-2.5 py-1 text-xs h-auto"
                             onClick={() =>
                               setTimelineDialog({
                                 open: true,
@@ -172,7 +188,7 @@ export const ShipmentList = ({
                               })
                             }
                           >
-                            Xem sự kiện
+                            Sự kiện
                           </Button>
                         </div>
                       </TableCell>
@@ -193,16 +209,38 @@ export const ShipmentList = ({
         loading={isCreating}
       />
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => !open && setDialogOpen(false)}>
-        <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => !open && setDialogOpen(false)}
+      >
+        <DialogContent
+          className="
+            w-[95vw]
+            max-w-7xl
+            max-h-[90vh]
+            flex
+            flex-col
+            overflow-hidden
+          "
+        >
           <DialogHeader>
-            <DialogTitle>Mã QR - {selectedShipment?.name || ''}</DialogTitle>
+            <DialogTitle>Mã QR - {selectedShipment?.name || ""}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Tổng số mã: {selectedShipment?.traceCodes?.length || 0}
-          </p>
+          <div className="flex items-center justify-between text-sm text-muted-foreground pb-2 border-b">
+            <span>Tổng số mã: {selectedShipment?.traceCodes?.length || 0}</span>
+            <span className="text-xs text-muted-foreground">
+              Trạng thái:{" "}
+              <span className="font-medium text-emerald-600">INACTIVE</span>
+            </span>
+          </div>
           <div className="flex-1 overflow-y-auto py-4 pr-1">
-            {selectedShipment && <QrCodeGrid traceCodes={selectedShipment.traceCodes || []} />}
+            {selectedShipment && (
+              <div className="overflow-x-auto">
+                <div className="min-w-max">
+                  <QrCodeGrid traceCodes={selectedShipment.traceCodes || []} />
+                </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -212,8 +250,8 @@ export const ShipmentList = ({
         onClose={() =>
           setTimelineDialog({
             open: false,
-            shipmentId: '',
-            name: '',
+            shipmentId: "",
+            name: "",
           })
         }
         shipmentId={timelineDialog.shipmentId}
