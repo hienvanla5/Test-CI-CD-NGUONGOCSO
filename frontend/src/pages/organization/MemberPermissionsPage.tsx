@@ -1,7 +1,7 @@
-import { MemberPermissions } from "@/components/organization/MemberPermissions";
+import { MemberList } from "@/components/organization/MemberList";
 
 const MemberPermissionsPage = () => {
-  return <MemberPermissions />;
+  return <MemberList />;
 };
 
 export default MemberPermissionsPage;

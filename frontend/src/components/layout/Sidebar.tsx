@@ -8,6 +8,7 @@ import {
   Package,
   PlusCircle,
   Sprout,
+  Users,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,7 +70,12 @@ const MENU_ITEMS: MenuItem[] = [
     href: '/admin/code-ranges',
     allowedRoles: ROLE_ACCESS.codeRangeList,
   },
-
+  {
+    icon: <Users className="h-5 w-5" />,
+    label: 'Quản lý thành viên',
+    href: '/members',
+    allowedRoles: ROLE_ACCESS.memberManagement,
+  },
 ];
 
 export function Sidebar({

@@ -15,6 +15,8 @@ export const ROLE_ACCESS = {
   packagingEventCorrect: ['VT-02', 'VT-03'] as const,
 
   codeRangeList: ['VT-01'] as const,
+  
+  memberManagement: ['VT-02'] as const,
 
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 

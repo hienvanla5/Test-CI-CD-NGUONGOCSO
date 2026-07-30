@@ -1,5 +1,6 @@
 import apiClient from '@/api/axiosConfig';
 import type {
+  AddMemberRequest,
   ApiResult,
   AssignRoleRequest,
   OrganizationMember,
@@ -30,4 +31,9 @@ export const assignMemberRole = async (
   >(`${MEMBER_ENDPOINT}/roles`, request);
 
   return response.data.data;
+};
+
+export const addMember = async (request: AddMemberRequest): Promise<OrganizationMember> => {
+  const response = await apiClient.post<ApiResult<OrganizationMember>>(MEMBER_ENDPOINT, request);
+  return response.data.data
 };

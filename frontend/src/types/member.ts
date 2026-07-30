@@ -28,6 +28,15 @@ export interface AssignRoleRequest {
   roleId: number;
 }
 
+export interface AddMemberRequest {
+  username: string;
+  password: string;
+  fullName: string;
+  phone?: string | null;
+  email?: string | null;
+  roleId: number;
+}
+
 export interface ApiResult<T> {
   success: boolean;
   status: number;

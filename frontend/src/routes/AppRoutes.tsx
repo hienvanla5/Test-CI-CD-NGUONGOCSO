@@ -25,6 +25,7 @@ import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
 import CreatePackagingEventPage from "@/pages/packaging-event/CreatePackagingEventPage";
 import CorrectPackagingEventPage from "@/pages/packaging-event/CorrectPackagingEventPage";
 import { OrganizationListPage } from "@/pages/organization/OrganizationListPage";
+import CreateMemberPage from "@/pages/organization/CreateMemberPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -120,20 +121,28 @@ const AppRoutes = () => (
       />
 
       <Route
-      path="organizations"
-      element={
-        <RoleRoute allowedRoles={ROLE_ACCESS.organizationList}>
-          <OrganizationListPage />
-        </RoleRoute>
-      }
-    />
+        path="organizations"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.organizationList}>
+            <OrganizationListPage />
+          </RoleRoute>
+        }
+      />
 
       {/* Cấp quyền thành viên — VT-02 */}
       <Route
-        path="organizations/members"
+        path="members"
         element={
-          <RoleRoute allowedRoles={COOPERATIVE_MANAGER_ROLES}>
+          <RoleRoute allowedRoles={["VT-02"]}>
             <MemberPermissionsPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="members/create"
+        element={
+          <RoleRoute allowedRoles={["VT-02"]}>
+            <CreateMemberPage />
           </RoleRoute>
         }
       />
