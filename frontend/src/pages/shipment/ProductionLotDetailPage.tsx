@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sprout } from "lucide-react";
+import { ArrowLeft, Package, Sprout } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getProductionLotById } from "@/api/productionLotApi";
 import { ShipmentList } from "@/components/shipment/ShipmentList";
@@ -37,14 +37,18 @@ export const ProductionLotDetailPage = () => {
   };
 
   const loadLogs = async () => {
-  if (!id) return;
-  try {
-    const response = await getFarmLogs({ productionLotId: id, page: 0, size: 100 });
-    setLogs(response.items);
-  } catch (error) {
-    toast.error('Không thể tải nhật ký');
-  }
-};
+    if (!id) return;
+    try {
+      const response = await getFarmLogs({
+        productionLotId: id,
+        page: 0,
+        size: 100,
+      });
+      setLogs(response.items);
+    } catch (error) {
+      toast.error("Không thể tải nhật ký");
+    }
+  };
 
   useEffect(() => {
     loadLot();
@@ -68,6 +72,10 @@ export const ProductionLotDetailPage = () => {
   const canCreateShipment =
     user?.roleCode === "VT-02" && lot.status === "PACKAGED";
 
+  const canRecordPackaging =
+    (user?.roleCode === "VT-02" || user?.roleCode === "VT-03") &&
+    lot.status === "HARVESTED";
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -82,6 +90,17 @@ export const ProductionLotDetailPage = () => {
           >
             <Sprout className="h-4 w-4 mr-1" />
             Ghi nhận thu hoạch
+          </Button>
+        )}
+        {canRecordPackaging && (
+          <Button
+            onClick={() =>
+              navigate(`/packaging-events/create?productionLotId=${lot.id}`)
+            }
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Package className="h-4 w-4 mr-1" />
+            Ghi đóng gói
           </Button>
         )}
       </div>

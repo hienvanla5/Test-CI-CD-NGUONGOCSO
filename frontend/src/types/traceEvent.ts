@@ -1,7 +1,9 @@
 export interface HarvestEventPayload {
   productionLotId: string;
-  harvestDate: string; // YYYY-MM-DD
+  harvestDate: string;
   quantity: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface HarvestEventResponse {
