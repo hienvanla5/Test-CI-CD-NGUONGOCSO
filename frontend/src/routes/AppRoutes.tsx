@@ -28,6 +28,7 @@ import { OrganizationListPage } from "@/pages/organization/OrganizationListPage"
 import CreateMemberPage from "@/pages/organization/CreateMemberPage";
 import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
+import TraceLookupPage from "@/pages/public/TraceLookupPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -257,6 +258,8 @@ const AppRoutes = () => (
       {/* Trang báo không đủ quyền vẫn nằm trong layout */}
       <Route path="unauthorized" element={<UnauthorizedPage />} />
     </Route>
+
+    <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
 
     {/* Route không tồn tại */}
     <Route path="*" element={<Navigate to="/" replace />} />
