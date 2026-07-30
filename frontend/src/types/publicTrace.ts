@@ -1,7 +1,9 @@
 export interface PublicChainEventItem {
   eventType: string;
   eventData: Record<string, any>;
-  recordedAt: string; // ISO datetime
+  recordedAt: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface PublicTraceResponse {

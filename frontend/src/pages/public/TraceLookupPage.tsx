@@ -5,7 +5,9 @@ import type { PublicTraceResponse } from '@/types/publicTrace';
 import { ProductInfo } from '@/components/public/ProductInfo';
 import { RecallAlert } from '@/components/public/RecallAlert';
 import { Timeline } from '@/components/public/Timeline';
-import { LoaderCircle, AlertCircle, Home } from 'lucide-react';
+import { RouteMap } from '@/components/public/RouteMap';
+import { LoaderCircle, AlertCircle, Home, MapPin, List } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function TraceLookupPage() {
   const { codeValue } = useParams<{ codeValue: string }>();
@@ -66,14 +68,17 @@ export default function TraceLookupPage() {
     );
   }
 
-  if (!data) {
-    return null;
-  }
+  if (!data) return null;
+
+  // Kiểm tra có sự kiện nào có tọa độ không
+  const hasLocationData = data.events.some(
+    (e) => e.latitude !== null && e.longitude !== null
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Logo / Header */}
+        {/* Header */}
         <div className="text-center">
           <h1 className="text-2xl font-bold text-emerald-700 flex items-center justify-center gap-2">
             <span className="text-3xl">🌾</span> Nguồn gốc số
@@ -94,15 +99,43 @@ export default function TraceLookupPage() {
           status={data.shipmentStatus}
         />
 
-        {/* Cảnh báo thu hồi (nếu có) */}
+        {/* Cảnh báo thu hồi */}
         {data.recalled && data.recallMessage && (
           <RecallAlert message={data.recallMessage} />
         )}
 
-        {/* Timeline */}
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Hành trình sản phẩm</h2>
-          <Timeline events={data.events} />
+        {/* Tabs: Bản đồ / Danh sách */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <Tabs defaultValue={hasLocationData ? 'map' : 'list'} className="w-full">
+            <TabsList className="w-full justify-start rounded-none border-b bg-gray-50/50 p-0 h-auto">
+              <TabsTrigger
+                value="map"
+                disabled={!hasLocationData}
+                className="flex items-center gap-2 px-4 py-3 data-[state=active]:border-b-2 data-[state=active]:border-emerald-600 data-[state=active]:bg-transparent rounded-none"
+              >
+                <MapPin className="h-4 w-4" />
+                Bản đồ
+                {!hasLocationData && (
+                  <span className="text-xs text-gray-400 font-normal">(không có dữ liệu)</span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value="list"
+                className="flex items-center gap-2 px-4 py-3 data-[state=active]:border-b-2 data-[state=active]:border-emerald-600 data-[state=active]:bg-transparent rounded-none"
+              >
+                <List className="h-4 w-4" />
+                Danh sách sự kiện
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="map" className="p-0">
+              <RouteMap events={data.events} />
+            </TabsContent>
+
+            <TabsContent value="list" className="p-4">
+              <Timeline events={data.events} />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Footer */}

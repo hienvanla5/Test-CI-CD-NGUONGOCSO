@@ -19,9 +19,7 @@ import vn.nguongocso.trace.enums.TraceCodeStatus;
 import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -57,11 +55,35 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 ? "Lô hàng này đã bị thu hồi. Vui lòng ngừng sử dụng và liên hệ nhà cung cấp."
                 : null;
 
-        // Lấy dòng sự kiện (timeline) theo thời gian tăng dần
-        List<ChainEvent> events = chainEventRepository.findByShipmentIdOrderByRecordedAtAsc(shipment.getId());
+        // Lấy dòng sự kiện từ Shipment (TRANSPORT, PROCUREMENT, ...)
+        List<ChainEvent> shipmentEvents = chainEventRepository.findByShipmentIdOrderByRecordedAtAsc(shipment.getId());
+
+        // Lấy dòng sự kiện từ ProductionLot (HARVEST, PACKAGING)
+        List<ChainEvent> productionLotEvents = Collections.emptyList();
+        if (shipment.getProductionLot() != null) {
+            UUID productionLotId = shipment.getProductionLot().getId();
+            // Lọc các event không có shipment và có eventType là HARVEST hoặc PACKAGING
+            List<ChainEvent> allUnassignedEvents = chainEventRepository.findByShipmentIsNullAndEventTypeIn(
+                    List.of(ChainEventType.HARVEST, ChainEventType.PACKAGING)
+            );
+            // Lọc theo productionLotId trong eventData
+            productionLotEvents = allUnassignedEvents.stream()
+                    .filter(e -> {
+                        Map<String, Object> data = parseEventData(e.getEventData());
+                        Object lotId = data.get("productionLotId");
+                        return lotId != null && lotId.toString().equals(productionLotId.toString());
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // Gộp và sắp xếp theo thời gian
+        List<ChainEvent> allEvents = new ArrayList<>();
+        allEvents.addAll(shipmentEvents);
+        allEvents.addAll(productionLotEvents);
+        allEvents.sort(Comparator.comparing(ChainEvent::getRecordedAt));
 
         // Chuyển đổi sang DTO công khai (filter trường nội bộ)
-        List<PublicChainEventItem> publicEvents = events.stream()
+        List<PublicChainEventItem> publicEvents = allEvents.stream()
                 .map(this::convertToPublicEvent)
                 .collect(Collectors.toList());
 
