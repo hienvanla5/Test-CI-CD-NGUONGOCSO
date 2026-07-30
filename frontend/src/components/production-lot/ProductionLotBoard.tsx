@@ -55,18 +55,24 @@ export const ProductionLotBoard = () => {
   const canSubmitForApproval = user?.roleCode === 'VT-01' || user?.roleCode === 'VT-02';
   const canApprove = user?.roleCode === 'VT-02';
 
-  return (
-    <ProductionLotList
-      lots={lots}
-      isLoading={isLoading}
-      canCreate={user?.roleCode === 'VT-02'}
-      canEdit={user?.roleCode === 'VT-02'}
-      canSubmitForApproval={canSubmitForApproval}
-      canApprove={canApprove}
-      onCreate={() => navigate('/production-lots/create')}
-      onEdit={(id) => navigate(`/production-lots/${id}/edit`)}
-      onSubmitForApproval={handleSubmitForApproval}
-      onDecideApproval={handleDecideApproval}
-    />
-  );
+ return (
+  <ProductionLotList
+    lots={lots}
+    isLoading={isLoading}
+    canCreate={user?.roleCode === "VT-02"}
+    canEdit={user?.roleCode === "VT-02"}
+    canSubmitForApproval={canSubmitForApproval}
+    canApprove={canApprove}
+    canRecordFarmLog={user?.roleCode === "VT-03"}
+    onCreate={() => navigate("/production-lots/create")}
+    onEdit={(id) => navigate(`/production-lots/${id}/edit`)}
+    onSubmitForApproval={handleSubmitForApproval}
+    onDecideApproval={handleDecideApproval}
+    onRecordFarmLog={(id) =>
+      navigate(
+        `/farm-logs/create?productionLotId=${encodeURIComponent(id)}`,
+      )
+    }
+  />
+);
 };
