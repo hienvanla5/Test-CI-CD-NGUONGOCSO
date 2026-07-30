@@ -69,3 +69,6 @@ export const updateProductionLot = async (
 
   return response.data.data;
 };
+export const submitProductionLot = async (id: string): Promise<void> => {
+  await apiClient.post(`/production-lots/${id}/submit`);
+};

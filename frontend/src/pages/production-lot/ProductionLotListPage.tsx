@@ -1,32 +1,6 @@
-import { getProductionLots } from '@/api/productionLotApi';
-import { ProductionLotList } from '@/components/production-lot/ProductionLotList';
-import { useAuth } from '@/hooks/useAuth';
-import type { ProductionLot } from '@/types/productionLot';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { ProductionLotBoard } from '@/components/production-lot/ProductionLotBoard';
 
 const ProductionLotListPage = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [lots, setLots] = useState<ProductionLot[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadLots = async () => {
-      try {
-        setIsLoading(true);
-        setLots(await getProductionLots());
-      } catch {
-        toast.error('Không thể tải danh sách lô sản xuất');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void loadLots();
-  }, []);
-
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 md:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -42,24 +16,7 @@ const ProductionLotListPage = () => {
           </p>
         </header>
 
-        <ProductionLotList
-          lots={lots}
-          isLoading={isLoading}
-          canCreate={user?.roleCode === 'VT-02'}
-          canEdit={user?.roleCode === 'VT-02'}
-          canRecordFarmLog={user?.roleCode === 'VT-03'}
-          onCreate={() => {
-            void navigate('/production-lots/create');
-          }}
-          onEdit={(id) => {
-            void navigate(`/production-lots/${id}/edit`);
-          }}
-          onRecordFarmLog={(id) => {
-            void navigate(
-              `/farm-logs/create?productionLotId=${encodeURIComponent(id)}`,
-            );
-          }}
-        />
+        <ProductionLotBoard />
       </div>
     </main>
   );
