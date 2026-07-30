@@ -3,6 +3,7 @@ package vn.nguongocso.trace.service;
 import vn.nguongocso.trace.dto.request.CreateShipmentRequest;
 import vn.nguongocso.trace.dto.response.ShipmentResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 
@@ -19,5 +20,6 @@ public interface ShipmentService {
      */
 	ShipmentResponse createShipment(CreateShipmentRequest request);
     ShipmentResponse activateShipmentStamps(UUID shipmentId);
-	
+
+    List<ShipmentResponse> getShipmentsByProductionLot(UUID productionLotId);
 }

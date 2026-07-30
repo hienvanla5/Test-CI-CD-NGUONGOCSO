@@ -7,7 +7,7 @@ import type { CreateShipmentPayload, Shipment, ShipmentResponse } from '@/types/
  */
 export const getShipmentsByProductionLot = async (productionLotId: string): Promise<Shipment[]> => {
   const response = await apiClient.get<{ data: Shipment[] }>(
-    `/production-lots/${productionLotId}/shipments`
+    `/shipments/production-lots/${productionLotId}`
   );
   return response.data.data;
 };
