@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Package, Sprout } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getProductionLotById } from "@/api/productionLotApi";
-import { ShipmentList } from "@/components/shipment/ShipmentList";
+import { ShipmentList } from "@/pages/shipment/ShipmentList";
 import { FarmLogList } from "@/components/farm-log/FarmLogList";
 import { HarvestForm } from "@/components/trace-event/HarvestForm";
 import type { ProductionLot } from "@/types/productionLot";
