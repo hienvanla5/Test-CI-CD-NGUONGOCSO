@@ -7,6 +7,7 @@ import {
   MapPinned,
   Package,
   Sprout,
+  UserCheck,
   Users,
   X,
 } from 'lucide-react';
@@ -46,7 +47,7 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ROLE_ACCESS.organizationList,
   },
   {
-    icon: <Building2 className="h-5 w-5" />,
+    icon: <UserCheck className="h-5 w-5" />,
     label: 'Hồ sơ tổ chức',
     href: '/organizations/profile',
     allowedRoles: ROLE_ACCESS.organizationProfile,
