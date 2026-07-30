@@ -17,7 +17,7 @@ export function DashboardContent() {
 
     default:
       return (
-        <div className="rounded-lg border p-6">
+        <div className="rounded-lg border bg-white p-6">
           Không có Dashboard phù hợp với vai trò hiện tại.
         </div>
       );

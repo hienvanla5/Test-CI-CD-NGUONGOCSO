@@ -46,9 +46,19 @@ const ProductionLotListPage = () => {
           lots={lots}
           isLoading={isLoading}
           canCreate={user?.roleCode === 'VT-02'}
-          canEdit={user?.roleCode === 'VT-02' || user?.roleCode === 'VT-03'}
-          onCreate={() => navigate('/production-lots/create')}
-          onEdit={(id) => navigate(`/production-lots/${id}/edit`)}
+          canEdit={user?.roleCode === 'VT-02'}
+          canRecordFarmLog={user?.roleCode === 'VT-03'}
+          onCreate={() => {
+            void navigate('/production-lots/create');
+          }}
+          onEdit={(id) => {
+            void navigate(`/production-lots/${id}/edit`);
+          }}
+          onRecordFarmLog={(id) => {
+            void navigate(
+              `/farm-logs/create?productionLotId=${encodeURIComponent(id)}`,
+            );
+          }}
         />
       </div>
     </main>

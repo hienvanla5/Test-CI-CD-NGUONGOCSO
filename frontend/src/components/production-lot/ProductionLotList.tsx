@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import type { ProductionLot } from '@/types/productionLot';
-import { PackageOpen, Pencil, Plus, Search } from 'lucide-react';
+import { NotebookPen, PackageOpen, Pencil, Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface ProductionLotListProps {
@@ -10,8 +10,10 @@ interface ProductionLotListProps {
   isLoading: boolean;
   canCreate: boolean;
   canEdit: boolean;
+  canRecordFarmLog: boolean;
   onCreate: () => void;
   onEdit: (id: string) => void;
+  onRecordFarmLog: (id: string) => void;
 }
 
 const statusLabels: Record<ProductionLot['status'], string> = {
@@ -46,8 +48,10 @@ export const ProductionLotList = ({
   isLoading,
   canCreate,
   canEdit,
+  canRecordFarmLog,
   onCreate,
   onEdit,
+  onRecordFarmLog,
 }: ProductionLotListProps) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -169,16 +173,35 @@ export const ProductionLotList = ({
                     </span>
                   </td>
                   <td className="px-4 py-4">
-                    {canEdit && lot.status === 'DRAFT' ? (
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                        onClick={() => onEdit(lot.id)}
-                      >
-                        <Pencil className="size-4" />
-                        Chỉnh sửa
-                      </Button>
+                    {(canEdit && lot.status === 'DRAFT') ||
+                    (canRecordFarmLog &&
+                      ['APPROVED', 'HARVESTED'].includes(lot.status)) ? (
+                      <div className="flex flex-wrap gap-2">
+                        {canEdit && lot.status === 'DRAFT' && (
+                          <Button
+                            size="sm"
+                            type="button"
+                            variant="outline"
+                            onClick={() => onEdit(lot.id)}
+                          >
+                            <Pencil className="size-4" />
+                            Chỉnh sửa
+                          </Button>
+                        )}
+
+                        {canRecordFarmLog &&
+                          ['APPROVED', 'HARVESTED'].includes(lot.status) && (
+                            <Button
+                              size="sm"
+                              type="button"
+                              className="bg-emerald-700 text-white hover:bg-emerald-800"
+                              onClick={() => onRecordFarmLog(lot.id)}
+                            >
+                              <NotebookPen className="size-4" />
+                              Ghi nhật ký
+                            </Button>
+                          )}
+                      </div>
                     ) : (
                       <span className="text-slate-400">—</span>
                     )}
