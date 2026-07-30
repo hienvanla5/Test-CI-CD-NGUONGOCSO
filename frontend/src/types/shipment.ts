@@ -12,7 +12,7 @@ export interface Shipment {
   name: string;
   totalQuantity: number;
   packagingInfo?: string;
-  status: 'DRAFT' | 'CODE_PRINTED' | 'ACTIVE' | 'RECALLED';
+  status: 'DRAFT' | 'CODE_PRINTED' | 'ACTIVATED' | 'RECALLED';
   traceCodes: TraceCode[];
   createdByName: string;
   createdAt: string;

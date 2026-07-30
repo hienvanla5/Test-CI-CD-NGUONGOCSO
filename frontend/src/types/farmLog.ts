@@ -1,4 +1,4 @@
-import type { Attachment } from "./attachment";
+import type { Attachment } from './attachment';
 
 export type FarmActivityType =
   | 'PLANTING'
@@ -22,6 +22,7 @@ export interface FarmLog {
   createdByName: string;
   createdAt: string;
   attachmentCount?: number;
+  attachments?: Attachment[];
 }
 
 export interface PageResponse<T> {
@@ -40,16 +41,14 @@ export interface FarmLogQueryParams {
   size?: number;
 }
 
-// Dữ liệu gửi lên khi tạo mới một nhật ký canh tác
 export interface CreateFarmLogRequest {
   productionLotId: string;
   activityType: FarmActivityType;
   material: string | null;
   quantity: number | null;
   unit: string | null;
-  executedDate: string; // YYYY-MM-DD
+  executedDate: string;
   notes: string | null;
 }
 
-// Dữ liệu trả về từ backend sau khi tạo nhật ký thành công
 export type FarmLogResponse = FarmLog;

@@ -12,8 +12,6 @@ import { HarvestForm } from "@/components/trace-event/HarvestForm";
 import type { ProductionLot } from "@/types/productionLot";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { type FarmLog } from "@/types/farmLog";
-import { getFarmLogs } from "@/api/farmLogApi";
 
 export const ProductionLotDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +20,6 @@ export const ProductionLotDetailPage = () => {
   const [lot, setLot] = useState<ProductionLot | null>(null);
   const [loading, setLoading] = useState(true);
   const [showHarvestForm, setShowHarvestForm] = useState(false);
-  const [logs, setLogs] = useState<FarmLog[]>([]);
 
   const loadLot = async () => {
     if (!id) return;
@@ -35,16 +32,6 @@ export const ProductionLotDetailPage = () => {
       setLoading(false);
     }
   };
-
-  const loadLogs = async () => {
-  if (!id) return;
-  try {
-    const response = await getFarmLogs({ productionLotId: id, page: 0, size: 100 });
-    setLogs(response.items);
-  } catch (error) {
-    toast.error('Không thể tải nhật ký');
-  }
-};
 
   useEffect(() => {
     loadLot();
@@ -67,6 +54,7 @@ export const ProductionLotDetailPage = () => {
 
   const canCreateShipment =
     user?.roleCode === "VT-02" && lot.status === "PACKAGED";
+  const canActivateShipment = user?.roleCode === "VT-02";
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -222,6 +210,7 @@ export const ProductionLotDetailPage = () => {
             productionLotId={lot.id}
             productionLotStatus={lot.status}
             canCreate={canCreateShipment}
+            canActivate={canActivateShipment}
           />
         </TabsContent>
       </Tabs>
