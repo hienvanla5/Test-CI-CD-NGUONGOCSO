@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { ApproveProductionLotDialog } from "./Approveproductionlotdialog";
 
 interface ProductionLotListProps {

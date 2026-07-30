@@ -1,58 +1,43 @@
 import {
+  AlertCircle,
   ArrowLeft,
   ClipboardPenLine,
   LoaderCircle,
   RefreshCw,
   ShieldCheck,
   Sprout,
-} from 'lucide-react';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import {
-  useNavigate,
-  useSearchParams,
-} from 'react-router-dom';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
-import { createFarmLog } from '@/api/farmLogApi';
-import { getProductionLots } from '@/api/productionLotApi';
-import { CreateFarmLogForm } from '@/components/farm-log/CreateFarmLogForm';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import type { CreateFarmLogRequest } from '@/types/farmLog';
-import type { ProductionLot } from '@/types/productionLot';
+import { createFarmLog } from "@/api/farmLogApi";
+import { getProductionLots } from "@/api/productionLotApi";
+import { CreateFarmLogForm } from "@/components/farm-log/CreateFarmLogForm";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import type { CreateFarmLogRequest } from "@/types/farmLog";
+import type { ProductionLot } from "@/types/productionLot";
 
-const ALLOWED_STATUSES: ProductionLot['status'][] = [
-  'APPROVED',
-  'HARVESTED',
-];
+const ALLOWED_STATUSES: ProductionLot["status"][] = ["APPROVED", "HARVESTED"];
 
 const CreateFarmLogPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const requestedProductionLotId =
-    searchParams.get('productionLotId') ?? '';
+  const requestedProductionLotId = searchParams.get("productionLotId") ?? "";
 
-  const [productionLots, setProductionLots] = useState<
-    ProductionLot[]
-  >([]);
+  const [productionLots, setProductionLots] = useState<ProductionLot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useState("");
 
   const loadProductionLots = useCallback(async () => {
     setIsLoading(true);
-    setLoadError('');
+    setLoadError("");
 
     try {
       setProductionLots(await getProductionLots());
     } catch {
-      setLoadError(
-        'Không thể tải danh sách lô sản xuất. Vui lòng thử lại.',
-      );
+      setLoadError("Không thể tải danh sách lô sản xuất. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
     }
@@ -63,10 +48,7 @@ const CreateFarmLogPage = () => {
   }, [loadProductionLots]);
 
   const eligibleProductionLots = useMemo(
-    () =>
-      productionLots.filter((lot) =>
-        ALLOWED_STATUSES.includes(lot.status),
-      ),
+    () => productionLots.filter((lot) => ALLOWED_STATUSES.includes(lot.status)),
     [productionLots],
   );
 
@@ -78,24 +60,58 @@ const CreateFarmLogPage = () => {
     )
       ? requestedProductionLotId
       : undefined;
-  }, [
-    eligibleProductionLots,
-    requestedProductionLotId,
-  ]);
+  }, [eligibleProductionLots, requestedProductionLotId]);
 
   const requestedLotIsInvalid =
-    Boolean(requestedProductionLotId)
-    && !isLoading
-    && !initialProductionLotId;
+    Boolean(requestedProductionLotId) && !isLoading && !initialProductionLotId;
 
-  const handleSubmit = async (
-    payload: CreateFarmLogRequest,
-  ) => {
+  const handleSubmit = async (payload: CreateFarmLogRequest) => {
     const result = await createFarmLog(payload);
-    toast.success('Lưu nhật ký canh tác thành công');
+    toast.success("Lưu nhật ký canh tác thành công");
 
     return result;
   };
+
+  // Trường hợp lô đã chọn không hợp lệ
+  if (!isLoading && !loadError && requestedLotIsInvalid) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 md:px-8">
+        <div className="mx-auto max-w-7xl">
+          <button
+            type="button"
+            className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 hover:text-emerald-950"
+            onClick={() => void navigate("/production-lots")}
+          >
+            <ArrowLeft className="size-4" />
+            Quay lại danh sách lô
+          </button>
+
+          <Card className="border-amber-200 bg-amber-50 shadow-sm">
+            <CardContent className="grid min-h-80 place-items-center p-8 text-center">
+              <div className="max-w-md">
+                <AlertCircle className="mx-auto size-10 text-amber-600" />
+                <h2 className="mt-4 text-lg font-bold text-amber-800">
+                  Lô không hợp lệ
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-amber-700">
+                  Lô sản xuất được chọn không tồn tại hoặc chưa đủ điều kiện ghi
+                  nhật ký. Vui lòng quay lại và chọn lô hợp lệ.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-5 border-amber-300 text-amber-800 hover:bg-amber-100"
+                  onClick={() => navigate("/production-lots")}
+                >
+                  Quay lại danh sách lô
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-950 md:px-8">
@@ -103,9 +119,7 @@ const CreateFarmLogPage = () => {
         <button
           type="button"
           className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 hover:text-emerald-950"
-          onClick={() => {
-            void navigate('/production-lots');
-          }}
+          onClick={() => void navigate("/production-lots")}
         >
           <ArrowLeft className="size-4" />
           Quay lại danh sách lô
@@ -121,8 +135,8 @@ const CreateFarmLogPage = () => {
               Ghi nhật ký canh tác
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-              Ghi nhận hoạt động thực tế, vật tư sử dụng và
-              ngày thực hiện cho lô sản xuất.
+              Ghi nhận hoạt động thực tế, vật tư sử dụng và ngày thực hiện cho
+              lô sản xuất.
             </p>
           </div>
 
@@ -154,16 +168,12 @@ const CreateFarmLogPage = () => {
           <Card className="border-red-200 bg-white shadow-sm">
             <CardContent className="grid min-h-80 place-items-center p-8 text-center">
               <div>
-                <p className="font-semibold text-red-700">
-                  {loadError}
-                </p>
+                <p className="font-semibold text-red-700">{loadError}</p>
                 <Button
                   type="button"
                   variant="outline"
                   className="mt-4"
-                  onClick={() =>
-                    void loadProductionLots()
-                  }
+                  onClick={() => void loadProductionLots()}
                 >
                   <RefreshCw className="size-4" />
                   Thử lại
@@ -180,16 +190,14 @@ const CreateFarmLogPage = () => {
                   Chưa có lô đủ điều kiện
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Chỉ có thể ghi nhật ký cho lô đã duyệt
-                  hoặc đã thu hoạch trong tổ chức của bạn.
+                  Chỉ có thể ghi nhật ký cho lô đã duyệt hoặc đã thu hoạch trong
+                  tổ chức của bạn.
                 </p>
                 <Button
                   type="button"
                   variant="outline"
                   className="mt-5"
-                  onClick={() => {
-                    void navigate('/production-lots');
-                  }}
+                  onClick={() => void navigate("/production-lots")}
                 >
                   Quay lại danh sách lô
                 </Button>
@@ -197,29 +205,12 @@ const CreateFarmLogPage = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-5">
-            {requestedLotIsInvalid && (
-              <div
-                role="alert"
-                className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800"
-              >
-                Lô được chọn từ đường dẫn không tồn tại
-                hoặc chưa đủ điều kiện ghi nhật ký. Vui
-                lòng chọn một lô khác.
-              </div>
-            )}
-
-            <CreateFarmLogForm
-              productionLots={eligibleProductionLots}
-              initialProductionLotId={
-                initialProductionLotId
-              }
-              onCancel={() => {
-                void navigate('/production-lots');
-              }}
-              onSubmit={handleSubmit}
-            />
-          </div>
+          <CreateFarmLogForm
+            productionLots={eligibleProductionLots}
+            initialProductionLotId={initialProductionLotId}
+            onCancel={() => navigate(-1)}
+            onSubmit={handleSubmit}
+          />
         )}
       </div>
     </main>

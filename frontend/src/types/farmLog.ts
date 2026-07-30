@@ -1,3 +1,5 @@
+import type { Attachment } from "./attachment";
+
 export type FarmActivityType =
   | 'PLANTING'
   | 'WATERING'
@@ -15,10 +17,11 @@ export interface FarmLog {
   material: string | null;
   quantity: number | null;
   unit: string | null;
-  executedDate: string; // YYYY-MM-DD
+  executedDate: string;
   notes: string | null;
   createdByName: string;
-  createdAt: string; // ISO datetime
+  createdAt: string;
+  attachmentCount?: number;
 }
 
 export interface PageResponse<T> {

@@ -215,6 +215,16 @@ const AppRoutes = () => (
         }
       />
 
+      {/* Lịch sử nhật ký canh tác — VT-02 */}
+      <Route
+        path="production-lots/:productionLotId/farm-logs"
+        element={
+          <RoleRoute allowedRoles={["VT-02"]}>
+            <FarmLogHistoryPage />
+          </RoleRoute>
+        }
+      />
+
             {/* Chi tiết lô sản xuất — chứa chức năng Lô hàng & Mã QR */}
       <Route
         path="production-lots/:id"
@@ -240,16 +250,6 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCorrect}>
             <CorrectPackagingEventPage />
-          </RoleRoute>
-        }
-      />
-
-      {/* Lịch sử nhật ký canh tác — VT-02 */}
-      <Route
-        path="production-lots/:productionLotId/farm-logs"
-        element={
-          <RoleRoute allowedRoles={["VT-02"]}>
-            <FarmLogHistoryPage />
           </RoleRoute>
         }
       />
