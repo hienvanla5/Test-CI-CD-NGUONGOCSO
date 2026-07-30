@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Building2,
+  Hash,
   LayoutDashboard,
   MapPinned,
   Package,
@@ -62,6 +63,12 @@ const MENU_ITEMS: MenuItem[] = [
   href: '/production-lots',
   allowedRoles: ROLE_ACCESS.productionLotList,
   },
+  {
+    icon: <Hash className='h-5 w-5' />,
+    label: 'Quản lý dải mã',
+    href: '/admin/code-ranges',
+    allowedRoles: ROLE_ACCESS.codeRangeList,
+  }
 ];
 
 export function Sidebar({
