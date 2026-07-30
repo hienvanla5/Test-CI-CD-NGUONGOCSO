@@ -20,5 +20,6 @@ export const correctPackagingEvent = async (
 // Hàm lấy danh sách lô sản xuất đã thu hoạch (để chọn)
 export const getHarvestedProductionLots = async (): Promise<ProductionLot[]> => {
   const response = await apiClient.get('/production-lots?status=HARVESTED');
-  return response.data.data;
+  const lots = response.data.data as ProductionLot[];
+  return lots.filter((lot) => lot.status === 'HARVESTED');
 };

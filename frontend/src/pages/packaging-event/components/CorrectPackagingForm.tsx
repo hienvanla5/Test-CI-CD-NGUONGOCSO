@@ -55,7 +55,7 @@ export function CorrectPackagingForm() {
         longitude: values.longitude || undefined,
       });
       toast.success('Đính chính sự kiện thành công');
-      navigate('/packaging-events');
+      navigate('/production-lots');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
     }
