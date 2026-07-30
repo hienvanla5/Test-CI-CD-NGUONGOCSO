@@ -215,7 +215,7 @@ const AppRoutes = () => (
         }
       />
 
-      {/* Chi tiết lô sản xuất — chứa chức năng Lô hàng & Mã QR — VT-01, VT-02, VT-03 */}
+            {/* Chi tiết lô sản xuất — chứa chức năng Lô hàng & Mã QR */}
       <Route
         path="production-lots/:id"
         element={
@@ -225,7 +225,26 @@ const AppRoutes = () => (
         }
       />
 
-      {/* Nhật ký canh tác theo lô sản xuất — VT-02 */}
+      {/* Ghi và đính chính sự kiện đóng gói — VT-02, VT-03 */}
+      <Route
+        path="packaging-events/create"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCreate}>
+            <CreatePackagingEventPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="packaging-events/:id/correct"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCorrect}>
+            <CorrectPackagingEventPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Lịch sử nhật ký canh tác — VT-02 */}
       <Route
         path="production-lots/:productionLotId/farm-logs"
         element={
@@ -239,22 +258,6 @@ const AppRoutes = () => (
       <Route path="unauthorized" element={<UnauthorizedPage />} />
     </Route>
 
-    <Route
-      path="packaging-events/create"
-      element={
-        <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCreate}>
-          <CreatePackagingEventPage />
-        </RoleRoute>
-      }
-    />
-    <Route
-      path="packaging-events/:id/correct"
-      element={
-        <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCorrect}>
-          <CorrectPackagingEventPage />
-        </RoleRoute>
-      }
-    />
     {/* Route không tồn tại */}
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>

@@ -17,6 +17,28 @@ export const getFarmLogs = async (
   return response.data.data;
 };
 
+export const getAllFarmLogsByProductionLot = async (
+  productionLotId: string,
+): Promise<FarmLog[]> => {
+  const logs: FarmLog[] = [];
+  let page = 0;
+  let totalPages = 1;
+
+  while (page < totalPages) {
+    const response = await getFarmLogs({
+      productionLotId,
+      page,
+      size: 100,
+    });
+
+    logs.push(...response.items);
+    totalPages = response.totalPages;
+    page += 1;
+  }
+
+  return logs;
+};
+
 export const createFarmLog = async (
   payload: CreateFarmLogRequest
 ): Promise<FarmLogResponse> => {
