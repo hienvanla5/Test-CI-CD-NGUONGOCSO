@@ -59,4 +59,6 @@ export interface Organization {
   code: string;
   type: 'COOPERATIVE' | 'BUSINESS' | 'GOVERNMENT' | 'SYSTEM';
   status: 'ACTIVE' | 'INACTIVE';
+  createdAt: string;
+  updatedAt?: string;
 }

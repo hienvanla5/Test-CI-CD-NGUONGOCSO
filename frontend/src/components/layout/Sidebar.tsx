@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useMatch } from 'react-router-dom';
 import {
   Building2,
   Hash,
@@ -40,10 +40,10 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ROLE_ACCESS.dashboard,
   },
   {
-    icon: <PlusCircle className="h-5 w-5" />,
-    label: 'Tạo tổ chức',
-    href: '/organizations/create',
-    allowedRoles: ROLE_ACCESS.organizationCreate,
+    icon: <Building2 className="h-5 w-5" />,
+    label: 'Tổ chức',
+    href: '/organizations',
+    allowedRoles: ROLE_ACCESS.organizationList,
   },
   {
     icon: <Building2 className="h-5 w-5" />,
@@ -68,7 +68,8 @@ const MENU_ITEMS: MenuItem[] = [
     label: 'Quản lý dải mã',
     href: '/admin/code-ranges',
     allowedRoles: ROLE_ACCESS.codeRangeList,
-  }
+  },
+
 ];
 
 export function Sidebar({
@@ -93,10 +94,14 @@ export function Sidebar({
     ? MENU_ITEMS.filter((item) => item.href === '/' || item.href === '/production-lots')
     : visibleItems;
 
-  const isActive = (href: string) =>
-    href === '/'
-      ? location.pathname === '/'
-      : location.pathname === href || location.pathname.startsWith(`${href}/`);
+  const isActive = (href: string) => {
+  // Đối với route "/organizations" và "/organizations/profile" chúng ta muốn tách biệt
+  if (href === '/organizations') {
+    return location.pathname === '/organizations';
+  }
+  // Các route khác có thể dùng startsWith nếu cần
+  return !!useMatch(href);
+};
 
   return (
     <aside className="flex h-full min-h-0 flex-col border-r bg-background">

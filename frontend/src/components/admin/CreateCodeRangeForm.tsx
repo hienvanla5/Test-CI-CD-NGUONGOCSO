@@ -67,6 +67,7 @@ export const CreateCodeRangeForm: React.FC = () => {
           code: item.organizationCode,
           type: item.organizationType,
           status: item.status,
+          createdAt: item.createdAt,
         }));
         setOrganizations(mappedData);
       } catch (error) {
