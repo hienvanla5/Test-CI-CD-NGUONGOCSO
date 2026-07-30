@@ -1,7 +1,7 @@
 export interface TraceCode {
   id: string;
   codeValue: string;
-  qrImage: string; // đường dẫn tương đối
+  qrImage: string;
   status: 'INACTIVE' | 'ACTIVE' | 'RECALLED';
 }
 

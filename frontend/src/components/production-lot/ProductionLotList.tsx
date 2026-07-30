@@ -11,9 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import type { ProductionLot } from '@/types/productionLot';
-import { LoaderCircle, PackageOpen, Pencil, Plus, Search } from 'lucide-react';
+import { LoaderCircle, PackageOpen, Pencil, Plus, Search, ClipboardCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ApproveProductionLotDialog } from './Approveproductionlotdialog';
 
 interface ProductionLotListProps {
   lots: ProductionLot[];
@@ -21,9 +22,11 @@ interface ProductionLotListProps {
   canCreate: boolean;
   canEdit: boolean;
   canSubmitForApproval: boolean;
+  canApprove: boolean;
   onCreate: () => void;
   onEdit: (id: string) => void;
   onSubmitForApproval: (id: string) => Promise<void>;
+  onDecideApproval: (id: string, approved: boolean, reason?: string) => Promise<void>;
 }
 
 const statusLabels: Record<ProductionLot['status'], string> = {
@@ -59,15 +62,18 @@ export const ProductionLotList = ({
   canCreate,
   canEdit,
   canSubmitForApproval,
+  canApprove,
   onCreate,
   onEdit,
   onSubmitForApproval,
+  onDecideApproval,
 }: ProductionLotListProps) => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [confirmingLot, setConfirmingLot] = useState<ProductionLot | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [approvingLot, setApprovingLot] = useState<ProductionLot | null>(null);
 
   const handleConfirmSubmit = async () => {
     if (!confirmingLot) return;
@@ -190,7 +196,11 @@ export const ProductionLotList = ({
                           type="button"
                           onClick={() => setConfirmingLot(lot)}
                           className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity hover:opacity-75 ${statusClasses[lot.status]}`}
-                          title="Nhấn để gửi duyệt"
+                          title={
+                            lot.approvalNotes
+                              ? `Bị trả lại: ${lot.approvalNotes}. Nhấn để gửi duyệt lại.`
+                              : 'Nhấn để gửi duyệt'
+                          }
                         >
                           {statusLabels[lot.status]}
                         </button>
@@ -200,6 +210,11 @@ export const ProductionLotList = ({
                         >
                           {statusLabels[lot.status]}
                         </span>
+                      )}
+                      {lot.status === 'DRAFT' && lot.approvalNotes && (
+                        <p className="mt-1 max-w-[220px] text-xs text-red-600">
+                          Lý do trả lại: {lot.approvalNotes}
+                        </p>
                       )}
                     </td>
                     <td className="px-4 py-4">
@@ -213,7 +228,15 @@ export const ProductionLotList = ({
                           <Pencil className="size-4" />
                           Chỉnh sửa
                         </Button>
-                        
+                      ) : canApprove && lot.status === 'PENDING' ? (
+                        <Button
+                          size="sm"
+                          type="button"
+                          onClick={() => setApprovingLot(lot)}
+                        >
+                          <ClipboardCheck className="size-4" />
+                          Duyệt lô
+                        </Button>
                       ) : (
                         <span className="text-slate-400">—</span>
                       )}
@@ -279,6 +302,13 @@ export const ProductionLotList = ({
           </AlertDialogFooter>
         </AlertDialogPopup>
       </AlertDialog>
+
+      <ApproveProductionLotDialog
+        open={approvingLot !== null}
+        lot={approvingLot}
+        onClose={() => setApprovingLot(null)}
+        onDecide={onDecideApproval}
+      />
     </>
   );
 };

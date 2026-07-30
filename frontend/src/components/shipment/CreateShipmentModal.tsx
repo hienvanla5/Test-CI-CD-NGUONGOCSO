@@ -19,7 +19,10 @@ import type { CreateShipmentPayload } from '@/types/shipment';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Vui lòng nhập tên lô hàng'),
-  totalQuantity: z.number().int().min(1, 'Số lượng phải lớn hơn 0'),
+  totalQuantity: z
+    .number({ invalid_type_error: 'Vui lòng nhập số lượng' })
+    .int()
+    .min(1, 'Số lượng phải lớn hơn 0'),
   packagingInfo: z.string().optional(),
 });
 
@@ -45,18 +48,15 @@ export const CreateShipmentModal = ({
     handleSubmit,
     reset,
     formState: { errors },
-    setValue,
-    watch,
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      totalQuantity: 0,
+      totalQuantity: undefined,
       packagingInfo: '',
     },
   });
 
-  // Reset form khi modal mở
   useEffect(() => {
     if (open) {
       reset();

@@ -1,4 +1,3 @@
-
 export interface ProductCategory {
   id: string;
   name: string;
@@ -88,4 +87,18 @@ export interface FarmAreaOption {
 export interface ProductCategoryOption {
   id: string;
   name: string;
+}
+
+export interface ApproveProductionLotRequest {
+  /** true = duyệt, false = từ chối */
+  approved: boolean;
+  /** Bắt buộc khi approved = false */
+  reason?: string;
+}
+
+export interface ApproveProductionLotResult {
+  id: string;
+  status: ProductionLot['status'];
+  approvedByName?: string | null;
+  approvalNotes?: string | null;
 }

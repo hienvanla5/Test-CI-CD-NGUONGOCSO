@@ -10,6 +10,7 @@ export const ROLE_ACCESS = {
   farmAreaCreate: ['VT-02'],
   productionLotList: ['VT-02', 'VT-03'],
   productionLotEdit: ['VT-02'],
+  productionLotApprove: ['VT-02'],
   farmLogCreate: ['VT-03'],
   packagingEventCreate: ['VT-02', 'VT-03'] as const,
   packagingEventCorrect: ['VT-02', 'VT-03'] as const,

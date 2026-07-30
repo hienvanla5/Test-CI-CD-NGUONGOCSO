@@ -15,7 +15,8 @@ export const useShipments = (productionLotId: string) => {
       const data = await getShipmentsByProductionLot(productionLotId);
       setShipments(data);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Không thể tải danh sách lô hàng');
+      const message = error.response?.data?.message || 'Không thể tải danh sách lô hàng';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

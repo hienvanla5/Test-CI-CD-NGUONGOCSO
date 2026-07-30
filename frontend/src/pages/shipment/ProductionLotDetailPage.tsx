@@ -66,11 +66,15 @@ export const ProductionLotDetailPage = () => {
             </div>
             <div>
               <dt className="text-sm font-medium text-muted-foreground">Sản lượng dự kiến</dt>
-              <dd className="text-base">{lot.expectedQuantity} {lot.expectedQuantityUnit}</dd>
+              <dd className="text-base">
+                {lot.expectedQuantity} {lot.expectedQuantityUnit}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-muted-foreground">Ngày trồng</dt>
-              <dd className="text-base">{lot.plantingDate ? new Date(lot.plantingDate).toLocaleDateString('vi-VN') : '—'}</dd>
+              <dd className="text-base">
+                {lot.plantingDate ? new Date(lot.plantingDate).toLocaleDateString('vi-VN') : '—'}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-muted-foreground">Vùng trồng</dt>

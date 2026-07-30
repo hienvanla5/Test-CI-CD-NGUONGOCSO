@@ -1,4 +1,4 @@
-import { getProductionLots, submitProductionLot } from '@/api/productionLotApi';
+import { approveProductionLot, getProductionLots, submitProductionLot } from '@/api/productionLotApi';
 import { ProductionLotList } from '@/components/production-lot/ProductionLotList';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProductionLot } from '@/types/productionLot';
@@ -29,16 +29,31 @@ export const ProductionLotBoard = () => {
 
   const handleSubmitForApproval = async (id: string) => {
     try {
-      await submitProductionLot(id);
+      const updated = await submitProductionLot(id);
+      setLots((prev) => prev.map((lot) => (lot.id === id ? { ...lot, ...updated } : lot)));
       toast.success('Đã gửi yêu cầu duyệt lô!');
-      await loadLots(); // reload để cập nhật trạng thái
     } catch (error: any) {
       const message = error.response?.data?.message || 'Không thể gửi duyệt lô.';
       toast.error(message);
     }
   };
 
+  const handleDecideApproval = async (id: string, approved: boolean, reason?: string) => {
+    try {
+      const result = await approveProductionLot(id, { approved, reason });
+      setLots((prev) =>
+        prev.map((lot) => (lot.id === id ? { ...lot, ...result } : lot)),
+      );
+      toast.success(approved ? 'Đã duyệt lô sản xuất!' : 'Đã trả lại lô sản xuất kèm lý do.');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Không thể xử lý duyệt lô.';
+      toast.error(message);
+      throw error; // để dialog không đóng khi thất bại
+    }
+  };
+
   const canSubmitForApproval = user?.roleCode === 'VT-01' || user?.roleCode === 'VT-02';
+  const canApprove = user?.roleCode === 'VT-02';
 
   return (
     <ProductionLotList
@@ -47,9 +62,11 @@ export const ProductionLotBoard = () => {
       canCreate={user?.roleCode === 'VT-02'}
       canEdit={user?.roleCode === 'VT-02'}
       canSubmitForApproval={canSubmitForApproval}
+      canApprove={canApprove}
       onCreate={() => navigate('/production-lots/create')}
       onEdit={(id) => navigate(`/production-lots/${id}/edit`)}
       onSubmitForApproval={handleSubmitForApproval}
+      onDecideApproval={handleDecideApproval}
     />
   );
 };

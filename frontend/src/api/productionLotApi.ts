@@ -1,5 +1,7 @@
 import apiClient from './axiosConfig';
 import type {
+  ApproveProductionLotRequest,
+  ApproveProductionLotResult,
   CreateProductionLotRequest,
   CreateProductionLotResponse,
   FarmAreaOption,
@@ -41,10 +43,14 @@ export const createProductionLot = async (
   return response.data.data;
 };
 
-export const getProductionLots = async (): Promise<ProductionLot[]> => {
+export const getProductionLots = async (
+  status?: ProductionLot['status'],
+): Promise<ProductionLot[]> => {
   const response = await apiClient.get<
     ApiDataResponse<ProductionLot[]>
-  >('/production-lots');
+  >('/production-lots', {
+    params: status ? { status } : undefined,
+  });
 
   return response.data.data;
 };
@@ -69,6 +75,21 @@ export const updateProductionLot = async (
 
   return response.data.data;
 };
-export const submitProductionLot = async (id: string): Promise<void> => {
-  await apiClient.post(`/production-lots/${id}/submit`);
+export const submitProductionLot = async (id: string): Promise<ProductionLot> => {
+  const response = await apiClient.post<ApiDataResponse<ProductionLot>>(
+    `/production-lots/${id}/submit`,
+  );
+
+  return response.data.data;
+};
+
+export const approveProductionLot = async (
+  id: string,
+  payload: ApproveProductionLotRequest,
+): Promise<ApproveProductionLotResult> => {
+  const response = await apiClient.post<
+    ApiDataResponse<ApproveProductionLotResult>
+  >(`/production-lots/${id}/approve`, payload);
+
+  return response.data.data;
 };

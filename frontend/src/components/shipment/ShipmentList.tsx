@@ -15,7 +15,7 @@ import { Plus, QrCode } from 'lucide-react';
 import { useShipments } from '@/hooks/useShipments';
 import { CreateShipmentModal } from './CreateShipmentModal';
 import { QrCodeGrid } from './QrCodeGrid';
-import type { Shipment } from '@/types/shipment';
+import type { Shipment, CreateShipmentPayload } from '@/types/shipment';
 
 const statusLabelMap: Record<string, string> = {
   DRAFT: 'Nháp',
@@ -24,7 +24,7 @@ const statusLabelMap: Record<string, string> = {
   RECALLED: 'Đã thu hồi',
 };
 
-const statusBadgeVariant: Record<string, string> = {
+const statusVariantMap: Record<string, string> = {
   DRAFT: 'secondary',
   CODE_PRINTED: 'default',
   ACTIVE: 'success',
@@ -37,13 +37,17 @@ interface ShipmentListProps {
   canCreate: boolean;
 }
 
-export const ShipmentList = ({ productionLotId, productionLotStatus, canCreate }: ShipmentListProps) => {
+export const ShipmentList = ({
+  productionLotId,
+  productionLotStatus,
+  canCreate,
+}: ShipmentListProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const { shipments, isLoading, createShipment, isCreating } = useShipments(productionLotId);
 
-  const handleCreate = async (payload: any) => {
+  const handleCreate = async (payload: CreateShipmentPayload) => {
     await createShipment(payload);
   };
 
@@ -101,7 +105,7 @@ export const ShipmentList = ({ productionLotId, productionLotStatus, canCreate }
                     <TableCell className="text-center">{shipment.totalQuantity}</TableCell>
                     <TableCell>{shipment.packagingInfo || '—'}</TableCell>
                     <TableCell>
-                      <Badge variant={statusBadgeVariant[shipment.status] as any}>
+                      <Badge variant={statusVariantMap[shipment.status] as any}>
                         {statusLabelMap[shipment.status] || shipment.status}
                       </Badge>
                     </TableCell>
@@ -134,16 +138,14 @@ export const ShipmentList = ({ productionLotId, productionLotStatus, canCreate }
       />
 
       <Dialog open={dialogOpen} onOpenChange={(open) => !open && setDialogOpen(false)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
           <DialogHeader>
-            <DialogTitle>
-              Mã QR - {selectedShipment?.name || ''}
-            </DialogTitle>
+            <DialogTitle>Mã QR - {selectedShipment?.name || ''}</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Tổng số mã: {selectedShipment?.traceCodes?.length || 0}
-            </p>
+          <p className="text-sm text-muted-foreground">
+            Tổng số mã: {selectedShipment?.traceCodes?.length || 0}
+          </p>
+          <div className="flex-1 overflow-y-auto py-4 pr-1">
             {selectedShipment && <QrCodeGrid traceCodes={selectedShipment.traceCodes || []} />}
           </div>
         </DialogContent>
