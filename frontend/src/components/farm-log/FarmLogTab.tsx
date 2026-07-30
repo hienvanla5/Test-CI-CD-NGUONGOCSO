@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Plus, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -12,7 +11,7 @@ interface FarmLogTabProps {
 }
 
 export function FarmLogTab({ logs, onCreateLog, onLogUpdated }: FarmLogTabProps) {
-  const [openItems, setOpenItems] = useState<string[]>(logs.length > 0 ? [logs[0].id] : []);
+  const openItems = logs.length > 0 ? [logs[0].id] : [];
 
   if (logs.length === 0) {
     return (
