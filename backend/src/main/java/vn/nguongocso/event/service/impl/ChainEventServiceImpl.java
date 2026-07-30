@@ -5,10 +5,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.auth.entity.User;
@@ -30,13 +33,16 @@ import vn.nguongocso.event.service.ChainEventService;
 import vn.nguongocso.trace.entity.TraceCode;
 import vn.nguongocso.trace.entity.Shipment;
 import vn.nguongocso.trace.enums.ShipmentStatus;
+import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service xử lý nghiệp vụ sự kiện chuỗi cung ứng.
@@ -45,7 +51,7 @@ import java.util.UUID;
  */
 
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChainEventServiceImpl implements ChainEventService {
@@ -55,6 +61,9 @@ public class ChainEventServiceImpl implements ChainEventService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final TraceCodeRepository traceCodeRepository;
+    private final ShipmentRepository shipmentRepository;
+
+    private static final String ORG_MANAGER_ROLE = "VT-02";
     
 
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
@@ -306,8 +315,8 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .createdAt(correctionEvent.getCreatedAt())
                 .build();
     }
-    
-    
+
+
     @Override
     @Transactional
     public ChainEventResponse recordTransportEvent(
@@ -386,5 +395,77 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .build();
     }
 
+    @Override
+    public List<ChainEventResponse> getShipmentTimeline(UUID shipmentId) {
+        // 4.1 Kiểm tra role (đã được @PreAuthorize bên controller, nhưng vẫn kiểm tra an toàn)
+        CustomUserDetails currentUser = getCurrentUser();
+        if (!ORG_MANAGER_ROLE.equals(currentUser.getRoleCode())) {
+            throw new BusinessException("Bạn không có quyền xem dòng sự kiện truy xuất.");
+        }
+
+        // 4.2 Kiểm tra tồn tại lô hàng
+        Shipment shipment = shipmentRepository.findById(shipmentId)
+                .orElseThrow(() -> new BusinessException("Lô hàng không tồn tại."));
+
+        // 4.3 Kiểm tra quyền truy cập theo tổ chức
+        if (!shipment.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
+            throw new BusinessException("Bạn không có quyền xem dòng sự kiện của lô hàng này.");
+        }
+
+        // 4.4 Truy vấn dòng sự kiện
+        List<ChainEvent> events = chainEventRepository.findByShipmentIdOrderByRecordedAtAsc(shipmentId);
+
+        // 4.5, 4.6, 4.7 Ánh xạ sang response
+        return events.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private ChainEventResponse convertToResponse(ChainEvent event) {
+        // Parse eventData JSON sang Map
+        Map<String, Object> eventDataMap = parseEventData(event.getEventData());
+
+        // Trích xuất latitude, longitude từ location (nếu có)
+        Double latitude = null;
+        Double longitude = null;
+        if (event.getLocation() != null) {
+            latitude = event.getLocation().getY(); // JTS Point: getY() = latitude
+            longitude = event.getLocation().getX(); // getX() = longitude
+        }
+
+        // Lấy tên người ghi
+        String recordedByName = event.getRecordedBy() != null
+                ? event.getRecordedBy().getFullName()
+                : null;
+
+        return ChainEventResponse.builder()
+                .id(event.getId())
+                .shipmentId(event.getShipment() != null ? event.getShipment().getId() : null)
+                .eventType(event.getEventType())
+                .eventData(eventDataMap)
+                .latitude(latitude)
+                .longitude(longitude)
+                .recordedAt(event.getRecordedAt())
+                .recordedByName(recordedByName)
+                .createdAt(event.getCreatedAt())
+                .build();
+    }
+
+    private Map<String, Object> parseEventData(String eventDataJson) {
+        if (eventDataJson == null || eventDataJson.isBlank()) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(eventDataJson, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            log.warn("Không thể parse eventData: {}", eventDataJson);
+            return Map.of();
+        }
+    }
+
+    private CustomUserDetails getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (CustomUserDetails) authentication.getPrincipal();
+    }
 }
 
