@@ -24,6 +24,7 @@ import CreateCodeRangePage from "@/pages/admin/CreateCodeRangePage";
 import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
 import CreatePackagingEventPage from "@/pages/packaging-event/CreatePackagingEventPage";
 import CorrectPackagingEventPage from "@/pages/packaging-event/CorrectPackagingEventPage";
+import { OrganizationListPage } from "@/pages/organization/OrganizationListPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -203,6 +204,15 @@ const AppRoutes = () => (
       element={
         <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCorrect}>
           <CorrectPackagingEventPage />
+        </RoleRoute>
+      }
+    />
+
+    <Route
+      path="organizations"
+      element={
+        <RoleRoute allowedRoles={ROLE_ACCESS.organizationList}>
+          <OrganizationListPage />
         </RoleRoute>
       }
     />

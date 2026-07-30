@@ -21,15 +21,17 @@ export const ROLE_LABELS: Record<RoleCode, string> = {
 export const ROLE_ACCESS = {
   dashboard: AUTHENTICATED_ROLE_CODES,
   organizationCreate: ['VT-01'],
+  organizationList: ['VT-01'],
   organizationProfile: ['VT-01', 'VT-02'],
   farmAreaCreate: ['VT-02'],
-  productionLotList: ['VT-01', 'VT-02', 'VT-03'],
+  productionLotList: ['VT-02', 'VT-03'],
   productionLotEdit: ['VT-02'],
 
   packagingEventCreate: ['VT-02', 'VT-03'] as const,
   packagingEventCorrect: ['VT-02', 'VT-03'] as const,
 
   codeRangeList: ['VT-01'] as const,
+
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
 export function hasAnyRole(

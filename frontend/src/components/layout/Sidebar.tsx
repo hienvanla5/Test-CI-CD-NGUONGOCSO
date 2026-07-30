@@ -68,7 +68,13 @@ const MENU_ITEMS: MenuItem[] = [
     label: 'Quản lý dải mã',
     href: '/admin/code-ranges',
     allowedRoles: ROLE_ACCESS.codeRangeList,
-  }
+  },
+  {
+    icon: <Building2 className="h-5 w-5" />,
+    label: 'Tổ chức',
+    href: '/organizations',
+    allowedRoles: ROLE_ACCESS.organizationList,
+  },
 ];
 
 export function Sidebar({
