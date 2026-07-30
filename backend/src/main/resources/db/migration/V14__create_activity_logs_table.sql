@@ -7,7 +7,7 @@ CREATE TABLE activity_logs (
                                action VARCHAR(100) NOT NULL,
                                description TEXT NOT NULL,
                                entity_type VARCHAR(50) NULL,
-                               entity_id VARCHAR(36) NULL,
+                               entity_id CHAR(36) NULL,
                                ip_address VARCHAR(45) NULL,
                                created_at DATETIME NOT NULL,
 
