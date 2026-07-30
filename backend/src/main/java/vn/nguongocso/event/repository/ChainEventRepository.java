@@ -27,4 +27,6 @@ public interface ChainEventRepository extends JpaRepository<ChainEvent, UUID> {
             "AND ce.isCorrection = false " +
             "ORDER BY ce.recordedAt ASC")
     List<ChainEvent> findJourneyPointsByShipmentId(@Param("shipmentId") UUID shipmentId);
+
+    List<ChainEvent> findByShipmentIdOrderByRecordedAtAsc(UUID shipmentId);
 }
