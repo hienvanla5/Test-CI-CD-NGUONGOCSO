@@ -22,11 +22,11 @@ import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
-  AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogPopup
 } from "@/components/ui/alert-dialog";
 import { getRoleLabel } from "@/config/roleAccess";
 
@@ -452,7 +452,7 @@ export const MemberList = () => {
       )}
 
       <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogPopup>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận cấp quyền Quản lý HTX</AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
@@ -482,7 +482,7 @@ export const MemberList = () => {
               Xác nhận cấp quyền
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogContent>
+        </AlertDialogPopup>
       </AlertDialog>
     </div>
   );
