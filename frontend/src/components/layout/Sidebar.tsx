@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   MapPinned,
   Package,
-  PlusCircle,
   Sprout,
   Users,
   X,

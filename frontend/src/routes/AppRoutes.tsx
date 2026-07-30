@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import LoginPage from "@/pages/auth/LoginPage";
 import { DashboardPage } from "@/pages/daskboard/DashboardPase";
 import { CreateFarmAreaPage } from "@/pages/farm-area/CreateFarmAreaPage";
+import CreateFarmLogPage from "@/pages/farm-log/CreateFarmLogPage";
 import ProductionLotEditPage from "@/pages/farm/ProductionLotEditPage";
 import { CreateOrganizationPage } from "@/pages/organization/CreateOrganizationPage";
 import MemberPermissionsPage from "@/pages/organization/MemberPermissionsPage";
@@ -186,7 +187,15 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-
+      {/* Ghi nhật ký canh tác — VT-03 */}
+      <Route
+        path="farm-logs/create"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.farmLogCreate}>
+            <CreateFarmLogPage />
+          </RoleRoute>
+        }
+      />
       {/* 👇 Các route quản lý dải mã — chỉ VT-01 (Admin) */}
       <Route
         path="admin/code-ranges"
