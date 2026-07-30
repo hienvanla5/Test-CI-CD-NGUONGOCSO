@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { Calendar, LoaderCircle, Sprout } from 'lucide-react';
 import { recordHarvestEvent } from '@/api/traceEventApi';
+import { LocationPicker } from '@/pages/packaging-event/components/LocationPicker';
 
 const formSchema = z.object({
   harvestDate: z.string().min(1, 'Vui lòng chọn ngày thu hoạch'),
@@ -17,6 +18,8 @@ const formSchema = z.object({
     required_error: 'Vui lòng nhập sản lượng',
     invalid_type_error: 'Sản lượng phải là số',
   }).positive('Sản lượng phải lớn hơn 0'),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -40,6 +43,8 @@ export const HarvestForm = ({
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
     reset,
   } = useForm<FormValues>({
@@ -47,8 +52,18 @@ export const HarvestForm = ({
     defaultValues: {
       harvestDate: new Date().toISOString().split('T')[0],
       quantity: 0,
+      latitude: 0,
+      longitude: 0,
     },
   });
+
+  const lat = watch('latitude');
+  const lng = watch('longitude');
+
+  const handleLocationSelect = (lat: number, lng: number) => {
+    setValue('latitude', lat);
+    setValue('longitude', lng);
+  };
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -58,6 +73,8 @@ export const HarvestForm = ({
         productionLotId,
         harvestDate: data.harvestDate,
         quantity: data.quantity,
+        latitude: data.latitude || undefined,
+        longitude: data.longitude || undefined,
       });
       toast.success(`Đã ghi nhận thu hoạch cho lô "${productionLotName}"`);
       reset();
@@ -141,6 +158,16 @@ export const HarvestForm = ({
             {errors.quantity && (
               <p className="text-sm text-red-500">{errors.quantity.message}</p>
             )}
+          </div>
+
+          {/* Thêm LocationPicker */}
+          <div className="space-y-2">
+            <Label>Vị trí thu hoạch (click trên bản đồ)</Label>
+            <div className="flex gap-2">
+              <Input value={lat || ''} disabled placeholder="Vĩ độ" />
+              <Input value={lng || ''} disabled placeholder="Kinh độ" />
+            </div>
+            <LocationPicker onLocationSelect={handleLocationSelect} height="300px" />
           </div>
 
           <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">

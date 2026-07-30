@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sprout } from "lucide-react";
+import { ArrowLeft, Package, Sprout } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getProductionLotById } from "@/api/productionLotApi";
 import { ShipmentList } from "@/components/shipment/ShipmentList";
@@ -56,6 +56,10 @@ export const ProductionLotDetailPage = () => {
     user?.roleCode === "VT-02" && lot.status === "PACKAGED";
   const canActivateShipment = user?.roleCode === "VT-02";
 
+  const canRecordPackaging =
+    (user?.roleCode === "VT-02" || user?.roleCode === "VT-03") &&
+    lot.status === "HARVESTED";
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -63,15 +67,28 @@ export const ProductionLotDetailPage = () => {
           <ArrowLeft className="h-4 w-4 mr-1" />
           Quay lại
         </Button>
-        {canRecordHarvest && lot.status === "APPROVED" && !showHarvestForm && (
-          <Button
-            onClick={() => setShowHarvestForm(true)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            <Sprout className="h-4 w-4 mr-1" />
-            Ghi nhận thu hoạch
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {canRecordHarvest && lot.status === "APPROVED" && !showHarvestForm && (
+            <Button
+              onClick={() => setShowHarvestForm(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <Sprout className="h-4 w-4 mr-1" />
+              Ghi nhận thu hoạch
+            </Button>
+          )}
+          {canRecordPackaging && (
+            <Button
+              onClick={() =>
+                navigate(`/packaging-events/create?productionLotId=${lot.id}`)
+              }
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Package className="h-4 w-4 mr-1" />
+              Ghi đóng gói
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card>
