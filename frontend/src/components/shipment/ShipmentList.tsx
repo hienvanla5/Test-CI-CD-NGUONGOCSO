@@ -11,8 +11,9 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, QrCode } from 'lucide-react';
+import { BadgeCheck, Plus, QrCode } from 'lucide-react';
 import { useShipments } from '@/hooks/useShipments';
+import { ActivateShipmentDialog } from './ActivateShipmentDialog';
 import { CreateShipmentModal } from './CreateShipmentModal';
 import { QrCodeGrid } from './QrCodeGrid';
 import type { Shipment, CreateShipmentPayload } from '@/types/shipment';
@@ -20,14 +21,14 @@ import type { Shipment, CreateShipmentPayload } from '@/types/shipment';
 const statusLabelMap: Record<string, string> = {
   DRAFT: 'Nháp',
   CODE_PRINTED: 'Đã in mã',
-  ACTIVE: 'Đang hoạt động',
+  ACTIVATED: 'Đã kích hoạt',
   RECALLED: 'Đã thu hồi',
 };
 
 const statusVariantMap: Record<string, string> = {
   DRAFT: 'secondary',
   CODE_PRINTED: 'default',
-  ACTIVE: 'success',
+  ACTIVATED: 'success',
   RECALLED: 'destructive',
 };
 
@@ -35,17 +36,29 @@ interface ShipmentListProps {
   productionLotId: string;
   productionLotStatus: string;
   canCreate: boolean;
+  canActivate: boolean;
 }
 
 export const ShipmentList = ({
   productionLotId,
   productionLotStatus,
   canCreate,
+  canActivate,
 }: ShipmentListProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
-  const { shipments, isLoading, createShipment, isCreating } = useShipments(productionLotId);
+  const [activatingShipment, setActivatingShipment] = useState<Shipment | null>(
+    null,
+  );
+  const {
+    shipments,
+    isLoading,
+    createShipment,
+    isCreating,
+    activatingShipmentId,
+    activateShipment,
+  } = useShipments(productionLotId);
 
   const handleCreate = async (payload: CreateShipmentPayload) => {
     await createShipment(payload);
@@ -111,15 +124,26 @@ export const ShipmentList = ({
                     </TableCell>
                     <TableCell>{formatDate(shipment.createdAt)}</TableCell>
                     <TableCell className="text-center">{shipment.traceCodes?.length || 0}</TableCell>
-                    <TableCell className="text-center">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openQrDialog(shipment)}
-                      >
-                        <QrCode className="h-4 w-4 mr-1" />
-                        Xem QR
-                      </Button>
+                    <TableCell>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {canActivate && shipment.status === 'CODE_PRINTED' && (
+                          <Button
+                            size="sm"
+                            onClick={() => setActivatingShipment(shipment)}
+                          >
+                            <BadgeCheck className="mr-1 h-4 w-4" />
+                            Kích hoạt tem
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openQrDialog(shipment)}
+                        >
+                          <QrCode className="mr-1 h-4 w-4" />
+                          Xem QR
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -150,6 +174,15 @@ export const ShipmentList = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ActivateShipmentDialog
+        shipment={activatingShipment}
+        isActivating={activatingShipmentId === activatingShipment?.id}
+        onClose={() => setActivatingShipment(null)}
+        onConfirm={async (shipmentId) => {
+          await activateShipment(shipmentId);
+        }}
+      />
     </Card>
   );
 };

@@ -20,3 +20,17 @@ export const createShipment = async (payload: CreateShipmentPayload): Promise<Sh
   const response = await apiClient.post<ShipmentResponse>('/shipments', payload);
   return response.data.data;
 };
+
+/**
+ * Kích hoạt toàn bộ tem đã được cấp cho một lô hàng.
+ * POST /api/v1/shipments/{shipmentId}/activate
+ */
+export const activateShipmentStamps = async (
+  shipmentId: string,
+): Promise<Shipment> => {
+  const response = await apiClient.post<ShipmentResponse>(
+    `/shipments/${shipmentId}/activate`,
+  );
+
+  return response.data.data;
+};

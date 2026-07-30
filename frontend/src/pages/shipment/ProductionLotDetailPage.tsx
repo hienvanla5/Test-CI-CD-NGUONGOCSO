@@ -54,6 +54,7 @@ export const ProductionLotDetailPage = () => {
 
   const canCreateShipment =
     user?.roleCode === "VT-02" && lot.status === "PACKAGED";
+  const canActivateShipment = user?.roleCode === "VT-02";
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -209,6 +210,7 @@ export const ProductionLotDetailPage = () => {
             productionLotId={lot.id}
             productionLotStatus={lot.status}
             canCreate={canCreateShipment}
+            canActivate={canActivateShipment}
           />
         </TabsContent>
       </Tabs>
