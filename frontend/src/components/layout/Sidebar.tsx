@@ -58,10 +58,10 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ROLE_ACCESS.farmAreaCreate,
   },
   {
-  icon: <Package className="h-5 w-5" />,
-  label: 'Lô sản xuất',
-  href: '/production-lots',
-  allowedRoles: ROLE_ACCESS.productionLotList,
+    icon: <Package className="h-5 w-5" />,
+    label: 'Lô sản xuất',
+    href: '/production-lots',
+    allowedRoles: ROLE_ACCESS.productionLotList,
   },
   {
     icon: <Hash className='h-5 w-5' />,
@@ -85,9 +85,19 @@ export function Sidebar({
   const { user } = useAuth();
   const location = useLocation();
 
-  const visibleItems = MENU_ITEMS.filter((item) =>
-    hasAnyRole(user?.roleCode, item.allowedRoles),
-  );
+  // 🔍 Debug: kiểm tra roleCode
+  console.log('🔑 user.roleCode:', user?.roleCode);
+
+  const visibleItems = MENU_ITEMS.filter((item) => {
+    const hasAccess = hasAnyRole(user?.roleCode, item.allowedRoles);
+    console.log(`📌 ${item.label} → ${hasAccess ? '✅' : '❌'}`);
+    return hasAccess;
+  });
+
+  // Fallback nếu không có menu nào
+  const finalItems = visibleItems.length === 0
+    ? MENU_ITEMS.filter((item) => item.href === '/' || item.href === '/production-lots')
+    : visibleItems;
 
   const isActive = (href: string) =>
     href === '/'
@@ -105,7 +115,6 @@ export function Sidebar({
           <Sprout className="h-6 w-6 shrink-0 text-primary" />
           <span className="truncate text-lg">Nguồn gốc số</span>
         </Link>
-
         {showCloseButton && (
           <Button
             type="button"
@@ -118,9 +127,8 @@ export function Sidebar({
           </Button>
         )}
       </div>
-
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {visibleItems.map((item) => (
+        {finalItems.map((item) => (
           <Link
             key={item.href}
             to={item.href}
@@ -136,6 +144,9 @@ export function Sidebar({
             <span>{item.label}</span>
           </Link>
         ))}
+        {finalItems.length === 0 && (
+          <p className="px-3 py-2 text-sm text-muted-foreground">Không có menu</p>
+        )}
       </nav>
     </aside>
   );
