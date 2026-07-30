@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { PlusCircle, RefreshCw } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { PlusCircle, RefreshCw } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -9,13 +9,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"; // Đúng
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge"; // Đúng
-import { getOrganizations } from "@/api/organizationApi";
-import { type Organization } from "@/types/organization";
-import { ORGANIZATION_TYPES } from "@/utils/constants";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { getOrganizations } from '@/api/organizationApi';
+import { type Organization } from '@/types/organization';
+import { ORGANIZATION_TYPES } from '@/utils/constants';
 
 export function OrganizationListPage() {
   const navigate = useNavigate();
@@ -26,7 +26,9 @@ export function OrganizationListPage() {
     try {
       setLoading(true);
       const data = await getOrganizations();
-      // 👇 Ánh xạ dữ liệu từ API sang kiểu Organization
+      console.log('📦 Dữ liệu từ API:', data); // Debug
+
+      // ✅ Ánh xạ dữ liệu từ API sang kiểu Organization
       const mappedData: Organization[] = data.map((item: any) => ({
         id: item.organizationID,
         name: item.organizationName,
@@ -36,11 +38,11 @@ export function OrganizationListPage() {
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
       }));
+
+      console.log('✅ Dữ liệu sau khi map:', mappedData); // Debug
       setOrganizations(mappedData);
     } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Không thể tải danh sách tổ chức",
-      );
+      toast.error(error.response?.data?.message || 'Không thể tải danh sách tổ chức');
     } finally {
       setLoading(false);
     }
@@ -51,19 +53,15 @@ export function OrganizationListPage() {
   }, []);
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "destructive" | "secondary"> = {
-      ACTIVE: "default",
-      INACTIVE: "destructive",
+    const variants: Record<string, 'default' | 'destructive' | 'secondary'> = {
+      ACTIVE: 'default',
+      INACTIVE: 'destructive',
     };
     const labels: Record<string, string> = {
-      ACTIVE: "Đang hoạt động",
-      INACTIVE: "Ngừng hoạt động",
+      ACTIVE: 'Đang hoạt động',
+      INACTIVE: 'Ngừng hoạt động',
     };
-    return (
-      <Badge variant={variants[status] || "secondary"}>
-        {labels[status] || status}
-      </Badge>
-    );
+    return <Badge variant={variants[status] || 'secondary'}>{labels[status] || status}</Badge>;
   };
 
   const getTypeLabel = (type: string) => {
@@ -82,12 +80,10 @@ export function OrganizationListPage() {
               onClick={fetchOrganizations}
               disabled={loading}
             >
-              <RefreshCw
-                className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`}
-              />
+              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
               Làm mới
             </Button>
-            <Button onClick={() => navigate("/organizations/create")}>
+            <Button onClick={() => navigate('/organizations/create')}>
               <PlusCircle className="h-4 w-4 mr-1" />
               Tạo tổ chức
             </Button>
@@ -120,9 +116,7 @@ export function OrganizationListPage() {
                       <TableCell>{org.name}</TableCell>
                       <TableCell>{getTypeLabel(org.type)}</TableCell>
                       <TableCell>{getStatusBadge(org.status)}</TableCell>
-                      <TableCell>
-                        {new Date(org.createdAt).toLocaleDateString("vi-VN")}
-                      </TableCell>
+                      <TableCell>{new Date(org.createdAt).toLocaleDateString('vi-VN')}</TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
