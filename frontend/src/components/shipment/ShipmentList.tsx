@@ -21,14 +21,14 @@ import type { Shipment, CreateShipmentPayload } from '@/types/shipment';
 const statusLabelMap: Record<string, string> = {
   DRAFT: 'Nháp',
   CODE_PRINTED: 'Đã in mã',
-  ACTIVATED: 'Đã kích hoạt',
+  ACTIVATED: 'Đã kích hoạt',   // 👈
   RECALLED: 'Đã thu hồi',
 };
 
 const statusVariantMap: Record<string, string> = {
   DRAFT: 'secondary',
   CODE_PRINTED: 'default',
-  ACTIVATED: 'success',
+  ACTIVATED: 'default',       // 👈
   RECALLED: 'destructive',
 };
 
@@ -118,7 +118,7 @@ export const ShipmentList = ({
                     <TableCell className="text-center">{shipment.totalQuantity}</TableCell>
                     <TableCell>{shipment.packagingInfo || '—'}</TableCell>
                     <TableCell>
-                      <Badge variant={statusVariantMap[shipment.status] as any}>
+                      <Badge className={shipment.status === 'ACTIVATED' ? 'bg-green-100 text-green-800' : ''}>
                         {statusLabelMap[shipment.status] || shipment.status}
                       </Badge>
                     </TableCell>
