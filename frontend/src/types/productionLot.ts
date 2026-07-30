@@ -18,13 +18,15 @@ export interface ProductionLot {
   expectedQuantityUnit: string;
   actualQuantity: number | null;
   plantingDate: string;
-  harvestDate: string | null;
+  harvestDate: string;
   status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'HARVESTED' | 'PACKAGED' | 'CLOSED';
   approvalNotes: string | null;
   createdByName: string | null;
   approvedByName: string | null;
   createdAt: string;
   updatedAt: string;
+  actualQuantyti?: number;
+  approvebyName?: string;
 }
 
 export interface UpdateProductionLotRequest {
