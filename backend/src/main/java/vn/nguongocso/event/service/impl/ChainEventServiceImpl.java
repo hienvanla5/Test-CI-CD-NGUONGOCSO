@@ -10,11 +10,14 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.nguongocso.alert_reclaim_history.event.ActivityLogEvent;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.event.dto.request.CorrectPackagingEventRequest;
 import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
 import vn.nguongocso.event.dto.request.RecordTransportEventRequest;
@@ -58,6 +61,8 @@ public class ChainEventServiceImpl implements ChainEventService {
     private final TraceCodeRepository traceCodeRepository;
     private final ShipmentRepository shipmentRepository;
     private final EventValidationService eventValidationService;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
@@ -121,6 +126,20 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .build();
 
         chainEvent = chainEventRepository.save(chainEvent);
+
+        eventPublisher.publishEvent(ActivityLogEvent.builder()
+                .userId(currentUser.getUserId())
+                .username(currentUser.getUsername())
+                .fullName(currentUser.getFullName())
+                .organizationId(currentUser.getOrganizationId())
+                .action("CREATE")
+                .description("Ghi sự kiện thu hoạch cho lô " + lot.getName())
+                .entityType("ChainEvent")
+                .entityId(chainEvent.getId().toString())
+                .ipAddress(IpUtils.getClientIp())
+                .timestamp(LocalDateTime.now())
+                .build()
+        );
 
         return ChainEventResponse.builder()
                 .id(chainEvent.getId())
@@ -199,6 +218,20 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .build();
 
         chainEvent = chainEventRepository.save(chainEvent);
+
+        eventPublisher.publishEvent(ActivityLogEvent.builder()
+                .userId(currentUser.getUserId())
+                .username(currentUser.getUsername())
+                .fullName(currentUser.getFullName())
+                .organizationId(currentUser.getOrganizationId())
+                .action("CREATE")
+                .description("Ghi sự kiện thu hoạch cho lô " + lot.getName())
+                .entityType("ChainEvent")
+                .entityId(chainEvent.getId().toString())
+                .ipAddress(IpUtils.getClientIp())
+                .timestamp(LocalDateTime.now())
+                .build()
+        );
 
         return ChainEventResponse.builder()
                 .id(chainEvent.getId())
@@ -294,6 +327,20 @@ public class ChainEventServiceImpl implements ChainEventService {
 
         correctionEvent = chainEventRepository.save(correctionEvent);
 
+        eventPublisher.publishEvent(ActivityLogEvent.builder()
+                .userId(currentUser.getUserId())
+                .username(currentUser.getUsername())
+                .fullName(currentUser.getFullName())
+                .organizationId(currentUser.getOrganizationId())
+                .action("CREATE")
+                .description("Ghi sự kiện thu hoạch cho lô " + lot.getName())
+                .entityType("ChainEvent")
+                .entityId(correctionEvent.getId().toString())
+                .ipAddress(IpUtils.getClientIp())
+                .timestamp(LocalDateTime.now())
+                .build()
+        );
+
         return ChainEventResponse.builder()
                 .id(correctionEvent.getId())
                 .eventType(correctionEvent.getEventType())
@@ -366,6 +413,20 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .build();
 
         chainEvent = chainEventRepository.save(chainEvent);
+
+        eventPublisher.publishEvent(ActivityLogEvent.builder()
+                .userId(currentUser.getUserId())
+                .username(currentUser.getUsername())
+                .fullName(currentUser.getFullName())
+                .organizationId(currentUser.getOrganizationId())
+                .action("CREATE")
+                .description("Ghi sự kiện thu hoạch cho lô hàng " + shipment.getName())
+                .entityType("ChainEvent")
+                .entityId(chainEvent.getId().toString())
+                .ipAddress(IpUtils.getClientIp())
+                .timestamp(LocalDateTime.now())
+                .build()
+        );
 
         return ChainEventResponse.builder()
                 .id(chainEvent.getId())

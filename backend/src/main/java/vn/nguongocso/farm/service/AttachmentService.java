@@ -3,12 +3,15 @@ package vn.nguongocso.farm.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import vn.nguongocso.alert_reclaim_history.event.ActivityLogEvent;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.dto.response.AttachmentResponse;
 import vn.nguongocso.farm.entity.FarmLog;
@@ -22,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -35,6 +39,8 @@ public class AttachmentService {
     private final FarmLogRepository farmLogRepository;
     private final FarmLogAttachmentRepository attachmentRepository;
     private final UserRepository userRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${app.upload.base-dir}")
     private String baseDir;
@@ -113,6 +119,12 @@ public class AttachmentService {
                 .build();
         attachmentRepository.save(attachment);
 
+        publishActivityLog(userDetails, "CREATE",
+                "Tải lên chứng từ cho nhật ký canh tác ID: " + logId,
+                "FarmLogAttachment",
+                attachment.getId().toString()
+        );
+
         log.info("Upload attachment thành công: id={}, logId={}", attachment.getId(), logId);
 
         return toResponse(attachment);
@@ -165,6 +177,22 @@ public class AttachmentService {
 
         attachmentRepository.delete(attachment);
         log.info("Xóa attachment thành công: id={}", attachmentId);
+    }
+
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+        eventPublisher.publishEvent(ActivityLogEvent.builder()
+                .userId(currentUser.getUserId())
+                .username(currentUser.getUsername())
+                .fullName(currentUser.getFullName())
+                .organizationId(currentUser.getOrganizationId())
+                .action(action)
+                .description(description)
+                .entityType(entityType)
+                .entityId(entityId)
+                .ipAddress(IpUtils.getClientIp())
+                .timestamp(LocalDateTime.now())
+                .build()
+        );
     }
 
     private AttachmentResponse toResponse(FarmLogAttachment attachment) {

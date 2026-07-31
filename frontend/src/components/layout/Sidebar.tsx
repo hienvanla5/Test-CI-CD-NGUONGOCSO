@@ -4,6 +4,7 @@ import {
   BarChart2,
   Building2,
   Hash,
+  History,
   LayoutDashboard,
   MapPinned,
   Package,
@@ -86,10 +87,16 @@ const MENU_ITEMS: MenuItem[] = [
   },
   {
   icon: <BarChart2 className="h-5 w-5" />,
-  label: 'Thống kê tra cứu',
-  href: '/reports/lookup-statistics',   // 👈 đổi thành đường dẫn này
-  allowedRoles: ['VT-01', 'VT-02'] as const,
-},
+    label: 'Thống kê tra cứu',
+    href: '/reports/lookup-statistics',   // 👈 đổi thành đường dẫn này
+    allowedRoles: ['VT-01', 'VT-02'] as const,
+  },
+  {
+    icon: <History className="h-5 w-5" />,
+    label: 'Lịch sử hoạt động',
+    href: '/activity-logs',
+    allowedRoles: ['VT-02'] as const,
+  },
 ];
 
 export function Sidebar({
