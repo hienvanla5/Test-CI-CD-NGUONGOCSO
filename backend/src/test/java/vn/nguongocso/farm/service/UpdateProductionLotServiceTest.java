@@ -1,4 +1,4 @@
-package vn.nguongocso.productionLotService;
+package vn.nguongocso.farm.service;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
