@@ -1,17 +1,16 @@
+// src/components/dashboard/AdminDashboard.tsx – Bảng điều khiển sản lượng và lô (VT-01)
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+<<<<<<< HEAD
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Organization } from '@/types/organization';
+=======
+import { getProductionLotDashboard, type DashboardResponse } from '@/api/productionLotApi';
+>>>>>>> feature/remove-protuction-loyt
 import { getOrganizations } from '@/api/organizationApi';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { ProductionStatistics } from '@/components/dashboard/PoductionStatistics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+<<<<<<< HEAD
 import { Building2, Users, Calendar } from 'lucide-react';
 import LookupStatisticsPage from '@/pages/report/LookupStatisticsPage';
 
@@ -21,23 +20,71 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ initialTab }: AdminDashboardProps) {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+=======
+import { OrganizationListPage } from '@/pages/organization/OrganizationListPage';
+import type { Organization } from '@/types/organization';
+
+export function AdminDashboard() {
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
+>>>>>>> feature/remove-protuction-loyt
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [selectedOrgId, setSelectedOrgId] = useState<string>('');
 
   useEffect(() => {
-    const loadOrganizations = async () => {
+    getOrganizations()
+      .then((data) => {
+        // Response thật từ backend dùng field organizationID/organizationName
+        // (không khớp trực tiếp với type Organization khai báo phía FE) —
+        // ánh xạ lại giống cách OrganizationListPage đang xử lý để tránh
+        // dropdown hiển thị giá trị rỗng.
+        const mapped = (data as any[]).map((item) => ({
+          id: item.id ?? item.organizationID,
+          name: item.name ?? item.organizationName,
+          code: item.code ?? item.organizationCode,
+          type: item.type ?? item.organizationType,
+          status: item.status,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        })) as Organization[];
+        setOrganizations(mapped);
+      })
+      .catch(() => {
+        // Không chặn Dashboard nếu tải danh sách tổ chức thất bại —
+        // VT-01 vẫn xem được dữ liệu mặc định.
+        toast.error('Không thể tải danh sách tổ chức để lọc.');
+      });
+  }, []);
+
+  useEffect(() => {
+    const loadData = async () => {
       try {
         setIsLoading(true);
+<<<<<<< HEAD
         setError(null);
         const data = await getOrganizations();
         setOrganizations(data);
       } catch (err: any) {
         setError(err.message || 'Không thể tải danh sách tổ chức');
         toast.error('Không thể tải danh sách tổ chức');
+=======
+        const data = await getProductionLotDashboard(
+          selectedOrgId ? { organizationId: selectedOrgId } : undefined,
+        );
+        setDashboardData(data);
+      } catch (error: any) {
+        if (error.response?.status === 403) {
+          toast.error('Bạn không có quyền xem dữ liệu tổ chức này');
+        } else {
+          toast.error('Không thể tải dữ liệu');
+        }
+        setDashboardData(null);
+>>>>>>> feature/remove-protuction-loyt
       } finally {
         setIsLoading(false);
       }
     };
+<<<<<<< HEAD
     void loadOrganizations();
   }, []);
 
@@ -80,17 +127,18 @@ export function AdminDashboard({ initialTab }: AdminDashboardProps) {
       </div>
     );
   }
+=======
+    void loadData();
+  }, [selectedOrgId]);
+>>>>>>> feature/remove-protuction-loyt
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Quản trị hệ thống</h1>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Building2 className="h-4 w-4" />
-          <span>Tổng số: {organizations.length} tổ chức</span>
-        </div>
       </div>
 
+<<<<<<< HEAD
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList>
           <TabsTrigger value="organizations">Tổ chức</TabsTrigger>
@@ -162,6 +210,39 @@ export function AdminDashboard({ initialTab }: AdminDashboardProps) {
           <LookupStatisticsPage />
         </TabsContent>
       </Tabs>
+=======
+      <Card>
+        <CardHeader>
+          <CardTitle>Bảng điều khiển sản lượng</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {organizations.length > 0 && (
+            <div className="mb-4 flex items-center gap-3">
+              <label className="text-sm font-medium" htmlFor="admin-dashboard-org">
+                Tổ chức:
+              </label>
+              <select
+                id="admin-dashboard-org"
+                className="rounded-md border px-3 py-1.5 text-sm"
+                value={selectedOrgId}
+                onChange={(event) => setSelectedOrgId(event.target.value)}
+              >
+                <option value="">Mặc định (tổ chức của tôi)</option>
+                {organizations.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <ProductionStatistics data={dashboardData} isLoading={isLoading} />
+        </CardContent>
+      </Card>
+
+      {/* Danh sách tổ chức — dùng lại trang có sẵn, không viết lại bảng */}
+      <OrganizationListPage />
+>>>>>>> feature/remove-protuction-loyt
     </div>
   );
 }

@@ -9,9 +9,9 @@ import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 
-import { getProductionLots } from '@/api/productionLotApi';
-import { logDashboardAccess } from '@/api/reportApi';
+import { getProductionLotDashboard, type DashboardResponse } from '@/api/productionLotApi';
 import { ProductionLotBoard } from '@/components/production-lot/ProductionLotBoard';
+<<<<<<< HEAD
 import type { ProductionLot } from '@/types/productionLot';
 import LookupStatisticsPage from '@/pages/report/LookupStatisticsPage';
 
@@ -21,24 +21,47 @@ interface CooperativeDashboardProps {
 
 export function CooperativeDashboard({ initialTab }: CooperativeDashboardProps) {
   const [productionLots, setProductionLots] = useState<ProductionLot[]>([]);
+=======
+import { ProductionStatistics } from '@/components/dashboard/PoductionStatistics'
+
+export function CooperativeDashboard() {
+  const [data, setData] = useState<DashboardResponse | null>(null);
+>>>>>>> feature/remove-protuction-loyt
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadProductionLots = async () => {
+    const loadDashboard = async () => {
       try {
         setIsLoading(true);
+<<<<<<< HEAD
         const data = await getProductionLots();
         setProductionLots(data);
       } catch {
         toast.error('Không thể tải danh sách lô sản xuất');
+=======
+        const result = await getProductionLotDashboard();
+        setData(result);
+      } catch (error: any) {
+        if (error.response?.status === 403) {
+          toast.error('Bạn không có quyền truy cập dữ liệu này.');
+        } else {
+          toast.error('Không thể tải bảng điều khiển');
+        }
+        setData(null);
+>>>>>>> feature/remove-protuction-loyt
       } finally {
         setIsLoading(false);
       }
     };
+<<<<<<< HEAD
     void loadProductionLots();
 
     // Ghi nhận lần truy cập dashboard (TC-04)
     void logDashboardAccess('cooperative-dashboard');
+=======
+
+    void loadDashboard();
+>>>>>>> feature/remove-protuction-loyt
   }, []);
 
   const statistics = useMemo(() => ({
@@ -66,6 +89,7 @@ export function CooperativeDashboard({ initialTab }: CooperativeDashboardProps) 
         </p>
       </div>
 
+<<<<<<< HEAD
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
@@ -100,6 +124,10 @@ export function CooperativeDashboard({ initialTab }: CooperativeDashboardProps) 
           <LookupStatisticsPage />
         </TabsContent>
       </Tabs>
+=======
+      <ProductionStatistics data={data} isLoading={isLoading} />
+      <ProductionLotBoard />
+>>>>>>> feature/remove-protuction-loyt
     </div>
   );
 }

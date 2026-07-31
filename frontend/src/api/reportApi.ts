@@ -1,15 +1,45 @@
 import apiClient from './axiosConfig';
 
+// --- Types ---
+export interface DashboardStatistics {
+  summary: {
+    totalLots: number;
+    totalExpectedYield: number;
+    totalActualYield: number;
+  };
+  byStatus: Record<string, number>;
+  timeSeries: Array<{
+    period: string;
+    lotCount: number;
+    expectedYield: number;
+    actualYield: number;
+  }>;
+}
+
+export interface DashboardQueryParams {
+  startDate?: string;      // yyyy-MM-dd
+  endDate?: string;        // yyyy-MM-dd
+  organizationId?: string; // UUID
+  groupBy?: 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
+}
+
+// --- API ---
+
+/**
+ * Lấy dữ liệu bảng điều khiển sản lượng và số lô
+ * GET /api/v1/production-lots/dashboard
+ */
+export const getDashboardStatistics = async (params: DashboardQueryParams = {}): Promise<DashboardStatistics> => {
+  const response = await apiClient.get<{ success: boolean; data: DashboardStatistics }>(
+    '/production-lots/dashboard',
+    { params }
+  );
+  return response.data.data;
+};
+
 /**
  * TC-04 (NCL-07-CN-001): ghi lịch sử mỗi lần một bảng điều khiển/báo cáo được mở.
- *
- * ⚠️ Endpoint `/reports/access-logs` là GIẢ ĐỊNH — không có trong danh sách API
- * hiện tại của dự án (`src/api/*`). Cần xác nhận với backend đường dẫn và
- * payload thật trước khi coi TC-04 là hoàn tất.
- *
- * Ghi log là best-effort: lỗi ghi log không được chặn hoặc làm gián đoạn
- * trải nghiệm xem bảng điều khiển của người dùng, nên không dùng toast.error
- * và không throw ra ngoài.
+ * Endpoint: /reports/access-logs (giả định - cần xác nhận với backend)
  */
 export const logDashboardAccess = async (dashboardKey: string): Promise<void> => {
   try {
