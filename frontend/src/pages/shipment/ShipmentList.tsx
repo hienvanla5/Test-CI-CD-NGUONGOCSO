@@ -15,13 +15,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BadgeCheck, Plus, QrCode } from "lucide-react";
+import { BadgeCheck, FileText, Plus, QrCode } from "lucide-react";
 import { useShipments } from "@/hooks/useShipments";
 import type { Shipment, CreateShipmentPayload } from "@/types/shipment";
 import { CreateShipmentModal } from "@/components/shipment/CreateShipmentModal";
 import { QrCodeGrid } from "@/components/shipment/QrCodeGrid";
 import { ShipmentTimelineDialog } from "@/components/shipment/ShipmentTimelineDialog";
 import { ActivateShipmentDialog } from "@/components/shipment/ActivateShipmentDialog";
+import { toast } from "sonner";
+import { checkDossierEligibility, exportDossier } from "@/api/dossierApi";
+import { DossierIneligibleDialog } from "@/components/shipment/DossierIneligibleDialog";
 
 const statusLabelMap: Record<string, string> = {
   DRAFT: "Nháp",
@@ -68,6 +71,16 @@ export const ShipmentList = ({
     name: "",
   });
 
+  const [ineligibleDialog, setIneligibleDialog] = useState<{
+    open: boolean;
+    missingDocs: string[];
+    shipmentName: string;
+  }>({
+    open: false,
+    missingDocs: [],
+    shipmentName: "",
+  });
+
   const {
     shipments,
     isLoading,
@@ -91,6 +104,54 @@ export const ShipmentList = ({
       return new Date(dateStr).toLocaleString("vi-VN");
     } catch {
       return dateStr;
+    }
+  };
+
+  const handleExportDossier = async (shipment: Shipment) => {
+    try {
+      // 1. Kiểm tra điều kiện
+      const checkResult = await checkDossierEligibility(shipment.id);
+
+      if (!checkResult.eligible) {
+        // 2. Hiển thị dialog thiếu chứng từ
+        setIneligibleDialog({
+          open: true,
+          missingDocs: checkResult.missingDocuments,
+          shipmentName: shipment.name,
+        });
+        return;
+      }
+
+      // 3. Đủ điều kiện → tải file PDF
+      toast.loading("Đang tạo hồ sơ...");
+      const blob = await exportDossier(shipment.id);
+      toast.dismiss();
+
+      // Tạo link tải file
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      // Lấy tên file từ Content-Disposition hoặc tự tạo
+      const contentDisposition = (blob as any).headers?.get?.(
+        "content-disposition",
+      );
+      let fileName = `Ho_so_truy_xuat_${shipment.name}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      if (contentDisposition) {
+        const match = contentDisposition.match(
+          /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
+        );
+        if (match && match[1]) fileName = match[1].replace(/['"]/g, "");
+      }
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Tải hồ sơ thành công");
+    } catch (error: any) {
+      const msg =
+        error.response?.data?.message || "Có lỗi xảy ra khi xuất hồ sơ.";
+      toast.error(msg);
     }
   };
 
@@ -190,6 +251,15 @@ export const ShipmentList = ({
                           >
                             Sự kiện
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="px-2.5 py-1 text-xs h-auto"
+                            onClick={() => handleExportDossier(shipment)}
+                          >
+                            <FileText className="mr-1 h-3 w-3" />
+                            Xuất hồ sơ
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -265,6 +335,19 @@ export const ShipmentList = ({
         onConfirm={async (shipmentId) => {
           await activateShipment(shipmentId);
         }}
+      />
+
+      <DossierIneligibleDialog
+        open={ineligibleDialog.open}
+        onClose={() =>
+          setIneligibleDialog({
+            open: false,
+            missingDocs: [],
+            shipmentName: "",
+          })
+        }
+        missingDocs={ineligibleDialog.missingDocs}
+        shipmentName={ineligibleDialog.shipmentName}
       />
     </>
   );
