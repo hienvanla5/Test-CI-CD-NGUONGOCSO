@@ -2,18 +2,21 @@ package vn.nguongocso.organization.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import vn.nguongocso.alert_reclaim_history.event.ActivityLogEvent;
 import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.enums.UserStatus;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.organization.constant.RoleCode;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
@@ -59,13 +62,15 @@ public class OrganizationServiceImpl
 
     private final PasswordEncoder
             passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
     public OrganizationServiceImpl(
             OrganizationRepository organizationRepository,
             UserRepository userRepository,
             RoleRepository roleRepository,
             OrganizationUserRepository organizationUserRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.organizationRepository =
                 organizationRepository;
@@ -81,6 +86,7 @@ public class OrganizationServiceImpl
 
         this.passwordEncoder =
                 passwordEncoder;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -434,6 +440,51 @@ public class OrganizationServiceImpl
                 organization.getStatus(),
                 organization.getCreatedAt()
         );
+    }
+
+    // ==================== Helper methods ====================
+
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description,
+                                    String entityType, String entityId) {
+        try {
+            ActivityLogEvent.ActivityLogEventBuilder builder = ActivityLogEvent.builder()
+                    .action(action)
+                    .description(description)
+                    .entityType(entityType)
+                    .entityId(entityId)
+                    .ipAddress(IpUtils.getClientIp())
+                    .timestamp(LocalDateTime.now());
+
+            if (currentUser != null) {
+                builder.userId(currentUser.getUserId())
+                        .username(currentUser.getUsername())
+                        .fullName(currentUser.getFullName())
+                        .organizationId(currentUser.getOrganizationId());
+            } else {
+                // Fallback cho trường hợp không có user (ví dụ tạo tổ chức từ API public)
+                builder.userId(null)
+                        .username("SYSTEM")
+                        .fullName("Hệ thống")
+                        .organizationId(null);
+            }
+
+            eventPublisher.publishEvent(builder.build());
+            log.debug("Ghi log hoạt động thành công: action={}, entityType={}", action, entityType);
+        } catch (Exception e) {
+            log.error("Không thể ghi log hoạt động: {}", e.getMessage(), e);
+        }
+    }
+
+    private CustomUserDetails getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            return (CustomUserDetails) principal;
+        }
+        return null;
     }
 
     /**
