@@ -17,6 +17,7 @@ public class UpdateProductionLotResponse {
     private UUID productCategoryId;
     private String name;
     private Double expectedQuantity;
+    private String expectedQuantityUnit;
     private LocalDate plantingDate;
     private String status;
     private LocalDateTime updatedAt;

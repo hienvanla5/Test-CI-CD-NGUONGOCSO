@@ -15,6 +15,10 @@ public class CreateProductionLotResponse {
 
         private UUID id;
 
+        private UUID farmAreaId;
+
+        private UUID productCategoryId;
+
         private String organizationName;
 
         private String farmAreaName;
@@ -24,6 +28,8 @@ public class CreateProductionLotResponse {
         private String name;
 
         private Double expectedQuantity;
+
+        private String expectedQuantityUnit;
 
         private Double actualQuantity;
 

@@ -1,0 +1,167 @@
+import { useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import type { PublicChainEventItem } from '@/types/publicTrace';
+
+// Fix icon mặc định của Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+interface RouteMapProps {
+  events: PublicChainEventItem[];
+}
+
+const EVENT_LABELS: Record<string, string> = {
+  HARVEST: 'Thu hoạch',
+  PACKAGING: 'Đóng gói',
+  TRANSPORT: 'Vận chuyển',
+  PROCUREMENT: 'Thu mua',
+  CORRECTION: 'Đính chính',
+};
+
+const formatDate = (iso: string) => {
+  try {
+    return new Date(iso).toLocaleString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return iso;
+  }
+};
+
+export const RouteMap = ({ events }: RouteMapProps) => {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const leafletMapRef = useRef<L.Map | null>(null);
+
+  // Lọc các sự kiện có tọa độ
+  const locationEvents = events.filter(
+    (e) => e.latitude !== null && e.longitude !== null
+  );
+
+  useEffect(() => {
+    if (!mapRef.current || locationEvents.length === 0) return;
+
+    // Khởi tạo bản đồ nếu chưa có
+    if (!leafletMapRef.current) {
+      leafletMapRef.current = L.map(mapRef.current).setView(
+        [locationEvents[0].latitude!, locationEvents[0].longitude!],
+        10
+      );
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(leafletMapRef.current);
+    }
+
+    const map = leafletMapRef.current;
+
+    // Xóa marker cũ
+    map.eachLayer((layer) => {
+      if (layer instanceof L.Marker) {
+        map.removeLayer(layer);
+      }
+    });
+
+    // Mảng tọa độ để tính bounds
+    const coords: [number, number][] = [];
+
+    locationEvents.forEach((event, index) => {
+      const lat = event.latitude!;
+      const lng = event.longitude!;
+      const label = EVENT_LABELS[event.eventType] || event.eventType;
+      const date = formatDate(event.recordedAt);
+
+      coords.push([lat, lng]);
+
+      // Tạo icon có số thứ tự
+      const numberIcon = L.divIcon({
+        html: `<div style="
+          background: #059669;
+          color: white;
+          border-radius: 50%;
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 12px;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        ">${index + 1}</div>`,
+        className: '',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+      });
+
+      // Thêm marker với số thứ tự
+      L.marker([lat, lng], { icon: numberIcon })
+        .addTo(map)
+        .bindPopup(`
+          <div style="font-family: system-ui; padding: 4px;">
+            <strong style="font-size: 16px;">${label}</strong>
+            <div style="font-size: 13px; color: #666;">${date}</div>
+            ${event.eventData ? `
+              <div style="font-size: 13px; margin-top: 6px;">
+                ${Object.entries(event.eventData)
+                  .map(([key, value]) => `<div><strong>${key}:</strong> ${String(value)}</div>`)
+                  .join('')}
+              </div>
+            ` : ''}
+            <div style="font-size: 12px; color: #999; margin-top: 4px;">
+              Sự kiện #${index + 1}/${locationEvents.length}
+            </div>
+          </div>
+        `);
+    });
+
+    // Fit bounds nếu có nhiều hơn 1 điểm
+    if (coords.length > 1) {
+      const bounds = L.latLngBounds(coords);
+      map.fitBounds(bounds, {
+        padding: [40, 40],
+        maxZoom: 15,
+      });
+    }
+
+    // Invalidate size khi component mount
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+
+    return () => {
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
+      }
+    };
+  }, [locationEvents]);
+
+  // Nếu không có tọa độ, không hiển thị
+  if (locationEvents.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm p-6 text-center text-gray-500">
+        <p className="text-lg font-semibold">Không có dữ liệu vị trí</p>
+        <p className="text-sm">Các sự kiện của lô hàng này chưa có tọa độ để hiển thị trên bản đồ.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div ref={mapRef} style={{ height: '450px', width: '100%' }} />
+      <div className="p-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-400 flex justify-between">
+        <span>{locationEvents.length} điểm hành trình</span>
+        <span>Click marker để xem chi tiết</span>
+      </div>
+    </div>
+  );
+};
