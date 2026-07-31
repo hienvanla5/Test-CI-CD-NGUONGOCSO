@@ -1,17 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  CheckCircle2,
-  Clock3,
-  FileText,
-  PackageOpen,
-} from 'lucide-react';
+import { CheckCircle2, Clock3, FileText, PackageOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-
-import { getProductionLotDashboard, type DashboardResponse } from '@/api/productionLotApi';
+import { getProductionLots, getProductionLotDashboard, type DashboardResponse } from '@/api/productionLotApi';
+import { logDashboardAccess } from '@/api/reportApi';
 import { ProductionLotBoard } from '@/components/production-lot/ProductionLotBoard';
-<<<<<<< HEAD
+import { ProductionStatistics } from '@/components/dashboard/PoductionStatistics';
 import type { ProductionLot } from '@/types/productionLot';
 import LookupStatisticsPage from '@/pages/report/LookupStatisticsPage';
 
@@ -21,47 +16,28 @@ interface CooperativeDashboardProps {
 
 export function CooperativeDashboard({ initialTab }: CooperativeDashboardProps) {
   const [productionLots, setProductionLots] = useState<ProductionLot[]>([]);
-=======
-import { ProductionStatistics } from '@/components/dashboard/PoductionStatistics'
-
-export function CooperativeDashboard() {
-  const [data, setData] = useState<DashboardResponse | null>(null);
->>>>>>> feature/remove-protuction-loyt
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadDashboard = async () => {
+    const loadData = async () => {
       try {
         setIsLoading(true);
-<<<<<<< HEAD
-        const data = await getProductionLots();
-        setProductionLots(data);
+        // Gọi song song: danh sách lô cho thẻ thống kê và dữ liệu cho biểu đồ
+        const [lots, dashData] = await Promise.all([
+          getProductionLots(),
+          getProductionLotDashboard()
+        ]);
+        setProductionLots(lots);
+        setDashboardData(dashData);
       } catch {
-        toast.error('Không thể tải danh sách lô sản xuất');
-=======
-        const result = await getProductionLotDashboard();
-        setData(result);
-      } catch (error: any) {
-        if (error.response?.status === 403) {
-          toast.error('Bạn không có quyền truy cập dữ liệu này.');
-        } else {
-          toast.error('Không thể tải bảng điều khiển');
-        }
-        setData(null);
->>>>>>> feature/remove-protuction-loyt
+        toast.error('Không thể tải dữ liệu bảng điều khiển');
       } finally {
         setIsLoading(false);
       }
     };
-<<<<<<< HEAD
-    void loadProductionLots();
-
-    // Ghi nhận lần truy cập dashboard (TC-04)
+    void loadData();
     void logDashboardAccess('cooperative-dashboard');
-=======
-
-    void loadDashboard();
->>>>>>> feature/remove-protuction-loyt
   }, []);
 
   const statistics = useMemo(() => ({
@@ -89,7 +65,6 @@ export function CooperativeDashboard() {
         </p>
       </div>
 
-<<<<<<< HEAD
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Tổng quan</TabsTrigger>
@@ -97,6 +72,7 @@ export function CooperativeDashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-4">
+          {/* Thẻ thống kê */}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {cards.map((card) => {
               const Icon = card.icon;
@@ -117,6 +93,11 @@ export function CooperativeDashboard() {
               );
             })}
           </div>
+
+          {/* Biểu đồ sản lượng */}
+          <ProductionStatistics data={dashboardData} isLoading={isLoading} />
+
+          {/* Bảng danh sách lô */}
           <ProductionLotBoard />
         </TabsContent>
 
@@ -124,10 +105,6 @@ export function CooperativeDashboard() {
           <LookupStatisticsPage />
         </TabsContent>
       </Tabs>
-=======
-      <ProductionStatistics data={data} isLoading={isLoading} />
-      <ProductionLotBoard />
->>>>>>> feature/remove-protuction-loyt
     </div>
   );
 }
