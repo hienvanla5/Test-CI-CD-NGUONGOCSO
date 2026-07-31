@@ -1,6 +1,7 @@
 package vn.nguongocso.trace.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -10,6 +11,7 @@ import vn.nguongocso.trace.dto.request.CreateShipmentRequest;
 import vn.nguongocso.trace.dto.response.ShipmentResponse;
 import vn.nguongocso.trace.service.ShipmentService;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -39,5 +41,10 @@ public class ShipmentController {
 		return ApiResult.success(shipmentService.activateShipmentStamps(id));
 	}
 
+	@GetMapping("/production-lots/{productionLotId}")
+	@PreAuthorize("hasAnyRole('VT-01', 'VT-02', 'VT-03')")
+	public ApiResult<List<ShipmentResponse>> getShipmentsByProductionLot(@PathVariable UUID productionLotId) {
+		return ApiResult.success(shipmentService.getShipmentsByProductionLot(productionLotId));
+	}
 }
 

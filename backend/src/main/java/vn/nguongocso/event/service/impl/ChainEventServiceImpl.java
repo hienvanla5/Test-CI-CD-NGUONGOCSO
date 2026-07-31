@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -31,13 +32,13 @@ import vn.nguongocso.event.service.EventValidationService;
 import vn.nguongocso.trace.entity.TraceCode;
 import vn.nguongocso.trace.entity.Shipment;
 import vn.nguongocso.trace.enums.ShipmentStatus;
+import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service xử lý nghiệp vụ sự kiện chuỗi cung ứng.
@@ -45,8 +46,7 @@ import java.util.UUID;
  * @author Team WEB 1
  */
 
-
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChainEventServiceImpl implements ChainEventService {
@@ -56,8 +56,8 @@ public class ChainEventServiceImpl implements ChainEventService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final TraceCodeRepository traceCodeRepository;
+    private final ShipmentRepository shipmentRepository;
     private final EventValidationService eventValidationService;
-    
 
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
@@ -85,18 +85,15 @@ public class ChainEventServiceImpl implements ChainEventService {
             throw e;
         }
 
-
         lot.setStatus(ProductionLotStatus.HARVESTED);
         lot.setHarvestDate(request.getHarvestDate());
         lot.setActualQuantity(request.getQuantity());
         productionLotRepository.save(lot);
 
-
         Point locationPoint = null;
         if (request.getLatitude() != null && request.getLongitude() != null) {
             locationPoint = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
         }
-
 
         Map<String, Object> eventDataMap = new HashMap<>();
         eventDataMap.put("productionLotId", lot.getId().toString());
@@ -111,10 +108,8 @@ public class ChainEventServiceImpl implements ChainEventService {
             throw new BusinessException("Lỗi chuyển đổi dữ liệu sự kiện sang chuỗi JSON.");
         }
 
-
         User actor = userRepository.findById(currentUser.getUserId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin người ghi nhận."));
-
 
         ChainEvent chainEvent = ChainEvent.builder()
                 .eventType(ChainEventType.HARVEST)
@@ -127,7 +122,6 @@ public class ChainEventServiceImpl implements ChainEventService {
 
         chainEvent = chainEventRepository.save(chainEvent);
 
-
         return ChainEventResponse.builder()
                 .id(chainEvent.getId())
                 .eventType(chainEvent.getEventType())
@@ -139,31 +133,27 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .createdAt(chainEvent.getCreatedAt())
                 .build();
     }
+
     @Override
     @Transactional
     public ChainEventResponse recordPackagingEvent(RecordPackagingEventRequest request, CustomUserDetails currentUser) {
-        // 1. Kiểm tra vai trò
         String role = currentUser.getRoleCode();
         if (!"VT-02".equals(role) && !"VT-03".equals(role)) {
             throw new BusinessException("Chỉ thành viên được cấp quyền trong tổ chức mới được ghi sự kiện.");
         }
 
-        // 2. Tìm lô sản xuất
         ProductionLot lot = productionLotRepository.findById(request.getProductionLotId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô sản xuất."));
 
         try {
-            // 3. Kiểm tra tổ chức quản lý
             if (!lot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
                 throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô sản xuất này.");
             }
 
-            // 4. Kiểm tra trạng thái lô sản xuất (Phải là HARVESTED)
             if (lot.getStatus() != ProductionLotStatus.HARVESTED) {
                 throw new BusinessException("Chỉ được ghi nhận sự kiện đóng gói cho lô đã thu hoạch.");
             }
 
-            // 5. Kiểm tra tính hợp lệ của ngày đóng gói
             if (request.getPackagingDate().isAfter(LocalDate.now())) {
                 throw new BusinessException("Ngày đóng gói không được là ngày ở tương lai.");
             }
@@ -175,17 +165,14 @@ public class ChainEventServiceImpl implements ChainEventService {
             throw e;
         }
 
-        // 6. Chuyển trạng thái lô sang PACKAGED
         lot.setStatus(ProductionLotStatus.PACKAGED);
         productionLotRepository.save(lot);
 
-        // 7. Tạo tọa độ địa điểm đóng gói
         Point locationPoint = null;
         if (request.getLatitude() != null && request.getLongitude() != null) {
             locationPoint = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
         }
 
-        // 8. Đóng gói dữ liệu dạng JSON
         Map<String, Object> eventDataMap = new HashMap<>();
         eventDataMap.put("productionLotId", lot.getId().toString());
         eventDataMap.put("productionLotName", lot.getName());
@@ -202,7 +189,6 @@ public class ChainEventServiceImpl implements ChainEventService {
         User actor = userRepository.findById(currentUser.getUserId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin người ghi nhận."));
 
-        // 9. Lưu ChainEvent mới
         ChainEvent chainEvent = ChainEvent.builder()
                 .eventType(ChainEventType.PACKAGING)
                 .eventData(eventDataJson)
@@ -229,7 +215,6 @@ public class ChainEventServiceImpl implements ChainEventService {
     @Override
     @Transactional
     public ChainEventResponse correctPackagingEvent(UUID originalEventId, CorrectPackagingEventRequest request, CustomUserDetails currentUser) {
-        // 1. Kiểm tra vai trò
         String role = currentUser.getRoleCode();
         if (!"VT-02".equals(role) && !"VT-03".equals(role)) {
             throw new BusinessException("Chỉ thành viên được cấp quyền trong tổ chức mới được ghi sự kiện.");
@@ -258,18 +243,22 @@ public class ChainEventServiceImpl implements ChainEventService {
         ProductionLot lot = productionLotRepository.findById(productionLotId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô sản xuất."));
 
-        if (!lot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
-            throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô sản xuất này.");
+        try {
+            if (!lot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
+                throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô sản xuất này.");
+            }
+
+            if (request.getPackagingDate().isAfter(LocalDate.now())) {
+                throw new BusinessException("Ngày đóng gói không được là ngày ở tương lai.");
+            }
+            if (lot.getHarvestDate() != null && request.getPackagingDate().isBefore(lot.getHarvestDate())) {
+                throw new BusinessException("Ngày đóng gói phải sau hoặc bằng ngày thu hoạch của lô sản xuất.");
+            }
+        } catch (BusinessException e) {
+            eventValidationService.logFailedAttempt(productionLotId, lot.getName(), ChainEventType.PACKAGING, e.getMessage(), currentUser);
+            throw e;
         }
 
-        if (request.getPackagingDate().isAfter(LocalDate.now())) {
-            throw new BusinessException("Ngày đóng gói không được là ngày ở tương lai.");
-        }
-        if (lot.getHarvestDate() != null && request.getPackagingDate().isBefore(lot.getHarvestDate())) {
-            throw new BusinessException("Ngày đóng gói phải sau hoặc bằng ngày thu hoạch của lô sản xuất.");
-        }
-
-        // 7. Tạo tọa độ địa điểm
         Point locationPoint = null;
         if (request.getLatitude() != null && request.getLongitude() != null) {
             locationPoint = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
@@ -316,37 +305,31 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .createdAt(correctionEvent.getCreatedAt())
                 .build();
     }
-    
-    
+
     @Override
     @Transactional
     public ChainEventResponse recordTransportEvent(
             RecordTransportEventRequest request,
             CustomUserDetails currentUser) {
 
-        // 1. Kiểm tra quyền
         if (!"VT-03".equals(currentUser.getRoleCode())) {
             throw new BusinessException("Bạn không có quyền ghi sự kiện vận chuyển.");
         }
 
-        // 2. Tìm mã truy xuất
         TraceCode traceCode = traceCodeRepository.findByCodeValue(request.getCodeValue())
                 .orElseThrow(() -> new BusinessException("Mã lô hàng không tồn tại."));
 
-        // 3. Lấy lô hàng
         Shipment shipment = traceCode.getShipment();
-        
         if (shipment == null) {
             throw new BusinessException("Mã truy xuất chưa được gắn với lô hàng.");
         }
-        
+
         try {
             if (!shipment.getOrganization().getOrganizationId()
                     .equals(currentUser.getOrganizationId())) {
                 throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô hàng.");
             }
-            
-            // 4. Kiểm tra trạng thái lô hàng
+
             if (shipment.getStatus() == ShipmentStatus.RECALLED) {
                 throw new BusinessException("Lô hàng đã bị thu hồi, không thể ghi sự kiện vận chuyển.");
             }
@@ -359,7 +342,6 @@ public class ChainEventServiceImpl implements ChainEventService {
             throw e;
         }
 
-        // 5. Dữ liệu sự kiện
         Map<String, Object> eventDataMap = new HashMap<>();
         eventDataMap.put("fromLocation", request.getFromLocation());
         eventDataMap.put("toLocation", request.getToLocation());
@@ -371,11 +353,9 @@ public class ChainEventServiceImpl implements ChainEventService {
             throw new BusinessException("Lỗi chuyển đổi dữ liệu sự kiện sang chuỗi JSON.");
         }
 
-        // 6. Người ghi nhận
         User actor = userRepository.findById(currentUser.getUserId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin người ghi nhận."));
 
-        // 7. Tạo ChainEvent
         ChainEvent chainEvent = ChainEvent.builder()
                 .shipment(shipment)
                 .eventType(ChainEventType.TRANSPORT)
@@ -387,7 +367,6 @@ public class ChainEventServiceImpl implements ChainEventService {
 
         chainEvent = chainEventRepository.save(chainEvent);
 
-        // 8. Response
         return ChainEventResponse.builder()
                 .id(chainEvent.getId())
                 .shipmentId(shipment.getId())
@@ -401,5 +380,74 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .build();
     }
 
-}
+    @Override
+    public List<ChainEventResponse> getShipmentTimeline(UUID shipmentId) {
+        Shipment shipment = shipmentRepository.findById(shipmentId)
+                .orElseThrow(() -> new BusinessException("Lô hàng không tồn tại."));
 
+        List<ChainEvent> shipmentEvents = chainEventRepository.findByShipmentIdOrderByRecordedAtAsc(shipmentId);
+
+        List<ChainEvent> productionLotEvents = Collections.emptyList();
+        if (shipment.getProductionLot() != null) {
+            UUID productionLotId = shipment.getProductionLot().getId();
+            List<ChainEvent> allUnassignedEvents = chainEventRepository.findByShipmentIsNullAndEventTypeIn(
+                    List.of(ChainEventType.HARVEST, ChainEventType.PACKAGING)
+            );
+            productionLotEvents = allUnassignedEvents.stream()
+                    .filter(e -> {
+                        Map<String, Object> data = parseEventData(e.getEventData());
+                        Object lotId = data.get("productionLotId");
+                        return lotId != null && lotId.toString().equals(productionLotId.toString());
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        List<ChainEvent> allEvents = new ArrayList<>();
+        allEvents.addAll(shipmentEvents);
+        allEvents.addAll(productionLotEvents);
+        allEvents.sort(Comparator.comparing(ChainEvent::getRecordedAt));
+
+        return allEvents.stream()
+                .map(this::toChainEventResponse)
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, Object> parseEventData(String eventDataJson) {
+        if (eventDataJson == null || eventDataJson.isBlank()) {
+            return new HashMap<>();
+        }
+        try {
+            return objectMapper.readValue(eventDataJson, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            log.warn("Không thể parse eventData: {}", eventDataJson);
+            return new HashMap<>();
+        }
+    }
+
+    private ChainEventResponse toChainEventResponse(ChainEvent event) {
+        Map<String, Object> eventDataMap = parseEventData(event.getEventData());
+
+        Double latitude = null;
+        Double longitude = null;
+        if (event.getLocation() != null) {
+            latitude = event.getLocation().getY();
+            longitude = event.getLocation().getX();
+        }
+
+        String recordedByName = event.getRecordedBy() != null
+                ? event.getRecordedBy().getFullName()
+                : null;
+
+        return ChainEventResponse.builder()
+                .id(event.getId())
+                .shipmentId(event.getShipment() != null ? event.getShipment().getId() : null)
+                .eventType(event.getEventType())
+                .eventData(eventDataMap)
+                .latitude(latitude)
+                .longitude(longitude)
+                .recordedAt(event.getRecordedAt())
+                .recordedByName(recordedByName)
+                .createdAt(event.getCreatedAt())
+                .build();
+    }
+}

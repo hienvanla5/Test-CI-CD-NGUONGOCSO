@@ -16,7 +16,7 @@ public class ActivityLogResponse {
     private String action;
     private String description;
     private String entityType;
-    private UUID entityId;
+    private String entityId;
     private String ipAddress;
     private LocalDateTime createdAt;
 }
