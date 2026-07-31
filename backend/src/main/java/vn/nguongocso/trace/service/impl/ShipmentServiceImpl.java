@@ -89,6 +89,17 @@ public class ShipmentServiceImpl implements ShipmentService {
 
 		CodeRange codeRange = findAvailableCodeRange(currentUser);
 
+		// 👇 Đồng bộ usedCount với thực tế từ max code_value
+		String maxCode = traceCodeRepository.findMaxCodeValueByOrganization(currentUser.getOrganizationId(), codeRange.getPrefix());
+		long actualUsedCount = 0;
+		if (maxCode != null && maxCode.startsWith(codeRange.getPrefix())) {
+			String seqStr = maxCode.substring(codeRange.getPrefix().length());
+			try {
+				actualUsedCount = Long.parseLong(seqStr);
+			} catch (NumberFormatException ignored) {}
+		}
+		codeRange.setUsedCount(actualUsedCount); // cập nhật usedCount trước khi validate
+
 		validateCodeRangeLimit(codeRange, request.getTotalQuantity());
 
 		Shipment shipment = createShipmentEntity(request, productionLot, currentUser);

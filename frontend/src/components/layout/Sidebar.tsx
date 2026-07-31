@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, useLocation, useMatch } from "react-router-dom";
 import {
+  AlertTriangle,
   BarChart2,
   Building2,
   Hash,
@@ -103,6 +104,12 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Danh mục nông sản",
     href: "/admin/product-categories",
     allowedRoles: ["VT-01"] as const,
+  },
+  {
+    icon: <AlertTriangle className="h-5 w-5" />,
+    label: "Nhật ký lỗi sự kiện",
+    href: "/failed-event-logs",
+    allowedRoles: ["VT-02", "VT-03"] as const,
   },
 ];
 

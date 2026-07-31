@@ -27,7 +27,7 @@ import {
   Paperclip,
 } from "lucide-react";
 import { getFarmLogs } from "@/api/farmLogApi";
-import type { FarmLog, PageResponse } from "@/types/farmLog";
+import type { FarmLog } from "@/types/farmLog";
 import { useNavigate } from "react-router-dom";
 import { AttachmentManager } from "./AttachmentManager";
 import {
@@ -36,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { PageResponse } from "@/types/common";
 
 // 👇 Định nghĩa interface
 interface FarmLogListProps {

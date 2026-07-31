@@ -33,6 +33,7 @@ import TraceLookupPage from "@/pages/public/TraceLookupPage";
 import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
 import ActivityLogPage from "@/pages/report/ActivityLogPage";
 import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
+import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -295,6 +296,15 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={["VT-01"]}>
             <ProductCategoryManagementPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="failed-event-logs"
+        element={
+          <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+            <FailedEventLogsPage />
           </RoleRoute>
         }
       />

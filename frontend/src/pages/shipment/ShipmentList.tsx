@@ -25,6 +25,7 @@ import { ActivateShipmentDialog } from "@/components/shipment/ActivateShipmentDi
 import { toast } from "sonner";
 import { checkDossierEligibility, exportDossier } from "@/api/dossierApi";
 import { DossierIneligibleDialog } from "@/components/shipment/DossierIneligibleDialog";
+import { deleteDraft } from "@/api/eventValidationApi";
 
 const statusLabelMap: Record<string, string> = {
   DRAFT: "Nháp",
@@ -88,6 +89,7 @@ export const ShipmentList = ({
     isCreating,
     activatingShipmentId,
     activateShipment,
+    reload,
   } = useShipments(productionLotId);
 
   const handleCreate = async (payload: CreateShipmentPayload) => {
@@ -152,6 +154,18 @@ export const ShipmentList = ({
       const msg =
         error.response?.data?.message || "Có lỗi xảy ra khi xuất hồ sơ.";
       toast.error(msg);
+    }
+  };
+
+  const handleDeleteDraft = async (shipment: Shipment) => {
+    if (!confirm(`Bạn có chắc chắn muốn hủy bản nháp "${shipment.name}"?`))
+      return;
+    try {
+      await deleteDraft(shipment.id);
+      toast.success("Hủy bản nháp thành công");
+      reload(); // 👈 gọi reload để refresh danh sách
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Không thể hủy bản nháp");
     }
   };
 
@@ -260,6 +274,16 @@ export const ShipmentList = ({
                             <FileText className="mr-1 h-3 w-3" />
                             Xuất hồ sơ
                           </Button>
+                          {(shipment.status === "DRAFT" ||
+                            shipment.status === "CODE_PRINTED") && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteDraft(shipment)}
+                            >
+                              Hủy nháp
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

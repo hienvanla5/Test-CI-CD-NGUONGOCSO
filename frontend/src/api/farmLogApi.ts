@@ -1,7 +1,7 @@
+import type { PageResponse } from '@/types/common';
 import apiClient from './axiosConfig';
 import type {
   FarmLog,
-  PageResponse,
   FarmLogQueryParams,
   CreateFarmLogRequest,
   FarmLogResponse,

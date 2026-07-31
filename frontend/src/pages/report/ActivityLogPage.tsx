@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getActivityLogs } from '@/api/activityLogApi';
-import type { ActivityLog, ActivityLogParams, PageResponse } from '@/types/activityLog';
+import type { ActivityLog, ActivityLogParams } from '@/types/activityLog';
 import { ActivityLogFilter } from '@/components/activity-log/ActivityLogFilter';
 import { ActivityLogTable } from '@/components/activity-log/ActivityLogTable';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import type { PageResponse } from '@/types/common';
 
 export default function ActivityLogPage() {
   const [searchParams, setSearchParams] = useSearchParams();

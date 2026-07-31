@@ -1,5 +1,6 @@
-import type { ActivityLog, ActivityLogParams, PageResponse } from "@/types/activityLog";
+import type { ActivityLog, ActivityLogParams } from "@/types/activityLog";
 import apiClient from "./axiosConfig";
+import type { PageResponse } from "@/types/common";
 
 export const getActivityLogs = async (
   params: ActivityLogParams
