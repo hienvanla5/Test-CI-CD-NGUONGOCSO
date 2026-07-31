@@ -46,4 +46,5 @@ public class FarmLogResponse {
 
     private List<AttachmentResponse> attachments;
 
+    private Integer attachmentCount;
 }

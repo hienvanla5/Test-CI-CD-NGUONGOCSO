@@ -4,16 +4,20 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import vn.nguongocso.alert_reclaim_history.event.ActivityLogEvent;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
@@ -47,6 +51,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 	private final ProductionLotRepository productionLotRepository;
 	private final QRCodeService qrCodeService;
 	private final UserRepository userRepository;
+	private final ApplicationEventPublisher eventPublisher;
 
 	private final NotificationService notificationService;
 
@@ -99,6 +104,14 @@ public class ShipmentServiceImpl implements ShipmentService {
 
 		shipment.setStatus(ShipmentStatus.CODE_PRINTED);
 
+		publishActivityLog(
+				currentUser,
+				"CREATE",
+				"Tạo lô hàng " + shipment.getName() + " cho lô sản xuất " + productionLot.getName(),
+				"Shipment",
+				shipment.getId().toString()
+		);
+
 		return buildShipmentResponse(shipment, traceCodes, currentUser.getFullName());
 	}
 
@@ -150,6 +163,14 @@ public class ShipmentServiceImpl implements ShipmentService {
 		}
 		traceCodeRepository.saveAll(traceCodes);
 
+		publishActivityLog(
+				currentUser,
+				"ACTIVATE",
+				"Kích hoạt tem cho lô hàng " + shipment.getName(),
+				"Shipment",
+				shipment.getId().toString()
+		);
+
 		String createdByName = null;
 		if (shipment.getCreatedBy() != null) {
 			createdByName = userRepository.findById(shipment.getCreatedBy().getUserId())
@@ -158,6 +179,31 @@ public class ShipmentServiceImpl implements ShipmentService {
 		}
 
 		return buildShipmentResponse(shipment, traceCodes, createdByName);
+	}
+
+	@Override
+	public List<ShipmentResponse> getShipmentsByProductionLot(UUID productionLotId) {
+		CustomUserDetails currentUser = getCurrentUser();
+		ProductionLot productionLot = findProductionLot(productionLotId);
+
+		// Kiểm tra tổ chức
+		if (!productionLot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
+			throw new BusinessException(ORGANIZATION_ACCESS_MESSAGE);
+		}
+
+		List<Shipment> shipments = shipmentRepository.findByProductionLotId(productionLotId);
+		return shipments.stream()
+				.map(shipment -> {
+					List<TraceCode> traceCodes = traceCodeRepository.findByShipmentId(shipment.getId());
+					String createdByName = null;
+					if (shipment.getCreatedBy() != null) {
+						createdByName = userRepository.findById(shipment.getCreatedBy().getUserId())
+								.map(User::getFullName)
+								.orElse(null);
+					}
+					return buildShipmentResponse(shipment, traceCodes, createdByName);
+				})
+				.collect(Collectors.toList());
 	}
 
 
@@ -171,6 +217,22 @@ public class ShipmentServiceImpl implements ShipmentService {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
 		return (CustomUserDetails) authentication.getPrincipal();
+	}
+
+	private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+		eventPublisher.publishEvent(ActivityLogEvent.builder()
+				.userId(currentUser.getUserId())
+				.username(currentUser.getUsername())
+				.fullName(currentUser.getFullName())
+				.organizationId(currentUser.getOrganizationId())
+				.action(action)
+				.description(description)
+				.entityType(entityType)
+				.entityId(entityId)
+				.ipAddress(IpUtils.getClientIp())
+				.timestamp(LocalDateTime.now())
+				.build()
+		);
 	}
 
 	/**

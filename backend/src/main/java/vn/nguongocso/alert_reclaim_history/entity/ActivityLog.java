@@ -45,9 +45,9 @@ public class ActivityLog {
     @Column(name = "entity_type", length = 50)
     private String entityType;
 
-    @Column(name = "entity_id")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
-    private UUID entityId;
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "entity_id", length = 36)
+    private String entityId;
 
     @Column(name = "ip_address", length = 45)
     private String ipAddress;

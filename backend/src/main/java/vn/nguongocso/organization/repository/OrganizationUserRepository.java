@@ -22,4 +22,6 @@ public interface OrganizationUserRepository extends JpaRepository<OrganizationUs
     List<OrganizationUser> findByOrganization_OrganizationIdAndStatus(UUID orgId, OrganizationUserStatus organizationUserStatus);
 
 	Optional<OrganizationUser> findByOrganization_OrganizationIdAndUser_UserId(UUID orgId, @NotNull(message = "User ID is required") UUID userId);
+
+	Optional<OrganizationUser> findByOrganization_OrganizationIdAndRole_Code(UUID organizationId, String roleCode);
 }

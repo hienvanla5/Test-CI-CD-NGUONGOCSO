@@ -9,7 +9,7 @@ import vn.nguongocso.report.dto.response.LookupResponse;
 import vn.nguongocso.report.service.PublicLookupService;
 
 @RestController
-@RequestMapping("/public/api/v1/trace-codes")
+@RequestMapping("/api/v1/public/trace-codes")
 @RequiredArgsConstructor
 public class PublicLookupController {
 
