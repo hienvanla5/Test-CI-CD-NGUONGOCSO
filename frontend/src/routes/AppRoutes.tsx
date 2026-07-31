@@ -32,6 +32,7 @@ import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPag
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
 import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
 import ActivityLogPage from "@/pages/report/ActivityLogPage";
+import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -285,6 +286,15 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={["VT-02"]}>
             <ActivityLogPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="admin/product-categories"
+        element={
+          <RoleRoute allowedRoles={["VT-01"]}>
+            <ProductCategoryManagementPage />
           </RoleRoute>
         }
       />
