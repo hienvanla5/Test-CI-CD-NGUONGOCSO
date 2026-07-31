@@ -1,4 +1,4 @@
-import { approveProductionLot, getProductionLots, submitProductionLot } from '@/api/productionLotApi';
+import { approveProductionLot, submitProductionLot } from '@/api/productionLotApi';
 import { ProductionLotList } from '@/components/production-lot/ProductionLotList';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProductionLot } from '@/types/productionLot';
@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface ProductionLotBoardProps {
+  lots?: ProductionLot[];
+  isLoading?: boolean;
   canCreate?: boolean;
   canEdit?: boolean;
   canSubmitForApproval?: boolean;
@@ -15,6 +17,8 @@ interface ProductionLotBoardProps {
 }
 
 export const ProductionLotBoard = ({
+  lots: propLots,
+  isLoading: propIsLoading,
   canCreate: propCanCreate,
   canEdit: propCanEdit,
   canSubmitForApproval: propCanSubmitForApproval,
@@ -23,28 +27,49 @@ export const ProductionLotBoard = ({
 }: ProductionLotBoardProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [lots, setLots] = useState<ProductionLot[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [internalLots, setInternalLots] = useState<ProductionLot[]>([]);
+  const [internalLoading, setInternalLoading] = useState(true);
 
-  const loadLots = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setLots(await getProductionLots());
-    } catch {
-      toast.error('Không thể tải danh sách lô sản xuất');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
+  // Nếu có prop lots thì dùng, ngược lại tự gọi API
   useEffect(() => {
-    void loadLots();
-  }, [loadLots]);
+    if (propLots !== undefined) {
+      setInternalLots(propLots);
+      setInternalLoading(propIsLoading || false);
+      return;
+    }
+
+    const load = async () => {
+      setInternalLoading(true);
+      try {
+        const { getProductionLots } = await import('@/api/productionLotApi');
+        const data = await getProductionLots();
+        setInternalLots(data);
+      } catch {
+        toast.error('Không thể tải danh sách lô sản xuất');
+      } finally {
+        setInternalLoading(false);
+      }
+    };
+    load();
+  }, [propLots, propIsLoading]);
+
+  const isLoading = propLots !== undefined ? propIsLoading || false : internalLoading;
+  const lots = propLots !== undefined ? propLots : internalLots;
+
+  const canCreate = propCanCreate !== undefined ? propCanCreate : user?.roleCode === 'VT-02';
+  const canEdit = propCanEdit !== undefined ? propCanEdit : user?.roleCode === 'VT-02';
+  const canSubmitForApproval = propCanSubmitForApproval !== undefined
+    ? propCanSubmitForApproval
+    : (user?.roleCode === 'VT-01' || user?.roleCode === 'VT-02');
+  const canApprove = propCanApprove !== undefined ? propCanApprove : user?.roleCode === 'VT-02';
+  const canRecordFarmLog = propCanRecordFarmLog !== undefined
+    ? propCanRecordFarmLog
+    : user?.roleCode === 'VT-03';
 
   const handleSubmitForApproval = async (id: string) => {
     try {
       const updated = await submitProductionLot(id);
-      setLots((prev) => prev.map((lot) => (lot.id === id ? { ...lot, ...updated } : lot)));
+      setInternalLots((prev) => prev.map((lot) => (lot.id === id ? { ...lot, ...updated } : lot)));
       toast.success('Đã gửi yêu cầu duyệt lô!');
     } catch (error: any) {
       const message = error.response?.data?.message || 'Không thể gửi duyệt lô.';
@@ -55,8 +80,8 @@ export const ProductionLotBoard = ({
   const handleDecideApproval = async (id: string, approved: boolean, reason?: string) => {
     try {
       const result = await approveProductionLot(id, { approved, reason });
-      setLots((prev) =>
-        prev.map((lot) => (lot.id === id ? { ...lot, ...result } : lot)),
+      setInternalLots((prev) =>
+        prev.map((lot) => (lot.id === id ? { ...lot, ...result } : lot))
       );
       toast.success(approved ? 'Đã duyệt lô sản xuất!' : 'Đã trả lại lô sản xuất kèm lý do.');
     } catch (error: any) {
@@ -65,13 +90,6 @@ export const ProductionLotBoard = ({
       throw error;
     }
   };
-
-  // Xác định quyền: ưu tiên props, nếu không thì dùng user
-  const canCreate = propCanCreate !== undefined ? propCanCreate : user?.roleCode === 'VT-02';
-  const canEdit = propCanEdit !== undefined ? propCanEdit : user?.roleCode === 'VT-02';
-  const canSubmitForApproval = propCanSubmitForApproval !== undefined ? propCanSubmitForApproval : (user?.roleCode === 'VT-01' || user?.roleCode === 'VT-02');
-  const canApprove = propCanApprove !== undefined ? propCanApprove : user?.roleCode === 'VT-02';
-  const canRecordFarmLog = propCanRecordFarmLog !== undefined ? propCanRecordFarmLog : user?.roleCode === 'VT-03';
 
   return (
     <ProductionLotList

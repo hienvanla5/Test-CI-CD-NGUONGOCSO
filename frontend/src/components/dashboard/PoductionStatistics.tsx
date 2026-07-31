@@ -13,14 +13,14 @@ import {
   Cell,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { ProductionLot } from '@/types/productionLot';
+import type { DashboardResponse } from '@/api/productionLotApi';
 
 interface ProductionStatisticsProps {
-  lots: ProductionLot[];
+  data: DashboardResponse | null;
   isLoading?: boolean;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#FF6B6B', '#845EC2'];
 
 const statusLabels: Record<string, string> = {
   DRAFT: 'Bản nháp',
@@ -32,46 +32,22 @@ const statusLabels: Record<string, string> = {
   CLOSED: 'Đã kết thúc',
 };
 
-export const ProductionStatistics = ({ lots, isLoading = false }: ProductionStatisticsProps) => {
-  // Thống kê theo tháng
-  const monthlyStats = useMemo(() => {
-    const monthMap: Record<string, { count: number; quantity: number }> = {};
-
-    lots.forEach((lot) => {
-      const date = new Date(lot.createdAt);
-      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthMap[key]) {
-        monthMap[key] = { count: 0, quantity: 0 };
-      }
-      monthMap[key].count += 1;
-      monthMap[key].quantity += lot.expectedQuantity || 0;
-    });
-
-    // Sắp xếp theo thời gian
-    const sortedKeys = Object.keys(monthMap).sort();
-    return sortedKeys.map((key) => {
-      const [year, month] = key.split('-');
-      return {
-        month: `${month}/${year}`,
-        count: monthMap[key].count,
-        quantity: Math.round(monthMap[key].quantity * 100) / 100,
-      };
-    });
-  }, [lots]);
-
-  // Thống kê theo trạng thái
+export const ProductionStatistics = ({ data, isLoading = false }: ProductionStatisticsProps) => {
+  // Chuyển byStatus object sang mảng cho PieChart
   const statusStats = useMemo(() => {
-    const statusMap: Record<string, number> = {};
-    lots.forEach((lot) => {
-      const label = statusLabels[lot.status] || lot.status;
-      statusMap[label] = (statusMap[label] || 0) + 1;
-    });
-    return Object.entries(statusMap).map(([name, value]) => ({ name, value }));
-  }, [lots]);
+    if (!data?.byStatus) return [];
+    return Object.entries(data.byStatus)
+      .map(([key, value]) => ({
+        name: statusLabels[key] || key,
+        value: value,
+      }))
+      .filter((item) => item.value > 0);
+  }, [data]);
 
-  // Tổng số lô và sản lượng
-  const totalLots = lots.length;
-  const totalQuantity = lots.reduce((sum, lot) => sum + (lot.expectedQuantity || 0), 0);
+  // timeSeries đã có sẵn từ API
+  const timeSeries = data?.timeSeries || [];
+
+  const summary = data?.summary || { totalLots: 0, totalExpectedYield: 0, totalActualYield: 0 };
 
   if (isLoading) {
     return (
@@ -85,13 +61,19 @@ export const ProductionStatistics = ({ lots, isLoading = false }: ProductionStat
     );
   }
 
-  if (lots.length === 0) {
+  // Nếu không có dữ liệu hoặc dữ liệu rỗng
+  if (!data || summary.totalLots === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>Chưa có dữ liệu để hiển thị thống kê.</p>
-      </div>
+      <Card>
+        <CardContent className="py-12 text-center text-muted-foreground">
+          <p>Chưa có dữ liệu để hiển thị thống kê.</p>
+        </CardContent>
+      </Card>
     );
   }
+
+  // Định dạng số
+  const formatNumber = (num: number) => num.toFixed(1);
 
   return (
     <div className="space-y-6">
@@ -100,34 +82,32 @@ export const ProductionStatistics = ({ lots, isLoading = false }: ProductionStat
         <Card>
           <CardContent className="pt-4">
             <p className="text-sm text-muted-foreground">Tổng số lô</p>
-            <p className="text-3xl font-bold">{totalLots}</p>
+            <p className="text-3xl font-bold">{summary.totalLots}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <p className="text-sm text-muted-foreground">Tổng sản lượng dự kiến</p>
-            <p className="text-3xl font-bold">{totalQuantity.toFixed(1)} kg</p>
+            <p className="text-3xl font-bold">{formatNumber(summary.totalExpectedYield)} kg</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <p className="text-sm text-muted-foreground">Sản lượng trung bình/lô</p>
             <p className="text-3xl font-bold">
-              {totalLots > 0 ? (totalQuantity / totalLots).toFixed(1) : 0} kg
+              {summary.totalLots > 0 ? formatNumber(summary.totalExpectedYield / summary.totalLots) : 0} kg
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-muted-foreground">Lô đã hoàn thành</p>
-            <p className="text-3xl font-bold">
-              {lots.filter((l) => l.status === 'CLOSED' || l.status === 'HARVESTED' || l.status === 'PACKAGED').length}
-            </p>
+            <p className="text-sm text-muted-foreground">Tổng sản lượng thực tế</p>
+            <p className="text-3xl font-bold">{formatNumber(summary.totalActualYield)} kg</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Biểu đồ: 1 cột trên điện thoại, 3 biểu đồ chung 1 hàng trên máy tính/laptop */}
+      {/* Biểu đồ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Biểu đồ cột: số lô theo tháng */}
         <Card>
@@ -135,35 +115,44 @@ export const ProductionStatistics = ({ lots, isLoading = false }: ProductionStat
             <CardTitle className="text-base">Số lô theo tháng</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={monthlyStats}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#0088FE" name="Số lô" />
-              </BarChart>
-            </ResponsiveContainer>
+            {timeSeries.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={timeSeries}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="period" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="lotCount" fill="#0088FE" name="Số lô" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">Chưa có dữ liệu theo tháng</p>
+            )}
           </CardContent>
         </Card>
 
         {/* Biểu đồ cột: sản lượng theo tháng */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Sản lượng dự kiến (kg) theo tháng</CardTitle>
+            <CardTitle className="text-base">Sản lượng (kg) theo tháng</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={monthlyStats}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => `${Number(value ?? 0).toFixed(1)} kg`} />
-                <Legend />
-                <Bar dataKey="quantity" fill="#00C49F" name="Sản lượng (kg)" />
-              </BarChart>
-            </ResponsiveContainer>
+            {timeSeries.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={timeSeries}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="period" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => `${Number(value ?? 0).toFixed(1)} kg`} />
+                  <Legend />
+                  <Bar dataKey="expectedYield" fill="#00C49F" name="Dự kiến" />
+                  <Bar dataKey="actualYield" fill="#FFBB28" name="Thực tế" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">Chưa có dữ liệu theo tháng</p>
+            )}
           </CardContent>
         </Card>
 
