@@ -1,4 +1,4 @@
-import { Calendar, MapPin, Package, Truck, Sprout, Clipboard } from 'lucide-react';
+import { Calendar, Package, Truck, Sprout, Clipboard } from "lucide-react";
 import type { PublicChainEventItem } from '@/types/publicTrace';
 
 const EVENT_ICONS: Record<string, any> = {
