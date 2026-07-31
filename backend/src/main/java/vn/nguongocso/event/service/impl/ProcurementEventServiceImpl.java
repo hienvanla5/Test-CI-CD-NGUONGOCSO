@@ -7,16 +7,20 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.nguongocso.alert_reclaim_history.event.ActivityLogEvent;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.event.dto.request.RecordProcurementEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.entity.ChainEvent;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
+import vn.nguongocso.event.service.EventValidationService;
 import vn.nguongocso.event.service.ProcurementEventService;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.trace.entity.Shipment;
@@ -35,8 +39,9 @@ public class ProcurementEventServiceImpl implements ProcurementEventService {
     private final ChainEventRepository chainEventRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final EventValidationService eventValidationService;
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
-
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -53,13 +58,18 @@ public class ProcurementEventServiceImpl implements ProcurementEventService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng."));
 
 
-        // 4. Kiểm tra trạng thái lô: Không được thu hồi (QTN-05)
-        if (shipment.getStatus() == ShipmentStatus.RECALLED) {
-            throw new BusinessException("Lô hàng đã bị thu hồi, không thể ghi sự kiện.");
-        }
+        try {
+            // 4. Kiểm tra trạng thái lô: Không được thu hồi (QTN-05)
+            if (shipment.getStatus() == ShipmentStatus.RECALLED) {
+                throw new BusinessException("Lô hàng đã bị thu hồi, không thể ghi sự kiện.");
+            }
 
-        if (shipment.getStatus() != ShipmentStatus.ACTIVATED) {
-            throw new BusinessException("Lô hàng chưa được kích hoạt, không thể ghi sự kiện thu mua.");
+            if (shipment.getStatus() != ShipmentStatus.ACTIVATED) {
+                throw new BusinessException("Lô hàng chưa được kích hoạt, không thể ghi sự kiện thu mua.");
+            }
+        } catch (BusinessException e) {
+            eventValidationService.logFailedAttempt(shipment.getId(), shipment.getName(), ChainEventType.PROCUREMENT, e.getMessage(), currentUser);
+            throw e;
         }
 
         // 5. Tạo điểm vị trí (nếu có)
@@ -100,6 +110,20 @@ public class ProcurementEventServiceImpl implements ProcurementEventService {
                 .build();
 
         chainEvent = chainEventRepository.save(chainEvent);
+
+        eventPublisher.publishEvent(ActivityLogEvent.builder()
+                .userId(currentUser.getUserId())
+                .username(currentUser.getUsername())
+                .fullName(currentUser.getFullName())
+                .organizationId(currentUser.getOrganizationId())
+                .action("CREATE")
+                .description("Ghi sự kiện thu hoạch cho lô hàng " + shipment.getName())
+                .entityType("ChainEvent")
+                .entityId(chainEvent.getId().toString())
+                .ipAddress(IpUtils.getClientIp())
+                .timestamp(LocalDateTime.now())
+                .build()
+        );
 
         // 9. Trả về response
         return ChainEventResponse.builder()

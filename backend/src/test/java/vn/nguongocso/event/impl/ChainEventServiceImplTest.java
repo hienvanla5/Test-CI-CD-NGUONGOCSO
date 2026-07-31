@@ -40,7 +40,9 @@ import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
 import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
+import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.service.impl.ChainEventServiceImpl;
+import vn.nguongocso.event.service.EventValidationService;
 
 @ExtendWith(MockitoExtension.class)
 class ChainEventServiceImplTest {
@@ -56,6 +58,9 @@ class ChainEventServiceImplTest {
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Mock
+    private EventValidationService eventValidationService;
 
     @InjectMocks
     private ChainEventServiceImpl chainEventService;

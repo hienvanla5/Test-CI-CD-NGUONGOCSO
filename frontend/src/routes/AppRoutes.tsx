@@ -31,6 +31,7 @@ import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
 import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
+import ActivityLogPage from "@/pages/report/ActivityLogPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -275,6 +276,15 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={["VT-01", "VT-02"]}>
             <LookupStatisticsPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="activity-logs"
+        element={
+          <RoleRoute allowedRoles={["VT-02"]}>
+            <ActivityLogPage />
           </RoleRoute>
         }
       />
