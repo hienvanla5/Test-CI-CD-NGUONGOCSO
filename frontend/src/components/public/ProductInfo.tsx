@@ -1,4 +1,4 @@
-import { Package, Hash, Tag } from 'lucide-react';
+import { Hash, Tag } from "lucide-react";
 
 interface ProductInfoProps {
   productName: string;
