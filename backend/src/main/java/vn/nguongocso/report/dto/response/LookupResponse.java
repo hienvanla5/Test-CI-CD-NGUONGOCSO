@@ -5,7 +5,11 @@ import vn.nguongocso.trace.enums.TraceCodeStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
+/**
+ * DTO phản hồi tra cứu mã truy xuất.
+ *
+ * @author Triệu Văn Đại
+ */
 @Getter
 @Setter
 @NoArgsConstructor

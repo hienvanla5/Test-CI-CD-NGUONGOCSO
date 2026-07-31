@@ -48,6 +48,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
+/**
+ * Service xử lý nghiệp vụ hồ sơ.
+ *
+ * @author Triệu Văn Đại
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

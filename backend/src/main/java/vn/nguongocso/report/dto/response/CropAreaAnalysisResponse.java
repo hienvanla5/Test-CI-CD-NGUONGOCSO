@@ -4,7 +4,11 @@ import lombok.Builder;
 import lombok.Getter;
 import java.util.List;
 import java.util.UUID;
-
+/**
+ * DTO phản hồi phân tích diện tích canh tác.
+ *
+ * @author Triệu Văn Đại
+ */
 @Getter
 @Builder
 public class CropAreaAnalysisResponse {

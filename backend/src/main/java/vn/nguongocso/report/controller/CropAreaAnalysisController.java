@@ -12,10 +12,13 @@ import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.report.dto.response.CropAreaAnalysisResponse;
 import vn.nguongocso.report.service.CropAreaAnalysisService;
-
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.UUID;
-
+/**
+ * Controller phân tích diện tích canh tác.
+ *
+ * @author Triệu Văn Đại
+ */
 @RestController
 @RequestMapping("/api/v1/reports/crop-area-analysis")
 @RequiredArgsConstructor

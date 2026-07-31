@@ -9,7 +9,11 @@ import vn.nguongocso.event.enums.ChainEventType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-
+/**
+ * Entity nhật ký sự kiện bị chặn (ghi lỗi).
+ *
+ * @author Triệu Văn Đại
+ */
 @Entity
 @Table(name = "failed_event_logs")
 @Getter

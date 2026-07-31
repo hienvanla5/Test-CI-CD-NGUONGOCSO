@@ -19,7 +19,11 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.stream.Collectors;
-
+/**
+ * Service thống kê tra cứu mã truy xuất.
+ *
+ * @author Triệu Văn Đại
+ */
 @Service
 @RequiredArgsConstructor
 public class LookupStatisticsServiceImpl implements LookupStatisticsService {

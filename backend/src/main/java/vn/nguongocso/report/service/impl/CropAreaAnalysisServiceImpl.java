@@ -15,7 +15,11 @@ import vn.nguongocso.report.service.ReportAccessLogService;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-
+/**
+ * Service phân tích diện tích canh tác.
+ *
+ * @author Triệu Văn Đại
+ */
 @Service
 @RequiredArgsConstructor
 public class CropAreaAnalysisServiceImpl implements CropAreaAnalysisService {
