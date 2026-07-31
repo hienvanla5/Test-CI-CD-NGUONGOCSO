@@ -14,6 +14,7 @@ export const ROLE_ACCESS = {
   farmLogCreate: ['VT-03'],
   packagingEventCreate: ['VT-02', 'VT-03'] as const,
   packagingEventCorrect: ['VT-02', 'VT-03'] as const,
+  transportEventRecord: ["VT-03"] as const,
 
   codeRangeList: ['VT-01'] as const,
   

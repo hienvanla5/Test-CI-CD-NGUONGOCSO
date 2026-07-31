@@ -19,6 +19,7 @@ import MemberPermissionsPage from "@/pages/organization/MemberPermissionsPage";
 import OrganizationProfilePage from "@/pages/organization/OrganizationProfilePage";
 import CreateProductionLotPage from "@/pages/production-lot/CreateProductionLotPage";
 import ProductionLotListPage from "@/pages/production-lot/ProductionLotListPage";
+import RecordTransportEventPage from "@/pages/transport-event/RecordTransportEventPage";
 
 import CreateCodeRangePage from "@/pages/admin/CreateCodeRangePage";
 import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
@@ -251,6 +252,16 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCorrect}>
             <CorrectPackagingEventPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Ghi sự kiện vận chuyển — chỉ VT-03 */}
+      <Route
+        path="transport-events/record"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.transportEventRecord}>
+            <RecordTransportEventPage />
           </RoleRoute>
         }
       />
