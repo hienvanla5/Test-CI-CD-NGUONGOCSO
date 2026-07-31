@@ -13,20 +13,22 @@ import java.util.UUID;
 public interface ProductionLotRepository extends JpaRepository<ProductionLot, UUID> {
 
     List<ProductionLot> findByOrganization_OrganizationId(UUID organizationId);
+
     List<ProductionLot> findByOrganization_OrganizationIdAndStatus(UUID organizationId, ProductionLotStatus status);
+
     List<ProductionLot> findByFarmAreaId(UUID farmAreaId);
 
     /**
      * Truy vấn tổng hợp số lô, sản lượng thực tế và dự kiến theo trạng thái của tổ chức.
      */
     @Query("""
-        SELECT pl.status, COUNT(pl), SUM(pl.expectedQuantity), SUM(pl.actualQuantity)
-        FROM ProductionLot pl
-        WHERE pl.organization.organizationId = :organizationId
-          AND (:startDate IS NULL OR pl.plantingDate >= :startDate)
-          AND (:endDate IS NULL OR pl.plantingDate <= :endDate)
-        GROUP BY pl.status
-    """)
+            SELECT pl.status, COUNT(pl), SUM(pl.expectedQuantity), SUM(pl.actualQuantity)
+            FROM ProductionLot pl
+            WHERE pl.organization.organizationId = :organizationId
+              AND (:startDate IS NULL OR pl.plantingDate >= :startDate)
+              AND (:endDate IS NULL OR pl.plantingDate <= :endDate)
+            GROUP BY pl.status
+        """)
     List<Object[]> getDashboardSummaryAndStatus(
             @Param("organizationId") UUID organizationId,
             @Param("startDate") LocalDate startDate,
@@ -36,38 +38,38 @@ public interface ProductionLotRepository extends JpaRepository<ProductionLot, UU
      * Lấy các lô sản xuất có ngày xuống giống khác null để phục vụ gom nhóm theo chu kỳ thời gian trên Java.
      */
     @Query("""
-        SELECT pl.plantingDate, pl.expectedQuantity, pl.actualQuantity
-        FROM ProductionLot pl
-        WHERE pl.organization.organizationId = :organizationId
-          AND pl.plantingDate IS NOT NULL
-          AND (:startDate IS NULL OR pl.plantingDate >= :startDate)
-          AND (:endDate IS NULL OR pl.plantingDate <= :endDate)
-        ORDER BY pl.plantingDate ASC
-    """)
+            SELECT pl.plantingDate, pl.expectedQuantity, pl.actualQuantity
+            FROM ProductionLot pl
+            WHERE pl.organization.organizationId = :organizationId
+              AND pl.plantingDate IS NOT NULL
+              AND (:startDate IS NULL OR pl.plantingDate >= :startDate)
+              AND (:endDate IS NULL OR pl.plantingDate <= :endDate)
+            ORDER BY pl.plantingDate ASC
+        """)
     List<Object[]> getDashboardTimeSeriesData(
             @Param("organizationId") UUID organizationId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
     /**
      * Truy vấn danh sách các lô sản xuất phục vụ phân tích theo vùng trồng và mùa vụ.
      * Sử dụng JOIN FETCH để tải trước các thực thể liên quan, tránh N+1 Query.
      */
     @Query("""
-        SELECT pl
-        FROM ProductionLot pl
-        JOIN FETCH pl.farmArea fa
-        JOIN FETCH pl.productCategory pc
-        JOIN FETCH pl.organization org
-        WHERE pl.plantingDate BETWEEN :startDate AND :endDate
-          AND (:farmAreaId IS NULL OR fa.id = :farmAreaId)
-          AND (:productCategoryId IS NULL OR pc.id = :productCategoryId)
-          AND (:organizationId IS NULL OR org.organizationId = :organizationId)
-    """)
+            SELECT pl
+            FROM ProductionLot pl
+            JOIN FETCH pl.farmArea fa
+            JOIN FETCH pl.productCategory pc
+            JOIN FETCH pl.organization org
+            WHERE pl.plantingDate BETWEEN :startDate AND :endDate
+              AND (:farmAreaId IS NULL OR fa.id = :farmAreaId)
+              AND (:productCategoryId IS NULL OR pc.id = :productCategoryId)
+              AND (:organizationId IS NULL OR org.organizationId = :organizationId)
+        """)
     List<ProductionLot> findLotsForAnalysis(
-            @Param("startDate") java.time.LocalDate startDate,
-            @Param("endDate") java.time.LocalDate endDate,
-            @Param("farmAreaId") java.util.UUID farmAreaId,
-            @Param("productCategoryId") java.util.UUID productCategoryId,
-            @Param("organizationId") java.util.UUID organizationId);
-
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("farmAreaId") UUID farmAreaId,
+            @Param("productCategoryId") UUID productCategoryId,
+            @Param("organizationId") UUID organizationId);
 }

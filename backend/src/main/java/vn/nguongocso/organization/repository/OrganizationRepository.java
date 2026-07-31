@@ -1,5 +1,6 @@
 package vn.nguongocso.organization.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,5 +18,10 @@ public interface OrganizationRepository extends JpaRepository<Organization, UUID
     Optional<Organization> findByCode(String code);
 
     boolean existsByEmail(@Email(message = "Email tổ chức không đúng định dạng") String email);
+
+    /**
+     * Tìm các tổ chức theo địa bàn.
+     */
+    List<Organization> findByAddressContainingIgnoreCase(String region);
 }
 
