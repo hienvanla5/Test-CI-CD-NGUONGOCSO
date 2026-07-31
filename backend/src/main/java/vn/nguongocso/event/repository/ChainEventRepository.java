@@ -32,4 +32,6 @@ public interface ChainEventRepository extends JpaRepository<ChainEvent, UUID> {
     List<ChainEvent> findByShipmentIdOrderByRecordedAtAsc(UUID shipmentId);
 
     List<ChainEvent> findByShipmentIsNullAndEventTypeIn(List<ChainEventType> eventTypes);
+
+    void deleteByShipmentId(UUID id);
 }

@@ -10,6 +10,7 @@ import type {
   UpdateProductionLotRequest,
   UpdateProductionLotResponse,
 } from '@/types/productionLot';
+import type { DashboardData } from '@/types/dashboard';
 
 interface ApiDataResponse<T> {
   data: T;
@@ -91,5 +92,35 @@ export const approveProductionLot = async (
     ApiDataResponse<ApproveProductionLotResult>
   >(`/production-lots/${id}/approve`, payload);
 
+  return response.data.data;
+};
+export interface DashboardSummary {
+  totalLots: number;
+  totalExpectedYield: number;
+  totalActualYield: number;
+}
+
+export type DashboardStatusCount = Record<string, number>;
+
+export interface DashboardTimeSeriesItem {
+  period: string; // "YYYY-MM"
+  lotCount: number;
+  expectedYield: number;
+  actualYield: number;
+}
+
+export interface DashboardResponse {
+  summary: DashboardSummary;
+  byStatus: DashboardStatusCount;
+  timeSeries: DashboardTimeSeriesItem[];
+}
+
+export const getProductionLotDashboard = async (params?: {
+  startDate?: string;
+  endDate?: string;
+  organizationId?: string;
+  groupBy?: 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
+}): Promise<DashboardResponse> => {
+  const response = await apiClient.get<{ data: DashboardResponse }>('/production-lots/dashboard', { params });
   return response.data.data;
 };

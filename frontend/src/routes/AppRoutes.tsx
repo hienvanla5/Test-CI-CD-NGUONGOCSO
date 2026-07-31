@@ -30,6 +30,10 @@ import CreateMemberPage from "@/pages/organization/CreateMemberPage";
 import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
+import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
+import ActivityLogPage from "@/pages/report/ActivityLogPage";
+import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
+import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -190,6 +194,7 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
+
       {/* Ghi nhật ký canh tác — VT-03 */}
       <Route
         path="farm-logs/create"
@@ -199,6 +204,7 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
+
       {/* 👇 Các route quản lý dải mã — chỉ VT-01 (Admin) */}
       <Route
         path="admin/code-ranges"
@@ -227,7 +233,7 @@ const AppRoutes = () => (
         }
       />
 
-            {/* Chi tiết lô sản xuất — chứa chức năng Lô hàng & Mã QR */}
+      {/* Chi tiết lô sản xuất — chứa chức năng Lô hàng & Mã QR */}
       <Route
         path="production-lots/:id"
         element={
@@ -266,10 +272,48 @@ const AppRoutes = () => (
         }
       />
 
+      {/* Thống kê tra cứu — VT-01, VT-02 */}
+      <Route
+        path="reports/lookup-statistics"
+        element={
+          <RoleRoute allowedRoles={["VT-01", "VT-02"]}>
+            <LookupStatisticsPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="activity-logs"
+        element={
+          <RoleRoute allowedRoles={["VT-02"]}>
+            <ActivityLogPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="admin/product-categories"
+        element={
+          <RoleRoute allowedRoles={["VT-01"]}>
+            <ProductCategoryManagementPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="failed-event-logs"
+        element={
+          <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+            <FailedEventLogsPage />
+          </RoleRoute>
+        }
+      />
+
       {/* Trang báo không đủ quyền vẫn nằm trong layout */}
       <Route path="unauthorized" element={<UnauthorizedPage />} />
     </Route>
 
+    {/* Route công khai tra cứu */}
     <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
 
     {/* Route không tồn tại */}

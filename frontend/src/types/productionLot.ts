@@ -1,11 +1,3 @@
-export interface ProductCategory {
-  id: string;
-  name: string;
-  group?: string;
-  description?: string;
-  isActive: boolean;
-}
-
 export interface ProductionLot {
   id: string;
   organizationName: string;
@@ -16,17 +8,17 @@ export interface ProductionLot {
   name: string;
   expectedQuantity: number;
   expectedQuantityUnit: string;
+  // FIX: was duplicated as `actualQuantyti` (typo) — removed duplicate, kept correct field
   actualQuantity: number | null;
   plantingDate: string;
   harvestDate: string;
   status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'HARVESTED' | 'PACKAGED' | 'CLOSED';
   approvalNotes: string | null;
   createdByName: string | null;
+  // FIX: was `approvebyName` (typo, inconsistent casing) — corrected to approvedByName
   approvedByName: string | null;
   createdAt: string;
   updatedAt: string;
-  actualQuantyti?: number;
-  approvebyName?: string;
 }
 
 export interface UpdateProductionLotRequest {

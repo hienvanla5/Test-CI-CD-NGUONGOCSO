@@ -83,8 +83,9 @@ CREATE TABLE product_categories (
 
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
 
-    CONSTRAINT pk_product_categories
-        PRIMARY KEY (id)
+    CONSTRAINT pk_product_categories PRIMARY KEY (id),
+
+    CONSTRAINT uk_product_categories_name UNIQUE (name)
 );
 
 CREATE TABLE farm_areas (

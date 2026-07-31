@@ -41,7 +41,6 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 
 	/**
 	 * Tạo mới vùng trồng cho tổ chức của người dùng đang đăng nhập.
-	 *
 	 * @param request thông tin vùng trồng cần tạo
 	 * @return thông tin vùng trồng sau khi tạo
 	 */
@@ -84,8 +83,12 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 	}
 
 	private ProductCategory getCropType(UUID cropTypeId) {
-		return productCategoryRepository.findById(cropTypeId)
+		ProductCategory cropType = productCategoryRepository.findById(cropTypeId)
 				.orElseThrow(() -> new BusinessException("Không tìm thấy loại cây trồng"));
+		if(Boolean.FALSE.equals(cropType.getIsActive())){
+			throw new BusinessException("Loại cây trồng " + cropType.getName() + " hiện đã bị ẩn và không thể dùng để tạo vùng trồng mới");
+		}
+		return cropType;
 	}
 
 	private FarmArea buildFarmArea(CreateFarmAreaRequest request, Organization organization, ProductCategory cropType) {

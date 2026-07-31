@@ -38,6 +38,8 @@ import {
   FarmLogEligibilityAlert,
   type FarmLogEligibilityStatus,
 } from "@/pages/packaging-event/components/FarmLogEligibilityAlert";
+import { useLotValidation } from "@/hooks/useLotValidation";
+import { LotValidationStatus } from "@/components/event-validation/LotValidationStatus";
 
 const farmActivityTypes: FarmActivityType[] = [
   "PLANTING",
@@ -73,14 +75,12 @@ const getPackagingError = (error: unknown) => {
   }
 
   const payload = error.response?.data;
-  const message =
-    payload?.message ?? "Có lỗi xảy ra khi ghi sự kiện đóng gói";
+  const message = payload?.message ?? "Có lỗi xảy ra khi ghi sự kiện đóng gói";
   const fromResponse = payload?.data?.missingActivities ?? [];
   const normalizedMessage = message.toUpperCase();
   const missingActivities = farmActivityTypes.filter(
     (activity) =>
-      fromResponse.includes(activity) ||
-      normalizedMessage.includes(activity),
+      fromResponse.includes(activity) || normalizedMessage.includes(activity),
   );
 
   return {
@@ -104,6 +104,8 @@ export function CreatePackagingForm() {
   >([]);
   const eligibilityRequestRef = useRef(0);
 
+  const { validation, loading } = useLotValidation(selectedLotId, "PACKAGING");
+
   const {
     register,
     handleSubmit,
@@ -123,9 +125,7 @@ export function CreatePackagingForm() {
 
   const lat = watch("latitude");
   const lng = watch("longitude");
-  const selectedLot = productionLots.find(
-    (lot) => lot.id === selectedLotId,
-  );
+  const selectedLot = productionLots.find((lot) => lot.id === selectedLotId);
 
   useEffect(() => {
     const fetchLots = async () => {
@@ -157,9 +157,7 @@ export function CreatePackagingForm() {
       const logs = await getAllFarmLogsByProductionLot(productionLotId);
       if (requestId !== eligibilityRequestRef.current) return;
 
-      const recordedActivities = new Set(
-        logs.map((log) => log.activityType),
-      );
+      const recordedActivities = new Set(logs.map((log) => log.activityType));
       const missing = requiredFarmActivities.filter(
         (activity) => !recordedActivities.has(activity),
       );
@@ -249,7 +247,7 @@ export function CreatePackagingForm() {
           <div className="space-y-2">
             <Label htmlFor="productionLotId">Lô sản xuất *</Label>
             <Select
-              value={selectedLotId || ""} // đảm bảo luôn là string
+              value={selectedLotId || ""}
               onValueChange={(val) => {
                 const nextLotId = val || "";
                 eligibilityRequestRef.current += 1;
@@ -283,6 +281,12 @@ export function CreatePackagingForm() {
                 ))}
               </SelectContent>
             </Select>
+            <LotValidationStatus
+              isValid={validation?.valid ?? null}
+              message={validation?.message || ""}
+              loading={loading}
+              className="mt-2"
+            />
             {errors.productionLotId && (
               <p className="text-sm text-red-500">
                 {errors.productionLotId.message}
@@ -368,9 +372,7 @@ export function CreatePackagingForm() {
           <Button
             type="submit"
             disabled={
-              isSubmitting ||
-              !selectedLotId ||
-              eligibilityStatus !== "eligible"
+              isSubmitting || !selectedLotId || eligibilityStatus !== "eligible" || !validation?.valid
             }
           >
             {isSubmitting ? "Đang ghi..." : "Ghi sự kiện"}

@@ -8,4 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface DossierExportHistoryRepository extends JpaRepository<DossierExportHistory, UUID> {
+
+    void deleteByShipmentId(UUID shipmentId);
 }

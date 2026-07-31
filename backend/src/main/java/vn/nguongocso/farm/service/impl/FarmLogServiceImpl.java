@@ -1,8 +1,10 @@
 package vn.nguongocso.farm.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import vn.nguongocso.alert_reclaim_history.event.ActivityLogEvent;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.PageResponse;
@@ -39,6 +42,8 @@ public class FarmLogServiceImpl implements FarmLogService {
 	private final FarmLogRepository farmLogRepository;
 	private final ProductionLotRepository productionLotRepository;
 	private final FarmLogAttachmentRepository attachmentRepository;
+
+	private final ApplicationEventPublisher eventPublisher;
 
 	private static final String EVENT_RECORDER_ROLE = "VT-03";
 	private static final String ORG_MANAGER_ROLE = "VT-02";
@@ -82,7 +87,36 @@ public class FarmLogServiceImpl implements FarmLogService {
 
 		FarmLog saved = farmLogRepository.save(farmLog);
 
+		publishActivityLog(
+				currentUser,
+				"CREATE",
+				"Ghi nhật ký canh tác cho lô " + saved.getProductionLotId().getName(),
+				"FarmLog",
+				saved.getId().toString()
+		);
+
 		return toResponse(saved);
+	}
+
+	private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+		eventPublisher.publishEvent(ActivityLogEvent.builder()
+				.userId(currentUser.getUserId())
+				.username(currentUser.getUsername())
+				.fullName(currentUser.getFullName())
+				.organizationId(currentUser.getOrganizationId())
+				.action(action)
+				.description(description)
+				.entityType(entityType)
+				.entityId(entityId)
+				.ipAddress(getClientIp()) // lấy từ request context nếu có
+				.timestamp(LocalDateTime.now())
+				.build()
+		);
+	}
+
+	private String getClientIp() {
+		// Có thể lấy từ SecurityContext hoặc truyền từ controller
+		return "127.0.0.1"; // tạm thời
 	}
 
 	private CustomUserDetails getCurrentUser() {
