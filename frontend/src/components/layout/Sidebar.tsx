@@ -59,9 +59,9 @@ const MENU_ITEMS: MenuItem[] = [
   },
   {
     icon: <MapPinned className="h-5 w-5" />,
-    label: "Tạo vùng trồng",
-    href: "/farm-areas/create",
-    allowedRoles: ROLE_ACCESS.farmAreaCreate,
+    label: "Vùng trồng",
+    href: "/farm-areas",
+    allowedRoles: ["VT-02"] as const,
   },
   {
     icon: <Package className="h-5 w-5" />,
@@ -110,6 +110,12 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Nhật ký lỗi sự kiện",
     href: "/failed-event-logs",
     allowedRoles: ["VT-02", "VT-03"] as const,
+  },
+  {
+    icon: <BarChart2 className="h-5 w-5" />,
+    label: "Phân tích vùng trồng",
+    href: "/reports/crop-area-analysis",
+    allowedRoles: ["VT-01", "VT-05"] as const,
   },
 ];
 
