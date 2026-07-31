@@ -6,6 +6,7 @@ import { ProductInfo } from '@/components/public/ProductInfo';
 import { RecallAlert } from '@/components/public/RecallAlert';
 import { Timeline } from '@/components/public/Timeline';
 import { RouteMap } from '@/components/public/RouteMap';
+import { ProductFeedbackForm } from '@/components/public/ProductFeedbackForm';
 import { LoaderCircle, AlertCircle, Home, MapPin, List } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -104,6 +105,13 @@ export default function TraceLookupPage() {
           <RecallAlert message={data.recallMessage} />
         )}
 
+        {data.productionLotId && (
+        <ProductFeedbackForm
+        productionLotId={data.productionLotId}
+        productName={data.productName}
+        />
+        )}
+        
         {/* Tabs: Bản đồ / Danh sách */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <Tabs defaultValue={hasLocationData ? 'map' : 'list'} className="w-full">
