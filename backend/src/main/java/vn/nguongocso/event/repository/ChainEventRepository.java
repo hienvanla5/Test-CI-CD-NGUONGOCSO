@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import vn.nguongocso.event.entity.ChainEvent;
+import vn.nguongocso.event.enums.ChainEventType;
 
 /**
  * Repository cho thực thể ChainEvent.
@@ -27,4 +28,8 @@ public interface ChainEventRepository extends JpaRepository<ChainEvent, UUID> {
             "AND ce.isCorrection = false " +
             "ORDER BY ce.recordedAt ASC")
     List<ChainEvent> findJourneyPointsByShipmentId(@Param("shipmentId") UUID shipmentId);
+
+    List<ChainEvent> findByShipmentIdOrderByRecordedAtAsc(UUID shipmentId);
+
+    List<ChainEvent> findByShipmentIsNullAndEventTypeIn(List<ChainEventType> eventTypes);
 }

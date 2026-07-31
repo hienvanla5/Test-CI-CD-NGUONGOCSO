@@ -91,12 +91,30 @@ public class PermissionService {
             throw new BusinessException("Quản lý HTX không thể gán vai trò Quản trị viên nền tảng");
         }
 
-        orgUser.setRole(newRole);
+        // 🆕 Nếu role mới là VT-02, kiểm tra và chuyển quyền quản lý cũ
+        if (RoleCode.ORG_MANAGER.equals(newRole.getCode())) {
+            // Tìm thành viên đang giữ VT-02 trong cùng tổ chức, ngoại trừ chính người được cập nhật
+            OrganizationUser currentManager = orgUserRepository
+                    .findByOrganization_OrganizationIdAndRole_Code(orgId, RoleCode.ORG_MANAGER)
+                    .filter(m -> !m.getUser().getUserId().equals(request.getUserId()))
+                    .orElse(null);
 
+            if (currentManager != null) {
+                Role vt03Role = roleRepository.findByCode(RoleCode.EVENT_RECORDER)
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy role VT-03"));
+
+                // Hạ quản lý cũ xuống VT-03
+                currentManager.setRole(vt03Role);
+                orgUserRepository.save(currentManager);
+                log.info("Hạ quản lý cũ {} xuống VT-03", currentManager.getUser().getFullName());
+            }
+        }
+
+        // Gán role mới cho thành viên được chọn
+        orgUser.setRole(newRole);
         orgUser = orgUserRepository.save(orgUser);
 
         log.info("Gán role thành công: userId={}, orgId={}, newRole={}", request.getUserId(), orgId, newRole.getCode());
-
         return toResponse(orgUser);
     }
 

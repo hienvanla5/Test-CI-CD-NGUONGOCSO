@@ -18,6 +18,7 @@ import vn.nguongocso.farm.repository.FarmAreaRepository;
 import vn.nguongocso.farm.repository.ProductCategoryRepository;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.exception.ResourceNotFoundException;
 import vn.nguongocso.farm.entity.FarmArea;
 import vn.nguongocso.farm.entity.ProductCategory;
 import vn.nguongocso.farm.entity.ProductionLot;
@@ -82,6 +83,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .productCategory(productCategory)
                 .name(request.getName())
                 .expectedQuantity(request.getExpectedQuantity())
+                .expectedQuantityUnit(request.getExpectedQuantityUnit())
                 .plantingDate(request.getPlantingDate())
                 .status(ProductionLotStatus.DRAFT)
                 .createdBy(user)
@@ -91,6 +93,15 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         log.info("Đã tạo thành công lô sản xuất với id={}", savedLot.getId());
 
         return mapToResponse(savedLot);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CreateProductionLotResponse getProductionLotById(UUID id) {
+        log.info("Lấy thông tin lô sản xuất id={}", id);
+        ProductionLot lot = productionLotRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Lô sản xuất không tồn tại"));
+        return mapToResponse(lot);
     }
 
     @Override
@@ -176,11 +187,14 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     private CreateProductionLotResponse mapToResponse(ProductionLot lot) {
         return CreateProductionLotResponse.builder()
                 .id(lot.getId())
+                .farmAreaId(lot.getFarmArea() != null ? lot.getFarmArea().getId() : null)
+                .productCategoryId(lot.getProductCategory().getId())
                 .organizationName(lot.getOrganization().getName())
                 .farmAreaName(lot.getFarmArea() != null ? lot.getFarmArea().getName() : null)
                 .productCategoryName(lot.getProductCategory().getName())
                 .name(lot.getName())
                 .expectedQuantity(lot.getExpectedQuantity())
+                .expectedQuantityUnit(lot.getExpectedQuantityUnit())
                 .actualQuantity(lot.getActualQuantity())
                 .plantingDate(lot.getPlantingDate())
                 .harvestDate(lot.getHarvestDate())
@@ -216,16 +230,20 @@ public class ProductionLotServiceImpl implements ProductionLotService {
             throw new vn.nguongocso.exception.BusinessException("Loại nông sản này hiện đang ngưng hoạt động");
         }
 
-        FarmArea farmArea = farmAreaRepository.findById(request.getFarmAreaId())
-                .orElseThrow(() -> new vn.nguongocso.exception.BusinessException("Không tìm thấy khu vực canh tác đã chọn"));
-        if (!farmArea.getOrganization().getOrganizationId().equals(orgId)) {
-            throw new vn.nguongocso.exception.BusinessException("Khu vực canh tác này không thuộc tổ chức của bạn");
+        FarmArea farmArea = null;
+        if (request.getFarmAreaId() != null) {
+            farmArea = farmAreaRepository.findById(request.getFarmAreaId())
+                    .orElseThrow(() -> new vn.nguongocso.exception.BusinessException("Không tìm thấy khu vực canh tác đã chọn"));
+            if (!farmArea.getOrganization().getOrganizationId().equals(orgId)) {
+                throw new vn.nguongocso.exception.BusinessException("Khu vực canh tác này không thuộc tổ chức của bạn");
+            }
         }
 
         productionLot.setName(request.getName());
         productionLot.setFarmArea(farmArea);
         productionLot.setProductCategory(productCategory);
         productionLot.setExpectedQuantity(request.getExpectedQuantity());
+        productionLot.setExpectedQuantityUnit(request.getExpectedQuantityUnit());
         productionLot.setPlantingDate(request.getPlantingDate());
 
         ProductionLot savedLot = productionLotRepository.save(productionLot);
@@ -237,6 +255,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .productCategoryId(savedLot.getProductCategory().getId())
                 .name(savedLot.getName())
                 .expectedQuantity(savedLot.getExpectedQuantity())
+                .expectedQuantityUnit(savedLot.getExpectedQuantityUnit())
                 .plantingDate(savedLot.getPlantingDate())
                 .status(savedLot.getStatus().name())
                 .updatedAt(savedLot.getUpdatedAt())

@@ -1,12 +1,14 @@
-import './App.css'
+import AppRoutes from './routes/AppRoutes';
+import { AuthProvider } from './contexts/AuthContext';
+import { Toaster } from 'sonner'; // hoặc react-hot-toast
 
 function App() {
-
   return (
-    <div>
-      <h1 className='text-3xl font-bold underline'>Hello</h1>
-    </div>
-  )
+    <AuthProvider>
+      <AppRoutes />
+      <Toaster position="top-right" />
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

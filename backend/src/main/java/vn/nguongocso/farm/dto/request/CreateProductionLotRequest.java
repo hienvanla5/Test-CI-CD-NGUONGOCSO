@@ -25,5 +25,8 @@ public class CreateProductionLotRequest {
     @Positive(message = "Sản lượng dự kiến phải lớn hơn 0")
     private Double expectedQuantity;
 
+    @NotBlank(message = "Vui lòng chọn đơn vị sản lượng")
+    private String expectedQuantityUnit; // hoặc dùng enum
+
     private LocalDate plantingDate;
 }

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -158,6 +159,31 @@ public class ShipmentServiceImpl implements ShipmentService {
 		}
 
 		return buildShipmentResponse(shipment, traceCodes, createdByName);
+	}
+
+	@Override
+	public List<ShipmentResponse> getShipmentsByProductionLot(UUID productionLotId) {
+		CustomUserDetails currentUser = getCurrentUser();
+		ProductionLot productionLot = findProductionLot(productionLotId);
+
+		// Kiểm tra tổ chức
+		if (!productionLot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
+			throw new BusinessException(ORGANIZATION_ACCESS_MESSAGE);
+		}
+
+		List<Shipment> shipments = shipmentRepository.findByProductionLotId(productionLotId);
+		return shipments.stream()
+				.map(shipment -> {
+					List<TraceCode> traceCodes = traceCodeRepository.findByShipmentId(shipment.getId());
+					String createdByName = null;
+					if (shipment.getCreatedBy() != null) {
+						createdByName = userRepository.findById(shipment.getCreatedBy().getUserId())
+								.map(User::getFullName)
+								.orElse(null);
+					}
+					return buildShipmentResponse(shipment, traceCodes, createdByName);
+				})
+				.collect(Collectors.toList());
 	}
 
 

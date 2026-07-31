@@ -45,6 +45,9 @@ public class ProductionLot {
     @Column(name = "expected_quantity", nullable = false)
     private Double expectedQuantity;
 
+    @Column(name = "expected_quantity_unit", length = 20)
+    private String expectedQuantityUnit; // ví dụ: "kg", "tấn", "tạ", "gói", ...
+
     @Column(name = "actual_quantity")
     private Double actualQuantity;
 
