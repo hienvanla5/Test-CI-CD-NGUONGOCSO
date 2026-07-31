@@ -15,9 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
-import vn.nguongocso.event.dto.request.CorrectPackagingEventRequest;
-import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
-import vn.nguongocso.event.dto.request.RecordTransportEventRequest;
+import vn.nguongocso.event.dto.request.*;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
@@ -25,7 +23,6 @@ import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.event.entity.ChainEvent;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
-import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.service.ChainEventService;
 import vn.nguongocso.event.service.EventValidationService;
@@ -405,6 +402,159 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .createdAt(chainEvent.getCreatedAt())
                 .build();
     }
+
+
+    @Override
+    @Transactional
+    public ChainEventResponse recordMobileEvent(RecordMobileEventRequest request, CustomUserDetails currentUser) {
+        // 1. Kiểm tra vai trò người ghi sự kiện (Quy tắc QTN-07)
+        String role = currentUser.getRoleCode();
+        if (!"VT-02".equals(role) && !"VT-03".equals(role)) {
+            throw new BusinessException("Chỉ thành viên được cấp quyền trong tổ chức mới được ghi sự kiện.");
+        }
+
+        // 2. Tìm kiếm lô sản xuất
+        ProductionLot lot = productionLotRepository.findById(request.getProductionLotId())
+                .orElseThrow(() -> new BusinessException("Không tìm thấy lô sản xuất."));
+
+        try {
+            // 3. Kiểm tra quyền sở hữu lô của tổ chức (Xử lý AC-03: Không được phân công lô)
+            if (!lot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
+                throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô sản xuất này.");
+            }
+
+            // 4. Kiểm tra thời điểm ghi nhận không ở tương lai
+            if (request.getRecordedAt().isAfter(LocalDateTime.now())) {
+                throw new BusinessException("Thời điểm ghi nhận không được là thời gian ở tương lai.");
+            }
+
+            // 5. Phân loại và xử lý logic nghiệp vụ đặc thù (Tái sử dụng dịch vụ chung)
+            if (request.getEventType() == ChainEventType.HARVEST) {
+                // Kiểm tra trạng thái lô sản xuất phải là APPROVED mới được thu hoạch
+                if (lot.getStatus() != ProductionLotStatus.APPROVED) {
+                    throw new BusinessException("Lô sản xuất chưa được duyệt, không thể ghi sự kiện thu hoạch.");
+                }
+
+                Object quantityObj = request.getEventData().get("quantity");
+                Object harvestDateStrObj = request.getEventData().get("harvestDate");
+
+                if (quantityObj == null || harvestDateStrObj == null) {
+                    throw new BusinessException("Thiếu dữ liệu sản lượng hoặc ngày thu hoạch.");
+                }
+
+                Double quantity = Double.valueOf(quantityObj.toString());
+                if (quantity <= 0) {
+                    throw new BusinessException("Sản lượng thu hoạch phải lớn hơn 0");
+                }
+
+                LocalDate harvestDate = LocalDate.parse(harvestDateStrObj.toString());
+                if (harvestDate.isAfter(LocalDate.now())) {
+                    throw new BusinessException("Ngày thu hoạch không được là ngày ở tương lai.");
+                }
+
+                // Cập nhật trạng thái lô sản xuất sang HARVESTED
+                lot.setStatus(ProductionLotStatus.HARVESTED);
+                lot.setHarvestDate(harvestDate);
+                lot.setActualQuantity(quantity);
+                productionLotRepository.save(lot);
+
+            } else if (request.getEventType() == ChainEventType.PACKAGING) {
+                // Kiểm tra trạng thái lô sản xuất phải là HARVESTED mới được đóng gói
+                if (lot.getStatus() != ProductionLotStatus.HARVESTED) {
+                    throw new BusinessException("Chỉ được ghi nhận sự kiện đóng gói cho lô đã thu hoạch.");
+                }
+
+                Object specObj = request.getEventData().get("packagingSpecification");
+                Object packagingDateStrObj = request.getEventData().get("packagingDate");
+
+                if (specObj == null || packagingDateStrObj == null) {
+                    throw new BusinessException("Thiếu thông tin quy cách hoặc ngày đóng gói.");
+                }
+
+                String packagingSpecification = specObj.toString();
+                if (packagingSpecification.trim().isEmpty()) {
+                    throw new BusinessException("Quy cách đóng gói không được để trống");
+                }
+                if (packagingSpecification.length() > 255) {
+                    throw new BusinessException("Quy cách đóng gói không được vượt quá 255 ký tự");
+                }
+
+                LocalDate packagingDate = LocalDate.parse(packagingDateStrObj.toString());
+                if (packagingDate.isAfter(LocalDate.now())) {
+                    throw new BusinessException("Ngày đóng gói không được là ngày ở tương lai.");
+                }
+                if (lot.getHarvestDate() != null && packagingDate.isBefore(lot.getHarvestDate())) {
+                    throw new BusinessException("Ngày đóng gói phải sau hoặc bằng ngày thu hoạch của lô sản xuất.");
+                }
+
+                // Cập nhật trạng thái lô sản xuất sang PACKAGED
+                lot.setStatus(ProductionLotStatus.PACKAGED);
+                productionLotRepository.save(lot);
+
+            } else {
+                throw new BusinessException("Loại sự kiện không được hỗ trợ ghi nhận từ thiết bị di động.");
+            }
+
+        } catch (BusinessException e) {
+            // Ghi nhận nhật ký thất bại vào bảng logs khi phát sinh lỗi nghiệp vụ (Xử lý AC-04)
+            eventValidationService.logFailedAttempt(
+                    request.getProductionLotId(),
+                    lot.getName(),
+                    request.getEventType(),
+                    e.getMessage(),
+                    currentUser
+            );
+            throw e;
+        }
+
+        // 6. Tạo tọa độ GPS địa điểm (SRID 4326)
+        Point locationPoint = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
+
+        // 7. Chuẩn bị dữ liệu lưu vào eventData JSON (Chứa thông tin ảnh thực địa và thiết bị nguồn)
+        Map<String, Object> finalEventDataMap = new HashMap<>();
+        finalEventDataMap.put("productionLotId", lot.getId().toString());
+        finalEventDataMap.put("productionLotName", lot.getName());
+        finalEventDataMap.put("images", request.getImages());
+        finalEventDataMap.put("deviceSource", request.getDeviceSource() != null ? request.getDeviceSource() : "MOBILE");
+
+        // Gộp dữ liệu chi tiết của sự kiện
+        finalEventDataMap.putAll(request.getEventData());
+
+        String eventDataJson;
+        try {
+            eventDataJson = objectMapper.writeValueAsString(finalEventDataMap);
+        } catch (JsonProcessingException e) {
+            throw new BusinessException("Lỗi chuyển đổi dữ liệu sự kiện sang chuỗi JSON.");
+        }
+
+        User actor = userRepository.findById(currentUser.getUserId())
+                .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin người ghi nhận."));
+
+        // 8. Tạo và lưu thực thể ChainEvent
+        ChainEvent chainEvent = ChainEvent.builder()
+                .eventType(request.getEventType())
+                .eventData(eventDataJson)
+                .location(locationPoint)
+                .recordedAt(request.getRecordedAt())
+                .recordedBy(actor)
+                .isCorrection(false)
+                .build();
+
+        chainEvent = chainEventRepository.save(chainEvent);
+
+        // 9. Trả về thông tin phản hồi thành công
+        return ChainEventResponse.builder()
+                .id(chainEvent.getId())
+                .eventType(chainEvent.getEventType())
+                .eventData(finalEventDataMap)
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .recordedAt(chainEvent.getRecordedAt())
+                .recordedByName(actor.getFullName())
+                .createdAt(chainEvent.getCreatedAt())
+                .build();
+    }
+
 
 }
 
