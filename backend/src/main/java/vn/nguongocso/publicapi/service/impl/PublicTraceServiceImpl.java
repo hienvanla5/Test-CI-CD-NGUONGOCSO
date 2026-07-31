@@ -92,8 +92,13 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 ? shipment.getProductionLot().getName()
                 : "Sản phẩm";
 
-        return PublicTraceResponse.builder()
+                return PublicTraceResponse.builder()
                 .codeValue(traceCode.getCodeValue())
+                .productionLotId(
+                shipment.getProductionLot() != null
+                        ? shipment.getProductionLot().getId()
+                        : null
+                )
                 .productName(productName)
                 .shipmentCode(shipment.getId().toString())
                 .shipmentStatus(shipment.getStatus().name())
