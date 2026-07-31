@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   BarChart2,
   Building2,
+  FileText,
   Hash,
   History,
   Layers,
@@ -116,6 +117,12 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Phân tích vùng trồng",
     href: "/reports/crop-area-analysis",
     allowedRoles: ["VT-01", "VT-05"] as const,
+  },
+  {
+    icon: <FileText className="h-5 w-5" />,
+    label: "Báo cáo ngành",
+    href: "/reports/industry",
+    allowedRoles: ["VT-05"] as const,
   },
 ];
 
