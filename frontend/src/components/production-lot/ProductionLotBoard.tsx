@@ -6,7 +6,21 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-export const ProductionLotBoard = () => {
+interface ProductionLotBoardProps {
+  canCreate?: boolean;
+  canEdit?: boolean;
+  canSubmitForApproval?: boolean;
+  canApprove?: boolean;
+  canRecordFarmLog?: boolean;
+}
+
+export const ProductionLotBoard = ({
+  canCreate: propCanCreate,
+  canEdit: propCanEdit,
+  canSubmitForApproval: propCanSubmitForApproval,
+  canApprove: propCanApprove,
+  canRecordFarmLog: propCanRecordFarmLog,
+}: ProductionLotBoardProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [lots, setLots] = useState<ProductionLot[]>([]);
@@ -48,31 +62,33 @@ export const ProductionLotBoard = () => {
     } catch (error: any) {
       const message = error.response?.data?.message || 'Không thể xử lý duyệt lô.';
       toast.error(message);
-      throw error; // để dialog không đóng khi thất bại
+      throw error;
     }
   };
 
-  const canSubmitForApproval = user?.roleCode === 'VT-01' || user?.roleCode === 'VT-02';
-  const canApprove = user?.roleCode === 'VT-02';
+  // Xác định quyền: ưu tiên props, nếu không thì dùng user
+  const canCreate = propCanCreate !== undefined ? propCanCreate : user?.roleCode === 'VT-02';
+  const canEdit = propCanEdit !== undefined ? propCanEdit : user?.roleCode === 'VT-02';
+  const canSubmitForApproval = propCanSubmitForApproval !== undefined ? propCanSubmitForApproval : (user?.roleCode === 'VT-01' || user?.roleCode === 'VT-02');
+  const canApprove = propCanApprove !== undefined ? propCanApprove : user?.roleCode === 'VT-02';
+  const canRecordFarmLog = propCanRecordFarmLog !== undefined ? propCanRecordFarmLog : user?.roleCode === 'VT-03';
 
- return (
-  <ProductionLotList
-    lots={lots}
-    isLoading={isLoading}
-    canCreate={user?.roleCode === "VT-02"}
-    canEdit={user?.roleCode === "VT-02"}
-    canSubmitForApproval={canSubmitForApproval}
-    canApprove={canApprove}
-    canRecordFarmLog={user?.roleCode === "VT-03"}
-    onCreate={() => navigate("/production-lots/create")}
-    onEdit={(id) => navigate(`/production-lots/${id}/edit`)}
-    onSubmitForApproval={handleSubmitForApproval}
-    onDecideApproval={handleDecideApproval}
-    onRecordFarmLog={(id) =>
-      navigate(
-        `/farm-logs/create?productionLotId=${encodeURIComponent(id)}`,
-      )
-    }
-  />
-);
+  return (
+    <ProductionLotList
+      lots={lots}
+      isLoading={isLoading}
+      canCreate={canCreate}
+      canEdit={canEdit}
+      canSubmitForApproval={canSubmitForApproval}
+      canApprove={canApprove}
+      canRecordFarmLog={canRecordFarmLog}
+      onCreate={() => navigate('/production-lots/create')}
+      onEdit={(id) => navigate(`/production-lots/${id}/edit`)}
+      onSubmitForApproval={handleSubmitForApproval}
+      onDecideApproval={handleDecideApproval}
+      onRecordFarmLog={(id) =>
+        navigate(`/farm-logs/create?productionLotId=${encodeURIComponent(id)}`)
+      }
+    />
+  );
 };
