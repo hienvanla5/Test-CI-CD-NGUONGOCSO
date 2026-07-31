@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { getAttachments, uploadAttachment, deleteAttachment } from '@/api/attachmentApi';
 import type { Attachment } from '@/types/attachment';
-import { format } from 'date-fns';
+import { format } from "date-fns";
 
 interface AttachmentManagerProps {
   logId: string;
