@@ -4,7 +4,11 @@ import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
+/**
+ * DTO phản hồi nhật ký sự kiện bị chặn.
+ *
+ * @author Triệu Văn Đại
+ */
 @Data
 @Builder
 public class FailedEventLogResponse {

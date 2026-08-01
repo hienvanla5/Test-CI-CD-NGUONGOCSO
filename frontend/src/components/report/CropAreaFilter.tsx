@@ -1,0 +1,168 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, X } from "lucide-react";
+import { getProductCategories } from "@/api/productCategoryApi"; // dùng API hiện có
+import { getFarmAreas } from "@/api/farmAreaApi"; // giả sử có
+import { getOrganizations } from "@/api/organizationApi"; // giả sử có
+import type { ProductCategory } from "@/types/productCategory";
+import type { FarmArea } from "@/types/farmArea";
+import type { Organization } from "@/types/organization";
+
+interface Props {
+  onFilter: (params: any) => void;
+  onReset: () => void;
+  loading?: boolean;
+  currentUserRole?: string;
+}
+
+export const CropAreaFilter = ({
+  onFilter,
+  onReset,
+  loading,
+  currentUserRole,
+}: Props) => {
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [farmAreaId, setFarmAreaId] = useState("");
+  const [productCategoryId, setProductCategoryId] = useState("");
+  const [organizationId, setOrganizationId] = useState("");
+
+  const [productCategories, setProductCategories] = useState<ProductCategory[]>(
+    [],
+  );
+  const [farmAreas, setFarmAreas] = useState<FarmArea[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+
+  useEffect(() => {
+    // Tải dữ liệu cho dropdown (chỉ khi có quyền)
+    Promise.all([
+      getProductCategories(),
+      getFarmAreas(),
+      currentUserRole === "VT-01" ? getOrganizations() : Promise.resolve([]),
+    ]).then(([cats, areas, orgs]) => {
+      setProductCategories(cats);
+      setFarmAreas(areas);
+      if (currentUserRole === "VT-01") setOrganizations(orgs);
+    });
+  }, [currentUserRole]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params: any = {};
+    if (year) params.year = year;
+    if (farmAreaId) params.farmAreaId = farmAreaId;
+    if (productCategoryId) params.productCategoryId = productCategoryId;
+    if (organizationId) params.organizationId = organizationId;
+    onFilter(params);
+  };
+
+  const handleReset = () => {
+    setYear(new Date().getFullYear());
+    setFarmAreaId("");
+    setProductCategoryId("");
+    setOrganizationId("");
+    onReset();
+  };
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+              <Label htmlFor="year">Năm</Label>
+              <Input
+                id="year"
+                type="number"
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                placeholder="VD: 2026"
+              />
+            </div>
+            <div>
+              <Label htmlFor="productCategory">Loại nông sản</Label>
+              <Select
+                value={productCategoryId}
+                onValueChange={(value) => setProductCategoryId(value || "")}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Tất cả" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tất cả</SelectItem>
+                  {productCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="farmArea">Vùng trồng</Label>
+                <Select
+                  value={farmAreaId}
+                  onValueChange={(value) => setFarmAreaId(value || '')}
+                >
+                <SelectTrigger>
+                  <SelectValue placeholder="Tất cả" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tất cả</SelectItem>
+                  {farmAreas.map((area) => (
+                    <SelectItem key={area.id} value={area.id}>
+                      {area.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {currentUserRole === "VT-01" && (
+              <div>
+                <Label htmlFor="organization">Tổ chức</Label>
+                  <Select
+                    value={organizationId}
+                    onValueChange={(value) => setOrganizationId(value || '')}
+                  >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tất cả" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Tất cả</SelectItem>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="flex items-end gap-2">
+              <Button type="submit" disabled={loading}>
+                <Search className="h-4 w-4 mr-1" /> Lọc
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleReset}
+                disabled={loading}
+              >
+                <X className="h-4 w-4 mr-1" /> Xóa
+              </Button>
+            </div>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};

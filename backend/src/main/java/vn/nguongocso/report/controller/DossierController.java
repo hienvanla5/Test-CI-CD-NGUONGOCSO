@@ -20,7 +20,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
-
+/**
+ * Controller quản lý hồ sơ truy xuất.
+ *
+ * @author Triệu Văn Đại
+ */
 @RestController
 @RequestMapping("/api/v1/shipments")
 @RequiredArgsConstructor

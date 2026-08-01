@@ -1,3 +1,4 @@
+import type { IndustryReportResponse } from '@/types/report';
 import apiClient from './axiosConfig';
 
 // --- Types ---
@@ -47,4 +48,37 @@ export const logDashboardAccess = async (dashboardKey: string): Promise<void> =>
   } catch {
     // best-effort — im lặng bỏ qua lỗi ghi log
   }
+};
+
+// API: Báo cáo cho cán bộ quản lý ngành
+export const getIndustrySummary = async (
+  region: string,
+  fromDate: string,
+  toDate: string
+): Promise<IndustryReportResponse> => {
+  const response = await apiClient.get('/reports/industry-summary', {
+    params: { region, fromDate, toDate },
+  });
+
+  // Kiểm tra nếu response.data có success (tức là wrap ApiResult)
+  if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+    // Trường hợp wrap: lấy data bên trong
+    return response.data.data as IndustryReportResponse;
+  }
+
+  // Trường hợp không wrap: trả về trực tiếp
+  return response.data as IndustryReportResponse;
+};
+
+export const exportIndustryReport = async (
+  region: string,
+  fromDate: string,
+  toDate: string
+): Promise<Blob> => {
+  const response = await apiClient.get('/reports/industry-summary/export', {
+    params: { region, fromDate, toDate },
+    responseType: 'blob',
+  });
+  // Blob response không có data wrapper, trả về data trực tiếp
+  return response.data;
 };

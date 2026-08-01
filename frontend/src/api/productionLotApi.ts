@@ -10,7 +10,6 @@ import type {
   UpdateProductionLotRequest,
   UpdateProductionLotResponse,
 } from '@/types/productionLot';
-import type { DashboardData } from '@/types/dashboard';
 
 interface ApiDataResponse<T> {
   data: T;

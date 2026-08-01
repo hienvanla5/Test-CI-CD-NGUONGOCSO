@@ -3,7 +3,11 @@ package vn.nguongocso.report.dto.response;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
+/**
+ * DTO phản hồi tra cứu bất thường.
+ *
+ * @author Triệu Văn Đại
+ */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -26,7 +26,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
+/**
+ * Service tra cứu công khai mã truy xuất.
+ *
+ * @author Triệu Văn Đại
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

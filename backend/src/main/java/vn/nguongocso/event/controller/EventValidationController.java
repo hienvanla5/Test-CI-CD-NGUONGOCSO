@@ -18,7 +18,11 @@ import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.service.EventValidationService;
 
 import java.util.UUID;
-
+/**
+ * Controller xác thực sự kiện chuỗi cung ứng.
+ *
+ * @author Triệu Văn Đại
+ */
 @RestController
 @RequestMapping("/api/v1/chain-events")
 @RequiredArgsConstructor

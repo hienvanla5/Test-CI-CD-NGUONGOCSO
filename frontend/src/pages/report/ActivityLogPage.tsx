@@ -31,12 +31,6 @@ export default function ActivityLogPage() {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
 
-  // State cho bộ lọc
-  const [action, setAction] = useState('');
-  const [actorName, setActorName] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-
   const fetchLogs = async (params: ActivityLogParams) => {
     try {
       setLoading(true);

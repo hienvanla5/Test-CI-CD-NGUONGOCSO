@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   BarChart2,
   Building2,
+  FileText,
   Hash,
   History,
   Layers,
@@ -59,9 +60,9 @@ const MENU_ITEMS: MenuItem[] = [
   },
   {
     icon: <MapPinned className="h-5 w-5" />,
-    label: "Tạo vùng trồng",
-    href: "/farm-areas/create",
-    allowedRoles: ROLE_ACCESS.farmAreaCreate,
+    label: "Vùng trồng",
+    href: "/farm-areas",
+    allowedRoles: ["VT-02"] as const,
   },
   {
     icon: <Package className="h-5 w-5" />,
@@ -94,6 +95,12 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ["VT-01", "VT-02"] as const,
   },
   {
+    icon: <AlertTriangle className="h-5 w-5" />,
+    label: "Cảnh báo tem bất thường",
+    href: "/alerts/scan-anomaly",
+    allowedRoles: ROLE_ACCESS.scanAnomalyAlerts,
+  },
+  {
     icon: <History className="h-5 w-5" />,
     label: "Lịch sử hoạt động",
     href: "/activity-logs",
@@ -110,6 +117,18 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Nhật ký lỗi sự kiện",
     href: "/failed-event-logs",
     allowedRoles: ["VT-02", "VT-03"] as const,
+  },
+  {
+    icon: <BarChart2 className="h-5 w-5" />,
+    label: "Phân tích vùng trồng",
+    href: "/reports/crop-area-analysis",
+    allowedRoles: ["VT-01", "VT-05"] as const,
+  },
+  {
+    icon: <FileText className="h-5 w-5" />,
+    label: "Báo cáo ngành",
+    href: "/reports/industry",
+    allowedRoles: ["VT-05"] as const,
   },
 ];
 

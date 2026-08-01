@@ -31,7 +31,11 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-
+/**
+ * Test service LookupStatisticsService.
+ *
+ * @author Triệu Văn Đại
+ */
 @ExtendWith(MockitoExtension.class)
 public class LookupStatisticsServiceTest {
 
