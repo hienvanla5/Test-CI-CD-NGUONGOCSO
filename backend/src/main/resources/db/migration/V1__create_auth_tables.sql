@@ -332,3 +332,22 @@ CREATE TABLE notifications (
 
 ALTER TABLE production_lot
 ADD COLUMN expected_quantity_unit VARCHAR(20);
+
+CREATE TABLE recalls (
+    id CHAR(36) NOT NULL,
+    shipment_id CHAR(36) NOT NULL,
+    reason TEXT NOT NULL,
+    recalled_by CHAR(36) NOT NULL,
+    recalled_at DATETIME NOT NULL,
+    status VARCHAR(20) NOT NULL,
+
+    PRIMARY KEY (id),
+
+    CONSTRAINT fk_recall_shipment
+        FOREIGN KEY (shipment_id)
+        REFERENCES shipments(id),
+
+    CONSTRAINT fk_recall_user
+        FOREIGN KEY (recalled_by)
+        REFERENCES users(user_id)
+) ENGINE=InnoDB;

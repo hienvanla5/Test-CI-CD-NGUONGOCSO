@@ -15,6 +15,7 @@ import vn.nguongocso.alert.service.AlertNotificationService;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.organization.entity.OrganizationUser;
 import vn.nguongocso.organization.repository.OrganizationUserRepository;
+import vn.nguongocso.trace.entity.Recall;
 import vn.nguongocso.trace.entity.Shipment;
 import vn.nguongocso.trace.entity.TraceCode;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
@@ -24,57 +25,101 @@ import vn.nguongocso.trace.repository.TraceCodeRepository;
 @RequiredArgsConstructor
 public class AlertNotificationServiceImpl implements AlertNotificationService {
 
-    private static final String ADMIN_ROLE = "VT-01";
-    private static final String ORG_MANAGER_ROLE = "VT-02";
+        private static final String ADMIN_ROLE = "VT-01";
+        private static final String ORG_MANAGER_ROLE = "VT-02";
 
-    private static final String NOTIFICATION_TITLE = "Cảnh báo tem quét bất thường";
-    private static final String NOTIFICATION_CONTENT = "Hệ thống phát hiện mã truy xuất có dấu hiệu bị quét bất thường ở nhiều vị trí.";
+        private static final String NOTIFICATION_TITLE = "Cảnh báo tem quét bất thường";
+        private static final String NOTIFICATION_CONTENT = "Hệ thống phát hiện mã truy xuất có dấu hiệu bị quét bất thường ở nhiều vị trí.";
 
-    private final NotificationRepository notificationRepository;
-    private final TraceCodeRepository traceCodeRepository;
-    private final OrganizationUserRepository organizationUserRepository;
+        private static final String RECALL_TITLE = "Thông báo thu hồi lô hàng";
 
-    @Override
-    public void sendScanAnomalyNotification(Alert alert) {
+        private final NotificationRepository notificationRepository;
+        private final TraceCodeRepository traceCodeRepository;
+        private final OrganizationUserRepository organizationUserRepository;
 
-        TraceCode traceCode = traceCodeRepository.findById(alert.getRelatedEntityId())
-                .orElseThrow(() -> new BusinessException("Mã truy xuất không tồn tại."));
+        @Override
+        public void sendScanAnomalyNotification(Alert alert) {
 
-        Shipment shipment = traceCode.getShipment();
+                TraceCode traceCode = traceCodeRepository.findById(alert.getRelatedEntityId())
+                                .orElseThrow(() -> new BusinessException("Mã truy xuất không tồn tại."));
 
-        UUID organizationId = shipment.getOrganization().getOrganizationId();
+                Shipment shipment = traceCode.getShipment();
 
-        List<OrganizationUser> recipients = new ArrayList<>();
+                UUID organizationId = shipment.getOrganization().getOrganizationId();
 
-        recipients.addAll(
-                organizationUserRepository.findAllByRole_Code(ADMIN_ROLE));
+                List<OrganizationUser> recipients = getRecipients(organizationId);
 
-        recipients.addAll(
-                organizationUserRepository
-                        .findAllByOrganization_OrganizationIdAndRole_Code(
-                                organizationId,
-                                ORG_MANAGER_ROLE));
+                List<Notification> notifications = recipients.stream()
+                                .map(user -> buildNotification(alert, user))
+                                .toList();
 
-        List<Notification> notifications = recipients.stream()
-                .map(user -> buildNotification(alert, user))
-                .toList();
+                notificationRepository.saveAll(notifications);
+        }
 
-        notificationRepository.saveAll(notifications);
-    }
+        /** Tạo thông báo. */
+        private Notification buildNotification(
+                        Alert alert,
+                        OrganizationUser organizationUser) {
 
-    /** Tạo thông báo. */
-    private Notification buildNotification(
-            Alert alert,
-            OrganizationUser organizationUser) {
+                Notification notification = new Notification();
 
-        Notification notification = new Notification();
+                notification.setUser(organizationUser.getUser());
+                notification.setType(NotificationType.ALERT);
 
-        notification.setUser(organizationUser.getUser());
-        notification.setType(NotificationType.ALERT);
+                notification.setTitle(NOTIFICATION_TITLE);
+                notification.setContent(NOTIFICATION_CONTENT);
 
-        notification.setTitle(NOTIFICATION_TITLE);
-        notification.setContent(NOTIFICATION_CONTENT);
+                return notification;
+        }
 
-        return notification;
-    }
+        @Override
+        public void sendShipmentRecallNotification(Recall recall) {
+
+                Shipment shipment = recall.getShipment();
+
+                UUID organizationId = shipment.getOrganization().getOrganizationId();
+
+                List<OrganizationUser> recipients = getRecipients(organizationId);
+
+                List<Notification> notifications = recipients.stream()
+                                .map(user -> buildRecallNotification(recall, user))
+                                .toList();
+
+                notificationRepository.saveAll(notifications);
+        }
+
+        private Notification buildRecallNotification(
+                        Recall recall,
+                        OrganizationUser organizationUser) {
+
+                Notification notification = new Notification();
+
+                notification.setUser(organizationUser.getUser());
+                notification.setType(NotificationType.ALERT);
+
+                notification.setTitle(RECALL_TITLE);
+
+                notification.setContent(
+                                "Lô hàng \"" + recall.getShipment().getName()
+                                                + "\" đã bị thu hồi. Lý do: "
+                                                + recall.getReason());
+
+                return notification;
+        }
+
+        private List<OrganizationUser> getRecipients(UUID organizationId) {
+
+                List<OrganizationUser> recipients = new ArrayList<>();
+
+                recipients.addAll(
+                                organizationUserRepository.findAllByRole_Code(ADMIN_ROLE));
+
+                recipients.addAll(
+                                organizationUserRepository
+                                                .findAllByOrganization_OrganizationIdAndRole_Code(
+                                                                organizationId,
+                                                                ORG_MANAGER_ROLE));
+
+                return recipients;
+        }
 }
