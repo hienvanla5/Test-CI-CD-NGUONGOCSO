@@ -37,6 +37,7 @@ import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
 import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
 import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
+import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -290,6 +291,16 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={["VT-01", "VT-02"]}>
             <LookupStatisticsPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Cảnh báo tem quét bất thường — VT-01, VT-02 */}
+      <Route
+        path="alerts/scan-anomaly"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.scanAnomalyAlerts}>
+            <ScanAnomalyAlertPage />
           </RoleRoute>
         }
       />
