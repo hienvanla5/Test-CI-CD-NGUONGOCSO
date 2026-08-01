@@ -2,7 +2,7 @@ import { approveProductionLot, submitProductionLot } from '@/api/productionLotAp
 import { ProductionLotList } from '@/components/production-lot/ProductionLotList';
 import { useAuth } from '@/hooks/useAuth';
 import type { ProductionLot } from '@/types/productionLot';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 

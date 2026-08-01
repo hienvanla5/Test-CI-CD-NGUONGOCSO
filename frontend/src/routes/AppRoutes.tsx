@@ -37,7 +37,9 @@ import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
 import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
 import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
-import ProcurementEventPage from '@/pages/procurement-event/procurement-event';
+import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
+import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
+
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
 ] as const satisfies readonly AuthenticatedRoleCode[];
@@ -294,6 +296,16 @@ const AppRoutes = () => (
         }
       />
 
+      {/* Cảnh báo tem quét bất thường — VT-01, VT-02 */}
+      <Route
+        path="alerts/scan-anomaly"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.scanAnomalyAlerts}>
+            <ScanAnomalyAlertPage />
+          </RoleRoute>
+        }
+      />
+
       <Route
         path="activity-logs"
         element={
@@ -338,7 +350,16 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-      <Route path="/procurement-event" element={<ProcurementEventPage />} />
+
+      {/* Route procurement event — VT-04 */}
+      <Route
+        path="procurement-event"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.procurementEvent}>
+            <ProcurementEventPage />
+          </RoleRoute>
+        }
+      />
 
       {/* Trang báo không đủ quyền vẫn nằm trong layout */}
       <Route path="unauthorized" element={<UnauthorizedPage />} />

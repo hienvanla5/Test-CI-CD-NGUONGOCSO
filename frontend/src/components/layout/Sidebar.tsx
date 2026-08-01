@@ -95,6 +95,12 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ["VT-01", "VT-02"] as const,
   },
   {
+    icon: <AlertTriangle className="h-5 w-5" />,
+    label: "Cảnh báo tem bất thường",
+    href: "/alerts/scan-anomaly",
+    allowedRoles: ROLE_ACCESS.scanAnomalyAlerts,
+  },
+  {
     icon: <History className="h-5 w-5" />,
     label: "Lịch sử hoạt động",
     href: "/activity-logs",

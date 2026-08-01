@@ -18,7 +18,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.annotation.Auditable;
-import vn.nguongocso.alert_reclaim_history.event.ActivityLogEvent;
+import vn.nguongocso.alert.event.ActivityLogEvent;
 
 import java.time.LocalDateTime;
 

@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import type { AreaAnalysisStats, AreaSeasonStats } from '@/types/cropAreaAnalysis';
+import type { AreaAnalysisStats } from '@/types/cropAreaAnalysis';
 
 interface Props {
   data: AreaAnalysisStats[];
