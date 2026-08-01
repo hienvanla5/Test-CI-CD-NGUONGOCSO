@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 export const CreateFarmAreaPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const handleSuccess = (newArea: any) => {
+  const handleSuccess = () => {
     navigate('/farm-areas'); // quay lại danh sách
   };
 

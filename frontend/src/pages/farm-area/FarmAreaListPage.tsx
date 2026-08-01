@@ -19,7 +19,6 @@ export default function FarmAreaListPage() {
   const navigate = useNavigate();
   const [areas, setAreas] = useState<FarmArea[]>([]);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
 
   const fetchAreas = async () => {
     try {
@@ -36,11 +35,6 @@ export default function FarmAreaListPage() {
   useEffect(() => {
     fetchAreas();
   }, []);
-
-  const handleCreateSuccess = (newArea: FarmArea) => {
-    setAreas((prev) => [...prev, newArea]);
-    setModalOpen(false);
-  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">

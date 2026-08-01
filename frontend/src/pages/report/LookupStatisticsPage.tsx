@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import {
   getLookupStatistics,
   getAbnormalScans,
@@ -31,7 +30,6 @@ import { RefreshCw } from 'lucide-react';
 type GroupByType = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
 
 export default function LookupStatisticsPage() {
-  const { user } = useAuth();
   const [stats, setStats] = useState<LookupStatisticsResponse | null>(null);
   const [abnormalScans, setAbnormalScans] = useState<AbnormalScanResponse[]>([]);
   const [loading, setLoading] = useState(true);
