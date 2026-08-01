@@ -7,7 +7,11 @@ import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.report.dto.response.LookupResponse;
 import vn.nguongocso.report.service.PublicLookupService;
-
+/**
+ * Controller tra cứu công khai mã truy xuất.
+ *
+ * @author Triệu Văn Đại
+ */
 @RestController
 @RequestMapping("/api/v1/public/trace-codes")
 @RequiredArgsConstructor

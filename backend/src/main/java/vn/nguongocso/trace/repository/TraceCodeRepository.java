@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import vn.nguongocso.trace.entity.TraceCode;
 
 /**
@@ -22,9 +24,17 @@ public interface TraceCodeRepository extends JpaRepository<TraceCode, UUID> {
      * Lấy mã theo lô hàng.
      */
 	List<TraceCode> findByShipmentId(UUID shipmentId);
+
+	/**
+	 * Xóa mã theo lô hàng.
+	 */
+	void deleteByShipmentId(UUID shipmentId);
 	
 	/**
 	 * Lấy mã code
 	 */
 	Optional<TraceCode> findByCodeValue(String codeValue);
+
+	@Query("SELECT MAX(t.codeValue) FROM TraceCode t WHERE t.shipment.organization.id = :orgId AND t.codeValue LIKE CONCAT(:prefix, '%')")
+	String findMaxCodeValueByOrganization(@Param("orgId") UUID orgId, @Param("prefix") String prefix);
 }

@@ -1,10 +1,14 @@
 package vn.nguongocso.farm.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import vn.nguongocso.common.annotation.Auditable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.nguongocso.alert_reclaim_history.event.ActivityLogEvent;
+import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
 import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
 import vn.nguongocso.farm.dto.request.UpdateProductionLotRequest;
@@ -48,8 +52,11 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     private final OrganizationRepository organizationRepository;
     private final ReportAccessLogService reportAccessLogService;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     @Override
     @Transactional
+    @Auditable(action = "CREATE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Tạo lô sản xuất mới: ' + #request.name")
     public CreateProductionLotResponse createProductionLot(CreateProductionLotRequest request, CustomUserDetails userDetails) {
         log.info("Bắt đầu xử lý tạo lô sản xuất với tên={}", request.getName());
 
@@ -92,6 +99,14 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         ProductionLot savedLot = productionLotRepository.save(productionLot);
         log.info("Đã tạo thành công lô sản xuất với id={}", savedLot.getId());
 
+        publishActivityLog(
+                userDetails,
+                "CREATE",
+                "Tạo lô sản xuất " + savedLot.getName(),
+                "ProductionLot",
+                savedLot.getId().toString()
+        );
+
         return mapToResponse(savedLot);
     }
 
@@ -120,6 +135,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
 
     @Override
     @Transactional
+    @Auditable(action = "APPROVE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Duyệt lô sản xuất ID: ' + #lotId + ', Kết quả duyệt: ' + #request.approved")
     public CreateProductionLotResponse approveProductionLot(UUID lotId, ApproveProductionLotRequest request, CustomUserDetails userDetails) {
         log.info("Bắt đầu duyệt lô sản xuất với id={}",  lotId);
 
@@ -153,11 +169,25 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         }
 
         ProductionLot saved = productionLotRepository.save(lot);
+
+        String action = request.getApproved() ? "APPROVE" : "REJECT";
+        String description = request.getApproved()
+                ? "Duyệt lô sản xuất " + lot.getName()
+                : "Từ chối lô sản xuất " + lot.getName() + " với lý do: " + request.getReason();
+        publishActivityLog(
+                userDetails,
+                action,
+                description,
+                "ProductionLot",
+                saved.getId().toString()
+        );
+
         return mapToResponse(saved);
     }
 
     @Override
     @Transactional
+    @Auditable(action = "SUBMIT_PRODUCTION_LOT_FOR_APPROVAL", entityType = "PRODUCTION_LOT", description = "'Gửi yêu cầu duyệt lô sản xuất ID: ' + #lotId")
     public CreateProductionLotResponse submitForApproval(UUID lotId, CustomUserDetails userDetails) {
         UUID orgId = userDetails.getOrganizationId();
 
@@ -181,6 +211,15 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         productionLotRepository.save(lot);
 
         log.info("Gửi duyệt lô thành công: lotId={}", lotId);
+
+        publishActivityLog(
+                userDetails,
+                "SUBMIT",
+                "Gửi duyệt lô sản xuất " + lot.getName(),
+                "ProductionLot",
+                lot.getId().toString()
+        );
+
         return mapToResponse(lot);
     }
 
@@ -208,6 +247,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     }
     @Override
     @Transactional
+    @Auditable(action = "UPDATE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Cập nhật lô sản xuất ID: ' + #id + ', Tên mới: ' + #request.name")
     public UpdateProductionLotResponse updateProductionLot(UUID id, UpdateProductionLotRequest request, CustomUserDetails userDetails) {
         log.info("Bắt đầu xử lý cập nhật lô sản xuất với id={}", id);
 
@@ -249,6 +289,14 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         ProductionLot savedLot = productionLotRepository.save(productionLot);
         log.info("Cập nhật thành công lô sản xuất id={}", savedLot.getId());
 
+        publishActivityLog(
+                userDetails,
+                "UPDATE",
+                "Cập nhật lô sản xuất " + savedLot.getName(),
+                "ProductionLot",
+                savedLot.getId().toString()
+        );
+
         return UpdateProductionLotResponse.builder()
                 .id(savedLot.getId())
                 .farmAreaId(savedLot.getFarmArea() != null ? savedLot.getFarmArea().getId() : null)
@@ -261,6 +309,23 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .updatedAt(savedLot.getUpdatedAt())
                 .build();
     }
+
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+        eventPublisher.publishEvent(ActivityLogEvent.builder()
+                .userId(currentUser.getUserId())
+                .username(currentUser.getUsername())
+                .fullName(currentUser.getFullName())
+                .organizationId(currentUser.getOrganizationId())
+                .action(action)
+                .description(description)
+                .entityType(entityType)
+                .entityId(entityId)
+                .ipAddress(IpUtils.getClientIp())
+                .timestamp(LocalDateTime.now())
+                .build()
+        );
+    }
+
     @Override
     @Transactional(readOnly = true)
     public ProductionLotDashboardResponse getDashboard(

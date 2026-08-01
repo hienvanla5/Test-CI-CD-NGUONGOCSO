@@ -1,11 +1,3 @@
-export interface ProductCategory {
-  id: string;
-  name: string;
-  group?: string;
-  description?: string;
-  isActive: boolean;
-}
-
 export interface ProductionLot {
   id: string;
   organizationName: string;

@@ -24,7 +24,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-
+/**
+ * Test service ProductionLotDashboard.
+ *
+ * @author Triệu Văn Đại
+ */
 @ExtendWith(MockitoExtension.class)
 public class ProductionLotDashboardServiceTest {
 

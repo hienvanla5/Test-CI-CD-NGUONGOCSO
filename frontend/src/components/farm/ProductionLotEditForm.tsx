@@ -6,9 +6,6 @@ import {
 } from "@/api/productionLotApi";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  type FarmArea,
-} from "@/types/farm";
-import {
   updateProductionLotSchema,
   type UpdateProductionLotFormValues,
 } from "@/utils/validators";
@@ -36,7 +33,9 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Button } from "../ui/button";
-import type { ProductCategory, ProductionLot } from "@/types/productionLot";
+import type { ProductionLot } from "@/types/productionLot";
+import type { ProductCategory } from "@/types/productCategory";
+import type { FarmArea } from "@/types/farmArea";
 
 export const ProductionLotEditForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();

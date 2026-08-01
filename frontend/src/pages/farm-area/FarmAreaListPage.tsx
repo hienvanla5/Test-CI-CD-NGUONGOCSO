@@ -1,0 +1,115 @@
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, MapPin, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
+import { getFarmAreas } from '@/api/farmAreaApi';
+import type { FarmArea } from '@/types/farmArea';
+import { useNavigate } from 'react-router-dom';
+
+export default function FarmAreaListPage() {
+  const navigate = useNavigate();
+  const [areas, setAreas] = useState<FarmArea[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const fetchAreas = async () => {
+    try {
+      setLoading(true);
+      const data = await getFarmAreas();
+      setAreas(data);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Không thể tải danh sách vùng trồng');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAreas();
+  }, []);
+
+  const handleCreateSuccess = (newArea: FarmArea) => {
+    setAreas((prev) => [...prev, newArea]);
+    setModalOpen(false);
+  };
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Vùng trồng</h1>
+          <p className="text-sm text-muted-foreground">
+            Quản lý các vùng trồng của tổ chức
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={fetchAreas} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            Làm mới
+          </Button>
+          <Button onClick={() => navigate('/farm-areas/create')}> {/* 👈 chuyển hướng */}
+            <Plus className="h-4 w-4 mr-1" />
+            Tạo vùng trồng
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh sách vùng trồng</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8">Đang tải...</div>
+          ) : areas.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <MapPin className="mx-auto h-12 w-12 text-muted-foreground/50" />
+              <p className="mt-2">Chưa có vùng trồng nào</p>
+              <p className="text-sm">Nhấn "Tạo vùng trồng" để thêm mới.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tên vùng</TableHead>
+                    <TableHead>Loại cây trồng</TableHead>
+                    <TableHead>Diện tích (ha)</TableHead>
+                    <TableHead>Vị trí</TableHead>
+                    <TableHead>Ngày tạo</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {areas.map((area) => (
+                    <TableRow key={area.id}>
+                      <TableCell className="font-medium">{area.name}</TableCell>
+                      <TableCell>{area.cropTypeName}</TableCell>
+                      <TableCell>{area.area}</TableCell>
+                      <TableCell>
+                        <span className="text-xs font-mono">
+                          {area.latitude.toFixed(6)}, {area.longitude.toFixed(6)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(area.createdAt).toLocaleDateString('vi-VN')}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

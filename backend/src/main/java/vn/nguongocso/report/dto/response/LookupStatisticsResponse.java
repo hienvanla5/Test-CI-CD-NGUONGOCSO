@@ -3,7 +3,11 @@ package vn.nguongocso.report.dto.response;
 import lombok.*;
 import java.util.List;
 import java.util.UUID;
-
+/**
+ * DTO phản hồi thống kê tra cứu.
+ *
+ * @author Triệu Văn Đại
+ */
 @Getter
 @Setter
 @NoArgsConstructor

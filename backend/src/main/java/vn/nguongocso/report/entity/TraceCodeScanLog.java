@@ -9,7 +9,11 @@ import vn.nguongocso.trace.entity.TraceCode;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
+/**
+ * Entity log tra cứu mã truy xuất.
+ *
+ * @author Triệu Văn Đại
+ */
 @Table(name = "trace_code_scan_logs")
 @Entity
 @Getter

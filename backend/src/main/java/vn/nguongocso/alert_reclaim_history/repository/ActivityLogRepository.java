@@ -1,0 +1,13 @@
+package vn.nguongocso.alert_reclaim_history.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
+import vn.nguongocso.alert_reclaim_history.entity.ActivityLog;
+
+import java.util.UUID;
+
+@Repository
+public interface ActivityLogRepository extends JpaRepository<ActivityLog, UUID>, JpaSpecificationExecutor<ActivityLog> {
+    // Kế thừa JpaSpecificationExecutor nhằm hỗ trợ tìm kiếm động linh hoạt
+}

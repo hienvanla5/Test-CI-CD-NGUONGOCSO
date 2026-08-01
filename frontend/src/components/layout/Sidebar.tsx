@@ -1,9 +1,13 @@
-import type { ReactNode } from 'react';
-import { Link, useLocation, useMatch } from 'react-router-dom';
+import type { ReactNode } from "react";
+import { Link, useLocation, useMatch } from "react-router-dom";
 import {
+  AlertTriangle,
   BarChart2,
   Building2,
+  FileText,
   Hash,
+  History,
+  Layers,
   LayoutDashboard,
   MapPinned,
   Package,
@@ -12,15 +16,15 @@ import {
   UserCheck,
   Users,
   X,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   ROLE_ACCESS,
   hasAnyRole,
   type AuthenticatedRoleCode,
-} from '@/config/roleAccess';
-import { useAuth } from '@/hooks/useAuth';
-import { cn } from '@/lib/utils';
+} from "@/config/roleAccess";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 interface MenuItem {
   icon: ReactNode;
@@ -38,32 +42,32 @@ interface SidebarProps {
 const MENU_ITEMS: MenuItem[] = [
   {
     icon: <LayoutDashboard className="h-5 w-5" />,
-    label: 'Dashboard',
-    href: '/',
+    label: "Dashboard",
+    href: "/",
     allowedRoles: ROLE_ACCESS.dashboard,
   },
   {
     icon: <Building2 className="h-5 w-5" />,
-    label: 'Tổ chức',
-    href: '/organizations',
+    label: "Tổ chức",
+    href: "/organizations",
     allowedRoles: ROLE_ACCESS.organizationList,
   },
   {
     icon: <UserCheck className="h-5 w-5" />,
-    label: 'Hồ sơ tổ chức',
-    href: '/organizations/profile',
+    label: "Hồ sơ tổ chức",
+    href: "/organizations/profile",
     allowedRoles: ROLE_ACCESS.organizationProfile,
   },
   {
     icon: <MapPinned className="h-5 w-5" />,
-    label: 'Tạo vùng trồng',
-    href: '/farm-areas/create',
-    allowedRoles: ROLE_ACCESS.farmAreaCreate,
+    label: "Vùng trồng",
+    href: "/farm-areas",
+    allowedRoles: ["VT-02"] as const,
   },
   {
     icon: <Package className="h-5 w-5" />,
-    label: 'Lô sản xuất',
-    href: '/production-lots',
+    label: "Lô sản xuất",
+    href: "/production-lots",
     allowedRoles: ROLE_ACCESS.productionLotList,
   },
   {
@@ -73,23 +77,53 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ROLE_ACCESS.transportEventRecord,
   },
   {
-    icon: <Hash className='h-5 w-5' />,
-    label: 'Quản lý dải mã',
-    href: '/admin/code-ranges',
+    icon: <Hash className="h-5 w-5" />,
+    label: "Quản lý dải mã",
+    href: "/admin/code-ranges",
     allowedRoles: ROLE_ACCESS.codeRangeList,
   },
   {
     icon: <Users className="h-5 w-5" />,
-    label: 'Quản lý thành viên',
-    href: '/members',
+    label: "Quản lý thành viên",
+    href: "/members",
     allowedRoles: ROLE_ACCESS.memberManagement,
   },
   {
-  icon: <BarChart2 className="h-5 w-5" />,
-  label: 'Thống kê tra cứu',
-  href: '/reports/lookup-statistics',   // 👈 đổi thành đường dẫn này
-  allowedRoles: ['VT-01', 'VT-02'] as const,
-},
+    icon: <BarChart2 className="h-5 w-5" />,
+    label: "Thống kê tra cứu",
+    href: "/reports/lookup-statistics", // 👈 đổi thành đường dẫn này
+    allowedRoles: ["VT-01", "VT-02"] as const,
+  },
+  {
+    icon: <History className="h-5 w-5" />,
+    label: "Lịch sử hoạt động",
+    href: "/activity-logs",
+    allowedRoles: ["VT-02"] as const,
+  },
+  {
+    icon: <Layers className="h-5 w-5" />,
+    label: "Danh mục nông sản",
+    href: "/admin/product-categories",
+    allowedRoles: ["VT-01"] as const,
+  },
+  {
+    icon: <AlertTriangle className="h-5 w-5" />,
+    label: "Nhật ký lỗi sự kiện",
+    href: "/failed-event-logs",
+    allowedRoles: ["VT-02", "VT-03"] as const,
+  },
+  {
+    icon: <BarChart2 className="h-5 w-5" />,
+    label: "Phân tích vùng trồng",
+    href: "/reports/crop-area-analysis",
+    allowedRoles: ["VT-01", "VT-05"] as const,
+  },
+  {
+    icon: <FileText className="h-5 w-5" />,
+    label: "Báo cáo ngành",
+    href: "/reports/industry",
+    allowedRoles: ["VT-05"] as const,
+  },
 ];
 
 export function Sidebar({
@@ -101,27 +135,30 @@ export function Sidebar({
   const location = useLocation();
 
   // 🔍 Debug: kiểm tra roleCode
-  console.log('🔑 user.roleCode:', user?.roleCode);
+  console.log("🔑 user.roleCode:", user?.roleCode);
 
   const visibleItems = MENU_ITEMS.filter((item) => {
     const hasAccess = hasAnyRole(user?.roleCode, item.allowedRoles);
-    console.log(`📌 ${item.label} → ${hasAccess ? '✅' : '❌'}`);
+    console.log(`📌 ${item.label} → ${hasAccess ? "✅" : "❌"}`);
     return hasAccess;
   });
 
   // Fallback nếu không có menu nào
-  const finalItems = visibleItems.length === 0
-    ? MENU_ITEMS.filter((item) => item.href === '/' || item.href === '/production-lots')
-    : visibleItems;
+  const finalItems =
+    visibleItems.length === 0
+      ? MENU_ITEMS.filter(
+          (item) => item.href === "/" || item.href === "/production-lots",
+        )
+      : visibleItems;
 
   const isActive = (href: string) => {
-  // Đối với route "/organizations" và "/organizations/profile" chúng ta muốn tách biệt
-  if (href === '/organizations') {
-    return location.pathname === '/organizations';
-  }
-  // Các route khác có thể dùng startsWith nếu cần
-  return !!useMatch(href);
-};
+    // Đối với route "/organizations" và "/organizations/profile" chúng ta muốn tách biệt
+    if (href === "/organizations") {
+      return location.pathname === "/organizations";
+    }
+    // Các route khác có thể dùng startsWith nếu cần
+    return !!useMatch(href);
+  };
 
   return (
     <aside className="flex h-full min-h-0 flex-col border-r bg-background">
@@ -153,10 +190,10 @@ export function Sidebar({
             to={item.href}
             onClick={onNavigate}
             className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
               isActive(item.href)
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             {item.icon}
@@ -164,7 +201,9 @@ export function Sidebar({
           </Link>
         ))}
         {finalItems.length === 0 && (
-          <p className="px-3 py-2 text-sm text-muted-foreground">Không có menu</p>
+          <p className="px-3 py-2 text-sm text-muted-foreground">
+            Không có menu
+          </p>
         )}
       </nav>
     </aside>

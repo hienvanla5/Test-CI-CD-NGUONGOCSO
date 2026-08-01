@@ -31,7 +31,13 @@ import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
 import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
-
+import ActivityLogPage from "@/pages/report/ActivityLogPage";
+import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
+import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
+import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
+import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
+import IndustryReportPage from "@/pages/report/IndustryReportPage";
+import ProcurementEventPage from '@/pages/procurement-event/procurement-event';
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
 ] as const satisfies readonly AuthenticatedRoleCode[];
@@ -162,6 +168,15 @@ const AppRoutes = () => (
         }
       />
 
+      <Route
+        path="farm-areas"
+        element={
+          <RoleRoute allowedRoles={["VT-02"]}>
+            <FarmAreaListPage />
+          </RoleRoute>
+        }
+      />
+
       {/* Danh sách lô sản xuất — VT-01, VT-02, VT-03 */}
       <Route
         path="production-lots"
@@ -278,6 +293,52 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
+
+      <Route
+        path="activity-logs"
+        element={
+          <RoleRoute allowedRoles={["VT-02"]}>
+            <ActivityLogPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="admin/product-categories"
+        element={
+          <RoleRoute allowedRoles={["VT-01"]}>
+            <ProductCategoryManagementPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="failed-event-logs"
+        element={
+          <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+            <FailedEventLogsPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="reports/crop-area-analysis"
+        element={
+          <RoleRoute allowedRoles={["VT-01", "VT-05"]}>
+            <CropAreaAnalysisPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="reports/industry"
+        element={
+          <RoleRoute allowedRoles={["VT-05"]}>
+            <IndustryReportPage />
+          </RoleRoute>
+        }
+      />
+      <Route path="/procurement-event" element={<ProcurementEventPage />} />
 
       {/* Trang báo không đủ quyền vẫn nằm trong layout */}
       <Route path="unauthorized" element={<UnauthorizedPage />} />
