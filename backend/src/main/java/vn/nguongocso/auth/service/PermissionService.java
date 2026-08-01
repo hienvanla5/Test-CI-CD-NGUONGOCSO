@@ -8,7 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import vn.nguongocso.alert_reclaim_history.event.ActivityLogEvent;
+import vn.nguongocso.alert.event.ActivityLogEvent;
 import vn.nguongocso.auth.dto.request.AddMemberRequest;
 import vn.nguongocso.auth.dto.request.AssignRoleRequest;
 import vn.nguongocso.auth.dto.response.OrganizationUserResponse;

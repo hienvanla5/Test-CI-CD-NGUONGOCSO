@@ -1,4 +1,4 @@
-package vn.nguongocso.alert_reclaim_history.service.impl;
+package vn.nguongocso.alert.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.PageResponse;
-import vn.nguongocso.alert_reclaim_history.dto.response.ActivityLogResponse;
-import vn.nguongocso.alert_reclaim_history.entity.ActivityLog;
-import vn.nguongocso.alert_reclaim_history.repository.ActivityLogRepository;
-import vn.nguongocso.alert_reclaim_history.specification.ActivityLogSpecification;
-import vn.nguongocso.alert_reclaim_history.service.ActivityLogService;
+import vn.nguongocso.alert.dto.response.ActivityLogResponse;
+import vn.nguongocso.alert.entity.ActivityLog;
+import vn.nguongocso.alert.repository.ActivityLogRepository;
+import vn.nguongocso.alert.specification.ActivityLogSpecification;
+import vn.nguongocso.alert.service.ActivityLogService;
 
 import java.time.LocalDate;
 import java.util.List;

@@ -1,9 +1,9 @@
-package vn.nguongocso.alert_reclaim_history.repository;
+package vn.nguongocso.alert.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import vn.nguongocso.alert_reclaim_history.entity.ActivityLog;
+import vn.nguongocso.alert.entity.ActivityLog;
 
 import java.util.UUID;
 

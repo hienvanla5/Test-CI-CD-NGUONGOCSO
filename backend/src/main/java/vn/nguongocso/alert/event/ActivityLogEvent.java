@@ -1,4 +1,4 @@
-package vn.nguongocso.alert_reclaim_history.dto.response;
+package vn.nguongocso.alert.event;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -8,15 +8,15 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class ActivityLogResponse {
-    private UUID id;
+public class ActivityLogEvent {
     private UUID userId;
     private String username;
     private String fullName;
+    private UUID organizationId;
     private String action;
     private String description;
     private String entityType;
     private String entityId;
     private String ipAddress;
-    private LocalDateTime createdAt;
+    private LocalDateTime timestamp;
 }

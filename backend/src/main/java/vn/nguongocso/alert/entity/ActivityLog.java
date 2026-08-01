@@ -1,4 +1,4 @@
-package vn.nguongocso.alert_reclaim_history.entity;
+package vn.nguongocso.alert.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,6 +8,7 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/** Lịch sử hoạt động của người dùng. */
 @Entity
 @Table(name = "activity_logs")
 @Getter
@@ -19,7 +20,7 @@ public class ActivityLog {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
-    @JdbcTypeCode(SqlTypes.CHAR) // Đồng bộ kiểu CHAR(36) với DB Migration
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID id;
 
     @Column(name = "organization_id", nullable = false)

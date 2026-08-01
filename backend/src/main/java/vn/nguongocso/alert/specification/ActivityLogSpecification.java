@@ -1,7 +1,7 @@
-package vn.nguongocso.alert_reclaim_history.specification;
+package vn.nguongocso.alert.specification;
 
 import org.springframework.data.jpa.domain.Specification;
-import vn.nguongocso.alert_reclaim_history.entity.ActivityLog;
+import vn.nguongocso.alert.entity.ActivityLog;
 
 import java.time.Instant;
 import java.time.LocalDate;

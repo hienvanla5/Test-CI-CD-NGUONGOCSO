@@ -1,4 +1,4 @@
-package vn.nguongocso.alert_reclaim_history.listener;
+package vn.nguongocso.alert.listener;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,9 +7,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import vn.nguongocso.alert_reclaim_history.event.ActivityLogEvent;
-import vn.nguongocso.alert_reclaim_history.entity.ActivityLog;
-import vn.nguongocso.alert_reclaim_history.repository.ActivityLogRepository;
+import vn.nguongocso.alert.event.ActivityLogEvent;
+import vn.nguongocso.alert.entity.ActivityLog;
+import vn.nguongocso.alert.repository.ActivityLogRepository;
 
 @Component
 @Slf4j

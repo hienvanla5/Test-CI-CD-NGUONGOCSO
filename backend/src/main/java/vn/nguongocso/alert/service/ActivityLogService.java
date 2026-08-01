@@ -1,8 +1,8 @@
-package vn.nguongocso.alert_reclaim_history.service;
+package vn.nguongocso.alert.service;
 
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.PageResponse;
-import vn.nguongocso.alert_reclaim_history.dto.response.ActivityLogResponse;
+import vn.nguongocso.alert.dto.response.ActivityLogResponse;
 
 import java.time.LocalDate;
 

@@ -1,4 +1,4 @@
-package vn.nguongocso.alert_reclaim_history.controller;
+package vn.nguongocso.alert.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.common.PageResponse;
-import vn.nguongocso.alert_reclaim_history.dto.response.ActivityLogResponse;
-import vn.nguongocso.alert_reclaim_history.service.ActivityLogService;
+import vn.nguongocso.alert.dto.response.ActivityLogResponse;
+import vn.nguongocso.alert.service.ActivityLogService;
 
 import java.time.LocalDate;
 
