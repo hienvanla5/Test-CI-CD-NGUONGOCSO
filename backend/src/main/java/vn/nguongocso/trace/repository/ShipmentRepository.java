@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import vn.nguongocso.report.dto.response.ProductBreakdownItem;
 import vn.nguongocso.trace.entity.Shipment;
+import vn.nguongocso.trace.enums.ShipmentStatus;
 
 /**
  * Repository quản lý lô hàng.
@@ -70,4 +71,10 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
             @Param("organizationIds") List<UUID> organizationIds,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate);
+
+    /**
+     * Lấy danh sách lô hàng đủ điều kiện thu mua (status = ACTIVATED).
+     * Dùng cho Doanh nghiệp thu mua (VT‑04) xem các lô hàng sẵn sàng.
+     */
+    List<Shipment> findByStatusOrderByCreatedAtDesc(ShipmentStatus status);
 }
