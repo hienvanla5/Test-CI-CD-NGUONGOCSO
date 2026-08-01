@@ -1,7 +1,10 @@
-import type { IndustryReportResponse } from '@/types/report';
 import apiClient from './axiosConfig';
+import type {
+  IndustryReportResponse,
+  IndustryReportExportResponse,
+  IndustryReportParams,
+} from '@/types/report';
 
-// --- Types ---
 export interface DashboardStatistics {
   summary: {
     totalLots: number;
@@ -24,7 +27,15 @@ export interface DashboardQueryParams {
   groupBy?: 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
 }
 
-// --- API ---
+// --- Types cho Export Report ---
+export interface ExportReportResponse {
+  fileUrl: string;
+  format: string;
+  exportedAt: string;
+  auditLogId: string;
+}
+
+// --- API cho Dashboard ---
 
 /**
  * Lấy dữ liệu bảng điều khiển sản lượng và số lô
@@ -50,35 +61,45 @@ export const logDashboardAccess = async (dashboardKey: string): Promise<void> =>
   }
 };
 
-// API: Báo cáo cho cán bộ quản lý ngành
-export const getIndustrySummary = async (
-  region: string,
-  fromDate: string,
-  toDate: string
-): Promise<IndustryReportResponse> => {
-  const response = await apiClient.get('/reports/industry-summary', {
-    params: { region, fromDate, toDate },
-  });
+// --- API cho Export Report (NCL-07-CN-003) ---
 
-  // Kiểm tra nếu response.data có success (tức là wrap ApiResult)
-  if (response.data && typeof response.data === 'object' && 'success' in response.data) {
-    // Trường hợp wrap: lấy data bên trong
-    return response.data.data as IndustryReportResponse;
-  }
-
-  // Trường hợp không wrap: trả về trực tiếp
-  return response.data as IndustryReportResponse;
+/**
+ * Xuất báo cáo tổng hợp ngành dạng PDF
+ * GET /api/v1/reports/industry-summary/export
+ * 
+ * @param params.region - Địa bàn cần xuất báo cáo (bắt buộc)
+ * @param params.fromDate - Ngày bắt đầu (yyyy-MM-dd)
+ * @param params.toDate - Ngày kết thúc (yyyy-MM-dd)
+ * @param params.format - Định dạng xuất (PDF | EXCEL), mặc định PDF
+ * @returns ExportReportResponse chứa fileUrl và thông tin xuất
+ */
+export const exportIndustryReport = async (params: {
+  region: string;
+  fromDate: string;
+  toDate: string;
+  format?: 'PDF' | 'EXCEL';
+}): Promise<ExportReportResponse> => {
+  const response = await apiClient.get<{ success: boolean; data: ExportReportResponse }>(
+    '/reports/industry-summary/export',
+    { params }
+  );
+  return response.data.data;
 };
-
-export const exportIndustryReport = async (
-  region: string,
-  fromDate: string,
-  toDate: string
-): Promise<Blob> => {
-  const response = await apiClient.get('/reports/industry-summary/export', {
-    params: { region, fromDate, toDate },
-    responseType: 'blob',
-  });
-  // Blob response không có data wrapper, trả về data trực tiếp
-  return response.data;
+export const getIndustrySummary = async (
+  params: IndustryReportParams
+): Promise<IndustryReportResponse> => {
+  const response = await apiClient.get<{ success: boolean; data: IndustryReportResponse }>(
+    '/reports/industry-summary',
+    { params }
+  );
+  return response.data.data;
+};
+export const exportIndustrySummary = async (
+  params: IndustryReportParams & { format?: 'PDF' | 'EXCEL' }
+): Promise<IndustryReportExportResponse> => {
+  const response = await apiClient.get<{ success: boolean; data: IndustryReportExportResponse }>(
+    '/reports/industry-summary/export',
+    { params }
+  );
+  return response.data.data;
 };

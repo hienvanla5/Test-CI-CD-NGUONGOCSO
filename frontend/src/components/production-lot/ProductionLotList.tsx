@@ -24,6 +24,7 @@ import {
   Pencil,
   Plus,
   Search,
+  ShoppingCart,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -46,6 +47,7 @@ interface ProductionLotListProps {
     reason?: string,
   ) => Promise<void>;
   onRecordFarmLog: (id: string) => void;
+  onRecordProcurement?: (lotId: string) => void;
 }
 
 const statusLabels: Record<ProductionLot["status"], string> = {
@@ -89,6 +91,7 @@ export const ProductionLotList = ({
   onSubmitForApproval,
   onDecideApproval,
   onRecordFarmLog,
+  onRecordProcurement,
 }: ProductionLotListProps) => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -221,8 +224,14 @@ export const ProductionLotList = ({
                       canRecordFarmLog &&
                       (lot.status === "APPROVED" ||
                         lot.status === "HARVESTED");
+                    const showRecordProcurement =
+                      !!onRecordProcurement &&
+                      lot.status === "PACKAGED";
                     const hasAction =
-                      showEdit || showApprove || showRecordFarmLog;
+                      showEdit ||
+                      showApprove ||
+                      showRecordFarmLog ||
+                      showRecordProcurement;
 
                     return (
                       <tr
@@ -300,6 +309,19 @@ export const ProductionLotList = ({
                               >
                                 <NotebookPen className="size-4" />
                                 Ghi nhật ký
+                              </Button>
+                            )}
+
+                            {showRecordProcurement && (
+                              <Button
+                                size="sm"
+                                type="button"
+                                onClick={() =>
+                                  onRecordProcurement?.(lot.id)
+                                }
+                              >
+                                <ShoppingCart className="size-4" />
+                                Ghi nhận thu mua
                               </Button>
                             )}
 

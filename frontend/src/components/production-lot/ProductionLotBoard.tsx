@@ -14,6 +14,7 @@ interface ProductionLotBoardProps {
   canSubmitForApproval?: boolean;
   canApprove?: boolean;
   canRecordFarmLog?: boolean;
+  onRecordProcurement?: (lotId: string) => void;
 }
 
 export const ProductionLotBoard = ({
@@ -24,6 +25,7 @@ export const ProductionLotBoard = ({
   canSubmitForApproval: propCanSubmitForApproval,
   canApprove: propCanApprove,
   canRecordFarmLog: propCanRecordFarmLog,
+  onRecordProcurement,
 }: ProductionLotBoardProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -107,6 +109,7 @@ export const ProductionLotBoard = ({
       onRecordFarmLog={(id) =>
         navigate(`/farm-logs/create?productionLotId=${encodeURIComponent(id)}`)
       }
+      onRecordProcurement={onRecordProcurement}
     />
   );
 };

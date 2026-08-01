@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.trace.dto.request.CreateShipmentRequest;
 import vn.nguongocso.trace.dto.response.ShipmentResponse;
+import vn.nguongocso.trace.dto.response.ProcurementShipmentResponse;
+import vn.nguongocso.trace.dto.response.ShipmentSummaryResponse;
 import vn.nguongocso.trace.service.ShipmentService;
 
 import java.util.List;
@@ -45,6 +47,24 @@ public class ShipmentController {
 	@PreAuthorize("hasAnyRole('VT-01', 'VT-02', 'VT-03')")
 	public ApiResult<List<ShipmentResponse>> getShipmentsByProductionLot(@PathVariable UUID productionLotId) {
 		return ApiResult.success(shipmentService.getShipmentsByProductionLot(productionLotId));
+	}
+
+	/**
+	 * Tra cứu lô hàng bằng mã truy xuất (codeValue in trên tem QR).
+	 * Dùng bởi VT-04 để xác nhận lô hàng trước khi ghi sự kiện thu mua.
+	 */
+	@GetMapping("/by-code")
+	public ApiResult<ShipmentSummaryResponse> getShipmentByCode(@RequestParam String code) {
+		return ApiResult.success(shipmentService.getShipmentByCode(code));
+	}
+
+	/**
+	 * Lấy danh sách lô hàng đủ điều kiện thu mua (status = ACTIVATED).
+	 * Dùng cho Doanh nghiệp thu mua (VT‑04).
+	 */
+	@GetMapping("/eligible")
+	public ApiResult<List<ProcurementShipmentResponse>> getEligibleShipments() {
+		return ApiResult.success(shipmentService.getEligibleShipments());
 	}
 }
 
