@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import vn.nguongocso.alert.service.AlertNotificationService;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.notification.service.NotificationService;
 import vn.nguongocso.trace.dto.request.RecallRequest;
 import vn.nguongocso.trace.dto.response.RecallInfoResponse;
 import vn.nguongocso.trace.dto.response.RecallResponse;
@@ -49,7 +49,7 @@ public class ShipmentRecallServiceImpl implements ShipmentRecallService {
     private final TraceCodeRepository traceCodeRepository;
     private final RecallRepository recallRepository;
     private final UserRepository userRepository;
-    private final AlertNotificationService alertNotificationService;
+    private final NotificationService alertNotificationService;
 
     /**
      * {@inheritDoc}

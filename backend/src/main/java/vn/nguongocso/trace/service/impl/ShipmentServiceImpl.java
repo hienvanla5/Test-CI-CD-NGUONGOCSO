@@ -23,7 +23,7 @@ import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
-import vn.nguongocso.notification.NotificationService;
+import vn.nguongocso.notification.service.NotificationService;
 import vn.nguongocso.trace.dto.request.CreateShipmentRequest;
 import vn.nguongocso.trace.dto.response.ShipmentResponse;
 import vn.nguongocso.trace.entity.CodeRange;

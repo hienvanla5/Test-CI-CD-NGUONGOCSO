@@ -1,4 +1,4 @@
-package vn.nguongocso.alert.entity;
+package vn.nguongocso.notification.entity;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

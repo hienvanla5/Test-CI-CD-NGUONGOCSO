@@ -18,9 +18,9 @@ import vn.nguongocso.alert.enums.AlertSeverity;
 import vn.nguongocso.alert.enums.AlertStatus;
 import vn.nguongocso.alert.enums.AlertType;
 import vn.nguongocso.alert.repository.AlertRepository;
-import vn.nguongocso.alert.service.AlertNotificationService;
 import vn.nguongocso.alert.service.ScanAnomalyDetectionService;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.notification.service.NotificationService;
 import vn.nguongocso.report.entity.TraceCodeScanLog;
 import vn.nguongocso.report.repository.TraceCodeScanLogRepository;
 
@@ -37,7 +37,7 @@ public class ScanAnomalyDetectionServiceImpl
     private static final int MIN_DISTINCT_LOCATIONS = 2; // Số vị trí khác nhau tối thiểu để xác định bất thường
 
     private final TraceCodeScanLogRepository traceCodeScanLogRepository;
-    private final AlertNotificationService notificationService;
+    private final NotificationService notificationService;
     private final AlertRepository alertRepository;
     private final ObjectMapper objectMapper;
 
