@@ -95,7 +95,7 @@ export default function ScanAnomalyAlertPage() {
     try {
       setLoading(true);
       const data = await getScanAnomalyAlerts({
-        status: filters.status,
+        status: filters.status === 'ALL' ? undefined : filters.status,
         fromDate: filters.fromDate || undefined,
         toDate: filters.toDate || undefined,
         organizationId:

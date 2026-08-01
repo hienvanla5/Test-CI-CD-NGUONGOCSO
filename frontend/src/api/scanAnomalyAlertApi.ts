@@ -10,7 +10,7 @@ export const getScanAnomalyAlerts = async (
   params: ScanAnomalyAlertParams,
 ): Promise<ScanAnomalyAlertListResponse> => {
   const response = await apiClient.get<{ data: ScanAnomalyAlertListResponse }>(
-    '/alerts/scan-anomaly',
+    '/alerts',
     { params },
   );
   return response.data.data;
