@@ -4,6 +4,7 @@ package vn.nguongocso.event.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import vn.nguongocso.common.annotation.Auditable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
@@ -68,6 +69,7 @@ public class ChainEventServiceImpl implements ChainEventService {
 
     @Override
     @Transactional
+    @Auditable(action = "RECORD_HARVEST_EVENT", entityType = "CHAIN_EVENT", description = "'Ghi nhận sự kiện thu hoạch cho lô sản xuất ID: ' + #request.productionLotId + ', Sản lượng: ' + #request.quantity + ' kg'")
     public ChainEventResponse recordHarvestEvent(RecordHarvestEventRequest request, CustomUserDetails currentUser) {
         String role = currentUser.getRoleCode();
         if (!"VT-02".equals(role) && !"VT-03".equals(role)) {
@@ -155,6 +157,7 @@ public class ChainEventServiceImpl implements ChainEventService {
 
     @Override
     @Transactional
+    @Auditable(action = "RECORD_PACKAGING_EVENT", entityType = "CHAIN_EVENT", description = "'Ghi nhận sự kiện đóng gói cho lô sản xuất ID: ' + #request.productionLotId + ', Quy cách: ' + #request.packagingSpecification")
     public ChainEventResponse recordPackagingEvent(RecordPackagingEventRequest request, CustomUserDetails currentUser) {
         String role = currentUser.getRoleCode();
         if (!"VT-02".equals(role) && !"VT-03".equals(role)) {
@@ -247,6 +250,7 @@ public class ChainEventServiceImpl implements ChainEventService {
 
     @Override
     @Transactional
+    @Auditable(action = "CORRECT_PACKAGING_EVENT", entityType = "CHAIN_EVENT", description = "'Đính chính thông tin đóng gói cho sự kiện gốc ID: ' + #originalEventId")
     public ChainEventResponse correctPackagingEvent(UUID originalEventId, CorrectPackagingEventRequest request, CustomUserDetails currentUser) {
         String role = currentUser.getRoleCode();
         if (!"VT-02".equals(role) && !"VT-03".equals(role)) {
@@ -355,6 +359,7 @@ public class ChainEventServiceImpl implements ChainEventService {
 
     @Override
     @Transactional
+    @Auditable(action = "RECORD_TRANSPORT_EVENT", entityType = "CHAIN_EVENT", description = "'Ghi nhận sự kiện vận chuyển mã tem: ' + #request.codeValue + ', Từ: ' + #request.fromLocation + ', Đến: ' + #request.toLocation")
     public ChainEventResponse recordTransportEvent(
             RecordTransportEventRequest request,
             CustomUserDetails currentUser) {

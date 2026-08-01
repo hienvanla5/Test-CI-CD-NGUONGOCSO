@@ -26,7 +26,11 @@ import vn.nguongocso.report.service.PublicLookupService;
 import vn.nguongocso.trace.enums.TraceCodeStatus;
 
 import java.util.UUID;
-
+/**
+ * Test controller PublicLookupController.
+ *
+ * @author Triệu Văn Đại
+ */
 @WebMvcTest(PublicLookupController.class)
 @Import(SecurityConfig.class)
 @ActiveProfiles("test")

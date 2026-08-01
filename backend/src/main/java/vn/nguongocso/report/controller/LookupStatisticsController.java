@@ -17,7 +17,11 @@ import vn.nguongocso.report.service.LookupStatisticsService;
 
 import java.time.LocalDate;
 import java.util.UUID;
-
+/**
+ * Controller thống kê tra cứu mã truy xuất.
+ *
+ * @author Triệu Văn Đại
+ */
 @RestController
 @RequestMapping("/api/v1/reports/lookup-statistics")
 @RequiredArgsConstructor

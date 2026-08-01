@@ -34,6 +34,9 @@ import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
 import ActivityLogPage from "@/pages/report/ActivityLogPage";
 import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
 import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
+import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
+import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
+import IndustryReportPage from "@/pages/report/IndustryReportPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -161,6 +164,15 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={ROLE_ACCESS.farmAreaCreate}>
             <CreateFarmAreaPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="farm-areas"
+        element={
+          <RoleRoute allowedRoles={["VT-02"]}>
+            <FarmAreaListPage />
           </RoleRoute>
         }
       />
@@ -305,6 +317,24 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
             <FailedEventLogsPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="reports/crop-area-analysis"
+        element={
+          <RoleRoute allowedRoles={["VT-01", "VT-05"]}>
+            <CropAreaAnalysisPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="reports/industry"
+        element={
+          <RoleRoute allowedRoles={["VT-05"]}>
+            <IndustryReportPage />
           </RoleRoute>
         }
       />

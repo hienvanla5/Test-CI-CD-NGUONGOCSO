@@ -51,6 +51,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
+/**
+ * Service xử lý nghiệp vụ hồ sơ.
+ *
+ * @author Triệu Văn Đại
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -157,7 +163,7 @@ public class DossierServiceImpl implements DossierService {
             Font boldFont;
             Font normalFont;
 
-            String fontPath = "C:/Windows/Fonts/arial.ttf";
+            String fontPath = "backend/src/main/resources/fonts/Roboto-Bold.ttf";
             if (new File(fontPath).exists()) {
                 BaseFont bf = BaseFont.createFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
                 titleFont = new Font(bf, 16, Font.BOLD, Color.BLACK);

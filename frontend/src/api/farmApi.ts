@@ -1,4 +1,4 @@
-import type { FarmArea } from "@/types/farm";
+import type { FarmArea } from "@/types/farmArea";
 import apiClient from "./axiosConfig";
 
 export const getFarmAreas = async (): Promise<FarmArea[]> => {

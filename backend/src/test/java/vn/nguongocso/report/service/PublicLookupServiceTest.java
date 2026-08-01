@@ -35,7 +35,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
+/**
+ * Test service PublicLookupService.
+ *
+ * @author Triệu Văn Đại
+ */
 @ExtendWith(MockitoExtension.class)
 public class PublicLookupServiceTest {
 

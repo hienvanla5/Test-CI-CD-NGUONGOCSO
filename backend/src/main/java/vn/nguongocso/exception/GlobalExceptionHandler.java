@@ -15,9 +15,12 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import vn.nguongocso.common.ApiResult;
@@ -51,6 +54,21 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
 
         return build(HttpStatus.NOT_FOUND, e.getMessage(), null, request);
+    }
+
+    /**
+     * Không tìm thấy endpoint hoặc tài nguyên tĩnh.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResult<Void>> handleNoResourceFound(
+            NoResourceFoundException e,
+            HttpServletRequest request) {
+
+        return build(
+                HttpStatus.NOT_FOUND,
+                "Đường dẫn API hoặc tài nguyên không tồn tại",
+                null,
+                request);
     }
 
     /**
@@ -111,6 +129,41 @@ public class GlobalExceptionHandler {
         return build(
                 HttpStatus.BAD_REQUEST,
                 "Thiếu trường " + e.getRequestPartName() + " trong request",
+                null,
+                request);
+    }
+
+    /**
+     * Thiếu tham số truy vấn (query parameter) bắt buộc.
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiResult<Void>> handleMissingParam(
+            MissingServletRequestParameterException e,
+            HttpServletRequest request) {
+
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "Thiếu tham số truy vấn bắt buộc '" + e.getParameterName() + "'",
+                null,
+                request);
+    }
+
+    /**
+     * Sai kiểu dữ liệu của tham số.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResult<Void>> handleTypeMismatch(
+            MethodArgumentTypeMismatchException e,
+            HttpServletRequest request) {
+
+        String message = String.format(
+                "Tham số '%s' có giá trị không hợp lệ (yêu cầu kiểu %s)",
+                e.getName(),
+                e.getRequiredType() != null ? e.getRequiredType().getSimpleName() : "xác định");
+
+        return build(
+                HttpStatus.BAD_REQUEST,
+                message,
                 null,
                 request);
     }

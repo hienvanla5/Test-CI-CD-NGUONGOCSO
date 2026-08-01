@@ -24,7 +24,11 @@ import vn.nguongocso.report.dto.response.LookupStatisticsResponse;
 import vn.nguongocso.report.service.LookupStatisticsService;
 
 import java.util.Collections;
-
+/**
+ * Test controller LookupStatisticsController.
+ *
+ * @author Triệu Văn Đại
+ */
 @WebMvcTest(LookupStatisticsController.class)
 @Import(SecurityConfig.class)
 @ActiveProfiles("test")

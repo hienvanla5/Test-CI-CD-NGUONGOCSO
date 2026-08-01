@@ -1,6 +1,7 @@
 package vn.nguongocso.farm.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import vn.nguongocso.common.annotation.Auditable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -55,6 +56,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
 
     @Override
     @Transactional
+    @Auditable(action = "CREATE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Tạo lô sản xuất mới: ' + #request.name")
     public CreateProductionLotResponse createProductionLot(CreateProductionLotRequest request, CustomUserDetails userDetails) {
         log.info("Bắt đầu xử lý tạo lô sản xuất với tên={}", request.getName());
 
@@ -133,6 +135,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
 
     @Override
     @Transactional
+    @Auditable(action = "APPROVE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Duyệt lô sản xuất ID: ' + #lotId + ', Kết quả duyệt: ' + #request.approved")
     public CreateProductionLotResponse approveProductionLot(UUID lotId, ApproveProductionLotRequest request, CustomUserDetails userDetails) {
         log.info("Bắt đầu duyệt lô sản xuất với id={}",  lotId);
 
@@ -184,6 +187,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
 
     @Override
     @Transactional
+    @Auditable(action = "SUBMIT_PRODUCTION_LOT_FOR_APPROVAL", entityType = "PRODUCTION_LOT", description = "'Gửi yêu cầu duyệt lô sản xuất ID: ' + #lotId")
     public CreateProductionLotResponse submitForApproval(UUID lotId, CustomUserDetails userDetails) {
         UUID orgId = userDetails.getOrganizationId();
 
@@ -243,6 +247,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     }
     @Override
     @Transactional
+    @Auditable(action = "UPDATE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Cập nhật lô sản xuất ID: ' + #id + ', Tên mới: ' + #request.name")
     public UpdateProductionLotResponse updateProductionLot(UUID id, UpdateProductionLotRequest request, CustomUserDetails userDetails) {
         log.info("Bắt đầu xử lý cập nhật lô sản xuất với id={}", id);
 
