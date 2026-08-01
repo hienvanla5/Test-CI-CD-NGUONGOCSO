@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Package, Sprout } from "lucide-react";
+import { ArrowLeft, Package, Plus, Sprout } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { getProductionLotById } from "@/api/productionLotApi";
 import { ShipmentList } from "@/pages/shipment/ShipmentList";
@@ -12,6 +12,13 @@ import { HarvestForm } from "@/components/trace-event/HarvestForm";
 import type { ProductionLot } from "@/types/productionLot";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import type { ProductionLotCertification } from "@/types/certification";
+import {
+  detachCertification,
+  getLotCertifications,
+} from "@/api/certificationApi";
+import { CertificationList } from "@/components/certification/CertificationList";
+import { AttachCertificationDialog } from "@/components/certification/AttachCertificationDialog";
 
 export const ProductionLotDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +27,11 @@ export const ProductionLotDetailPage = () => {
   const [lot, setLot] = useState<ProductionLot | null>(null);
   const [loading, setLoading] = useState(true);
   const [showHarvestForm, setShowHarvestForm] = useState(false);
+  const [certifications, setCertifications] = useState<
+    ProductionLotCertification[]
+  >([]);
+  const [loadingCerts, setLoadingCerts] = useState(false);
+  const [attachDialogOpen, setAttachDialogOpen] = useState(false);
 
   const loadLot = async () => {
     if (!id) return;
@@ -33,8 +45,27 @@ export const ProductionLotDetailPage = () => {
     }
   };
 
+  const loadCertifications = async () => {
+    if (!id) return;
+    try {
+      setLoadingCerts(true);
+      const data = await getLotCertifications(id);
+      setCertifications(data);
+    } catch (error: any) {
+      toast.error("Không thể tải danh sách chứng nhận");
+    } finally {
+      setLoadingCerts(false);
+    }
+  };
+
   useEffect(() => {
     loadLot();
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadCertifications();
+    }
   }, [id]);
 
   const canRecordHarvest =
@@ -60,6 +91,23 @@ export const ProductionLotDetailPage = () => {
     (user?.roleCode === "VT-02" || user?.roleCode === "VT-03") &&
     lot.status === "HARVESTED";
 
+  const canManageCert = user?.roleCode === "VT-02";
+
+  const handleDetach = async (certificationId: string) => {
+    if (!id) {
+      toast.error("Không tìm thấy ID lô sản xuất");
+      return;
+    }
+    if (!confirm("Bạn có chắc chắn muốn gỡ chứng nhận này?")) return;
+    try {
+      await detachCertification(id, certificationId);
+      toast.success("Gỡ chứng nhận thành công");
+      await loadCertifications();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Không thể gỡ chứng nhận");
+    }
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -68,15 +116,17 @@ export const ProductionLotDetailPage = () => {
           Quay lại
         </Button>
         <div className="flex gap-2">
-          {canRecordHarvest && lot.status === "APPROVED" && !showHarvestForm && (
-            <Button
-              onClick={() => setShowHarvestForm(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              <Sprout className="h-4 w-4 mr-1" />
-              Ghi nhận thu hoạch
-            </Button>
-          )}
+          {canRecordHarvest &&
+            lot.status === "APPROVED" &&
+            !showHarvestForm && (
+              <Button
+                onClick={() => setShowHarvestForm(true)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                <Sprout className="h-4 w-4 mr-1" />
+                Ghi nhận thu hoạch
+              </Button>
+            )}
           {canRecordPackaging && (
             <Button
               onClick={() =>
@@ -190,6 +240,7 @@ export const ProductionLotDetailPage = () => {
           <TabsTrigger value="info">Thông tin chung</TabsTrigger>
           <TabsTrigger value="farmlogs">Nhật ký canh tác</TabsTrigger>
           <TabsTrigger value="shipments">Lô hàng & Mã QR</TabsTrigger>
+          <TabsTrigger value="certifications">Chứng nhận</TabsTrigger>
         </TabsList>
         <TabsContent value="info" className="mt-4">
           <Card>
@@ -230,7 +281,32 @@ export const ProductionLotDetailPage = () => {
             canActivate={canActivateShipment}
           />
         </TabsContent>
+        <TabsContent value="certifications" className="mt-4">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Chứng nhận của lô</h2>
+              {canManageCert && (
+                <Button onClick={() => setAttachDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-1" /> Gắn chứng nhận
+                </Button>
+              )}
+            </div>
+            <CertificationList
+              certifications={certifications}
+              onDetach={handleDetach}
+              canManage={canManageCert}
+              loading={loadingCerts}
+            />
+          </div>
+        </TabsContent>
       </Tabs>
+
+      <AttachCertificationDialog
+        open={attachDialogOpen}
+        onClose={() => setAttachDialogOpen(false)}
+        lotId={id!}
+        onSuccess={loadCertifications}
+      />
     </div>
   );
 };
