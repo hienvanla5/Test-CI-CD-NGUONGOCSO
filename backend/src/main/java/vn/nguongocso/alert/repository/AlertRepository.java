@@ -6,6 +6,8 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import vn.nguongocso.alert.entity.Alert;
 import vn.nguongocso.alert.enums.AlertStatus;
@@ -39,5 +41,38 @@ public interface AlertRepository extends JpaRepository<Alert, UUID> {
             LocalDateTime fromDate,
             LocalDateTime toDate,
             Pageable pageable);
+
+    @Query("""
+            SELECT a
+            FROM Alert a
+            JOIN TraceCode tc
+                ON tc.id = a.relatedEntityId
+            JOIN tc.shipment s
+            WHERE a.type = :type
+            AND (:status IS NULL
+                 OR a.status = :status)
+            AND (:organizationId IS NULL
+                 OR s.organization.organizationId = :organizationId)
+            AND (:fromDate IS NULL
+                 OR a.createdAt >= :fromDate)
+            AND (:toDate IS NULL
+                 OR a.createdAt <= :toDate)
+            ORDER BY a.createdAt DESC
+            """)
+    Page<Alert> searchScanAnomalyAlerts(
+            @Param("type") AlertType type,
+            @Param("status") AlertStatus status,
+            @Param("organizationId") UUID organizationId,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate,
+            Pageable pageable);
+
+    /**
+     * Kiểm tra đã tồn tại cảnh báo đang chờ xử lý của mã truy xuất hay chưa.
+     */
+    boolean existsByRelatedEntityIdAndTypeAndStatus(
+            UUID relatedEntityId,
+            AlertType type,
+            AlertStatus status);
 
 }

@@ -10,7 +10,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -38,16 +37,16 @@ public class Alert {
     @Column(nullable = false)
     private String relatedEntityType;
 
-    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "related_entity_id", nullable = false)
     private UUID relatedEntityId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AlertSeverity severity;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "json", nullable = false)
-    private AlertDetails details;
+    @Column(name = "details", columnDefinition = "json")
+    private String details;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -58,5 +57,7 @@ public class Alert {
 
     private LocalDateTime resolvedAt;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "resolved_by")
     private UUID resolvedBy;
 }

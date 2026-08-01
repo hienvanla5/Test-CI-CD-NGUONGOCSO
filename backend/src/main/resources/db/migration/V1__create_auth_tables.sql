@@ -323,9 +323,12 @@ CREATE TABLE notifications (
 
     CONSTRAINT fk_notification_user
         FOREIGN KEY (user_id)
-        REFERENCES users(id),
+        REFERENCES users(user_id),
 
     INDEX idx_notification_user (user_id),
     INDEX idx_notification_read (is_read),
     INDEX idx_notification_created (created_at)
 );
+
+ALTER TABLE production_lot
+ADD COLUMN expected_quantity_unit VARCHAR(20);

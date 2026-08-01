@@ -6,12 +6,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.alert.service.ScanAnomalyDetectionService;
 import vn.nguongocso.event.entity.ChainEvent;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
 import vn.nguongocso.publicapi.dto.response.PublicChainEventItem;
 import vn.nguongocso.publicapi.dto.response.PublicTraceResponse;
 import vn.nguongocso.publicapi.service.PublicTraceService;
+import vn.nguongocso.report.entity.TraceCodeScanLog;
+import vn.nguongocso.report.repository.TraceCodeScanLogRepository;
 import vn.nguongocso.trace.entity.Shipment;
 import vn.nguongocso.trace.entity.TraceCode;
 import vn.nguongocso.trace.enums.ShipmentStatus;
@@ -19,6 +22,8 @@ import vn.nguongocso.trace.enums.TraceCodeStatus;
 import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,9 +36,12 @@ public class PublicTraceServiceImpl implements PublicTraceService {
     private final ShipmentRepository shipmentRepository;
     private final ChainEventRepository chainEventRepository;
     private final ObjectMapper objectMapper;
+    private final TraceCodeScanLogRepository traceCodeScanLogRepository;
+    private final ScanAnomalyDetectionService scanAnomalyDetectionService;
 
     @Override
-    public PublicTraceResponse getPublicTrace(String codeValue) {
+    public PublicTraceResponse getPublicTrace(String codeValue, Double latitude, Double longitude, String location,
+            String ipAddress, String userAgent) {
         // TC-02: Kiểm tra tồn tại mã
         TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
                 .orElseThrow(() -> new BusinessException("Mã lô hàng không tồn tại."));
@@ -42,6 +50,25 @@ public class PublicTraceServiceImpl implements PublicTraceService {
         if (traceCode.getStatus() != TraceCodeStatus.ACTIVE) {
             throw new BusinessException("Tem chưa có hiệu lực, chưa thể tra cứu hành trình.");
         }
+
+        // Ghi nhận lượt quét
+        TraceCodeScanLog scanLog = TraceCodeScanLog.builder()
+                .traceCode(traceCode)
+                .scannedAt(LocalDateTime.now())
+                .ipAddress(ipAddress)
+                .userAgent(userAgent)
+                .latitude(latitude != null ? BigDecimal.valueOf(latitude) : null)
+                .longitude(longitude != null ? BigDecimal.valueOf(longitude) : null)
+                .location(location != null && !location.isBlank()
+                        ? location
+                        : "Không xác định")
+                .isAbnormal(false)
+                .build();
+
+        traceCodeScanLogRepository.save(scanLog);
+
+        // Kiểm tra phát hiện bất thường
+        scanAnomalyDetectionService.onScanRecorded(traceCode.getId());
 
         // Xác định Shipment
         Shipment shipment = traceCode.getShipment();
@@ -64,8 +91,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
             UUID productionLotId = shipment.getProductionLot().getId();
             // Lọc các event không có shipment và có eventType là HARVEST hoặc PACKAGING
             List<ChainEvent> allUnassignedEvents = chainEventRepository.findByShipmentIsNullAndEventTypeIn(
-                    List.of(ChainEventType.HARVEST, ChainEventType.PACKAGING)
-            );
+                    List.of(ChainEventType.HARVEST, ChainEventType.PACKAGING));
             // Lọc theo productionLotId trong eventData
             productionLotEvents = allUnassignedEvents.stream()
                     .filter(e -> {
@@ -92,13 +118,12 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 ? shipment.getProductionLot().getName()
                 : "Sản phẩm";
 
-                return PublicTraceResponse.builder()
+        return PublicTraceResponse.builder()
                 .codeValue(traceCode.getCodeValue())
                 .productionLotId(
-                shipment.getProductionLot() != null
-                        ? shipment.getProductionLot().getId()
-                        : null
-                )
+                        shipment.getProductionLot() != null
+                                ? shipment.getProductionLot().getId()
+                                : null)
                 .productName(productName)
                 .shipmentCode(shipment.getId().toString())
                 .shipmentStatus(shipment.getStatus().name())
@@ -126,7 +151,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 .eventType(event.getEventType().name())
                 .eventData(filteredData)
                 .recordedAt(event.getRecordedAt())
-                .latitude(latitude)   // 👈 thêm
+                .latitude(latitude) // 👈 thêm
                 .longitude(longitude) // 👈 thêm
                 .build();
     }
@@ -136,7 +161,8 @@ public class PublicTraceServiceImpl implements PublicTraceService {
             return new HashMap<>();
         }
         try {
-            return objectMapper.readValue(eventDataJson, new TypeReference<Map<String, Object>>() {});
+            return objectMapper.readValue(eventDataJson, new TypeReference<Map<String, Object>>() {
+            });
         } catch (Exception e) {
             log.warn("Không thể parse eventData: {}", eventDataJson, e);
             return new HashMap<>();
