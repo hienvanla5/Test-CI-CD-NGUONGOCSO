@@ -17,4 +17,6 @@ public interface CertificationService {
     void detachCertification(UUID lotId, UUID certificationId, CustomUserDetails currentUser);
 
     List<CertificationResponse> getValidCertifications(CustomUserDetails currentUser);
+
+    void checkCertificationExpiry();
 }

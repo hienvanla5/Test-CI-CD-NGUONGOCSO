@@ -22,6 +22,15 @@ import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.exception.ResourceNotFoundException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
+import org.springframework.beans.factory.annotation.Value;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import vn.nguongocso.alert.entity.Alert;
+import vn.nguongocso.alert.entity.CertificationAlertDetails;
+import vn.nguongocso.alert.enums.AlertSeverity;
+import vn.nguongocso.alert.enums.AlertStatus;
+import vn.nguongocso.alert.enums.AlertType;
+import vn.nguongocso.alert.repository.AlertRepository;
+import vn.nguongocso.alert.service.AlertNotificationService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -38,6 +47,12 @@ public class CertificationServiceImpl implements CertificationService {
     private final ProductionLotCertificationRepository plCertificationRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final AlertRepository alertRepository;
+    private final AlertNotificationService alertNotificationService;
+    private final ObjectMapper objectMapper;
+
+    @Value("${app.certification.expiry-warning-threshold-days:30}")
+    private int warningThresholdDays;
 
     @Override
     @Transactional(readOnly = true)
@@ -177,5 +192,129 @@ public class CertificationServiceImpl implements CertificationService {
                 .timestamp(java.time.LocalDateTime.now())
                 .build()
         );
+    }
+
+    @Override
+    @Transactional
+    public void checkCertificationExpiry() {
+        log.info("⏰ Bắt đầu quét kiểm tra hạn hiệu lực của các chứng nhận. Ngưỡng cảnh báo: {} ngày", warningThresholdDays);
+
+        List<Certification> certifications = certificationRepository.findAll();
+        LocalDate today = LocalDate.now();
+
+        for (Certification cert : certifications) {
+            LocalDate expiryDate = cert.getExpiryDate();
+
+            if (expiryDate.isBefore(today)) {
+                // Đã hết hiệu lực
+                processExpiredCertification(cert, today);
+            } else {
+                long daysRemaining = expiryDate.toEpochDay() - today.toEpochDay();
+                if (daysRemaining <= warningThresholdDays) {
+                    // Sắp hết hiệu lực
+                    processExpiringCertification(cert, daysRemaining);
+                }
+            }
+        }
+    }
+
+    private void processExpiredCertification(Certification cert, LocalDate today) {
+        // Tự động giải quyết/đóng cảnh báo sắp hết hạn (nếu có)
+        autoResolveExpiringAlert(cert.getId());
+
+        // Tạo cảnh báo đã hết hạn nếu chưa tồn tại alert PENDING cùng loại
+        boolean exists = alertRepository.existsByRelatedEntityIdAndTypeAndStatus(
+                cert.getId(),
+                AlertType.CERTIFICATION_EXPIRED,
+                AlertStatus.PENDING
+        );
+
+        if (!exists) {
+            long daysOverdue = today.toEpochDay() - cert.getExpiryDate().toEpochDay();
+
+            CertificationAlertDetails details = CertificationAlertDetails.builder()
+                    .certificationName(cert.getName())
+                    .certificationCode(cert.getCode())
+                    .issuedBy(cert.getIssuedBy())
+                    .issueDate(cert.getIssueDate())
+                    .expiryDate(cert.getExpiryDate())
+                    .daysOverdue(daysOverdue)
+                    .thresholdConfigured(warningThresholdDays)
+                    .build();
+
+            Alert alert = new Alert();
+            alert.setId(UUID.randomUUID());
+            alert.setType(AlertType.CERTIFICATION_EXPIRED);
+            alert.setRelatedEntityType("Certification");
+            alert.setRelatedEntityId(cert.getId());
+            alert.setSeverity(AlertSeverity.HIGH);
+            alert.setStatus(AlertStatus.PENDING);
+            alert.setCreatedAt(java.time.LocalDateTime.now());
+            try {
+                alert.setDetails(objectMapper.writeValueAsString(details));
+            } catch (Exception e) {
+                log.error("Lỗi parse details cho cảnh báo chứng nhận hết hiệu lực: {}", cert.getId(), e);
+                return;
+            }
+
+            alertRepository.save(alert);
+            alertNotificationService.sendCertificationExpiryNotification(alert);
+            log.warn("🚨 Đã tạo cảnh báo CERTIFICATION_EXPIRED cho chứng nhận '{}'", cert.getName());
+        }
+    }
+
+    private void processExpiringCertification(Certification cert, long daysRemaining) {
+        // Tạo cảnh báo sắp hết hạn nếu chưa tồn tại alert PENDING cùng loại
+        boolean exists = alertRepository.existsByRelatedEntityIdAndTypeAndStatus(
+                cert.getId(),
+                AlertType.CERTIFICATION_EXPIRING,
+                AlertStatus.PENDING
+        );
+
+        if (!exists) {
+            CertificationAlertDetails details = CertificationAlertDetails.builder()
+                    .certificationName(cert.getName())
+                    .certificationCode(cert.getCode())
+                    .issuedBy(cert.getIssuedBy())
+                    .issueDate(cert.getIssueDate())
+                    .expiryDate(cert.getExpiryDate())
+                    .daysRemaining(daysRemaining)
+                    .thresholdConfigured(warningThresholdDays)
+                    .build();
+
+            Alert alert = new Alert();
+            alert.setId(UUID.randomUUID());
+            alert.setType(AlertType.CERTIFICATION_EXPIRING);
+            alert.setRelatedEntityType("Certification");
+            alert.setRelatedEntityId(cert.getId());
+            alert.setSeverity(AlertSeverity.MEDIUM);
+            alert.setStatus(AlertStatus.PENDING);
+            alert.setCreatedAt(java.time.LocalDateTime.now());
+            try {
+                alert.setDetails(objectMapper.writeValueAsString(details));
+            } catch (Exception e) {
+                log.error("Lỗi parse details cho cảnh báo chứng nhận sắp hết hiệu lực: {}", cert.getId(), e);
+                return;
+            }
+
+            alertRepository.save(alert);
+            alertNotificationService.sendCertificationExpiryNotification(alert);
+            log.info("⚠️ Đã tạo cảnh báo CERTIFICATION_EXPIRING cho chứng nhận '{}' (còn {} ngày)", cert.getName(), daysRemaining);
+        }
+    }
+
+    private void autoResolveExpiringAlert(UUID certificationId) {
+        java.util.List<Alert> pendingExpiringAlerts = alertRepository.findByRelatedEntityIdAndTypeAndStatus(
+                certificationId,
+                AlertType.CERTIFICATION_EXPIRING,
+                AlertStatus.PENDING
+        );
+
+        for (Alert alert : pendingExpiringAlerts) {
+            alert.setStatus(AlertStatus.RESOLVED);
+            alert.setResolvedAt(java.time.LocalDateTime.now());
+            alertRepository.save(alert);
+            log.info("⚙️ Tự động RESOLVED cảnh báo sắp hết hiệu lực của chứng nhận ID: {}", certificationId);
+        }
     }
 }
