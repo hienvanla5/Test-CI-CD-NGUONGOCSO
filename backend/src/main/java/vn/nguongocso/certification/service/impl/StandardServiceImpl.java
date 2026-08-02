@@ -94,6 +94,10 @@ public class StandardServiceImpl implements StandardService {
     public Page<StandardResponse> getStandards(Boolean isActive,
             Pageable pageable, CustomUserDetails currentUser) {
 
+<<<<<<< HEAD
+=======
+        validateAdminPermission(currentUser);
+>>>>>>> feature/remove-projection-lot
 
         Page<Standard> page;
 

@@ -10,23 +10,34 @@ import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.certification.dto.request.AttachCertificationRequest;
+<<<<<<< HEAD
 import vn.nguongocso.certification.dto.request.CreateCertificationRequest;
+=======
+>>>>>>> feature/remove-projection-lot
 import vn.nguongocso.certification.dto.response.CertificationResponse;
 import vn.nguongocso.certification.dto.response.ProductionLotCertificationResponse;
 import vn.nguongocso.certification.entity.Certification;
 import vn.nguongocso.certification.entity.ProductionLotCertification;
+<<<<<<< HEAD
 import vn.nguongocso.certification.entity.Standard;
 import vn.nguongocso.certification.repository.CertificationRepository;
 import vn.nguongocso.certification.repository.ProductionLotCertificationRepository;
 import vn.nguongocso.certification.repository.StandardRepository;
+=======
+import vn.nguongocso.certification.repository.CertificationRepository;
+import vn.nguongocso.certification.repository.ProductionLotCertificationRepository;
+>>>>>>> feature/remove-projection-lot
 import vn.nguongocso.certification.service.CertificationService;
 import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.exception.ResourceNotFoundException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
+<<<<<<< HEAD
 import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.repository.OrganizationRepository;
+=======
+>>>>>>> feature/remove-projection-lot
 
 import java.time.LocalDate;
 import java.util.List;
@@ -43,8 +54,11 @@ public class CertificationServiceImpl implements CertificationService {
     private final ProductionLotCertificationRepository plCertificationRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+<<<<<<< HEAD
     private final StandardRepository standardRepository;
     private final OrganizationRepository organizationRepository;
+=======
+>>>>>>> feature/remove-projection-lot
 
     @Override
     @Transactional(readOnly = true)
@@ -129,6 +143,7 @@ public class CertificationServiceImpl implements CertificationService {
                 .collect(Collectors.toList());
     }
 
+<<<<<<< HEAD
     /**
      * Tạo mới chứng nhận cho tổ chức hiện tại.
      */
@@ -193,6 +208,8 @@ public class CertificationServiceImpl implements CertificationService {
                 .collect(Collectors.toList());
     }
 
+=======
+>>>>>>> feature/remove-projection-lot
     private CertificationResponse toCertificationResponse(Certification cert) {
         return CertificationResponse.builder()
                 .id(cert.getId())
