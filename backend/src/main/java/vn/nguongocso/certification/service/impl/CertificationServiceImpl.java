@@ -93,7 +93,7 @@ public class CertificationServiceImpl implements CertificationService {
 
         // 6. Ghi log (TC-04)
         publishActivityLog(currentUser, "ATTACH_CERTIFICATION",
-                "Gắn chứng nhận '" + cert.getStandard().getName() + "' vào lô sản xuất " + lot.getName(),
+                "Gắn chứng nhận '" + cert.getName() + "' vào lô sản xuất " + lot.getName(),
                 "ProductionLot", lot.getId().toString());
 
         return toResponse(plc);
@@ -116,7 +116,7 @@ public class CertificationServiceImpl implements CertificationService {
         // 4. Ghi log
         Certification cert = plc.getCertification();
         publishActivityLog(currentUser, "DETACH_CERTIFICATION",
-                "Gỡ chứng nhận '" + cert.getStandard().getName() + "' khỏi lô sản xuất " + lot.getName(),
+                "Gỡ chứng nhận '" + cert.getName() + "' khỏi lô sản xuất " + lot.getName(),
                 "ProductionLot", lotId.toString());
     }
 
