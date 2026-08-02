@@ -34,4 +34,20 @@ public interface ChainEventRepository extends JpaRepository<ChainEvent, UUID> {
     List<ChainEvent> findByShipmentIsNullAndEventTypeIn(List<ChainEventType> eventTypes);
 
     void deleteByShipmentId(UUID id);
+
+    // Đếm số lượng event theo loại cho từng shipment
+    @Query("SELECT ce.shipment.id, ce.eventType, COUNT(ce) " +
+            "FROM ChainEvent ce " +
+            "WHERE ce.shipment.id IN :shipmentIds " +
+            "AND ce.eventType IN :requiredTypes " +
+            "AND ce.isCorrection = false " +
+            "GROUP BY ce.shipment.id, ce.eventType")
+    List<Object[]> countEventsByShipmentAndTypes(@Param("shipmentIds") List<UUID> shipmentIds,
+                                                  @Param("requiredTypes") List<ChainEventType> requiredTypes);
+
+    @Query("SELECT ce FROM ChainEvent ce " +
+            "WHERE ce.shipment.id IN :shipmentIds " +
+            "AND ce.isCorrection = false " +
+            "ORDER BY ce.recordedAt ASC")
+    List<ChainEvent> findByShipmentIdInOrderByRecordedAtAsc(@Param("shipmentIds") List<UUID> shipmentIds);
 }

@@ -77,4 +77,20 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
      * Dùng cho Doanh nghiệp thu mua (VT‑04) xem các lô hàng sẵn sàng.
      */
     List<Shipment> findByStatusOrderByCreatedAtDesc(ShipmentStatus status);
+
+    // Thêm các phương thức sau
+    @Query("SELECT s FROM Shipment s " +
+            "LEFT JOIN s.productionLot pl " +
+            "LEFT JOIN pl.productCategory pc " +
+            "WHERE (:orgId IS NULL OR s.organization.organizationId = :orgId) " +
+            "AND (:fromDate IS NULL OR s.createdAt >= :fromDate) " +
+            "AND (:toDate IS NULL OR s.createdAt <= :toDate) " +
+            "AND s.status <> vn.nguongocso.trace.enums.ShipmentStatus.RECALLED " +
+            "AND (:categoryIds IS NULL OR SIZE(:categoryIds) = 0 OR pc.id IN :categoryIds) " +
+            "AND (:shipmentIds IS NULL OR SIZE(:shipmentIds) = 0 OR s.id IN :shipmentIds)")
+    List<Shipment> findEligibleShipments(@Param("orgId") UUID orgId,
+                                         @Param("fromDate") LocalDateTime fromDate,
+                                         @Param("toDate") LocalDateTime toDate,
+                                         @Param("categoryIds") List<UUID> categoryIds,
+                                         @Param("shipmentIds") List<UUID> shipmentIds);
 }
