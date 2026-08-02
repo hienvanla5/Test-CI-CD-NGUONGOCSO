@@ -39,6 +39,8 @@ import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
 import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
 import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
+import CreateInvitationPage from "@/pages/invitation/CreateInvitationPage";
+import JoinOrganizationPage from "@/pages/public/JoinOrganizationPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -360,12 +362,25 @@ const AppRoutes = () => (
         }
       />
 
+      {/* Mời thành viên qua thư mời — VT-02 */}
+      <Route
+        path="invitations/create"
+        element={
+          <RoleRoute allowedRoles={["VT-02"]}>
+            <CreateInvitationPage />
+          </RoleRoute>
+        }
+      />
+
       {/* Trang báo không đủ quyền vẫn nằm trong layout */}
       <Route path="unauthorized" element={<UnauthorizedPage />} />
     </Route>
 
     {/* Route công khai tra cứu */}
     <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
+
+    {/* Route công khai chấp nhận thư mời */}
+    <Route path="/join" element={<JoinOrganizationPage />} />
 
     {/* Route không tồn tại */}
     <Route path="*" element={<Navigate to="/" replace />} />

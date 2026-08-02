@@ -9,6 +9,7 @@ import {
   History,
   Layers,
   LayoutDashboard,
+  MailPlus,
   MapPinned,
   Package,
   Smartphone,
@@ -88,6 +89,12 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Quản lý thành viên",
     href: "/members",
     allowedRoles: ROLE_ACCESS.memberManagement,
+  },
+  {
+    icon: <MailPlus className="h-5 w-5" />,
+    label: "Mời thành viên",
+    href: "/invitations/create",
+    allowedRoles: ["VT-02"] as const,
   },
   {
     icon: <BarChart2 className="h-5 w-5" />,

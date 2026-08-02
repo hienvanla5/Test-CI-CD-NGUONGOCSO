@@ -161,3 +161,54 @@ export const mobileEventSchema = z
   });
 
 export type MobileEventFormValues = z.infer<typeof mobileEventSchema>;
+
+// ===== Invitation: Create =====
+export const createInvitationSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email không được để trống')
+    .email('Email không đúng định dạng'),
+  roleId: z.number().int().positive('Vui lòng chọn vai trò'),
+  expiryDays: z
+    .number()
+    .int()
+    .min(1, 'Thời hạn tối thiểu 1 ngày')
+    .max(30, 'Thời hạn tối đa 30 ngày')
+    .optional(),
+});
+export type CreateInvitationFormValues = z.infer<typeof createInvitationSchema>;
+
+// ===== Invitation: Accept (đăng ký) =====
+export const acceptInvitationSchema = z
+  .object({
+    userName: z
+      .string()
+      .min(4, 'Tên đăng nhập phải có ít nhất 4 ký tự')
+      .max(30, 'Tối đa 30 ký tự')
+      .regex(/^[a-zA-Z0-9_-]+$/, 'Chỉ chứa chữ cái, số, gạch ngang và gạch dưới'),
+    password: z
+      .string()
+      .min(8, 'Mật khẩu phải từ 8 đến 50 ký tự')
+      .max(50, 'Mật khẩu phải từ 8 đến 50 ký tự')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+        'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt'
+      ),
+    fullName: z
+      .string()
+      .min(1, 'Họ tên không được để trống')
+      .max(100, 'Họ tên tối đa 100 ký tự'),
+    phone: z
+      .string()
+      .optional()
+      .refine(
+        (val) => !val || /^(0|\+84)(\s\.)?((3[2-9])|(5[689])|(7[06-9])|(8[1-689])|(9[0-46-9]))(\d(\s\.)?){7}$/.test(val),
+        { message: 'Số điện thoại không hợp lệ' }
+      ),
+    confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Mật khẩu xác nhận không khớp',
+    path: ['confirmPassword'],
+  });
+export type AcceptInvitationFormValues = z.infer<typeof acceptInvitationSchema>;
