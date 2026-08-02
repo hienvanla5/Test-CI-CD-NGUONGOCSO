@@ -45,21 +45,26 @@ public interface AlertRepository extends JpaRepository<Alert, UUID> {
     @Query("""
             SELECT a
             FROM Alert a
-            JOIN TraceCode tc
-                ON tc.id = a.relatedEntityId
-            JOIN tc.shipment s
-            WHERE a.type = :type
+            WHERE (:type IS NULL OR a.type = :type)
             AND (:status IS NULL
                  OR a.status = :status)
-            AND (:organizationId IS NULL
-                 OR s.organization.organizationId = :organizationId)
             AND (:fromDate IS NULL
                  OR a.createdAt >= :fromDate)
             AND (:toDate IS NULL
                  OR a.createdAt <= :toDate)
+            AND (:organizationId IS NULL OR 
+                (a.type = vn.nguongocso.alert.enums.AlertType.SCAN_ANOMALY AND EXISTS (
+                    SELECT 1 FROM TraceCode tc JOIN tc.shipment s 
+                    WHERE tc.id = a.relatedEntityId AND s.organization.organizationId = :organizationId
+                )) OR
+                (a.type IN (vn.nguongocso.alert.enums.AlertType.CERT_EXPIRING, vn.nguongocso.alert.enums.AlertType.CERT_EXPIRED) AND EXISTS (
+                    SELECT 1 FROM Certification c 
+                    WHERE c.id = a.relatedEntityId AND c.organization.organizationId = :organizationId
+                ))
+            )
             ORDER BY a.createdAt DESC
             """)
-    Page<Alert> searchScanAnomalyAlerts(
+    Page<Alert> searchAlerts(
             @Param("type") AlertType type,
             @Param("status") AlertStatus status,
             @Param("organizationId") UUID organizationId,
@@ -75,4 +80,8 @@ public interface AlertRepository extends JpaRepository<Alert, UUID> {
             AlertType type,
             AlertStatus status);
 
+    java.util.List<Alert> findByRelatedEntityIdAndTypeAndStatus(
+            UUID relatedEntityId,
+            AlertType type,
+            AlertStatus status);
 }

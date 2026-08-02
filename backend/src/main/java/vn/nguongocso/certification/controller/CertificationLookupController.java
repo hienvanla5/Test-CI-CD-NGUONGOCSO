@@ -4,9 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.certification.dto.response.CertificationResponse;
 import vn.nguongocso.certification.service.CertificationService;
@@ -27,5 +25,12 @@ public class CertificationLookupController {
             @AuthenticationPrincipal CustomUserDetails currentUser) {
         List<CertificationResponse> certifications = certificationService.getValidCertifications(currentUser);
         return ResponseEntity.ok(ApiResult.success(certifications));
+    }
+
+    @PostMapping("/check-expiry")
+    @PreAuthorize("hasRole('VT-01')")
+    public ResponseEntity<ApiResult<Void>> checkCertificationExpiry() {
+        certificationService.checkCertificationExpiry();
+        return ResponseEntity.ok(ApiResult.success(null));
     }
 }

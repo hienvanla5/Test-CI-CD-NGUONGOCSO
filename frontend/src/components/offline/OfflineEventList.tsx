@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { RefreshCw, Trash2, X, Info } from 'lucide-react';
 import type { OfflineEvent } from '@/types/offlineEvent';
-import { getProductionLotById } from '@/api/productionLotApi';
 
 // Component hiển thị một event
 const EventItem: React.FC<{
@@ -16,7 +15,7 @@ const EventItem: React.FC<{
   onRetry: (id: string) => void;
   isSyncing: boolean;
 }> = ({ event, onDelete, onRetry, isSyncing }) => {
-  const [lotName, setLotName] = useState<string>('Đang tải...');
+  const lotName = 'Không xác định';
 
   useEffect(() => {
     // ... lấy tên lô (giữ nguyên)
@@ -112,7 +111,7 @@ export const OfflineEventList: React.FC = () => {
     }
   };
 
-  const handleRetry = async (id: string) => {
+  const handleRetry = async (_id: string) => {
     // Chỉ đồng bộ lại duy nhất một sự kiện? 
     // Cách đơn giản là gọi sync() toàn bộ, nhưng nếu muốn retry riêng thì cần xây dựng logic riêng.
     // Ở đây ta chỉ gọi sync() toàn bộ.

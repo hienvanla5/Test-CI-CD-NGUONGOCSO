@@ -17,7 +17,7 @@ export const ROLE_ACCESS = {
   transportEventRecord: ["VT-03"] as const,
 
   codeRangeList: ['VT-01'] as const,
-  
+
   memberManagement: ['VT-02'] as const,
 
   scanAnomalyAlerts: ['VT-01', 'VT-02'] as const,
@@ -26,13 +26,17 @@ export const ROLE_ACCESS = {
 
   standardManagement: ['VT-01'] as const,
 
+  // ✅ Từ file 1
+  notificationInbox: AUTHENTICATED_ROLE_CODES,
+
+  // ✅ Từ file 2
   exportOpenData: ['VT-05'] as const,
 
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
 export function hasAnyRole(
-  userRole: string | undefined,
-  allowedRoles: readonly AuthenticatedRoleCode[],
+    userRole: string | undefined,
+    allowedRoles: readonly AuthenticatedRoleCode[],
 ): boolean {
   if (!userRole) return false;
   return allowedRoles.includes(userRole as AuthenticatedRoleCode);

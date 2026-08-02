@@ -87,6 +87,8 @@ export const ProductionLotDetailPage = () => {
     user?.roleCode === "VT-02" && lot.status === "PACKAGED";
   const canActivateShipment = user?.roleCode === "VT-02";
 
+  const canRecallShipment = user?.roleCode === "VT-02";
+
   const canRecordPackaging =
     (user?.roleCode === "VT-02" || user?.roleCode === "VT-03") &&
     lot.status === "HARVESTED";
@@ -279,6 +281,7 @@ export const ProductionLotDetailPage = () => {
             productionLotStatus={lot.status}
             canCreate={canCreateShipment}
             canActivate={canActivateShipment}
+            canRecall={canRecallShipment}
           />
         </TabsContent>
         <TabsContent value="certifications" className="mt-4">
