@@ -49,12 +49,10 @@ public interface ProductionLotCertificationRepository
             SELECT plc
             FROM ProductionLotCertification plc
                 JOIN FETCH plc.certification c
-                JOIN FETCH c.standard
                 JOIN plc.productionLot pl
                 JOIN Shipment s ON s.productionLot = pl
                 JOIN TraceCode tc ON tc.shipment = s
             WHERE tc.codeValue = :codeValue
             """)
-    List<ProductionLotCertification> findByTraceCode(
-            @Param("codeValue") String codeValue);
+    List<ProductionLotCertification> findByTraceCode(@Param("codeValue") String codeValue);
 }
