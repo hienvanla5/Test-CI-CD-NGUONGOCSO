@@ -104,6 +104,7 @@ public class InvitationServiceImpl implements InvitationService {
         // Tạo thư mời mới
         String token = UUID.randomUUID().toString().replace("-", "");
         Invitation invitation = Invitation.builder()
+                .id(UUID.randomUUID())
                 .organization(organization)
                 .email(request.getEmail())
                 .role(role)
@@ -111,6 +112,7 @@ public class InvitationServiceImpl implements InvitationService {
                 .status(InvitationStatus.PENDING)
                 .expiryDate(LocalDateTime.now().plusDays(request.getExpiryDays()))
                 .createdBy(currentUser.getUser())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         invitationRepository.save(invitation);
@@ -196,12 +198,15 @@ public class InvitationServiceImpl implements InvitationService {
 
         // Tạo User mới
         User user = User.builder()
+                .userId(UUID.randomUUID())
                 .userName(request.getUserName())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName())
                 .phone(request.getPhone())
                 .email(invitation.getEmail())
                 .status(UserStatus.ACTIVE)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
 
         userRepository.save(user);
