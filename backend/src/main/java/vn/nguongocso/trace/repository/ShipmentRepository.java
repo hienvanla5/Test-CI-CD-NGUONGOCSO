@@ -2,6 +2,7 @@ package vn.nguongocso.trace.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -73,12 +74,30 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
             @Param("toDate") LocalDateTime toDate);
 
     /**
+     * Tìm lô hàng theo ID và tổ chức.
+     */
+    Optional<Shipment> findByIdAndOrganization_OrganizationId(
+            UUID shipmentId,
+            UUID organizationId);
+
+    /**
      * Lấy danh sách lô hàng đủ điều kiện thu mua (status = ACTIVATED).
      * Dùng cho Doanh nghiệp thu mua (VT‑04) xem các lô hàng sẵn sàng.
      */
     List<Shipment> findByStatusOrderByCreatedAtDesc(ShipmentStatus status);
 
-    // Thêm các phương thức sau
+    /**
+     * Lấy danh sách lô hàng đủ điều kiện xuất báo cáo / lọc theo nhiều tiêu chí.
+     * Bao gồm: tổ chức, khoảng thời gian, danh mục sản phẩm, danh sách shipment.
+     * Mặc định loại trừ các lô đã bị thu hồi (RECALLED).
+     *
+     * @param orgId        ID tổ chức (có thể null)
+     * @param fromDate     Ngày bắt đầu (có thể null)
+     * @param toDate       Ngày kết thúc (có thể null)
+     * @param categoryIds  Danh sách ID danh mục sản phẩm (có thể null hoặc rỗng)
+     * @param shipmentIds  Danh sách ID lô hàng cụ thể (có thể null hoặc rỗng)
+     * @return Danh sách lô hàng thỏa mãn điều kiện
+     */
     @Query("SELECT s FROM Shipment s " +
             "LEFT JOIN s.productionLot pl " +
             "LEFT JOIN pl.productCategory pc " +
@@ -88,9 +107,10 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
             "AND s.status <> vn.nguongocso.trace.enums.ShipmentStatus.RECALLED " +
             "AND (:categoryIds IS NULL OR SIZE(:categoryIds) = 0 OR pc.id IN :categoryIds) " +
             "AND (:shipmentIds IS NULL OR SIZE(:shipmentIds) = 0 OR s.id IN :shipmentIds)")
-    List<Shipment> findEligibleShipments(@Param("orgId") UUID orgId,
-                                         @Param("fromDate") LocalDateTime fromDate,
-                                         @Param("toDate") LocalDateTime toDate,
-                                         @Param("categoryIds") List<UUID> categoryIds,
-                                         @Param("shipmentIds") List<UUID> shipmentIds);
+    List<Shipment> findEligibleShipments(
+            @Param("orgId") UUID orgId,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate,
+            @Param("categoryIds") List<UUID> categoryIds,
+            @Param("shipmentIds") List<UUID> shipmentIds);
 }

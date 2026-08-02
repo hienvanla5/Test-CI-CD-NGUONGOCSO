@@ -26,3 +26,22 @@ export interface AttachCertificationRequest {
   certificationId: string;
   note?: string;
 }
+
+export interface CreateCertificationRequest {
+  standardId: string;
+  code: string;
+  issuedBy?: string;
+  issueDate: string;   // YYYY-MM-DD
+  expiryDate: string;  // YYYY-MM-DD
+}
+
+// CertificationResponse đã có (hoặc thêm nếu chưa có)
+export interface CertificationResponse {
+  id: string;
+  name: string;        // tên standard
+  code: string;
+  issuedBy: string;
+  issueDate: string;
+  expiryDate: string;
+  isValid: boolean;
+}

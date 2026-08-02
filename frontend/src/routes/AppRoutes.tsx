@@ -3,12 +3,14 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
-  AUTHENTICATED_ROLE_CODES,
-  ROLE_ACCESS,
-  hasAnyRole,
-  type AuthenticatedRoleCode,
+    AUTHENTICATED_ROLE_CODES,
+    ROLE_ACCESS,
+    hasAnyRole,
+    type AuthenticatedRoleCode,
 } from "@/config/roleAccess";
 import { useAuth } from "@/hooks/useAuth";
+
+// Pages – chung
 import LoginPage from "@/pages/auth/LoginPage";
 import { DashboardPage } from "@/pages/daskboard/DashboardPase";
 import { CreateFarmAreaPage } from "@/pages/farm-area/CreateFarmAreaPage";
@@ -21,345 +23,419 @@ import CreateProductionLotPage from "@/pages/production-lot/CreateProductionLotP
 import ProductionLotListPage from "@/pages/production-lot/ProductionLotListPage";
 import RecordTransportEventPage from "@/pages/transport-event/RecordTransportEventPage";
 
+// Admin
 import CreateCodeRangePage from "@/pages/admin/CreateCodeRangePage";
 import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
+import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
+import StandardManagementPage from "@/pages/admin/StandardManagementPage";
+
+// Packaging
 import CreatePackagingEventPage from "@/pages/packaging-event/CreatePackagingEventPage";
 import CorrectPackagingEventPage from "@/pages/packaging-event/CorrectPackagingEventPage";
+
+// Organization
 import { OrganizationListPage } from "@/pages/organization/OrganizationListPage";
 import CreateMemberPage from "@/pages/organization/CreateMemberPage";
+
+// Farm logs
 import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
+
+// Shipment
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
+
+// Public
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
+
+// Reports
 import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
 import ActivityLogPage from "@/pages/report/ActivityLogPage";
-import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
 import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
 import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
-import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
+
+// Alerts
 import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
 
+// Farm area
+import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
+
+// Mobile
+import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
+
+// Certification
+import CreateCertificationPage from "@/pages/certification/CreateCertificationPage";
+import CertificationListPage from "@/pages/certification/CertificationListPage";
+
+// Offline events (NCL-10-CN-005)
+import OfflineEventPage from "@/pages/offline/OfflineEventPage";
+
+// Procurement
+import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
+
 const COOPERATIVE_MANAGER_ROLES = [
-  "VT-02",
+    "VT-02",
 ] as const satisfies readonly AuthenticatedRoleCode[];
 
+// ---------- Helpers ----------
 function PageLoader() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
-      Đang tải...
-    </div>
-  );
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+            Đang tải...
+        </div>
+    );
 }
 
 function PrivateRoute({ children }: { children: ReactNode }) {
-  const { user, isLoading } = useAuth();
+    const { user, isLoading } = useAuth();
 
-  if (isLoading) return <PageLoader />;
-  if (!user) return <Navigate to="/login" replace />;
+    if (isLoading) return <PageLoader />;
+    if (!user) return <Navigate to="/login" replace />;
 
-  // VT-06 chỉ tra cứu công khai, không sử dụng khu vực quản trị nội bộ.
-  if (!hasAnyRole(user.roleCode, AUTHENTICATED_ROLE_CODES)) {
-    return <Navigate to="/login" replace />;
-  }
+    if (!hasAnyRole(user.roleCode, AUTHENTICATED_ROLE_CODES)) {
+        return <Navigate to="/login" replace />;
+    }
 
-  return children;
+    return children;
 }
 
 interface RoleRouteProps {
-  children: ReactNode;
-  allowedRoles: readonly AuthenticatedRoleCode[];
+    children: ReactNode;
+    allowedRoles: readonly AuthenticatedRoleCode[];
 }
 
 function RoleRoute({ children, allowedRoles }: RoleRouteProps) {
-  const { user, isLoading } = useAuth();
+    const { user, isLoading } = useAuth();
 
-  if (isLoading) return <PageLoader />;
-  if (!user) return <Navigate to="/login" replace />;
+    if (isLoading) return <PageLoader />;
+    if (!user) return <Navigate to="/login" replace />;
 
-  if (!hasAnyRole(user.roleCode, allowedRoles)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
+    if (!hasAnyRole(user.roleCode, allowedRoles)) {
+        return <Navigate to="/unauthorized" replace />;
+    }
 
-  return children;
+    return children;
 }
 
 function UnauthorizedPage() {
-  return (
-    <main className="grid min-h-[60vh] place-items-center p-6 text-center">
-      <div>
-        <h1 className="text-2xl font-bold">Bạn không có quyền truy cập</h1>
-        <p className="mt-2 text-muted-foreground">
-          Tài khoản hiện tại không được cấp quyền sử dụng chức năng này.
-        </p>
-      </div>
-    </main>
-  );
+    return (
+        <main className="grid min-h-[60vh] place-items-center p-6 text-center">
+            <div>
+                <h1 className="text-2xl font-bold">Bạn không có quyền truy cập</h1>
+                <p className="mt-2 text-muted-foreground">
+                    Tài khoản hiện tại không được cấp quyền sử dụng chức năng này.
+                </p>
+            </div>
+        </main>
+    );
 }
 
+// ---------- Routes ----------
 const AppRoutes = () => (
-  <Routes>
-    {/* Route công khai */}
-    <Route path="/login" element={<LoginPage />} />
+    <Routes>
+        {/* Route công khai */}
+        <Route path="/login" element={<LoginPage />} />
 
-    {/* Toàn bộ route nội bộ dùng chung Header + Sidebar + Outlet */}
-    <Route
-      element={
-        <PrivateRoute>
-          <MainLayout />
-        </PrivateRoute>
-      }
-    >
-      {/* Dashboard thật */}
-      <Route index element={<DashboardPage />} />
+        {/* Toàn bộ route nội bộ dùng chung Header + Sidebar + Outlet */}
+        <Route
+            element={
+                <PrivateRoute>
+                    <MainLayout />
+                </PrivateRoute>
+            }
+        >
+            {/* Dashboard */}
+            <Route index element={<DashboardPage />} />
 
-      {/* Hồ sơ tổ chức — VT-01, VT-02 */}
-      <Route
-        path="organizations/profile"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.organizationProfile}>
-            <OrganizationProfilePage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Organization ===== */}
+            <Route
+                path="organizations/profile"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.organizationProfile}>
+                        <OrganizationProfilePage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="organizations/create"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.organizationCreate}>
+                        <CreateOrganizationPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="organizations"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.organizationList}>
+                        <OrganizationListPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Tạo tổ chức — VT-01 */}
-      <Route
-        path="organizations/create"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.organizationCreate}>
-            <CreateOrganizationPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Members ===== */}
+            <Route
+                path="members"
+                element={
+                    <RoleRoute allowedRoles={["VT-02"]}>
+                        <MemberPermissionsPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="members/create"
+                element={
+                    <RoleRoute allowedRoles={["VT-02"]}>
+                        <CreateMemberPage />
+                    </RoleRoute>
+                }
+            />
 
-      <Route
-        path="organizations"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.organizationList}>
-            <OrganizationListPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Farm Areas ===== */}
+            <Route
+                path="farm-areas/create"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.farmAreaCreate}>
+                        <CreateFarmAreaPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="farm-areas"
+                element={
+                    <RoleRoute allowedRoles={["VT-02"]}>
+                        <FarmAreaListPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Cấp quyền thành viên — VT-02 */}
-      <Route
-        path="members"
-        element={
-          <RoleRoute allowedRoles={["VT-02"]}>
-            <MemberPermissionsPage />
-          </RoleRoute>
-        }
-      />
-      <Route
-        path="members/create"
-        element={
-          <RoleRoute allowedRoles={["VT-02"]}>
-            <CreateMemberPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Production Lots ===== */}
+            <Route
+                path="production-lots"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.productionLotList}>
+                        <ProductionLotListPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="production-lots/create"
+                element={
+                    <RoleRoute allowedRoles={COOPERATIVE_MANAGER_ROLES}>
+                        <CreateProductionLotPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="production-lots/:id/edit"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.productionLotEdit}>
+                        <ProductionLotEditPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="production-lots/:id"
+                element={
+                    <RoleRoute allowedRoles={["VT-01", "VT-02", "VT-03"]}>
+                        <ProductionLotDetailPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Tạo vùng trồng — VT-02 */}
-      <Route
-        path="farm-areas/create"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.farmAreaCreate}>
-            <CreateFarmAreaPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Farm Logs ===== */}
+            <Route
+                path="farm-logs/create"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.farmLogCreate}>
+                        <CreateFarmLogPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="production-lots/:productionLotId/farm-logs"
+                element={
+                    <RoleRoute allowedRoles={["VT-02"]}>
+                        <FarmLogHistoryPage />
+                    </RoleRoute>
+                }
+            />
 
-      <Route
-        path="farm-areas"
-        element={
-          <RoleRoute allowedRoles={["VT-02"]}>
-            <FarmAreaListPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Packaging Events ===== */}
+            <Route
+                path="packaging-events/create"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCreate}>
+                        <CreatePackagingEventPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="packaging-events/:id/correct"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCorrect}>
+                        <CorrectPackagingEventPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Danh sách lô sản xuất — VT-01, VT-02, VT-03 */}
-      <Route
-        path="production-lots"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.productionLotList}>
-            <ProductionLotListPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Transport Events ===== */}
+            <Route
+                path="transport-events/record"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.transportEventRecord}>
+                        <RecordTransportEventPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Tạo lô sản xuất — VT-02 */}
-      <Route
-        path="production-lots/create"
-        element={
-          <RoleRoute allowedRoles={COOPERATIVE_MANAGER_ROLES}>
-            <CreateProductionLotPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Admin: Code Ranges ===== */}
+            <Route
+                path="admin/code-ranges"
+                element={
+                    <RoleRoute allowedRoles={["VT-01"]}>
+                        <CodeRangeListPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="admin/code-ranges/create"
+                element={
+                    <RoleRoute allowedRoles={["VT-01"]}>
+                        <CreateCodeRangePage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Chỉnh sửa lô sản xuất — VT-02 */}
-      <Route
-        path="production-lots/:id/edit"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.productionLotEdit}>
-            <ProductionLotEditPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Admin: Product Categories ===== */}
+            <Route
+                path="admin/product-categories"
+                element={
+                    <RoleRoute allowedRoles={["VT-01"]}>
+                        <ProductCategoryManagementPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Ghi nhật ký canh tác — VT-03 */}
-      <Route
-        path="farm-logs/create"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.farmLogCreate}>
-            <CreateFarmLogPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Admin: Standards (NCL-09-CN-002) ===== */}
+            <Route
+                path="admin/standards"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.standardManagement}>
+                        <StandardManagementPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* 👇 Các route quản lý dải mã — chỉ VT-01 (Admin) */}
-      <Route
-        path="admin/code-ranges"
-        element={
-          <RoleRoute allowedRoles={["VT-01"]}>
-            <CodeRangeListPage />
-          </RoleRoute>
-        }
-      />
-      <Route
-        path="admin/code-ranges/create"
-        element={
-          <RoleRoute allowedRoles={["VT-01"]}>
-            <CreateCodeRangePage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Mobile: Record Event (NCL-10-CN-003) ===== */}
+            <Route
+                path="mobile/record-event"
+                element={
+                    <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+                        <RecordMobileEventPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Lịch sử nhật ký canh tác — VT-02 */}
-      <Route
-        path="production-lots/:productionLotId/farm-logs"
-        element={
-          <RoleRoute allowedRoles={["VT-02"]}>
-            <FarmLogHistoryPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Reports ===== */}
+            <Route
+                path="reports/lookup-statistics"
+                element={
+                    <RoleRoute allowedRoles={["VT-01", "VT-02"]}>
+                        <LookupStatisticsPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="activity-logs"
+                element={
+                    <RoleRoute allowedRoles={["VT-02"]}>
+                        <ActivityLogPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="failed-event-logs"
+                element={
+                    <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+                        <FailedEventLogsPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="reports/crop-area-analysis"
+                element={
+                    <RoleRoute allowedRoles={["VT-01", "VT-05"]}>
+                        <CropAreaAnalysisPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="reports/industry"
+                element={
+                    <RoleRoute allowedRoles={["VT-05"]}>
+                        <IndustryReportPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Chi tiết lô sản xuất — chứa chức năng Lô hàng & Mã QR */}
-      <Route
-        path="production-lots/:id"
-        element={
-          <RoleRoute allowedRoles={["VT-01", "VT-02", "VT-03"]}>
-            <ProductionLotDetailPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Alerts ===== */}
+            <Route
+                path="alerts/scan-anomaly"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.scanAnomalyAlerts}>
+                        <ScanAnomalyAlertPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Ghi và đính chính sự kiện đóng gói — VT-02, VT-03 */}
-      <Route
-        path="packaging-events/create"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCreate}>
-            <CreatePackagingEventPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Certification ===== */}
+            <Route
+                path="certifications"
+                element={
+                    <RoleRoute allowedRoles={["VT-02"]}>
+                        <CertificationListPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="certifications/create"
+                element={
+                    <RoleRoute allowedRoles={["VT-02"]}>
+                        <CreateCertificationPage />
+                    </RoleRoute>
+                }
+            />
 
-      <Route
-        path="packaging-events/:id/correct"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCorrect}>
-            <CorrectPackagingEventPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Procurement (NCL-05-CN-004) ===== */}
+            <Route
+                path="procurement-event"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.procurementEvent}>
+                        <ProcurementEventPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Ghi sự kiện vận chuyển — chỉ VT-03 */}
-      <Route
-        path="transport-events/record"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.transportEventRecord}>
-            <RecordTransportEventPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Offline Events (NCL-10-CN-005) ===== */}
+            <Route
+                path="offline-events"
+                element={
+                    <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+                        <OfflineEventPage />
+                    </RoleRoute>
+                }
+            />
 
-      {/* Thống kê tra cứu — VT-01, VT-02 */}
-      <Route
-        path="reports/lookup-statistics"
-        element={
-          <RoleRoute allowedRoles={["VT-01", "VT-02"]}>
-            <LookupStatisticsPage />
-          </RoleRoute>
-        }
-      />
+            {/* ===== Unauthorized ===== */}
+            <Route path="unauthorized" element={<UnauthorizedPage />} />
+        </Route>
 
-      {/* Cảnh báo tem quét bất thường — VT-01, VT-02 */}
-      <Route
-        path="alerts/scan-anomaly"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.scanAnomalyAlerts}>
-            <ScanAnomalyAlertPage />
-          </RoleRoute>
-        }
-      />
+        {/* Route công khai tra cứu */}
+        <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
 
-      <Route
-        path="activity-logs"
-        element={
-          <RoleRoute allowedRoles={["VT-02"]}>
-            <ActivityLogPage />
-          </RoleRoute>
-        }
-      />
-
-      <Route
-        path="admin/product-categories"
-        element={
-          <RoleRoute allowedRoles={["VT-01"]}>
-            <ProductCategoryManagementPage />
-          </RoleRoute>
-        }
-      />
-
-      <Route
-        path="failed-event-logs"
-        element={
-          <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
-            <FailedEventLogsPage />
-          </RoleRoute>
-        }
-      />
-
-      <Route
-        path="reports/crop-area-analysis"
-        element={
-          <RoleRoute allowedRoles={["VT-01", "VT-05"]}>
-            <CropAreaAnalysisPage />
-          </RoleRoute>
-        }
-      />
-
-      <Route
-        path="reports/industry"
-        element={
-          <RoleRoute allowedRoles={["VT-05"]}>
-            <IndustryReportPage />
-          </RoleRoute>
-        }
-      />
-
-      {/* Trang báo không đủ quyền vẫn nằm trong layout */}
-      <Route path="unauthorized" element={<UnauthorizedPage />} />
-    </Route>
-
-    {/* Route công khai tra cứu */}
-    <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
-
-    {/* Route không tồn tại */}
-    <Route path="*" element={<Navigate to="/" replace />} />
-  </Routes>
+        {/* Route không tồn tại */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
 );
 
 export default AppRoutes;

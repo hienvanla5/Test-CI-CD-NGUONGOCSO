@@ -9,12 +9,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.ApiResult;
-import vn.nguongocso.event.dto.request.CorrectPackagingEventRequest;
-import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
-import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
+import vn.nguongocso.event.dto.request.*;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
+import vn.nguongocso.event.dto.response.OfflineEventSyncResponse;
 import vn.nguongocso.event.service.ChainEventService;
-import vn.nguongocso.event.dto.request.RecordTransportEventRequest;
+import vn.nguongocso.event.service.OfflineSyncService;
 
 import java.util.UUID;
 
@@ -40,7 +39,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/chain-events")
 @RequiredArgsConstructor
 public class ChainEventController {
-
+    private final OfflineSyncService offlineSyncService;
     private final ChainEventService chainEventService;
 
     /**
@@ -98,6 +97,29 @@ public class ChainEventController {
 
         ChainEventResponse response = chainEventService.correctPackagingEvent(originalEventId, request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
+    }
+    /**
+     * API ghi nhận sự kiện ngoài đồng từ thiết bị di động.
+     * Chỉ chấp nhận vai trò VT-02 (Quản lý HTX) và VT-03 (Người ghi sự kiện).
+     */
+    @PostMapping("/mobile")
+    @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
+    public ResponseEntity<ApiResult<ChainEventResponse>> recordMobileEvent(
+            @Valid @RequestBody RecordMobileEventRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        ChainEventResponse response = chainEventService.recordMobileEvent(request, currentUser);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResult.success(HttpStatus.CREATED.value(), response));
+    }
+    @PostMapping("/sync")
+    @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
+    public ResponseEntity<ApiResult<OfflineEventSyncResponse>> syncOfflineEvents(
+            @Valid @RequestBody OfflineEventSyncRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+        OfflineEventSyncResponse response = offlineSyncService.syncOfflineEvents(request, currentUser);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResult.success(HttpStatus.OK.value(), response));
     }
 
 }

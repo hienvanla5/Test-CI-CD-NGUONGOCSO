@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { NotificationBell } from '@/components/notification/NotificationBell';
 import { ROLE_ACCESS, getRoleLabel, hasAnyRole } from '@/config/roleAccess';
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, Menu, User } from 'lucide-react';
@@ -64,6 +65,8 @@ export function Header({ onMenuClick }: HeaderProps) {
               {accountContent}
             </div>
           )}
+
+          <NotificationBell />
 
           <Button
             type="button"
