@@ -332,3 +332,41 @@ CREATE TABLE notifications (
 
 ALTER TABLE production_lot
 ADD COLUMN expected_quantity_unit VARCHAR(20);
+
+CREATE TABLE recalls (
+    id CHAR(36) NOT NULL,
+    shipment_id CHAR(36) NOT NULL,
+    reason TEXT NOT NULL,
+    recalled_by CHAR(36) NOT NULL,
+    recalled_at DATETIME NOT NULL,
+    status VARCHAR(20) NOT NULL,
+
+    PRIMARY KEY (id),
+
+    CONSTRAINT fk_recall_shipment
+        FOREIGN KEY (shipment_id)
+        REFERENCES shipments(id),
+
+    CONSTRAINT fk_recall_user
+        FOREIGN KEY (recalled_by)
+        REFERENCES users(user_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS standards (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    issuing_body VARCHAR(255),
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT NULL
+);
+
+CREATE INDEX idx_certification_org
+ON certifications(organization_id);
+
+CREATE INDEX idx_certification_standard
+ON certifications(standard_id);
