@@ -51,7 +51,7 @@ class OfflineSyncServiceImplTest {
     void setUp() {
         syncId = UUID.randomUUID();
         currentUser = mock(CustomUserDetails.class);
-        when(currentUser.getUserId()).thenReturn(UUID.randomUUID());
+        // LOẠI BỎ: when(currentUser.getUserId()).thenReturn(UUID.randomUUID()); từ đây
 
         RecordOfflineEventDto event1 = new RecordOfflineEventDto();
         event1.setOfflineEventId(UUID.randomUUID());
@@ -100,6 +100,10 @@ class OfflineSyncServiceImplTest {
         // Given
         RecordOfflineEventDto eventSuccess = syncRequest.getEvents().get(0);
         RecordOfflineEventDto eventFailed = syncRequest.getEvents().get(1);
+        UUID mockUserId = UUID.randomUUID();
+
+        // Định nghĩa mock cho currentUser.getUserId() riêng trong test case này
+        when(currentUser.getUserId()).thenReturn(mockUserId);
 
         OfflineEventSyncResultDto resSuccess = OfflineEventSyncResultDto.builder()
                 .offlineEventId(eventSuccess.getOfflineEventId())
@@ -113,7 +117,7 @@ class OfflineSyncServiceImplTest {
         when(offlineSyncEventProcessor.processEvent(eq(eventFailed), eq(syncId), eq(currentUser)))
                 .thenThrow(new BusinessException("Lô hàng đã bị thu hồi, không thể ghi nhận sự kiện."));
 
-        when(userRepository.findById(currentUser.getUserId()))
+        when(userRepository.findById(mockUserId))
                 .thenReturn(Optional.of(new User()));
 
         // When
