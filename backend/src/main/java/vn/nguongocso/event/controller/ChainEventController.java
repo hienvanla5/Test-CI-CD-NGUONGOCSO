@@ -12,6 +12,7 @@ import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.event.dto.request.*;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.dto.response.OfflineEventSyncResponse;
+import vn.nguongocso.event.dto.response.ScanLookupResponse;
 import vn.nguongocso.event.service.ChainEventService;
 import vn.nguongocso.event.service.OfflineSyncService;
 import vn.nguongocso.permission.service.PermissionChecker;
@@ -58,6 +59,7 @@ public class ChainEventController {
         ChainEventResponse response = chainEventService.recordHarvestEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
+
     /**
      * API ghi nhận sự kiện đóng gói cho lô sản xuất.
      */
@@ -71,7 +73,7 @@ public class ChainEventController {
         ChainEventResponse response = chainEventService.recordPackagingEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
-    
+
     /**
      * API ghi nhận sự kiện vận chuyển cho lô hàng.
      * Chỉ chấp nhận vai trò VT-03 (Người ghi sự kiện).
@@ -83,9 +85,7 @@ public class ChainEventController {
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         permissionChecker.check("CHAIN_EVENT", "CREATE");
-        ChainEventResponse response =
-                chainEventService.recordTransportEvent(request, currentUser);
-
+        ChainEventResponse response = chainEventService.recordTransportEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
@@ -104,6 +104,7 @@ public class ChainEventController {
         ChainEventResponse response = chainEventService.correctPackagingEvent(originalEventId, request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
+
     /**
      * API ghi nhận sự kiện ngoài đồng từ thiết bị di động.
      * Chỉ chấp nhận vai trò VT-02 (Quản lý HTX) và VT-03 (Người ghi sự kiện).
@@ -119,16 +120,42 @@ public class ChainEventController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
+
+    /**
+     * API đồng bộ sự kiện ngoại tuyến.
+     */
     @PostMapping("/sync")
     @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
     public ResponseEntity<ApiResult<OfflineEventSyncResponse>> syncOfflineEvents(
             @Valid @RequestBody OfflineEventSyncRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
+
         permissionChecker.check("CHAIN_EVENT", "CREATE");
         OfflineEventSyncResponse response = offlineSyncService.syncOfflineEvents(request, currentUser);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResult.success(HttpStatus.OK.value(), response));
     }
 
-}
+    /**
+     * Tra cứu mã truy xuất trước khi mở biểu mẫu ghi sự kiện.
+     *
+     * Chức năng:
+     * - Kiểm tra quyền sử dụng chức năng quét mã.
+     * - Kiểm tra mã truy xuất có tồn tại.
+     * - Kiểm tra mã đã gắn lô hàng.
+     * - Kiểm tra quyền theo tổ chức.
+     * - Kiểm tra trạng thái lô hàng.
+     * - Trả về thông tin cần thiết để mở biểu mẫu ghi sự kiện.
+     */
+    @GetMapping("/scan-lookup")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResult<ScanLookupResponse>> scanLookup(
+            @RequestParam String codeValue,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        // Có thể kiểm tra quyền READ nếu cần
+        permissionChecker.check("CHAIN_EVENT", "READ");
+        ScanLookupResponse response = chainEventService.scanLookup(codeValue, currentUser);
+        return ResponseEntity.ok(ApiResult.success(HttpStatus.OK.value(), response));
+    }
+}
