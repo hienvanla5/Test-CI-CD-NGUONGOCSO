@@ -2,6 +2,7 @@ package vn.nguongocso.certification.service;
 
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.certification.dto.request.AttachCertificationRequest;
+import vn.nguongocso.certification.dto.request.CreateCertificationRequest;
 import vn.nguongocso.certification.dto.response.CertificationResponse;
 import vn.nguongocso.certification.dto.response.ProductionLotCertificationResponse;
 
@@ -17,4 +18,14 @@ public interface CertificationService {
     void detachCertification(UUID lotId, UUID certificationId, CustomUserDetails currentUser);
 
     List<CertificationResponse> getValidCertifications(CustomUserDetails currentUser);
+
+    /**
+     * Tạo mới chứng nhận cho tổ chức hiện tại.
+     */
+    CertificationResponse createCertification(CreateCertificationRequest request, CustomUserDetails currentUser);
+
+    /**
+     * Lấy tất cả chứng nhận của tổ chức hiện tại.
+     */
+    List<CertificationResponse> getAllCertifications(CustomUserDetails currentUser);
 }

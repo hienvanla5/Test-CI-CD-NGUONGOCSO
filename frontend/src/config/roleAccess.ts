@@ -24,6 +24,9 @@ export const ROLE_ACCESS = {
 
   procurementEvent: ['VT-04'] as const,
 
+  standardManagement: ['VT-01'] as const,
+
+  certificationCreate: ['VT-02'] as const,
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
 export function hasAnyRole(

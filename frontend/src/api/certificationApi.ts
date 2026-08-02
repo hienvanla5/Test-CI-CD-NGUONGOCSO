@@ -1,5 +1,5 @@
 import apiClient from './axiosConfig';
-import type { ProductionLotCertification, AttachCertificationRequest, Certification } from '@/types/certification';
+import type { ProductionLotCertification, AttachCertificationRequest, Certification, CreateCertificationRequest, CertificationResponse } from '@/types/certification';
 
 /**
  * Lấy danh sách chứng nhận đã gắn của một lô sản xuất
@@ -38,5 +38,30 @@ export const detachCertification = async (lotId: string, certificationId: string
  */
 export const getValidCertifications = async (): Promise<Certification[]> => {
   const response = await apiClient.get<{ data: Certification[] }>('/certifications/valid');
+  return response.data.data;
+};
+
+/**
+ * Tạo mới chứng nhận cho tổ chức
+ * POST /api/v1/certifications
+ */
+export const createCertification = async (
+  data: CreateCertificationRequest
+): Promise<CertificationResponse> => {
+  const response = await apiClient.post<{ data: CertificationResponse }>(
+    '/certifications',
+    data
+  );
+  return response.data.data;
+};
+
+/**
+ * Lấy danh sách tất cả chứng nhận của tổ chức
+ * GET /api/v1/certifications
+ */
+export const getAllCertifications = async (): Promise<CertificationResponse[]> => {
+  const response = await apiClient.get<{ data: CertificationResponse[] }>(
+    '/certifications'
+  );
   return response.data.data;
 };

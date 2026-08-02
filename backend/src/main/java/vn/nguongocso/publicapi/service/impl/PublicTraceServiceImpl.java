@@ -15,10 +15,12 @@ import vn.nguongocso.publicapi.dto.response.PublicTraceResponse;
 import vn.nguongocso.publicapi.service.PublicTraceService;
 import vn.nguongocso.report.entity.TraceCodeScanLog;
 import vn.nguongocso.report.repository.TraceCodeScanLogRepository;
+import vn.nguongocso.trace.entity.Recall;
 import vn.nguongocso.trace.entity.Shipment;
 import vn.nguongocso.trace.entity.TraceCode;
 import vn.nguongocso.trace.enums.ShipmentStatus;
 import vn.nguongocso.trace.enums.TraceCodeStatus;
+import vn.nguongocso.trace.repository.RecallRepository;
 import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 
@@ -38,16 +40,39 @@ public class PublicTraceServiceImpl implements PublicTraceService {
     private final ObjectMapper objectMapper;
     private final TraceCodeScanLogRepository traceCodeScanLogRepository;
     private final ScanAnomalyDetectionService scanAnomalyDetectionService;
+    private final RecallRepository recallRepository;
 
     @Override
-    public PublicTraceResponse getPublicTrace(String codeValue, Double latitude, Double longitude, String location,
-            String ipAddress, String userAgent) {
+    public PublicTraceResponse getPublicTrace(String codeValue,
+            Double latitude,
+            Double longitude,
+            String location,
+            String ipAddress,
+            String userAgent) {
+
         // TC-02: Kiểm tra tồn tại mã
         TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
                 .orElseThrow(() -> new BusinessException("Mã lô hàng không tồn tại."));
 
-        // TC-03: Kiểm tra trạng thái tem
-        if (traceCode.getStatus() != TraceCodeStatus.ACTIVE) {
+        // Lấy Shipment
+        Shipment shipment = traceCode.getShipment();
+        if (shipment == null) {
+            throw new BusinessException("Không tìm thấy lô hàng liên kết.");
+        }
+
+        // TC-04: Kiểm tra thu hồi
+        boolean isRecalled = shipment.getStatus() == ShipmentStatus.RECALLED;
+
+        String recallMessage = null;
+        if (isRecalled) {
+            recallMessage = recallRepository
+                    .findTopByShipmentOrderByRecalledAtDesc(shipment)
+                    .map(Recall::getReason)
+                    .orElse("Lô hàng này đã bị thu hồi.");
+        }
+
+        // TC-03: Nếu chưa thu hồi thì tem phải đang ACTIVE
+        if (!isRecalled && traceCode.getStatus() != TraceCodeStatus.ACTIVE) {
             throw new BusinessException("Tem chưa có hiệu lực, chưa thể tra cứu hành trình.");
         }
 
@@ -67,53 +92,41 @@ public class PublicTraceServiceImpl implements PublicTraceService {
 
         traceCodeScanLogRepository.save(scanLog);
 
-        // Kiểm tra phát hiện bất thường
+        // Kiểm tra phát hiện quét bất thường
         scanAnomalyDetectionService.onScanRecorded(traceCode.getId());
 
-        // Xác định Shipment
-        Shipment shipment = traceCode.getShipment();
-        if (shipment == null) {
-            throw new BusinessException("Không tìm thấy lô hàng liên kết.");
-        }
-
-        // TC-04: Kiểm tra thu hồi
-        boolean isRecalled = ShipmentStatus.RECALLED.equals(shipment.getStatus());
-        String recallMessage = isRecalled
-                ? "Lô hàng này đã bị thu hồi. Vui lòng ngừng sử dụng và liên hệ nhà cung cấp."
-                : null;
-
-        // Lấy dòng sự kiện từ Shipment (TRANSPORT, PROCUREMENT, ...)
+        // Lấy dòng sự kiện của Shipment
         List<ChainEvent> shipmentEvents = chainEventRepository.findByShipmentIdOrderByRecordedAtAsc(shipment.getId());
 
-        // Lấy dòng sự kiện từ ProductionLot (HARVEST, PACKAGING)
+        // Lấy dòng sự kiện của ProductionLot
         List<ChainEvent> productionLotEvents = Collections.emptyList();
+
         if (shipment.getProductionLot() != null) {
             UUID productionLotId = shipment.getProductionLot().getId();
-            // Lọc các event không có shipment và có eventType là HARVEST hoặc PACKAGING
+
             List<ChainEvent> allUnassignedEvents = chainEventRepository.findByShipmentIsNullAndEventTypeIn(
                     List.of(ChainEventType.HARVEST, ChainEventType.PACKAGING));
-            // Lọc theo productionLotId trong eventData
+
             productionLotEvents = allUnassignedEvents.stream()
-                    .filter(e -> {
-                        Map<String, Object> data = parseEventData(e.getEventData());
+                    .filter(event -> {
+                        Map<String, Object> data = parseEventData(event.getEventData());
                         Object lotId = data.get("productionLotId");
-                        return lotId != null && lotId.toString().equals(productionLotId.toString());
+                        return lotId != null
+                                && productionLotId.toString().equals(lotId.toString());
                     })
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
-        // Gộp và sắp xếp theo thời gian
+        // Gộp timeline
         List<ChainEvent> allEvents = new ArrayList<>();
         allEvents.addAll(shipmentEvents);
         allEvents.addAll(productionLotEvents);
         allEvents.sort(Comparator.comparing(ChainEvent::getRecordedAt));
 
-        // Chuyển đổi sang DTO công khai (filter trường nội bộ)
         List<PublicChainEventItem> publicEvents = allEvents.stream()
                 .map(this::convertToPublicEvent)
-                .collect(Collectors.toList());
+                .toList();
 
-        // Lấy tên sản phẩm từ ProductionLot
         String productName = shipment.getProductionLot() != null
                 ? shipment.getProductionLot().getName()
                 : "Sản phẩm";

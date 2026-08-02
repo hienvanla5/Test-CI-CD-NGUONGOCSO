@@ -28,6 +28,11 @@ public class Certification {
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "standard_id", nullable = false)
+    private Standard standard;
+
+    // ✅ Thêm trường name
     @Column(name = "name", nullable = false)
     private String name;
 
