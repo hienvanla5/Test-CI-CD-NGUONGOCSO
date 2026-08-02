@@ -17,7 +17,11 @@ export default function IndustryReportPage() {
   const fetchReport = async (region: string, fromDate: string, toDate: string) => {
     try {
       setLoading(true);
-      const data = await getIndustrySummary(region, fromDate, toDate);
+      const data = await getIndustrySummary({
+      region,
+      fromDate,
+      toDate,
+      });
       setReport(data);
       setLastParams({ region, fromDate, toDate });
     } catch (error: any) {
@@ -29,26 +33,33 @@ export default function IndustryReportPage() {
   };
 
   const handleExport = async () => {
-    if (!lastParams) return;
-    try {
-      setExporting(true);
-      const blob = await exportIndustryReport(lastParams.region, lastParams.fromDate, lastParams.toDate);
-      // Tạo link tải file
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `industry-summary-${lastParams.region}-${lastParams.fromDate}-${lastParams.toDate}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast.success('Xuất báo cáo thành công');
-    } catch (error: any) {
-      toast.error('Không thể xuất báo cáo');
-    } finally {
-      setExporting(false);
-    }
-  };
+  if (!lastParams) return;
+
+  try {
+    setExporting(true);
+
+    const result = await exportIndustryReport({
+      region: lastParams.region,
+      fromDate: lastParams.fromDate,
+      toDate: lastParams.toDate,
+      format: "PDF",
+    });
+
+    const assetBaseUrl =
+      import.meta.env.VITE_ASSET_BASE_URL || "http://localhost:8080";
+
+    const fileUrl = result.fileUrl.startsWith("http")
+      ? result.fileUrl
+      : `${assetBaseUrl}${result.fileUrl}`;
+
+    window.open(fileUrl, "_blank", "noopener,noreferrer");
+    toast.success("Xuất báo cáo thành công");
+  } catch {
+    toast.error("Không thể xuất báo cáo");
+  } finally {
+    setExporting(false);
+  }
+};
 
   const handleReset = () => {
     setReport(null);
