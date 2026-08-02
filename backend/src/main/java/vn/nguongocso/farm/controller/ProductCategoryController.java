@@ -40,7 +40,6 @@ public class ProductCategoryController {
 			@RequestParam(required = false) Boolean isActive,
 			@AuthenticationPrincipal CustomUserDetails currentUser) {
 
-		permissionChecker.check("PRODUCT_CATEGORY", "READ");
 		List<ProductCategoryResponse> response = productCategoryService.search(name, categoryGroup, isActive, currentUser);
 		return ResponseEntity.ok(ApiResult.success(response));
 	}

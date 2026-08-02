@@ -60,7 +60,7 @@ public class ProductionLotController {
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResult<CreateProductionLotResponse>> getById(@PathVariable UUID id) {
-        permissionChecker.check("PRODUCTION_LOT", "READ");
+//        permissionChecker.check("PRODUCTION_LOT", "READ");
         CreateProductionLotResponse response = productionLotService.getProductionLotById(id);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -71,7 +71,7 @@ public class ProductionLotController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateProductionLotRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        permissionChecker.check("PRODUCTION_LOT", "UPDATE");
+//        permissionChecker.check("PRODUCTION_LOT", "UPDATE");
         UpdateProductionLotResponse response = productionLotService.updateProductionLot(id, request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -86,7 +86,7 @@ public class ProductionLotController {
     public ResponseEntity<ApiResult<List<CreateProductionLotResponse>>> getAll(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        permissionChecker.check("PRODUCTION_LOT", "READ");
+//        permissionChecker.check("PRODUCTION_LOT", "READ");
         List<CreateProductionLotResponse> response = productionLotService.getAllProductionLots(userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }

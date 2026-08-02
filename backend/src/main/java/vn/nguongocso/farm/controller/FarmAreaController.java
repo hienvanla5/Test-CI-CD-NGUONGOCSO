@@ -22,7 +22,6 @@ public class FarmAreaController {
 
     @GetMapping
     public ResponseEntity<ApiResult<List<FarmAreaResponse>>> getFarmAreas() {
-        permissionChecker.check("FARM_AREA", "READ");
         return ResponseEntity.ok(ApiResult.success(farmAreaService.getFarmAreas()));
     }
 

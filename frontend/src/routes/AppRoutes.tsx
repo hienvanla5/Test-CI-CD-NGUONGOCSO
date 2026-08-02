@@ -52,6 +52,7 @@ import ActivityLogPage from "@/pages/report/ActivityLogPage";
 import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
 import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
+import SeasonYieldComparisonPage from "@/pages/report/SeasonYieldComparisonPage";
 
 // Alerts
 import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
@@ -372,6 +373,14 @@ const AppRoutes = () => (
                 element={
                     <RoleRoute allowedRoles={["VT-01", "VT-05"]}>
                         <CropAreaAnalysisPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
+                path="reports/season-yield-comparison"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.seasonYieldComparison}>
+                        <SeasonYieldComparisonPage />
                     </RoleRoute>
                 }
             />
