@@ -18,6 +18,23 @@ export interface Shipment {
   createdAt: string;
 }
 
+export interface ShipmentSummary {
+  id: string;
+  name: string;
+  status: 'DRAFT' | 'CODE_PRINTED' | 'ACTIVATED' | 'RECALLED';
+  productionLotName: string | null;
+  totalQuantity: number | null;
+}
+
+export interface ProcurementShipment {
+  id: string;
+  name: string;
+  status: 'DRAFT' | 'CODE_PRINTED' | 'ACTIVATED' | 'RECALLED';
+  productionLotName: string | null;
+  productCategoryName: string | null;
+  totalQuantity: number | null;
+}
+
 export interface CreateShipmentPayload {
   productionLotId: string;
   name: string;

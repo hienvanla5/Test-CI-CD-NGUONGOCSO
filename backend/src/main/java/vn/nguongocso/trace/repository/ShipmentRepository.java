@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import vn.nguongocso.report.dto.response.ProductBreakdownItem;
 import vn.nguongocso.trace.entity.Shipment;
+import vn.nguongocso.trace.enums.ShipmentStatus;
 
 /**
  * Repository quản lý lô hàng.
@@ -57,22 +58,24 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
                         @Param("fromDate") LocalDateTime fromDate,
                         @Param("toDate") LocalDateTime toDate);
 
-        /**
-         * Đếm số lô hàng của các tổ chức trong khoảng thời gian.
-         */
-        @Query("""
-                            SELECT COUNT(s)
-                            FROM Shipment s
-                            WHERE s.organization.organizationId IN :organizationIds
-                              AND s.createdAt >= :fromDate
-                              AND s.createdAt < :toDate
-                        """)
-        Long countShipments(
-                        @Param("organizationIds") List<UUID> organizationIds,
-                        @Param("fromDate") LocalDateTime fromDate,
-                        @Param("toDate") LocalDateTime toDate);
+    /**
+     * Đếm số lô hàng của các tổ chức trong khoảng thời gian.
+     */
+    @Query("""
+                SELECT COUNT(s)
+                FROM Shipment s
+                WHERE s.organization.organizationId IN :organizationIds
+                  AND s.createdAt >= :fromDate
+                  AND s.createdAt < :toDate
+            """)
+    Long countShipments(
+            @Param("organizationIds") List<UUID> organizationIds,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate);
 
-        Optional<Shipment> findByIdAndOrganization_OrganizationId(
-                        UUID shipmentId,
-                        UUID organizationId);
+    /**
+     * Lấy danh sách lô hàng đủ điều kiện thu mua (status = ACTIVATED).
+     * Dùng cho Doanh nghiệp thu mua (VT‑04) xem các lô hàng sẵn sàng.
+     */
+    List<Shipment> findByStatusOrderByCreatedAtDesc(ShipmentStatus status);
 }

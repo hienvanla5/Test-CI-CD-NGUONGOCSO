@@ -3,8 +3,10 @@ import { toast } from 'sonner';
 import { getProductionLots } from '@/api/productionLotApi';
 import { ProductionLotBoard } from '@/components/production-lot/ProductionLotBoard';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PackageOpen, CheckCircle2, Sprout, PackageCheck } from 'lucide-react';
 import type { ProductionLot } from '@/types/productionLot';
+import { IndustryReportTab } from './IndustryReportTab';
 
 export function ManagementDashboard() {
   const [productionLots, setProductionLots] = useState<ProductionLot[]>([]);
@@ -30,36 +32,14 @@ export function ManagementDashboard() {
     const approved = productionLots.filter((lot) => lot.status === 'APPROVED').length;
     const harvested = productionLots.filter((lot) => lot.status === 'HARVESTED').length;
     const packaged = productionLots.filter((lot) => lot.status === 'PACKAGED').length;
-
     return { total, approved, harvested, packaged };
   }, [productionLots]);
 
   const cards = [
-    {
-      title: 'Tổng số lô',
-      value: statistics.total,
-      icon: PackageOpen,
-      iconClass: 'bg-blue-100 text-blue-700',
-    },
-    {
-      title: 'Lô đã duyệt',
-      value: statistics.approved,
-      icon: CheckCircle2,
-      iconClass: 'bg-emerald-100 text-emerald-700',
-    },
-    {
-      title: 'Lô đã thu hoạch',
-      value: statistics.harvested,
-      icon: Sprout,
-      iconClass: 'bg-lime-100 text-lime-700',
-    },
-    {
-      // FIX: was Calendar icon which is semantically wrong for "packaged" status
-      title: 'Lô đã đóng gói',
-      value: statistics.packaged,
-      icon: PackageCheck,
-      iconClass: 'bg-amber-100 text-amber-700',
-    },
+    { title: 'Tổng số lô', value: statistics.total, icon: PackageOpen, iconClass: 'bg-blue-100 text-blue-700' },
+    { title: 'Lô đã duyệt', value: statistics.approved, icon: CheckCircle2, iconClass: 'bg-emerald-100 text-emerald-700' },
+    { title: 'Lô đã thu hoạch', value: statistics.harvested, icon: Sprout, iconClass: 'bg-lime-100 text-lime-700' },
+    { title: 'Lô đã đóng gói', value: statistics.packaged, icon: PackageCheck, iconClass: 'bg-amber-100 text-amber-700' },
   ];
 
   return (
@@ -73,36 +53,47 @@ export function ManagementDashboard() {
         </p>
       </div>
 
-      {/* Thẻ thống kê */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title}>
-              <CardContent className="flex items-center justify-between p-5">
-                <div>
-                  <p className="text-sm text-slate-500">{card.title}</p>
-                  <p className="mt-2 text-3xl font-bold text-slate-900">
-                    {isLoading ? '...' : card.value}
-                  </p>
-                </div>
-                <div className={`rounded-xl p-3 ${card.iconClass}`}>
-                  <Icon className="size-6" />
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList>
+          <TabsTrigger value="overview">Tổng quan</TabsTrigger>
+          <TabsTrigger value="industry-report">Báo cáo theo địa bàn</TabsTrigger>
+        </TabsList>
 
-      {/* Bảng danh sách lô (chỉ xem) */}
-      <ProductionLotBoard
-        canCreate={false}
-        canEdit={false}
-        canSubmitForApproval={false}
-        canApprove={false}
-        canRecordFarmLog={false}
-      />
+        <TabsContent value="overview" className="mt-4 space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {cards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <Card key={card.title}>
+                  <CardContent className="flex items-center justify-between p-5">
+                    <div>
+                      <p className="text-sm text-slate-500">{card.title}</p>
+                      <p className="mt-2 text-3xl font-bold text-slate-900">
+                        {isLoading ? '...' : card.value}
+                      </p>
+                    </div>
+                    <div className={`rounded-xl p-3 ${card.iconClass}`}>
+                      <Icon className="size-6" />
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <ProductionLotBoard
+            canCreate={false}
+            canEdit={false}
+            canSubmitForApproval={false}
+            canApprove={false}
+            canRecordFarmLog={false}
+          />
+        </TabsContent>
+
+        <TabsContent value="industry-report" className="mt-4">
+          <IndustryReportTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

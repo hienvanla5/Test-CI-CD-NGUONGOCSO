@@ -26,6 +26,8 @@ import vn.nguongocso.farm.repository.ProductionLotRepository;
 import vn.nguongocso.notification.service.NotificationService;
 import vn.nguongocso.trace.dto.request.CreateShipmentRequest;
 import vn.nguongocso.trace.dto.response.ShipmentResponse;
+import vn.nguongocso.trace.dto.response.ProcurementShipmentResponse;
+import vn.nguongocso.trace.dto.response.ShipmentSummaryResponse;
 import vn.nguongocso.trace.entity.CodeRange;
 import vn.nguongocso.trace.entity.Shipment;
 import vn.nguongocso.trace.entity.TraceCode;
@@ -462,5 +464,75 @@ public class ShipmentServiceImpl implements ShipmentService {
                     "Cảnh báo: Dải mã " + range.getPrefix() + " đã vượt hạn mức " + range.getTotalLimit() + "!"
             );
         }
+    }
+
+    /**
+     * Tra cứu lô hàng bằng mã truy xuất (codeValue in trên tem QR).
+     * Dùng bởi VT-04 để xác nhận lô hàng trước khi ghi sự kiện thu mua.
+     *
+     * @param code mã truy xuất quét từ QR
+     * @return thông tin tóm tắt lô hàng
+     * @throws BusinessException nếu không tìm thấy mã hoặc lô hàng không hợp lệ
+     */
+    @Override
+    public ShipmentSummaryResponse getShipmentByCode(String code) {
+        TraceCode traceCode = traceCodeRepository.findByCodeValue(code)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng với mã: " + code));
+
+        Shipment shipment = traceCode.getShipment();
+        if (shipment == null) {
+            throw new BusinessException("Mã truy xuất không liên kết với lô hàng nào.");
+        }
+
+        // Không cho phép ghi sự kiện nếu lô hàng đã bị thu hồi
+        if (shipment.getStatus() == ShipmentStatus.RECALLED) {
+            throw new BusinessException("Lô hàng " + shipment.getName() + " đã bị thu hồi, không thể ghi nhận thu mua.");
+        }
+
+        String productionLotName = null;
+        if (shipment.getProductionLot() != null) {
+            productionLotName = shipment.getProductionLot().getName();
+        }
+
+        return ShipmentSummaryResponse.builder()
+                .id(shipment.getId())
+                .name(shipment.getName())
+                .status(shipment.getStatus())
+                .productionLotName(productionLotName)
+                .totalQuantity(shipment.getTotalQuantity())
+                .build();
+    }
+
+    /**
+     * Lấy danh sách lô hàng đủ điều kiện thu mua (status = ACTIVATED).
+     * Dùng cho Doanh nghiệp thu mua (VT‑04) xem danh sách lô hàng sẵn sàng.
+     *
+     * @return danh sách ProcurementShipmentResponse
+     */
+    @Override
+    public List<ProcurementShipmentResponse> getEligibleShipments() {
+        List<Shipment> shipments = shipmentRepository.findByStatusOrderByCreatedAtDesc(ShipmentStatus.ACTIVATED);
+
+        return shipments.stream()
+                .map(shipment -> {
+                    String productionLotName = null;
+                    String productCategoryName = null;
+                    if (shipment.getProductionLot() != null) {
+                        productionLotName = shipment.getProductionLot().getName();
+                        if (shipment.getProductionLot().getProductCategory() != null) {
+                            productCategoryName = shipment.getProductionLot().getProductCategory().getName();
+                        }
+                    }
+
+                    return ProcurementShipmentResponse.builder()
+                            .id(shipment.getId())
+                            .name(shipment.getName())
+                            .status(shipment.getStatus())
+                            .productionLotName(productionLotName)
+                            .productCategoryName(productCategoryName)
+                            .totalQuantity(shipment.getTotalQuantity())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }
