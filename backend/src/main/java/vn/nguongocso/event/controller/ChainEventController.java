@@ -11,7 +11,9 @@ import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.event.dto.request.*;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
+import vn.nguongocso.event.dto.response.OfflineEventSyncResponse;
 import vn.nguongocso.event.service.ChainEventService;
+import vn.nguongocso.event.service.OfflineSyncService;
 
 import java.util.UUID;
 
@@ -37,7 +39,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/chain-events")
 @RequiredArgsConstructor
 public class ChainEventController {
-
+    private final OfflineSyncService offlineSyncService;
     private final ChainEventService chainEventService;
 
     /**
@@ -110,7 +112,15 @@ public class ChainEventController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
-
+    @PostMapping("/sync")
+    @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
+    public ResponseEntity<ApiResult<OfflineEventSyncResponse>> syncOfflineEvents(
+            @Valid @RequestBody OfflineEventSyncRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+        OfflineEventSyncResponse response = offlineSyncService.syncOfflineEvents(request, currentUser);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResult.success(HttpStatus.OK.value(), response));
+    }
 
 }
 

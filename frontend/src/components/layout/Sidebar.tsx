@@ -2,9 +2,11 @@ import type { ReactNode } from "react";
 import { Link, useLocation, useMatch } from "react-router-dom";
 import {
   AlertTriangle,
+  Award,
   BarChart2,
   BookOpen,
   Building2,
+  Database,
   FileText,
   Hash,
   History,
@@ -132,19 +134,33 @@ const MENU_ITEMS: MenuItem[] = [
     href: "/reports/industry",
     allowedRoles: ["VT-05"] as const,
   },
-  // ✅ Từ file 1: Ghi sự kiện ngoài đồng
+  // ✅ Ghi sự kiện ngoài đồng
   {
     icon: <Smartphone className="h-5 w-5" />,
     label: "Ghi sự kiện ngoài đồng",
     href: "/mobile/record-event",
     allowedRoles: ["VT-02", "VT-03"],
   },
-  // ✅ Từ file 2: Tiêu chuẩn chất lượng
+  // ✅ Tiêu chuẩn chất lượng
   {
     icon: <BookOpen className="h-5 w-5" />,
     label: "Tiêu chuẩn chất lượng",
     href: "/admin/standards",
     allowedRoles: ROLE_ACCESS.standardManagement,
+  },
+  // ✅ Chứng nhận
+  {
+    icon: <Award className="h-5 w-5" />,
+    label: "Chứng nhận",
+    href: "/certifications",
+    allowedRoles: ["VT-02"],
+  },
+  // ✅ Sự kiện chờ đồng bộ
+  {
+    icon: <Database className="h-5 w-5" />,
+    label: "Sự kiện chờ đồng bộ",
+    href: "/offline-events",
+    allowedRoles: ["VT-02", "VT-03"],
   },
 ];
 
