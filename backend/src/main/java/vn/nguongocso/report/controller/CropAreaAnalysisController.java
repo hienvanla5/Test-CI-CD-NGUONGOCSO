@@ -1,19 +1,19 @@
 package vn.nguongocso.report.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.report.dto.response.CropAreaAnalysisResponse;
+import vn.nguongocso.report.dto.response.SeasonYieldComparisonResponse;
 import vn.nguongocso.report.service.CropAreaAnalysisService;
-import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
 import java.util.UUID;
+
 /**
  * Controller phân tích diện tích canh tác.
  *
@@ -27,7 +27,6 @@ public class CropAreaAnalysisController {
     private final CropAreaAnalysisService cropAreaAnalysisService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('VT-01', 'VT-05')")
     public ResponseEntity<ApiResult<CropAreaAnalysisResponse>> getAnalysis(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) UUID farmAreaId,
@@ -37,8 +36,41 @@ public class CropAreaAnalysisController {
             HttpServletRequest request) {
 
         String ipAddress = getClientIp(request);
+
         CropAreaAnalysisResponse response = cropAreaAnalysisService.getAnalysis(
-                year, farmAreaId, productCategoryId, organizationId, currentUser, ipAddress);
+                year,
+                farmAreaId,
+                productCategoryId,
+                organizationId,
+                currentUser,
+                ipAddress);
+
+        return ResponseEntity.ok(ApiResult.success(response));
+    }
+
+    /**
+     * So sánh sản lượng giữa nhiều mùa vụ.
+     */
+    @GetMapping("/season-yield-comparison")
+    public ResponseEntity<ApiResult<SeasonYieldComparisonResponse>> compareSeasonYield(
+            @RequestParam List<Integer> years,
+            @RequestParam(required = false) UUID farmAreaId,
+            @RequestParam(required = false) UUID productCategoryId,
+            @RequestParam(required = false) UUID organizationId,
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            HttpServletRequest request) {
+
+        String ipAddress = getClientIp(request);
+
+        SeasonYieldComparisonResponse response =
+                cropAreaAnalysisService.compareSeasonYield(
+                        years,
+                        farmAreaId,
+                        productCategoryId,
+                        organizationId,
+                        currentUser,
+                        ipAddress);
+
         return ResponseEntity.ok(ApiResult.success(response));
     }
 
