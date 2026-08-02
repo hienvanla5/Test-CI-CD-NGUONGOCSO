@@ -72,6 +72,9 @@ import OfflineEventPage from "@/pages/offline/OfflineEventPage";
 // Procurement
 import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
 
+// Notifications
+import NotificationsPage from "@/pages/notification/NotificationsPage";
+
 const COOPERATIVE_MANAGER_ROLES = [
     "VT-02",
 ] as const satisfies readonly AuthenticatedRoleCode[];
@@ -402,6 +405,16 @@ const AppRoutes = () => (
                 element={
                     <RoleRoute allowedRoles={["VT-02"]}>
                         <CreateCertificationPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* ===== Notifications ===== */}
+            <Route
+                path="notifications"
+                element={
+                    <RoleRoute allowedRoles={AUTHENTICATED_ROLE_CODES}>
+                        <NotificationsPage />
                     </RoleRoute>
                 }
             />

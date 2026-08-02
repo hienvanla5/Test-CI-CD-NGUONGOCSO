@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   Award,
   BarChart2,
+  Bell,
   BookOpen,
   Building2,
   Database,
@@ -161,6 +162,13 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Sự kiện chờ đồng bộ",
     href: "/offline-events",
     allowedRoles: ["VT-02", "VT-03"],
+  },
+  // ✅ Thông báo
+  {
+    icon: <Bell className="h-5 w-5" />,
+    label: "Thông báo",
+    href: "/notifications",
+    allowedRoles: ["VT-01", "VT-02", "VT-03", "VT-04", "VT-05"],
   },
 ];
 
