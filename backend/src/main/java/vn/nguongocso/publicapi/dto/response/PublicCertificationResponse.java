@@ -16,8 +16,6 @@ public class PublicCertificationResponse {
 
     private UUID certificationId; // ID chứng nhận
 
-    private UUID standardId; // ID tiêu chuẩn
-
     private String certificationName;// Tên chứng nhận
 
     private String certificationCode;// Mã chứng nhận
