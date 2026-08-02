@@ -14,6 +14,7 @@ import vn.nguongocso.certification.repository.ProductionLotCertificationReposito
 import vn.nguongocso.event.entity.ChainEvent;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
+import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.publicapi.dto.response.PublicCertificationResponse;
 import vn.nguongocso.publicapi.dto.response.PublicChainEventItem;
 import vn.nguongocso.publicapi.dto.response.PublicLotCertificationsResponse;
@@ -31,6 +32,7 @@ import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -226,7 +228,60 @@ public class PublicTraceServiceImpl implements PublicTraceService {
 
 	@Override
 	public PublicLotCertificationsResponse getPublicCertifications(String codeValue) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'getPublicCertifications'");
+		// 1. Tìm trace code
+		TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
+				.orElseThrow(() -> new BusinessException("Mã lô hàng không tồn tại."));
+
+		Shipment shipment = traceCode.getShipment();
+		if (shipment == null) {
+			throw new BusinessException("Không tìm thấy lô hàng liên kết.");
+		}
+
+		ProductionLot lot = shipment.getProductionLot();
+		if (lot == null) {
+			return PublicLotCertificationsResponse.builder()
+					.productionLotId(null)
+					.lotName(null)
+					.hasCertification(false)
+					.certifications(Collections.emptyList())
+					.build();
+		}
+
+		// 2. Lấy danh sách chứng nhận của lô sản xuất
+		List<ProductionLotCertification> plCertifications =
+				productionLotCertificationRepository.findByProductionLotId(lot.getId());
+
+		LocalDate today = LocalDate.now();
+		List<PublicCertificationResponse> certResponses = plCertifications.stream()
+				.map(plc -> {
+					Certification cert = plc.getCertification();
+					CertificationStatus status;
+					String statusLabel;
+					if (cert.getExpiryDate().isBefore(today)) {
+						status = CertificationStatus.EXPIRED;
+						statusLabel = "Hết hạn";
+					} else {
+						status = CertificationStatus.VALID;
+						statusLabel = "Còn hiệu lực";
+					}
+					return PublicCertificationResponse.builder()
+							.certificationId(cert.getId())
+							.certificationName(lot.getName())
+							.certificationCode(cert.getCode())
+							.issuedBy(cert.getIssuedBy())
+							.issueDate(cert.getIssueDate())
+							.expiryDate(cert.getExpiryDate())
+							.status(status)
+							.statusLabel(statusLabel)
+							.build();
+				})
+				.collect(Collectors.toList());
+
+		return PublicLotCertificationsResponse.builder()
+				.productionLotId(lot.getId())
+				.lotName(lot.getName())
+				.hasCertification(!certResponses.isEmpty())
+				.certifications(certResponses)
+				.build();
 	}
 }

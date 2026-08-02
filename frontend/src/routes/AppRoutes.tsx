@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-
+import NotificationsPage from "@/pages/notification/NotificationsPage";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
     AUTHENTICATED_ROLE_CODES,
@@ -71,6 +71,9 @@ import OfflineEventPage from "@/pages/offline/OfflineEventPage";
 
 // Procurement
 import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
+
+// ✅ Thêm import
+import ExportOpenDataPage from "@/pages/export/ExportOpenDataPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
     "VT-02",
@@ -378,6 +381,16 @@ const AppRoutes = () => (
                 }
             />
 
+            {/* ===== Notifications ===== */}
+            <Route
+                path="notifications"
+                element={
+                    <RoleRoute allowedRoles={AUTHENTICATED_ROLE_CODES}>
+                        <NotificationsPage />
+                    </RoleRoute>
+                }
+            />
+
             {/* ===== Alerts ===== */}
             <Route
                 path="alerts/scan-anomaly"
@@ -402,6 +415,26 @@ const AppRoutes = () => (
                 element={
                     <RoleRoute allowedRoles={["VT-02"]}>
                         <CreateCertificationPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* ===== Notifications (NCL-08-CN-005) ===== */}
+            <Route
+                path="notifications"
+                element={
+                    <RoleRoute allowedRoles={AUTHENTICATED_ROLE_CODES}>
+                        <NotificationsPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* ===== Export Open Data (NCL-10-CN-007) ===== */}
+            <Route
+                path="export/open-data"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.exportOpenData}>
+                        <ExportOpenDataPage />
                     </RoleRoute>
                 }
             />

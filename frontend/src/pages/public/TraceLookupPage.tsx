@@ -73,12 +73,19 @@ export default function TraceLookupPage() {
         const result = await getPublicCertifications(codeValue);
         setCertificationData(result);
       } catch (err: any) {
-        const message =
-          err.response?.data?.message ||
-          'Không thể tải thông tin chứng nhận.';
-
-        setCertificationError(message);
-        setCertificationData(null);
+        // 404 hoặc 501: backend chưa triển khai endpoint chứng nhận công khai
+        // → không hiển thị lỗi cho người dùng, chỉ ẩn section
+        const status = err.response?.status;
+        if (status === 404 || status === 501) {
+          setCertificationError(null);
+          setCertificationData(null);
+        } else {
+          const message =
+            err.response?.data?.message ||
+            'Không thể tải thông tin chứng nhận.';
+          setCertificationError(message);
+          setCertificationData(null);
+        }
       } finally {
         setCertificationLoading(false);
       }

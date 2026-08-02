@@ -11,21 +11,45 @@ import java.util.UUID;
 
 public interface CertificationService {
 
-    List<ProductionLotCertificationResponse> getCertificationsOfLot(UUID lotId, CustomUserDetails currentUser);
+    List<ProductionLotCertificationResponse> getCertificationsOfLot(
+            UUID lotId,
+            CustomUserDetails currentUser
+    );
 
-    ProductionLotCertificationResponse attachCertification(UUID lotId, AttachCertificationRequest request, CustomUserDetails currentUser);
+    ProductionLotCertificationResponse attachCertification(
+            UUID lotId,
+            AttachCertificationRequest request,
+            CustomUserDetails currentUser
+    );
 
-    void detachCertification(UUID lotId, UUID certificationId, CustomUserDetails currentUser);
+    void detachCertification(
+            UUID lotId,
+            UUID certificationId,
+            CustomUserDetails currentUser
+    );
 
-    List<CertificationResponse> getValidCertifications(CustomUserDetails currentUser);
+    List<CertificationResponse> getValidCertifications(
+            CustomUserDetails currentUser
+    );
 
     /**
      * Tạo mới chứng nhận cho tổ chức hiện tại.
      */
-    CertificationResponse createCertification(CreateCertificationRequest request, CustomUserDetails currentUser);
+    CertificationResponse createCertification(
+            CreateCertificationRequest request,
+            CustomUserDetails currentUser
+    );
 
     /**
      * Lấy tất cả chứng nhận của tổ chức hiện tại.
      */
-    List<CertificationResponse> getAllCertifications(CustomUserDetails currentUser);
+    List<CertificationResponse> getAllCertifications(
+            CustomUserDetails currentUser
+    );
+
+    /**
+     * Kiểm tra và tạo cảnh báo cho các chứng nhận
+     * đã hết hạn hoặc sắp hết hạn.
+     */
+    void checkCertificationExpiry();
 }

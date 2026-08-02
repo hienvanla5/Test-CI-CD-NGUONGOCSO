@@ -11,6 +11,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import vn.nguongocso.alert.enums.AlertType;
+import vn.nguongocso.certification.entity.Certification;
+import vn.nguongocso.certification.repository.CertificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import vn.nguongocso.alert.entity.Alert;
@@ -48,6 +51,7 @@ public class NotificationServiceImpl implements NotificationService {
         private final NotificationRepository notificationRepository;
         private final TraceCodeRepository traceCodeRepository;
         private final OrganizationUserRepository organizationUserRepository;
+        private final CertificationRepository certificationRepository;
 
         @Override
         public void sendScanAnomalyNotification(Alert alert) {
@@ -115,6 +119,60 @@ public class NotificationServiceImpl implements NotificationService {
                                 "Lô hàng \"" + recall.getShipment().getName()
                                                 + "\" đã bị thu hồi. Lý do: "
                                                 + recall.getReason());
+
+                return notification;
+        }
+
+        @Override
+        public void sendCertificationExpiryNotification(Alert alert) {
+
+                Certification certification = certificationRepository
+                                .findById(alert.getRelatedEntityId())
+                                .orElseThrow(() -> new BusinessException("Chứng nhận không tồn tại."));
+
+                UUID organizationId = certification
+                                .getOrganization()
+                                .getOrganizationId();
+
+                List<OrganizationUser> recipients = getRecipients(organizationId);
+
+                List<Notification> notifications = recipients.stream()
+                                .map(recipient -> buildCertificationExpiryNotification(
+                                                alert,
+                                                certification,
+                                                recipient))
+                                .toList();
+
+                notificationRepository.saveAll(notifications);
+        }
+
+        private Notification buildCertificationExpiryNotification(
+                        Alert alert,
+                        Certification certification,
+                        OrganizationUser organizationUser) {
+
+                boolean expired = alert.getType() == AlertType.CERT_EXPIRED;
+
+                Notification notification = new Notification();
+
+                notification.setUser(organizationUser.getUser());
+                notification.setType(NotificationType.ALERT);
+
+                if (expired) {
+                        notification.setTitle("Chứng nhận đã hết hạn");
+                        notification.setContent(
+                                        "Chứng nhận \"" + certification.getName()
+                                                        + "\" (" + certification.getCode()
+                                                        + ") đã hết hạn vào ngày "
+                                                        + certification.getExpiryDate() + ".");
+                } else {
+                        notification.setTitle("Chứng nhận sắp hết hạn");
+                        notification.setContent(
+                                        "Chứng nhận \"" + certification.getName()
+                                                        + "\" (" + certification.getCode()
+                                                        + ") sẽ hết hạn vào ngày "
+                                                        + certification.getExpiryDate() + ".");
+                }
 
                 return notification;
         }
@@ -228,8 +286,8 @@ public class NotificationServiceImpl implements NotificationService {
                 return (CustomUserDetails) authentication.getPrincipal();
         }
 
-    @Override
-    public void sendAlert(String message) {
-        log.warn("🚨 CẢNH BÁO: {}", message);
-    }
+        @Override
+        public void sendAlert(String message) {
+                log.warn("🚨 CẢNH BÁO: {}", message);
+        }
 }
