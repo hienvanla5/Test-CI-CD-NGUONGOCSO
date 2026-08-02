@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PHONE_REGEX, PASSWORD_REGEX, ORGANIZATION_CODE_REGEX } from './constants';
+import { ChainEventType } from '@/enums/chainEventType';
 
 export const loginSchema = z.object({
   username: z.string().min(1, 'Tên đăng nhập không được để trống'),
@@ -120,3 +121,43 @@ export const createCodeRangeSchema = z.object({
 });
 
 export type CreateCodeRangeFormValues = z.infer<typeof createCodeRangeSchema>;
+
+export const mobileEventSchema = z
+  .object({
+    productionLotId: z.string().uuid('Vui lòng chọn lô sản xuất'),
+    eventType: z.enum([ChainEventType.HARVEST, ChainEventType.PACKAGING], {
+      required_error: 'Vui lòng chọn loại sự kiện',
+    }),
+    recordedAt: z.string().datetime({ message: 'Thời gian không hợp lệ' }),
+    latitude: z.number().min(-90).max(90, 'Vĩ độ không hợp lệ'),
+    longitude: z.number().min(-180).max(180, 'Kinh độ không hợp lệ'),
+    images: z.array(z.string()).min(1, 'Cần ít nhất 1 ảnh'),
+    // dynamic fields
+    quantity: z.number().positive('Sản lượng > 0').optional(),
+    harvestDate: z.string().date('Ngày thu hoạch không hợp lệ').optional(),
+    packagingSpecification: z
+      .string()
+      .max(255, 'Tối đa 255 ký tự')
+      .optional(),
+    packagingDate: z.string().date('Ngày đóng gói không hợp lệ').optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.eventType === ChainEventType.HARVEST) {
+      if (!data.quantity) {
+        ctx.addIssue({ code: 'custom', path: ['quantity'], message: 'Sản lượng bắt buộc' });
+      }
+      if (!data.harvestDate) {
+        ctx.addIssue({ code: 'custom', path: ['harvestDate'], message: 'Ngày thu hoạch bắt buộc' });
+      }
+    }
+    if (data.eventType === ChainEventType.PACKAGING) {
+      if (!data.packagingSpecification) {
+        ctx.addIssue({ code: 'custom', path: ['packagingSpecification'], message: 'Quy cách bắt buộc' });
+      }
+      if (!data.packagingDate) {
+        ctx.addIssue({ code: 'custom', path: ['packagingDate'], message: 'Ngày đóng gói bắt buộc' });
+      }
+    }
+  });
+
+export type MobileEventFormValues = z.infer<typeof mobileEventSchema>;

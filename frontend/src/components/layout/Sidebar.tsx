@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   MapPinned,
   Package,
+  Smartphone,
   Sprout,
   Truck,
   UserCheck,
@@ -129,6 +130,12 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Báo cáo ngành",
     href: "/reports/industry",
     allowedRoles: ["VT-05"] as const,
+  },
+  {
+    icon: <Smartphone className="h-5 w-5" />,
+    label: "Ghi sự kiện ngoài đồng",
+    href: "/mobile/record-event",
+    allowedRoles: ["VT-02", "VT-03"],
   },
 ];
 

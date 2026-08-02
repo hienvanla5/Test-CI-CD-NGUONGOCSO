@@ -38,6 +38,7 @@ import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
 import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
 import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
+import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -346,6 +347,15 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={["VT-05"]}>
             <IndustryReportPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="mobile/record-event"
+        element={
+          <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+            <RecordMobileEventPage />
           </RoleRoute>
         }
       />
