@@ -40,7 +40,6 @@ import java.util.*;
 public class PublicTraceServiceImpl implements PublicTraceService {
 
 	private final TraceCodeRepository traceCodeRepository;
-	private final ShipmentRepository shipmentRepository;
 	private final ChainEventRepository chainEventRepository;
 	private final ObjectMapper objectMapper;
 	private final TraceCodeScanLogRepository traceCodeScanLogRepository;
