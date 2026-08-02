@@ -19,7 +19,7 @@ export const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({ children, allowe
   }
 
   if (!allowedRoles.includes(user.roleCode)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/dashboard" replace />
   }
 
   return <>{children}</>

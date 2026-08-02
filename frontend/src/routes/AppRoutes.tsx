@@ -44,6 +44,7 @@ import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
 
 // Public
+import PublicHomePage from "@/pages/public/PublicHomePage";
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
 
 // Reports
@@ -140,6 +141,7 @@ function UnauthorizedPage() {
 const AppRoutes = () => (
     <Routes>
         {/* Route công khai */}
+        <Route path="/" element={<PublicHomePage />} />
         <Route path="/login" element={<LoginPage />} />
 
         {/* Toàn bộ route nội bộ dùng chung Header + Sidebar + Outlet */}
@@ -151,7 +153,7 @@ const AppRoutes = () => (
             }
         >
             {/* Dashboard */}
-            <Route index element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
 
             {/* ===== Organization ===== */}
             <Route

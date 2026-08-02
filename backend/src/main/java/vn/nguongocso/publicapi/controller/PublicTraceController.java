@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
 import vn.nguongocso.common.ApiResult;
-import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.publicapi.dto.response.PublicLotCertificationsResponse;
 import vn.nguongocso.publicapi.dto.response.PublicTraceResponse;
 import vn.nguongocso.publicapi.service.PublicTraceService;
@@ -22,7 +21,6 @@ import vn.nguongocso.publicapi.service.PublicTraceService;
 public class PublicTraceController {
 
     private final PublicTraceService publicTraceService;
-    private final PermissionChecker permissionChecker;
 
     @GetMapping("/{codeValue}")
     public ResponseEntity<ApiResult<PublicTraceResponse>> getPublicTrace(
@@ -31,8 +29,6 @@ public class PublicTraceController {
             @RequestParam(required = false) Double longitude,
             @RequestParam(required = false) String location,
             HttpServletRequest request) {
-
-        permissionChecker.check("TRACEABILITY", "READ");
 
         PublicTraceResponse response = publicTraceService.getPublicTrace(
                 codeValue,
@@ -48,8 +44,6 @@ public class PublicTraceController {
     @GetMapping("/{codeValue}/certifications")
     public ResponseEntity<ApiResult<PublicLotCertificationsResponse>> getPublicCertifications(
             @PathVariable String codeValue) {
-
-        permissionChecker.check("TRACEABILITY", "READ");
 
         PublicLotCertificationsResponse response =
                 publicTraceService.getPublicCertifications(codeValue);
