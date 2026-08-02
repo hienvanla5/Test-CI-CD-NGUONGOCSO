@@ -77,4 +77,7 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
      * Dùng cho Doanh nghiệp thu mua (VT‑04) xem các lô hàng sẵn sàng.
      */
     List<Shipment> findByStatusOrderByCreatedAtDesc(ShipmentStatus status);
+
+    @Query("SELECT s FROM Shipment s WHERE s.productionLot.id IN :productionLotIds")
+    List<Shipment> findByProductionLotIdIn(@Param("productionLotIds") List<UUID> productionLotIds);
 }
