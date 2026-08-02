@@ -7,9 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.alert.service.ScanAnomalyDetectionService;
+import vn.nguongocso.certification.entity.Certification;
+import vn.nguongocso.certification.entity.ProductionLotCertification;
+import vn.nguongocso.certification.enums.CertificationStatus;
+import vn.nguongocso.certification.repository.ProductionLotCertificationRepository;
 import vn.nguongocso.event.entity.ChainEvent;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
+import vn.nguongocso.publicapi.dto.response.PublicCertificationResponse;
 import vn.nguongocso.publicapi.dto.response.PublicChainEventItem;
 import vn.nguongocso.publicapi.dto.response.PublicTraceResponse;
 import vn.nguongocso.publicapi.service.PublicTraceService;
@@ -23,6 +28,7 @@ import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +44,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
     private final ObjectMapper objectMapper;
     private final TraceCodeScanLogRepository traceCodeScanLogRepository;
     private final ScanAnomalyDetectionService scanAnomalyDetectionService;
+    private final ProductionLotCertificationRepository productionLotCertificationRepository;
 
     @Override
     public PublicTraceResponse getPublicTrace(String codeValue, Double latitude, Double longitude, String location,
@@ -75,6 +82,8 @@ public class PublicTraceServiceImpl implements PublicTraceService {
         if (shipment == null) {
             throw new BusinessException("Không tìm thấy lô hàng liên kết.");
         }
+
+        List<PublicCertificationResponse> certifications = getPublicCertifications(traceCode.getCodeValue());
 
         // TC-04: Kiểm tra thu hồi
         boolean isRecalled = ShipmentStatus.RECALLED.equals(shipment.getStatus());
@@ -129,6 +138,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 .shipmentStatus(shipment.getStatus().name())
                 .recalled(isRecalled)
                 .recallMessage(recallMessage)
+                .certifications(certifications)
                 .events(publicEvents)
                 .build();
     }
@@ -151,8 +161,8 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 .eventType(event.getEventType().name())
                 .eventData(filteredData)
                 .recordedAt(event.getRecordedAt())
-                .latitude(latitude) // 👈 thêm
-                .longitude(longitude) // 👈 thêm
+                .latitude(latitude)
+                .longitude(longitude)
                 .build();
     }
 
@@ -202,5 +212,41 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 target.put(field, source.get(field));
             }
         }
+    }
+
+    private List<PublicCertificationResponse> getPublicCertifications(String codeValue) {
+
+        List<ProductionLotCertification> lotCertifications = productionLotCertificationRepository
+                .findByTraceCode(codeValue);
+
+        if (lotCertifications.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return lotCertifications.stream()
+                .map(this::toPublicCertification)
+                .toList();
+    }
+
+    private PublicCertificationResponse toPublicCertification(
+            ProductionLotCertification lotCertification) {
+
+        Certification certification = lotCertification.getCertification();
+
+        CertificationStatus status = certification.getExpiryDate().isBefore(LocalDate.now())
+                ? CertificationStatus.EXPIRED
+                : CertificationStatus.VALID;
+
+        return PublicCertificationResponse.builder()
+                .certificationId(certification.getId())
+                .standardId(certification.getStandard().getId())
+                .certificationName(certification.getStandard().getName())
+                .certificationCode(certification.getCode())
+                .issuedBy(certification.getIssuedBy())
+                .issueDate(certification.getIssueDate())
+                .expiryDate(certification.getExpiryDate())
+                .status(status)
+                .statusLabel(status.getLabel())
+                .build();
     }
 }

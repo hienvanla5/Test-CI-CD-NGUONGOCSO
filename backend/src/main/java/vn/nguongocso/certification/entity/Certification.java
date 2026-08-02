@@ -28,8 +28,9 @@ public class Certification {
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "standard_id", nullable = false)
+    private Standard standard;
 
     @Column(name = "code", nullable = false, unique = true)
     private String code;

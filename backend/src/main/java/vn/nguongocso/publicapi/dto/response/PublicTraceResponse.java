@@ -19,4 +19,5 @@ public class PublicTraceResponse {
     private Boolean recalled;
     private String recallMessage;
     private List<PublicChainEventItem> events;
+    private List<PublicCertificationResponse> certifications;
 }
