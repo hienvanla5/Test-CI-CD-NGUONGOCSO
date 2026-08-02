@@ -9,10 +9,14 @@ import type {
 export const getScanAnomalyAlerts = async (
   params: ScanAnomalyAlertParams,
 ): Promise<ScanAnomalyAlertListResponse> => {
-  const response = await apiClient.get<{ data: ScanAnomalyAlertListResponse }>(
-    '/alerts',
-    { params },
-  );
+  const response = await apiClient.get<{
+  data: ScanAnomalyAlertListResponse;
+}>('/alerts', {
+  params: {
+    ...params,
+    type: 'SCAN_ANOMALY',
+  },
+});
   return response.data.data;
 };
 

@@ -131,6 +131,12 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ["VT-01", "VT-05"] as const,
   },
   {
+    icon: <BarChart2 className="h-5 w-5" />,
+    label: "So sánh mùa vụ",
+    href: "/reports/season-yield-comparison",
+    allowedRoles: ROLE_ACCESS.seasonYieldComparison,
+  },
+  {
     icon: <FileText className="h-5 w-5" />,
     label: "Báo cáo ngành",
     href: "/reports/industry",
