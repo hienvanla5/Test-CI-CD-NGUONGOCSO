@@ -76,11 +76,8 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
   Optional<Shipment> findByIdAndOrganization_OrganizationId(
       UUID shipmentId,
       UUID organizationId);
-<<<<<<< HEAD
   
-=======
 
->>>>>>> feature/remove-projection-lot
   /**
    * Lấy danh sách lô hàng đủ điều kiện thu mua (status = ACTIVATED).
    * Dùng cho Doanh nghiệp thu mua (VT‑04) xem các lô hàng sẵn sàng.
