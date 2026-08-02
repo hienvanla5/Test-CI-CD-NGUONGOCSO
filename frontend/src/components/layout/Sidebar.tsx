@@ -8,6 +8,7 @@ import {
   BookOpen,
   Building2,
   Database,
+  Download,
   FileText,
   Hash,
   History,
@@ -163,12 +164,19 @@ const MENU_ITEMS: MenuItem[] = [
     href: "/offline-events",
     allowedRoles: ["VT-02", "VT-03"],
   },
-  // ✅ Thông báo
+  // ✅ Thông báo (NCL-08-CN-005)
   {
     icon: <Bell className="h-5 w-5" />,
     label: "Thông báo",
     href: "/notifications",
     allowedRoles: ["VT-01", "VT-02", "VT-03", "VT-04", "VT-05"],
+  },
+  // ✅ Xuất dữ liệu mở (NCL-10-CN-007)
+  {
+    icon: <Download className="h-5 w-5" />,
+    label: "Xuất dữ liệu mở",
+    href: "/export/open-data",
+    allowedRoles: ["VT-05"],
   },
 ];
 

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.publicapi.dto.response.PublicLotCertificationsResponse;
 import vn.nguongocso.publicapi.dto.response.PublicTraceResponse;
 import vn.nguongocso.publicapi.service.PublicTraceService;
 
@@ -36,6 +37,16 @@ public class PublicTraceController {
                 location,
                 request.getRemoteAddr(),
                 request.getHeader("User-Agent"));
+
+        return ResponseEntity.ok(ApiResult.success(response));
+    }
+
+    @GetMapping("/{codeValue}/certifications")
+    public ResponseEntity<ApiResult<PublicLotCertificationsResponse>> getPublicCertifications(
+            @PathVariable String codeValue) {
+
+        PublicLotCertificationsResponse response =
+                publicTraceService.getPublicCertifications(codeValue);
 
         return ResponseEntity.ok(ApiResult.success(response));
     }

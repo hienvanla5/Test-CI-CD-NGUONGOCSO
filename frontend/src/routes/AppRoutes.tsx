@@ -72,8 +72,9 @@ import OfflineEventPage from "@/pages/offline/OfflineEventPage";
 // Procurement
 import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
 
-// Notifications
+// ✅ Thêm import
 import NotificationsPage from "@/pages/notification/NotificationsPage";
+import ExportOpenDataPage from "@/pages/export/ExportOpenDataPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
     "VT-02",
@@ -409,12 +410,22 @@ const AppRoutes = () => (
                 }
             />
 
-            {/* ===== Notifications ===== */}
+            {/* ===== Notifications (NCL-08-CN-005) ===== */}
             <Route
                 path="notifications"
                 element={
                     <RoleRoute allowedRoles={AUTHENTICATED_ROLE_CODES}>
                         <NotificationsPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* ===== Export Open Data (NCL-10-CN-007) ===== */}
+            <Route
+                path="export/open-data"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.exportOpenData}>
+                        <ExportOpenDataPage />
                     </RoleRoute>
                 }
             />

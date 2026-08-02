@@ -1,6 +1,8 @@
 package vn.nguongocso.certification.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import vn.nguongocso.certification.entity.ProductionLotCertification;
 
 import java.util.List;
@@ -16,4 +18,9 @@ public interface ProductionLotCertificationRepository extends JpaRepository<Prod
     boolean existsByProductionLotIdAndCertificationId(UUID lotId, UUID certId);
 
     void deleteByProductionLotIdAndCertificationId(UUID lotId, UUID certId);
+
+    @Query("SELECT plc FROM ProductionLotCertification plc " +
+            "JOIN FETCH plc.certification " +
+            "WHERE plc.productionLot.id IN :productionLotIds")
+    List<ProductionLotCertification> findByProductionLotIdIn(@Param("productionLotIds") List<UUID> productionLotIds);
 }

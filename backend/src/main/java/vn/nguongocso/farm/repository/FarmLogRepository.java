@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import org.springframework.data.repository.query.Param;
 import vn.nguongocso.farm.entity.FarmLog;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.projection.FarmLogProjection;
@@ -47,4 +48,8 @@ public interface FarmLogRepository extends JpaRepository<FarmLog, UUID> {
     Page<FarmLog> findByProductionLotId(ProductionLot productionLot, Pageable pageable);
 
     List<FarmLog> findByProductionLotId_IdOrderByExecutedDateAsc(UUID productionLotId);
+
+	@Query("SELECT COUNT(fl) > 0 FROM FarmLog fl " +
+			"WHERE fl.productionLotId.id = :productionLotId")
+	boolean existsByProductionLotId(@Param("productionLotId") UUID productionLotId);
 }
