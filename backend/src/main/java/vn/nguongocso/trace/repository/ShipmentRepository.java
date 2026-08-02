@@ -76,6 +76,7 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
   Optional<Shipment> findByIdAndOrganization_OrganizationId(
       UUID shipmentId,
       UUID organizationId);
+  
 
   /**
    * Lấy danh sách lô hàng đủ điều kiện thu mua (status = ACTIVATED).

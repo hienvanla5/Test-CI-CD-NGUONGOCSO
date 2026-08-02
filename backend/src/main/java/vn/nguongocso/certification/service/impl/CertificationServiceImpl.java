@@ -164,7 +164,6 @@ public class CertificationServiceImpl implements CertificationService {
         Certification certification = Certification.builder()
                 .id(UUID.randomUUID())
                 .organization(organization)
-                .standard(standard)
                 .name(standard.getName())
                 .code(request.getCode())
                 .issuedBy(request.getIssuedBy())

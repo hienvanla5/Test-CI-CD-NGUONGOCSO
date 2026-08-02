@@ -19,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Camera, MapPin, Loader2, X } from "lucide-react";
+import { Camera, MapPin, Loader2 } from "lucide-react";
 import {
   mobileEventSchema,
   type MobileEventFormValues,

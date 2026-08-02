@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PackageOpen, CheckCircle2, Sprout, PackageCheck } from 'lucide-react';
 import type { ProductionLot } from '@/types/productionLot';
-import { IndustryReportTab } from './IndustryReportTab';
+import { IndustryReportPanel } from '@/components/report/IndustryReportPanel';
 
 export function ManagementDashboard() {
   const [productionLots, setProductionLots] = useState<ProductionLot[]>([]);
@@ -91,7 +91,7 @@ export function ManagementDashboard() {
         </TabsContent>
 
         <TabsContent value="industry-report" className="mt-4">
-          <IndustryReportTab />
+          <IndustryReportPanel />
         </TabsContent>
       </Tabs>
     </div>

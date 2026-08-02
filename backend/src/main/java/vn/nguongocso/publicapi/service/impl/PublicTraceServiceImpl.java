@@ -7,10 +7,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.alert.service.ScanAnomalyDetectionService;
+import vn.nguongocso.certification.entity.Certification;
+import vn.nguongocso.certification.entity.ProductionLotCertification;
+import vn.nguongocso.certification.enums.CertificationStatus;
+import vn.nguongocso.certification.repository.ProductionLotCertificationRepository;
 import vn.nguongocso.event.entity.ChainEvent;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
+import vn.nguongocso.publicapi.dto.response.PublicCertificationResponse;
 import vn.nguongocso.publicapi.dto.response.PublicChainEventItem;
+import vn.nguongocso.publicapi.dto.response.PublicLotCertificationsResponse;
 import vn.nguongocso.publicapi.dto.response.PublicTraceResponse;
 import vn.nguongocso.publicapi.service.PublicTraceService;
 import vn.nguongocso.report.entity.TraceCodeScanLog;
@@ -41,6 +47,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
     private final TraceCodeScanLogRepository traceCodeScanLogRepository;
     private final ScanAnomalyDetectionService scanAnomalyDetectionService;
     private final RecallRepository recallRepository;
+    private final ProductionLotCertificationRepository productionLotCertificationRepository;
 
     @Override
     public PublicTraceResponse getPublicTrace(String codeValue,
@@ -216,4 +223,10 @@ public class PublicTraceServiceImpl implements PublicTraceService {
             }
         }
     }
+
+	@Override
+	public PublicLotCertificationsResponse getPublicCertifications(String codeValue) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'getPublicCertifications'");
+	}
 }
