@@ -34,4 +34,7 @@ public interface ChainEventRepository extends JpaRepository<ChainEvent, UUID> {
     List<ChainEvent> findByShipmentIsNullAndEventTypeIn(List<ChainEventType> eventTypes);
 
     void deleteByShipmentId(UUID id);
+
+    @Query("SELECT ce FROM ChainEvent ce WHERE ce.shipment.id IN :shipmentIds ORDER BY ce.recordedAt ASC")
+    List<ChainEvent> findByShipmentIdInOrderByRecordedAtAsc(@Param("shipmentIds") List<UUID> shipmentIds);
 }
