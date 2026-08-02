@@ -18,11 +18,14 @@ import vn.nguongocso.alert.enums.AlertSeverity;
 import vn.nguongocso.alert.enums.AlertStatus;
 import vn.nguongocso.alert.enums.AlertType;
 import vn.nguongocso.alert.repository.AlertRepository;
-import vn.nguongocso.alert.service.AlertNotificationService;
 import vn.nguongocso.alert.service.ScanAnomalyDetectionService;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.notification.service.NotificationService;
+import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.report.entity.TraceCodeScanLog;
 import vn.nguongocso.report.repository.TraceCodeScanLogRepository;
+import vn.nguongocso.trace.entity.TraceCode;
+import vn.nguongocso.trace.repository.TraceCodeRepository;
 
 /** Triển khai phát hiện quét bất thường. */
 @Service
@@ -37,9 +40,10 @@ public class ScanAnomalyDetectionServiceImpl
     private static final int MIN_DISTINCT_LOCATIONS = 2; // Số vị trí khác nhau tối thiểu để xác định bất thường
 
     private final TraceCodeScanLogRepository traceCodeScanLogRepository;
-    private final AlertNotificationService notificationService;
+    private final NotificationService notificationService;
     private final AlertRepository alertRepository;
     private final ObjectMapper objectMapper;
+    private final TraceCodeRepository traceCodeRepository;
 
     /** Kiểm tra và xử lý khi phát sinh lượt quét mới. */
     @Override
@@ -63,8 +67,11 @@ public class ScanAnomalyDetectionServiceImpl
             return;
         }
 
+        // Lấy tổ chức từ trace code để gán vào alert
+        Organization organization = getOrganizationFromTraceCode(traceCodeId);
+
         // Tạo bản ghi cảnh báo.
-        Alert alert = createAlert(traceCodeId, scanLogs);
+        Alert alert = createAlert(traceCodeId, scanLogs, organization);
 
         // Gửi thông báo cho các đối tượng liên quan.
         sendNotification(alert);
@@ -211,10 +218,18 @@ public class ScanAnomalyDetectionServiceImpl
         return AlertSeverity.MEDIUM;
     }
 
+    /** Lấy tổ chức từ trace code. */
+    private Organization getOrganizationFromTraceCode(UUID traceCodeId) {
+        TraceCode traceCode = traceCodeRepository.findById(traceCodeId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy mã truy xuất."));
+        return traceCode.getShipment().getOrganization();
+    }
+
     /** Tạo cảnh báo. */
     private Alert createAlert(
             UUID traceCodeId,
-            List<TraceCodeScanLog> scanLogs) {
+            List<TraceCodeScanLog> scanLogs,
+            Organization organization) {
 
         Alert alert = new Alert();
 
@@ -236,8 +251,11 @@ public class ScanAnomalyDetectionServiceImpl
         }
 
         alert.setStatus(AlertStatus.PENDING);
-
         alert.setCreatedAt(LocalDateTime.now());
+        alert.setOrganization(organization);
+        alert.setMessage("Phát hiện quét bất thường đối với mã truy xuất. "
+                + "Số lần quét: " + scanLogs.size()
+                + ", số vị trí khác nhau: " + countDistinctLocations(scanLogs) + ".");
 
         return alertRepository.save(alert);
     }

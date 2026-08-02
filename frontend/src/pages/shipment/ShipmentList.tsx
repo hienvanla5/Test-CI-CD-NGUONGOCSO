@@ -15,13 +15,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BadgeCheck, FileText, Plus, QrCode } from "lucide-react";
+import { BadgeCheck, FileText, Plus, QrCode, Ban, MoreHorizontal, History } from "lucide-react";
 import { useShipments } from "@/hooks/useShipments";
+import { useRecallShipment } from "@/hooks/useRecallShipment";
 import type { Shipment, CreateShipmentPayload } from "@/types/shipment";
 import { CreateShipmentModal } from "@/components/shipment/CreateShipmentModal";
 import { QrCodeGrid } from "@/components/shipment/QrCodeGrid";
 import { ShipmentTimelineDialog } from "@/components/shipment/ShipmentTimelineDialog";
 import { ActivateShipmentDialog } from "@/components/shipment/ActivateShipmentDialog";
+import { RecallShipmentDialog } from "@/components/shipment/RecallShipmentDialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { checkDossierEligibility, exportDossier } from "@/api/dossierApi";
 import { DossierIneligibleDialog } from "@/components/shipment/DossierIneligibleDialog";
@@ -46,6 +55,7 @@ interface ShipmentListProps {
   productionLotStatus: string;
   canCreate: boolean;
   canActivate: boolean;
+  canRecall: boolean;
 }
 
 export const ShipmentList = ({
@@ -53,6 +63,7 @@ export const ShipmentList = ({
   productionLotStatus,
   canCreate,
   canActivate,
+  canRecall,
 }: ShipmentListProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -60,6 +71,9 @@ export const ShipmentList = ({
     null,
   );
   const [activatingShipment, setActivatingShipment] = useState<Shipment | null>(
+    null,
+  );
+  const [recallingShipment, setRecallingShipment] = useState<Shipment | null>(
     null,
   );
   const [timelineDialog, setTimelineDialog] = useState<{
@@ -91,6 +105,8 @@ export const ShipmentList = ({
     activateShipment,
     reload,
   } = useShipments(productionLotId);
+
+  const { recallingShipmentId, recallShipment } = useRecallShipment(reload);
 
   const handleCreate = async (payload: CreateShipmentPayload) => {
     await createShipment(payload);
@@ -229,19 +245,7 @@ export const ShipmentList = ({
                         {shipment.traceCodes?.length || 0}
                       </TableCell>
                       <TableCell className="text-center">
-                        <div className="flex flex-wrap justify-center gap-1.5">
-                          {canActivate &&
-                            shipment.status === "CODE_PRINTED" && (
-                              <Button
-                                size="sm"
-                                variant="default"
-                                className="px-2.5 py-1 text-xs h-auto"
-                                onClick={() => setActivatingShipment(shipment)}
-                              >
-                                <BadgeCheck className="mr-1 h-3 w-3" />
-                                Kích hoạt
-                              </Button>
-                            )}
+                        <div className="flex items-center justify-center gap-1.5">
                           <Button
                             size="sm"
                             variant="outline"
@@ -251,39 +255,71 @@ export const ShipmentList = ({
                             <QrCode className="mr-1 h-3 w-3" />
                             QR
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="px-2.5 py-1 text-xs h-auto"
-                            onClick={() =>
-                              setTimelineDialog({
-                                open: true,
-                                shipmentId: shipment.id,
-                                name: shipment.name,
-                              })
-                            }
-                          >
-                            Sự kiện
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="px-2.5 py-1 text-xs h-auto"
-                            onClick={() => handleExportDossier(shipment)}
-                          >
-                            <FileText className="mr-1 h-3 w-3" />
-                            Xuất hồ sơ
-                          </Button>
-                          {(shipment.status === "DRAFT" ||
-                            shipment.status === "CODE_PRINTED") && (
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteDraft(shipment)}
+
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              className="size-7"
+                              aria-label="Thao tác khác"
                             >
-                              Hủy nháp
-                            </Button>
-                          )}
+                              <MoreHorizontal className="size-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              {canActivate &&
+                                shipment.status === "CODE_PRINTED" && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      setActivatingShipment(shipment)
+                                    }
+                                  >
+                                    <BadgeCheck className="size-4" />
+                                    Kích hoạt
+                                  </DropdownMenuItem>
+                                )}
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setTimelineDialog({
+                                    open: true,
+                                    shipmentId: shipment.id,
+                                    name: shipment.name,
+                                  })
+                                }
+                              >
+                                <History className="size-4" />
+                                Sự kiện
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleExportDossier(shipment)}
+                              >
+                                <FileText className="size-4" />
+                                Xuất hồ sơ
+                              </DropdownMenuItem>
+
+                              {((canRecall && shipment.status !== "RECALLED") ||
+                                shipment.status === "DRAFT" ||
+                                shipment.status === "CODE_PRINTED") && (
+                                <DropdownMenuSeparator />
+                              )}
+
+                              {canRecall && shipment.status !== "RECALLED" && (
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => setRecallingShipment(shipment)}
+                                >
+                                  <Ban className="size-4" />
+                                  Thu hồi
+                                </DropdownMenuItem>
+                              )}
+                              {(shipment.status === "DRAFT" ||
+                                shipment.status === "CODE_PRINTED") && (
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => handleDeleteDraft(shipment)}
+                                >
+                                  Hủy nháp
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -358,6 +394,15 @@ export const ShipmentList = ({
         onClose={() => setActivatingShipment(null)}
         onConfirm={async (shipmentId) => {
           await activateShipment(shipmentId);
+        }}
+      />
+
+      <RecallShipmentDialog
+        shipment={recallingShipment}
+        isRecalling={recallingShipmentId === recallingShipment?.id}
+        onClose={() => setRecallingShipment(null)}
+        onConfirm={async (shipmentId, reason) => {
+          await recallShipment(shipmentId, reason);
         }}
       />
 

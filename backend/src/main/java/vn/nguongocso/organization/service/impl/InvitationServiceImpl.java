@@ -209,12 +209,15 @@ public class InvitationServiceImpl implements InvitationService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        userRepository.save(user);
+        // Lưu User và lấy entity đã được quản lý (managed) từ save().
+        // Do User.userId được gán thủ công, save() gọi merge() trả về bản copy
+        // được quản lý; nếu dùng tham chiếu cũ sẽ bị TransientPropertyValueException.
+        User savedUser = userRepository.save(user);
 
         // Tạo liên kết OrganizationUser
         OrganizationUser orgUser = new OrganizationUser();
         orgUser.setOrganization(invitation.getOrganization());
-        orgUser.setUser(user);
+        orgUser.setUser(savedUser);
         orgUser.setRole(invitation.getRole());
         orgUser.setStatus(OrganizationUserStatus.ACTIVE);
 
@@ -227,24 +230,24 @@ public class InvitationServiceImpl implements InvitationService {
 
         // Ghi Audit Log
         eventPublisher.publishEvent(ActivityLogEvent.builder()
-                .userId(user.getUserId())
-                .username(user.getUserName())
-                .fullName(user.getFullName())
+                .userId(savedUser.getUserId())
+                .username(savedUser.getUserName())
+                .fullName(savedUser.getFullName())
                 .organizationId(invitation.getOrganization().getOrganizationId())
                 .action("ACCEPT")
-                .description("Người dùng " + user.getUserName() + " chấp nhận thư mời tham gia tổ chức bằng email " + invitation.getEmail())
+                .description("Người dùng " + savedUser.getUserName() + " chấp nhận thư mời tham gia tổ chức bằng email " + invitation.getEmail())
                 .entityType("MEMBER_INVITATION")
                 .entityId(invitation.getId().toString())
                 .timestamp(LocalDateTime.now())
                 .build());
 
         log.info("Thành viên mới tham gia tổ chức thành công: username={}, organization={}", 
-                user.getUserName(), invitation.getOrganization().getName());
+                savedUser.getUserName(), invitation.getOrganization().getName());
 
         return AcceptInvitationResponse.builder()
-                .userId(user.getUserId())
-                .userName(user.getUserName())
-                .fullName(user.getFullName())
+                .userId(savedUser.getUserId())
+                .userName(savedUser.getUserName())
+                .fullName(savedUser.getFullName())
                 .organizationId(invitation.getOrganization().getOrganizationId())
                 .organizationName(invitation.getOrganization().getName())
                 .roleCode(invitation.getRole().getCode())

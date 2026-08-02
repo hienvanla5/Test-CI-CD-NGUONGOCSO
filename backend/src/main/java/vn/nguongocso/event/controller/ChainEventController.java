@@ -12,6 +12,7 @@ import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.event.dto.request.*;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.dto.response.OfflineEventSyncResponse;
+import vn.nguongocso.event.dto.response.ScanLookupResponse;
 import vn.nguongocso.event.service.ChainEventService;
 import vn.nguongocso.event.service.OfflineSyncService;
 
@@ -22,15 +23,17 @@ import java.util.UUID;
  * <p>
  * Cung cấp các API để ghi nhận và quản lý các sự kiện như:
  * <ul>
- *   <li>Thu hoạch (HARVEST)</li>
- *   <li>Đóng gói (PACKAGING)</li>
- *   <li>Sửa lỗi đóng gói (CORRECTION)</li>
+ * <li>Thu hoạch (HARVEST)</li>
+ * <li>Đóng gói (PACKAGING)</li>
+ * <li>Sửa lỗi đóng gói (CORRECTION)</li>
  * </ul>
  * </p>
  *
- * <p>Tất cả các API đều yêu cầu xác thực và phân quyền.
+ * <p>
+ * Tất cả các API đều yêu cầu xác thực và phân quyền.
  * Chỉ người dùng có vai trò VT-02 (Quản lý HTX) hoặc VT-03 (Người ghi sự kiện)
- * mới được phép thực hiện các thao tác này.</p>
+ * mới được phép thực hiện các thao tác này.
+ * </p>
  *
  * @author Team WEB !
  */
@@ -55,6 +58,7 @@ public class ChainEventController {
         ChainEventResponse response = chainEventService.recordHarvestEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
+
     /**
      * API ghi nhận sự kiện đóng gói cho lô sản xuất.
      */
@@ -67,7 +71,7 @@ public class ChainEventController {
         ChainEventResponse response = chainEventService.recordPackagingEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
-    
+
     /**
      * API ghi nhận sự kiện vận chuyển cho lô hàng.
      * Chỉ chấp nhận vai trò VT-03 (Người ghi sự kiện).
@@ -78,8 +82,7 @@ public class ChainEventController {
             @Valid @RequestBody RecordTransportEventRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        ChainEventResponse response =
-                chainEventService.recordTransportEvent(request, currentUser);
+        ChainEventResponse response = chainEventService.recordTransportEvent(request, currentUser);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResult.success(HttpStatus.CREATED.value(), response));
@@ -98,6 +101,7 @@ public class ChainEventController {
         ChainEventResponse response = chainEventService.correctPackagingEvent(originalEventId, request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
+
     /**
      * API ghi nhận sự kiện ngoài đồng từ thiết bị di động.
      * Chỉ chấp nhận vai trò VT-02 (Quản lý HTX) và VT-03 (Người ghi sự kiện).
@@ -112,6 +116,7 @@ public class ChainEventController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
+
     @PostMapping("/sync")
     @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
     public ResponseEntity<ApiResult<OfflineEventSyncResponse>> syncOfflineEvents(
@@ -122,5 +127,27 @@ public class ChainEventController {
                 .body(ApiResult.success(HttpStatus.OK.value(), response));
     }
 
-}
+    /**
+     * Tra cứu mã truy xuất trước khi mở biểu mẫu ghi sự kiện.
+     *
+     * Chức năng:
+     * - Kiểm tra quyền sử dụng chức năng quét mã.
+     * - Kiểm tra mã truy xuất có tồn tại.
+     * - Kiểm tra mã đã gắn lô hàng.
+     * - Kiểm tra quyền theo tổ chức.
+     * - Kiểm tra trạng thái lô hàng.
+     * - Trả về thông tin cần thiết để mở biểu mẫu ghi sự kiện.
+     */
+    @GetMapping("/scan-lookup")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResult<ScanLookupResponse>> scanLookup(
+            @RequestParam String codeValue,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        ScanLookupResponse response = chainEventService.scanLookup(codeValue, currentUser);
+
+        return ResponseEntity.ok(
+                ApiResult.success(HttpStatus.OK.value(), response));
+    }
+
+}

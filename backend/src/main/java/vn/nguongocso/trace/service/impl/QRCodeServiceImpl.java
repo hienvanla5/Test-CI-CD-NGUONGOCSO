@@ -20,35 +20,36 @@ import vn.nguongocso.trace.service.QRCodeService;
 
 @Service
 @Slf4j
-public class QRCodeServiceImpl implements QRCodeService{
+public class QRCodeServiceImpl implements QRCodeService {
 
 	@Value("${qr.image.storage.path:./files/qr}")
-	
+
 	private String storagePath;
-	
+
 	private static final int QR_WIDTH = 300;
 	private static final int QR_HEIGHT = 300;
-	
+
 	@Override
 	public String generateQRCode(String codeValue, UUID organizationId, UUID productionLotId, UUID shipmentId) {
 		try {
-			Path dirPath = Paths.get(storagePath, organizationId.toString(), productionLotId.toString(), shipmentId.toString());
-			if(!Files.exists(dirPath)) {
+			Path dirPath = Paths.get(storagePath, organizationId.toString(), productionLotId.toString(),
+					shipmentId.toString());
+			if (!Files.exists(dirPath)) {
 				Files.createDirectories(dirPath);
 			}
-			
+
 			String fileName = codeValue + ".png";
 			Path filePath = dirPath.resolve(fileName);
-			
+
 			QRCodeWriter qrCodeWriter = new QRCodeWriter();
 			BitMatrix bitMatrix = qrCodeWriter.encode(codeValue, BarcodeFormat.QR_CODE, QR_WIDTH, QR_HEIGHT);
 			MatrixToImageWriter.writeToPath(bitMatrix, "PNG", filePath);
-			
+
 			return "/files/qr/" + organizationId + "/" + productionLotId + "/" + shipmentId + "/" + fileName;
-			
-		}catch (WriterException | IOException e) {
+
+		} catch (WriterException | IOException e) {
 			log.error("Lỗi sinh mã QR cho code {}: {}", codeValue, e.getMessage());
-			
+
 			throw new RuntimeException("Không thể sinh ảnh QR cho mã: " + codeValue, e);
 		}
 	}
