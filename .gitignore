@@ -1,0 +1,18 @@
+# IntelliJ
+.idea/
+
+# VS Code
+.vscode/
+
+# Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+
+AI_GUIDE.md
+
+#Anti
+.agents/
+
+/files/
