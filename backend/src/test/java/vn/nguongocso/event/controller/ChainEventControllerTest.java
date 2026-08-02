@@ -6,6 +6,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import vn.nguongocso.event.dto.request.RecordMobileEventRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.auth.service.CustomUserDetailsService;
 import vn.nguongocso.config.JwtTokenProvider;
 import vn.nguongocso.config.SecurityConfig;
@@ -33,6 +35,7 @@ import vn.nguongocso.event.service.ChainEventService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -57,7 +60,10 @@ class ChainEventControllerTest {
     private CustomUserDetailsService customUserDetailsService;
 
     private RecordHarvestEventRequest validRequest;
+    private RecordMobileEventRequest validRequestMobile;
     private ChainEventResponse successResponse;
+
+    // Thay thế @MockBean bằng @MockitoBean theo chuẩn Spring Boot 3.4.0+
 
     @BeforeEach
     void setUp() {
@@ -70,6 +76,14 @@ class ChainEventControllerTest {
         validRequest.setQuantity(1500.0);
         validRequest.setLatitude(21.0285);
         validRequest.setLongitude(105.8542);
+        validRequestMobile = new RecordMobileEventRequest();
+        validRequestMobile.setProductionLotId(UUID.randomUUID());
+        validRequestMobile.setEventType(ChainEventType.HARVEST);
+        validRequestMobile.setRecordedAt(LocalDateTime.now().minusMinutes(10));
+        validRequestMobile.setLatitude(21.0285);
+        validRequestMobile.setLongitude(105.8542);
+        validRequestMobile.setImages(List.of("https://picsum.photos/id/237/400/300.jpg"));
+        validRequestMobile.setEventData(Map.of("quantity", 500.0, "harvestDate", "2026-07-31"));
 
         // 2. Thiết lập dữ liệu eventData
         Map<String, Object> eventDataMap = new HashMap<>();
@@ -341,5 +355,52 @@ class ChainEventControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
     }
+    @Test
+    @WithMockUser(roles = {"VT-03"}) // EVENT_RECORDER
+    void recordMobileEvent_ShouldReturnCreated_WhenRequestIsValid() throws Exception {
+        // Given
+        ChainEventResponse mockResponse = ChainEventResponse.builder()
+                .id(UUID.randomUUID())
+                .eventType(ChainEventType.HARVEST)
+                .latitude(21.0285)
+                .longitude(105.8542)
+                .recordedAt(validRequestMobile.getRecordedAt())
+                .recordedByName("Lê Văn Đồng")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        // SỬA: Thay thế any(CustomUserDetails.class) bằng any() để bắt được cả giá trị null/mock principal
+        when(chainEventService.recordMobileEvent(any(RecordMobileEventRequest.class), any()))
+                .thenReturn(mockResponse);
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/chain-events/mobile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequestMobile))
+                        .with(csrf()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.eventType").value("HARVEST"))
+                .andExpect(jsonPath("$.data.recordedByName").value("Lê Văn Đồng"));
+    }
+
+    @Test
+    @WithMockUser(roles = {"VT-03"})
+    void recordMobileEvent_ShouldReturnBadRequest_WhenMissingImages() throws Exception {
+        // Given
+        validRequestMobile.setImages(List.of()); // Gửi danh sách rỗng (vi phạm validation)
+
+        // When & Then
+        mockMvc.perform(post("/api/v1/chain-events/mobile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequestMobile))
+                        .with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                // SỬA: Kiểm tra thông báo lỗi chung của dự án và chi tiết lỗi trong trường images
+                .andExpect(jsonPath("$.message").value("Dữ liệu không hợp lệ"))
+                .andExpect(jsonPath("$.errors.images").value("Sự kiện ghi nhận ngoài đồng yêu cầu tối thiểu một hình ảnh thực địa"));
+    }
+
 
 }

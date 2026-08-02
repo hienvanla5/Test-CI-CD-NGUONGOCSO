@@ -351,3 +351,22 @@ CREATE TABLE recalls (
         FOREIGN KEY (recalled_by)
         REFERENCES users(user_id)
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS standards (
+    id CHAR(36) NOT NULL PRIMARY KEY,
+
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    issuing_body VARCHAR(255),
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT NULL
+);
+
+CREATE INDEX idx_certification_org
+ON certifications(organization_id);
+
+CREATE INDEX idx_certification_standard
+ON certifications(standard_id);
