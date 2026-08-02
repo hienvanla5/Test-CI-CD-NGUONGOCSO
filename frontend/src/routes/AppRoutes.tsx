@@ -38,6 +38,7 @@ import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
 import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
 import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
+import StandardManagementPage from "@/pages/admin/StandardManagementPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
@@ -349,6 +350,15 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
+
+      <Route
+  path="admin/standards"
+  element={
+    <RoleRoute allowedRoles={ROLE_ACCESS.standardManagement}>
+      <StandardManagementPage />
+    </RoleRoute>
+  }
+/>
 
       {/* Trang báo không đủ quyền vẫn nằm trong layout */}
       <Route path="unauthorized" element={<UnauthorizedPage />} />

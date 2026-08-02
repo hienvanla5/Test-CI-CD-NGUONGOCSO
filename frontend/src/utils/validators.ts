@@ -120,3 +120,21 @@ export const createCodeRangeSchema = z.object({
 });
 
 export type CreateCodeRangeFormValues = z.infer<typeof createCodeRangeSchema>;
+
+export const standardFormSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Tên tiêu chuẩn không được để trống')
+    .max(255, 'Tên tiêu chuẩn không được vượt quá 255 ký tự'),
+  description: z
+    .string()
+    .max(1000, 'Mô tả không được vượt quá 1000 ký tự')
+    .optional(),
+  issuingBody: z
+    .string()
+    .max(255, 'Cơ quan ban hành không được vượt quá 255 ký tự')
+    .optional(),
+  isActive: z.boolean().optional(),
+});
+
+export type StandardFormValues = z.infer<typeof standardFormSchema>;

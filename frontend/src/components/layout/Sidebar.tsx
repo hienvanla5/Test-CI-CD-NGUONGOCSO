@@ -3,6 +3,7 @@ import { Link, useLocation, useMatch } from "react-router-dom";
 import {
   AlertTriangle,
   BarChart2,
+  BookOpen,
   Building2,
   FileText,
   Hash,
@@ -129,6 +130,12 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Báo cáo ngành",
     href: "/reports/industry",
     allowedRoles: ["VT-05"] as const,
+  },
+  {
+    icon: <BookOpen className="h-5 w-5" />,
+    label: "Tiêu chuẩn chất lượng",
+    href: "/admin/standards",
+    allowedRoles: ROLE_ACCESS.standardManagement,
   },
 ];
 
