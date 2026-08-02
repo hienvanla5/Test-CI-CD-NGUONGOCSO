@@ -63,6 +63,7 @@ import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
 import CreateCertificationPage from "@/pages/certification/CreateCertificationPage";
 import CertificationListPage from "@/pages/certification/CertificationListPage";
+import OfflineEventPage from "@/pages/offline/OfflineEventPage";
 
 // Constants
 const COOPERATIVE_MANAGER_ROLES = [
@@ -395,6 +396,15 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={["VT-02"]}>
             <CreateCertificationPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
+        path="offline-events"
+        element={
+          <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+            <OfflineEventPage />
           </RoleRoute>
         }
       />

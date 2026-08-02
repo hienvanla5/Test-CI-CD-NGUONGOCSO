@@ -6,6 +6,7 @@ import {
   BarChart2,
   BookOpen,
   Building2,
+  Database,
   FileText,
   Hash,
   History,
@@ -152,6 +153,12 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Chứng nhận",
     href: "/certifications",
     allowedRoles: ["VT-02"],
+  },
+  {
+    icon: <Database className="h-5 w-5" />,
+    label: "Sự kiện chờ đồng bộ",
+    href: "/offline-events",
+    allowedRoles: ["VT-02", "VT-03"],
   },
 ];
 

@@ -27,6 +27,8 @@ import {
 import { recordMobileEvent } from "@/api/chainEventApi";
 import type { ProductionLot } from "@/types/productionLot";
 import { ChainEventType, ChainEventTypeLabel } from "@/enums/chainEventType";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { addOfflineEvent } from "@/services/offlineQueue";
 
 interface Props {
   lots: ProductionLot[];
@@ -36,6 +38,7 @@ interface Props {
 const MAX_IMAGES = 5;
 
 export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
+  const { isOnline } = useOfflineSync();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -51,6 +54,7 @@ export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
   } = useForm<MobileEventFormValues>({
     resolver: zodResolver(mobileEventSchema),
     defaultValues: {
+      productionLotId: "",
       eventType: ChainEventType.HARVEST,
       recordedAt: new Date().toISOString(),
       latitude: 0,
@@ -58,6 +62,8 @@ export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
       images: [],
       harvestDate: new Date().toISOString().split("T")[0],
       packagingDate: new Date().toISOString().split("T")[0],
+      quantity: 0, // ✅ thêm
+      packagingSpecification: "", // ✅ thêm
     },
   });
 
@@ -87,29 +93,29 @@ export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
 
   // Xử lý chọn ảnh
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const files = e.target.files;
-  if (!files) return;
-  const fileArray = Array.from(files);
-  if (imageFiles.length + fileArray.length > MAX_IMAGES) {
-    toast.error(`Chỉ được chọn tối đa ${MAX_IMAGES} ảnh`);
-    return;
-  }
-  setImageFiles((prev) => [...prev, ...fileArray]);
-  const newPreviews = fileArray.map((f) => URL.createObjectURL(f));
-  const updatedPreviews = [...imagePreviews, ...newPreviews];
-  setImagePreviews(updatedPreviews);
-  // ✅ Cập nhật vào react-hook-form để validation biết có ảnh
-  setValue('images', updatedPreviews, { shouldValidate: true });
-};
+    const files = e.target.files;
+    if (!files) return;
+    const fileArray = Array.from(files);
+    if (imageFiles.length + fileArray.length > MAX_IMAGES) {
+      toast.error(`Chỉ được chọn tối đa ${MAX_IMAGES} ảnh`);
+      return;
+    }
+    setImageFiles((prev) => [...prev, ...fileArray]);
+    const newPreviews = fileArray.map((f) => URL.createObjectURL(f));
+    const updatedPreviews = [...imagePreviews, ...newPreviews];
+    setImagePreviews(updatedPreviews);
+    // ✅ Cập nhật vào react-hook-form để validation biết có ảnh
+    setValue("images", updatedPreviews, { shouldValidate: true });
+  };
 
   const removeImage = (index: number) => {
-  const newFiles = imageFiles.filter((_, i) => i !== index);
-  setImageFiles(newFiles);
-  const newPreviews = imagePreviews.filter((_, i) => i !== index);
-  setImagePreviews(newPreviews);
-  // ✅ Cập nhật lại danh sách ảnh trong form
-  setValue('images', newPreviews, { shouldValidate: true });
-};
+    const newFiles = imageFiles.filter((_, i) => i !== index);
+    setImageFiles(newFiles);
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    setImagePreviews(newPreviews);
+    // ✅ Cập nhật lại danh sách ảnh trong form
+    setValue("images", newPreviews, { shouldValidate: true });
+  };
 
   // Chuyển File sang base64
   const fileToBase64 = (file: File): Promise<string> =>
@@ -121,12 +127,36 @@ export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
     });
 
   const onSubmit = async (data: MobileEventFormValues) => {
+    console.log("🚀 onSubmit called, isOnline:", isOnline);
     setIsSubmitting(true);
-    try {
-      // Chuyển ảnh sang base64
-      const base64Images = await Promise.all(imageFiles.map(fileToBase64));
+    let payload: any = null; // khai báo bên ngoài để dùng trong catch
 
-      const payload = {
+    try {
+      let base64Images: string[] = [];
+try {
+  base64Images = await Promise.all(imageFiles.map(fileToBase64));
+} catch (err) {
+  console.error("❌ Error converting images to base64:", err);
+  toast.error("Không thể xử lý ảnh. Vui lòng thử lại.");
+  setIsSubmitting(false);
+  return;
+}
+
+      // Xây dựng eventData dựa trên loại sự kiện
+      let eventData: Record<string, any> = {};
+      if (data.eventType === ChainEventType.HARVEST) {
+        eventData = {
+          quantity: data.quantity,
+          harvestDate: data.harvestDate,
+        };
+      } else if (data.eventType === ChainEventType.PACKAGING) {
+        eventData = {
+          packagingSpecification: data.packagingSpecification,
+          packagingDate: data.packagingDate,
+        };
+      }
+
+      payload = {
         productionLotId: data.productionLotId,
         eventType: data.eventType,
         recordedAt: data.recordedAt,
@@ -134,28 +164,39 @@ export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
         longitude: data.longitude,
         images: base64Images,
         deviceSource: "MOBILE",
-        eventData:
-          data.eventType === ChainEventType.HARVEST
-            ? {
-                quantity: data.quantity,
-                harvestDate: data.harvestDate,
-              }
-            : {
-                packagingSpecification: data.packagingSpecification,
-                packagingDate: data.packagingDate,
-              },
+        eventData,
       };
 
-      await recordMobileEvent(payload);
-      toast.success("Ghi sự kiện thành công!");
-      reset();
-      setImageFiles([]);
-      setImagePreviews([]);
-      setValue('images', []);
-      onSuccess?.();
+      if (!isOnline) {
+        // 🔴 Lưu tạm khi mất mạng
+        addOfflineEvent(payload);
+        toast.info(
+          "Không có kết nối. Sự kiện đã được lưu tạm và sẽ đồng bộ sau.",
+        );
+        reset();
+        setImageFiles([]);
+        setImagePreviews([]);
+        onSuccess?.();
+      } else {
+        // 🟢 Gửi trực tiếp
+        await recordMobileEvent(payload);
+        toast.success("Ghi sự kiện thành công!");
+        reset();
+        setImageFiles([]);
+        setImagePreviews([]);
+        onSuccess?.();
+      }
     } catch (error: any) {
-      const msg = error.response?.data?.message || "Ghi sự kiện thất bại";
-      toast.error(msg);
+      // Nếu lỗi network khi online, vẫn lưu tạm (chỉ khi payload đã được tạo)
+      if (
+        payload &&
+        (error.code === "ERR_NETWORK" || error.message?.includes("Network"))
+      ) {
+        addOfflineEvent(payload);
+        toast.info("Lỗi mạng. Sự kiện đã được lưu tạm.");
+      } else {
+        toast.error(error.response?.data?.message || "Ghi sự kiện thất bại");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -165,6 +206,8 @@ export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
   const filteredLots = lots.filter(
     (lot) => lot.status === "APPROVED" || lot.status === "HARVESTED",
   );
+
+  console.log("isOnline:", isOnline);
 
   return (
     <Card className="max-w-md mx-auto">
