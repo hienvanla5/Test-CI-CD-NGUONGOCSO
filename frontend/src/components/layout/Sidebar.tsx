@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link, useLocation, useMatch } from "react-router-dom";
 import {
   AlertTriangle,
+  Award,
   BarChart2,
   BookOpen,
   Building2,
@@ -146,13 +147,19 @@ const MENU_ITEMS: MenuItem[] = [
     href: "/admin/standards",
     allowedRoles: ROLE_ACCESS.standardManagement,
   },
+  {
+    icon: <Award className="h-5 w-5" />,
+    label: "Chứng nhận",
+    href: "/certifications",
+    allowedRoles: ["VT-02"],
+  },
 ];
 
 export function Sidebar({
-                          onNavigate,
-                          onClose,
-                          showCloseButton = false,
-                        }: SidebarProps) {
+  onNavigate,
+  onClose,
+  showCloseButton = false,
+}: SidebarProps) {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -167,11 +174,11 @@ export function Sidebar({
 
   // Fallback nếu không có menu nào
   const finalItems =
-      visibleItems.length === 0
-          ? MENU_ITEMS.filter(
-              (item) => item.href === "/" || item.href === "/production-lots",
-          )
-          : visibleItems;
+    visibleItems.length === 0
+      ? MENU_ITEMS.filter(
+          (item) => item.href === "/" || item.href === "/production-lots",
+        )
+      : visibleItems;
 
   const isActive = (href: string) => {
     // Đối với route "/organizations" và "/organizations/profile" chúng ta muốn tách biệt
@@ -183,51 +190,51 @@ export function Sidebar({
   };
 
   return (
-      <aside className="flex h-full min-h-0 flex-col border-r bg-background">
-        <div className="flex h-16 items-center gap-2 border-b px-5">
-          <Link
-              to="/"
-              onClick={onNavigate}
-              className="flex min-w-0 flex-1 items-center gap-2 font-bold"
+    <aside className="flex h-full min-h-0 flex-col border-r bg-background">
+      <div className="flex h-16 items-center gap-2 border-b px-5">
+        <Link
+          to="/"
+          onClick={onNavigate}
+          className="flex min-w-0 flex-1 items-center gap-2 font-bold"
+        >
+          <Sprout className="h-6 w-6 shrink-0 text-primary" />
+          <span className="truncate text-lg">Nguồn gốc số</span>
+        </Link>
+        {showCloseButton && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            aria-label="Đóng menu"
           >
-            <Sprout className="h-6 w-6 shrink-0 text-primary" />
-            <span className="truncate text-lg">Nguồn gốc số</span>
+            <X className="h-5 w-5" />
+          </Button>
+        )}
+      </div>
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        {finalItems.map((item) => (
+          <Link
+            key={item.href}
+            to={item.href}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+              isActive(item.href)
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
+          >
+            {item.icon}
+            <span>{item.label}</span>
           </Link>
-          {showCloseButton && (
-              <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClose}
-                  aria-label="Đóng menu"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-          )}
-        </div>
-        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {finalItems.map((item) => (
-              <Link
-                  key={item.href}
-                  to={item.href}
-                  onClick={onNavigate}
-                  className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                      isActive(item.href)
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-          ))}
-          {finalItems.length === 0 && (
-              <p className="px-3 py-2 text-sm text-muted-foreground">
-                Không có menu
-              </p>
-          )}
-        </nav>
-      </aside>
+        ))}
+        {finalItems.length === 0 && (
+          <p className="px-3 py-2 text-sm text-muted-foreground">
+            Không có menu
+          </p>
+        )}
+      </nav>
+    </aside>
   );
 }

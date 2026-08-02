@@ -94,7 +94,6 @@ public class StandardServiceImpl implements StandardService {
     public Page<StandardResponse> getStandards(Boolean isActive,
             Pageable pageable, CustomUserDetails currentUser) {
 
-        validateAdminPermission(currentUser);
 
         Page<Standard> page;
 

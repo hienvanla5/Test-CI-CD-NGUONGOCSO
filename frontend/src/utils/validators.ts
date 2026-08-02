@@ -176,3 +176,41 @@ export const standardFormSchema = z.object({
     isActive: z.boolean().optional(),
 });
 export type StandardFormValues = z.infer<typeof standardFormSchema>;
+
+
+export const createCertificationSchema = z
+  .object({
+    standardId: z.string().uuid('Vui lòng chọn tiêu chuẩn'),
+    code: z
+      .string()
+      .min(1, 'Số hiệu chứng nhận không được để trống')
+      .max(50, 'Số hiệu chứng nhận tối đa 50 ký tự'),
+    issuedBy: z
+      .string()
+      .max(255, 'Cơ quan cấp tối đa 255 ký tự')
+      .optional(),
+    issueDate: z.string().date('Ngày cấp không hợp lệ'),
+    expiryDate: z.string().date('Ngày hết hạn không hợp lệ'),
+  })
+  .superRefine((data, ctx) => {
+    if (data.issueDate && data.expiryDate) {
+      const issue = new Date(data.issueDate);
+      const expiry = new Date(data.expiryDate);
+      if (expiry < issue) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['expiryDate'],
+          message: 'Ngày hết hạn phải sau ngày cấp',
+        });
+      }
+      if (expiry < new Date()) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['expiryDate'],
+          message: 'Ngày hết hạn không được là ngày trong quá khứ',
+        });
+      }
+    }
+  });
+
+export type CreateCertificationFormValues = z.infer<typeof createCertificationSchema>;

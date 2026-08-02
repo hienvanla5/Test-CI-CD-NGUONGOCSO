@@ -10,18 +10,23 @@ import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.certification.dto.request.AttachCertificationRequest;
+import vn.nguongocso.certification.dto.request.CreateCertificationRequest;
 import vn.nguongocso.certification.dto.response.CertificationResponse;
 import vn.nguongocso.certification.dto.response.ProductionLotCertificationResponse;
 import vn.nguongocso.certification.entity.Certification;
 import vn.nguongocso.certification.entity.ProductionLotCertification;
+import vn.nguongocso.certification.entity.Standard;
 import vn.nguongocso.certification.repository.CertificationRepository;
 import vn.nguongocso.certification.repository.ProductionLotCertificationRepository;
+import vn.nguongocso.certification.repository.StandardRepository;
 import vn.nguongocso.certification.service.CertificationService;
 import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.exception.ResourceNotFoundException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
+import vn.nguongocso.organization.entity.Organization;
+import vn.nguongocso.organization.repository.OrganizationRepository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -38,6 +43,8 @@ public class CertificationServiceImpl implements CertificationService {
     private final ProductionLotCertificationRepository plCertificationRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final StandardRepository standardRepository;
+    private final OrganizationRepository organizationRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -122,10 +129,75 @@ public class CertificationServiceImpl implements CertificationService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Tạo mới chứng nhận cho tổ chức hiện tại.
+     */
+    @Override
+    @Transactional
+    public CertificationResponse createCertification(CreateCertificationRequest request, CustomUserDetails currentUser) {
+        // 1. Kiểm tra quyền (đã có @PreAuthorize, nhưng vẫn kiểm tra lại)
+        if (!"VT-02".equals(currentUser.getRoleCode())) {
+            throw new BusinessException("Bạn không có quyền tạo chứng nhận.");
+        }
+
+        // 2. Kiểm tra tiêu chuẩn tồn tại
+        Standard standard = standardRepository.findById(request.getStandardId())
+                .orElseThrow(() -> new ResourceNotFoundException("Tiêu chuẩn không tồn tại."));
+
+        // 3. Kiểm tra số hiệu chứng nhận đã tồn tại
+        if (certificationRepository.findByCode(request.getCode()).isPresent()) {
+            throw new BusinessException("Số hiệu chứng nhận đã tồn tại.");
+        }
+
+        // 4. Kiểm tra tính hợp lệ của ngày tháng
+        if (request.getExpiryDate().isBefore(request.getIssueDate())) {
+            throw new BusinessException("Ngày hết hạn phải sau ngày cấp.");
+        }
+        if (request.getExpiryDate().isBefore(LocalDate.now())) {
+            throw new BusinessException("Chứng nhận đã hết hạn, không thể tạo mới.");
+        }
+
+        Organization organization = organizationRepository.findById(currentUser.getOrganizationId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tổ chức của người dùng."));
+
+        // 6. Tạo Certification mới
+        Certification certification = Certification.builder()
+                .id(UUID.randomUUID())
+                .organization(organization)
+                .standard(standard)
+                .name(standard.getName())
+                .code(request.getCode())
+                .issuedBy(request.getIssuedBy())
+                .issueDate(request.getIssueDate())
+                .expiryDate(request.getExpiryDate())
+                .build();
+
+        certification = certificationRepository.save(certification);
+
+        // 7. Ghi log
+        publishActivityLog(currentUser, "CREATE_CERTIFICATION",
+                "Tạo chứng nhận '" + certification.getCode() + "' cho tiêu chuẩn " + standard.getName(),
+                "Certification", certification.getId().toString());
+
+        // 8. Trả về response
+        return toCertificationResponse(certification);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CertificationResponse> getAllCertifications(CustomUserDetails currentUser) {
+        List<Certification> certs = certificationRepository.findAllByOrganizationId(
+                currentUser.getOrganizationId()
+        );
+        return certs.stream()
+                .map(this::toCertificationResponse)
+                .collect(Collectors.toList());
+    }
+
     private CertificationResponse toCertificationResponse(Certification cert) {
         return CertificationResponse.builder()
                 .id(cert.getId())
-                .name(cert.getStandard().getName())
+                .name(cert.getName())
                 .code(cert.getCode())
                 .issuedBy(cert.getIssuedBy())
                 .issueDate(cert.getIssueDate())
@@ -150,7 +222,7 @@ public class CertificationServiceImpl implements CertificationService {
         return ProductionLotCertificationResponse.builder()
                 .id(plc.getId())
                 .certificationId(cert.getId())
-                .certificationName(cert.getStandard().getName())
+                .certificationName(cert.getName())
                 .certificationCode(cert.getCode())
                 .issuedBy(cert.getIssuedBy())
                 .issueDate(cert.getIssueDate())

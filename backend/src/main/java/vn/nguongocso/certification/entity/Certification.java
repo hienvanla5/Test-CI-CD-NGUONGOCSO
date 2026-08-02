@@ -32,6 +32,10 @@ public class Certification {
     @JoinColumn(name = "standard_id", nullable = false)
     private Standard standard;
 
+    // ✅ Thêm trường name
+    @Column(name = "name", nullable = false)
+    private String name;
+
     @Column(name = "code", nullable = false, unique = true)
     private String code;
 

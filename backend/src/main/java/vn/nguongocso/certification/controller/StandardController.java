@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,6 +62,7 @@ public class StandardController {
      * Lấy danh sách tiêu chuẩn chất lượng.
      */
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ApiResult<PageResponse<StandardResponse>> getStandards(
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(defaultValue = "0") int page,

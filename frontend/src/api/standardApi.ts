@@ -50,3 +50,11 @@ export const getStandards = async (params?: {
   );
   return response.data.data;
 };
+
+export const getActiveStandards = async (): Promise<Standard[]> => {
+  const response = await apiClient.get<{ data: { items: Standard[] } }>(
+    '/standards',
+    { params: { isActive: true, page: 0, size: 100 } }
+  );
+  return response.data.data.items;
+};
