@@ -11,6 +11,7 @@ import {
 import { syncOfflineEvents } from '@/api/chainEventApi';
 import type { OfflineSyncResultDto } from '@/types/offlineEvent';
 
+
 export const useOfflineSync = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingCount, setPendingCount] = useState(getOfflineQueueCount());
