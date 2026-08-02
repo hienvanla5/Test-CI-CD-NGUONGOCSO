@@ -1,5 +1,3 @@
-import type { PublicCertification } from "./publicCertification";
-
 export interface PublicChainEventItem {
   eventType: string;
   eventData: Record<string, any>;
@@ -17,7 +15,6 @@ export interface PublicTraceResponse {
   recalled: boolean;
   recallMessage: string | null;
   events: PublicChainEventItem[];
-  certifications: PublicCertification[];
 }
 
 export interface ApiError {
