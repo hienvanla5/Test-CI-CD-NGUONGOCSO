@@ -113,8 +113,4 @@ export const ProductCategoryFilter = ({
       </CardContent>
     </Card>
   );
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> feature/remove-projection-lot

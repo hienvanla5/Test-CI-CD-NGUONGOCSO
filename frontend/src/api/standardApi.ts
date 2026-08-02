@@ -49,7 +49,6 @@ export const getStandards = async (params?: {
     { params }
   );
   return response.data.data;
-<<<<<<< HEAD
 };
 
 export const getActiveStandards = async (): Promise<Standard[]> => {
@@ -58,6 +57,4 @@ export const getActiveStandards = async (): Promise<Standard[]> => {
     { params: { isActive: true, page: 0, size: 100 } }
   );
   return response.data.data.items;
-=======
->>>>>>> feature/remove-projection-lot
 };

@@ -175,7 +175,6 @@ export const standardFormSchema = z.object({
         .optional(),
     isActive: z.boolean().optional(),
 });
-<<<<<<< HEAD
 export type StandardFormValues = z.infer<typeof standardFormSchema>;
 
 
@@ -215,6 +214,3 @@ export const createCertificationSchema = z
   });
 
 export type CreateCertificationFormValues = z.infer<typeof createCertificationSchema>;
-=======
-export type StandardFormValues = z.infer<typeof standardFormSchema>;
->>>>>>> feature/remove-projection-lot
