@@ -10,8 +10,11 @@ import lombok.RequiredArgsConstructor;
 import vn.nguongocso.alert.entity.Alert;
 import vn.nguongocso.alert.entity.Notification;
 import vn.nguongocso.alert.enums.NotificationType;
+import vn.nguongocso.alert.enums.AlertType;
 import vn.nguongocso.alert.repository.NotificationRepository;
 import vn.nguongocso.alert.service.AlertNotificationService;
+import vn.nguongocso.certification.entity.Certification;
+import vn.nguongocso.certification.repository.CertificationRepository;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.organization.entity.OrganizationUser;
 import vn.nguongocso.organization.repository.OrganizationUserRepository;
@@ -33,6 +36,7 @@ public class AlertNotificationServiceImpl implements AlertNotificationService {
     private final NotificationRepository notificationRepository;
     private final TraceCodeRepository traceCodeRepository;
     private final OrganizationUserRepository organizationUserRepository;
+    private final CertificationRepository certificationRepository;
 
     @Override
     public void sendScanAnomalyNotification(Alert alert) {
@@ -76,5 +80,45 @@ public class AlertNotificationServiceImpl implements AlertNotificationService {
         notification.setContent(NOTIFICATION_CONTENT);
 
         return notification;
+    }
+
+    @Override
+    public void sendCertificationExpiryNotification(Alert alert) {
+        Certification cert = certificationRepository.findById(alert.getRelatedEntityId())
+                .orElseThrow(() -> new BusinessException("Chứng nhận không tồn tại."));
+
+        UUID organizationId = cert.getOrganization().getOrganizationId();
+
+        List<OrganizationUser> recipients = new ArrayList<>();
+
+        recipients.addAll(
+                organizationUserRepository.findAllByRole_Code(ADMIN_ROLE));
+
+        recipients.addAll(
+                organizationUserRepository
+                        .findAllByOrganization_OrganizationIdAndRole_Code(
+                                organizationId,
+                                ORG_MANAGER_ROLE));
+
+        String title = alert.getType() == AlertType.CERTIFICATION_EXPIRED 
+                ? "Chứng nhận đã hết hạn hiệu lực" 
+                : "Chứng nhận sắp hết hiệu lực";
+
+        String content = alert.getType() == AlertType.CERTIFICATION_EXPIRED
+                ? "Chứng nhận '" + cert.getName() + "' (mã " + cert.getCode() + ") đã hết hiệu lực từ ngày " + cert.getExpiryDate() + ". Vui lòng cập nhật."
+                : "Chứng nhận '" + cert.getName() + "' (mã " + cert.getCode() + ") sắp hết hạn vào ngày " + cert.getExpiryDate() + ". Vui lòng kiểm tra gia hạn.";
+
+        List<Notification> notifications = recipients.stream()
+                .map(user -> {
+                    Notification notification = new Notification();
+                    notification.setUser(user.getUser());
+                    notification.setType(NotificationType.ALERT);
+                    notification.setTitle(title);
+                    notification.setContent(content);
+                    return notification;
+                })
+                .toList();
+
+        notificationRepository.saveAll(notifications);
     }
 }
