@@ -4,8 +4,11 @@ import lombok.RequiredArgsConstructor;
 import vn.nguongocso.common.annotation.Auditable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.nguongocso.alert.event.ActivityLogEvent;
+import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
 import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
 import vn.nguongocso.farm.dto.request.UpdateProductionLotRequest;
@@ -19,6 +22,7 @@ import vn.nguongocso.farm.repository.FarmAreaRepository;
 import vn.nguongocso.farm.repository.ProductCategoryRepository;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.exception.ResourceNotFoundException;
 import vn.nguongocso.farm.entity.FarmArea;
 import vn.nguongocso.farm.entity.ProductCategory;
 import vn.nguongocso.farm.entity.ProductionLot;
@@ -47,6 +51,8 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
     private final ReportAccessLogService reportAccessLogService;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -84,6 +90,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .productCategory(productCategory)
                 .name(request.getName())
                 .expectedQuantity(request.getExpectedQuantity())
+                .expectedQuantityUnit(request.getExpectedQuantityUnit())
                 .plantingDate(request.getPlantingDate())
                 .status(ProductionLotStatus.DRAFT)
                 .createdBy(user)
@@ -92,7 +99,24 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         ProductionLot savedLot = productionLotRepository.save(productionLot);
         log.info("Đã tạo thành công lô sản xuất với id={}", savedLot.getId());
 
+        publishActivityLog(
+                userDetails,
+                "CREATE",
+                "Tạo lô sản xuất " + savedLot.getName(),
+                "ProductionLot",
+                savedLot.getId().toString()
+        );
+
         return mapToResponse(savedLot);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CreateProductionLotResponse getProductionLotById(UUID id) {
+        log.info("Lấy thông tin lô sản xuất id={}", id);
+        ProductionLot lot = productionLotRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Lô sản xuất không tồn tại"));
+        return mapToResponse(lot);
     }
 
     @Override
@@ -145,6 +169,19 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         }
 
         ProductionLot saved = productionLotRepository.save(lot);
+
+        String action = request.getApproved() ? "APPROVE" : "REJECT";
+        String description = request.getApproved()
+                ? "Duyệt lô sản xuất " + lot.getName()
+                : "Từ chối lô sản xuất " + lot.getName() + " với lý do: " + request.getReason();
+        publishActivityLog(
+                userDetails,
+                action,
+                description,
+                "ProductionLot",
+                saved.getId().toString()
+        );
+
         return mapToResponse(saved);
     }
 
@@ -174,17 +211,29 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         productionLotRepository.save(lot);
 
         log.info("Gửi duyệt lô thành công: lotId={}", lotId);
+
+        publishActivityLog(
+                userDetails,
+                "SUBMIT",
+                "Gửi duyệt lô sản xuất " + lot.getName(),
+                "ProductionLot",
+                lot.getId().toString()
+        );
+
         return mapToResponse(lot);
     }
 
     private CreateProductionLotResponse mapToResponse(ProductionLot lot) {
         return CreateProductionLotResponse.builder()
                 .id(lot.getId())
+                .farmAreaId(lot.getFarmArea() != null ? lot.getFarmArea().getId() : null)
+                .productCategoryId(lot.getProductCategory().getId())
                 .organizationName(lot.getOrganization().getName())
                 .farmAreaName(lot.getFarmArea() != null ? lot.getFarmArea().getName() : null)
                 .productCategoryName(lot.getProductCategory().getName())
                 .name(lot.getName())
                 .expectedQuantity(lot.getExpectedQuantity())
+                .expectedQuantityUnit(lot.getExpectedQuantityUnit())
                 .actualQuantity(lot.getActualQuantity())
                 .plantingDate(lot.getPlantingDate())
                 .harvestDate(lot.getHarvestDate())
@@ -221,20 +270,32 @@ public class ProductionLotServiceImpl implements ProductionLotService {
             throw new vn.nguongocso.exception.BusinessException("Loại nông sản này hiện đang ngưng hoạt động");
         }
 
-        FarmArea farmArea = farmAreaRepository.findById(request.getFarmAreaId())
-                .orElseThrow(() -> new vn.nguongocso.exception.BusinessException("Không tìm thấy khu vực canh tác đã chọn"));
-        if (!farmArea.getOrganization().getOrganizationId().equals(orgId)) {
-            throw new vn.nguongocso.exception.BusinessException("Khu vực canh tác này không thuộc tổ chức của bạn");
+        FarmArea farmArea = null;
+        if (request.getFarmAreaId() != null) {
+            farmArea = farmAreaRepository.findById(request.getFarmAreaId())
+                    .orElseThrow(() -> new vn.nguongocso.exception.BusinessException("Không tìm thấy khu vực canh tác đã chọn"));
+            if (!farmArea.getOrganization().getOrganizationId().equals(orgId)) {
+                throw new vn.nguongocso.exception.BusinessException("Khu vực canh tác này không thuộc tổ chức của bạn");
+            }
         }
 
         productionLot.setName(request.getName());
         productionLot.setFarmArea(farmArea);
         productionLot.setProductCategory(productCategory);
         productionLot.setExpectedQuantity(request.getExpectedQuantity());
+        productionLot.setExpectedQuantityUnit(request.getExpectedQuantityUnit());
         productionLot.setPlantingDate(request.getPlantingDate());
 
         ProductionLot savedLot = productionLotRepository.save(productionLot);
         log.info("Cập nhật thành công lô sản xuất id={}", savedLot.getId());
+
+        publishActivityLog(
+                userDetails,
+                "UPDATE",
+                "Cập nhật lô sản xuất " + savedLot.getName(),
+                "ProductionLot",
+                savedLot.getId().toString()
+        );
 
         return UpdateProductionLotResponse.builder()
                 .id(savedLot.getId())
@@ -242,11 +303,29 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .productCategoryId(savedLot.getProductCategory().getId())
                 .name(savedLot.getName())
                 .expectedQuantity(savedLot.getExpectedQuantity())
+                .expectedQuantityUnit(savedLot.getExpectedQuantityUnit())
                 .plantingDate(savedLot.getPlantingDate())
                 .status(savedLot.getStatus().name())
                 .updatedAt(savedLot.getUpdatedAt())
                 .build();
     }
+
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+        eventPublisher.publishEvent(ActivityLogEvent.builder()
+                .userId(currentUser.getUserId())
+                .username(currentUser.getUsername())
+                .fullName(currentUser.getFullName())
+                .organizationId(currentUser.getOrganizationId())
+                .action(action)
+                .description(description)
+                .entityType(entityType)
+                .entityId(entityId)
+                .ipAddress(IpUtils.getClientIp())
+                .timestamp(LocalDateTime.now())
+                .build()
+        );
+    }
+
     @Override
     @Transactional(readOnly = true)
     public ProductionLotDashboardResponse getDashboard(

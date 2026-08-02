@@ -12,7 +12,7 @@ import vn.nguongocso.farm.service.ProductFeedbackService;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/public/api/v1/production-lots")
+@RequestMapping("/api/v1/public/production-lots")
 @RequiredArgsConstructor
 public class ProductFeedbackController {
 

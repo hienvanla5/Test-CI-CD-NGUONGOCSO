@@ -1,9 +1,11 @@
 package vn.nguongocso.event.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
@@ -13,12 +15,14 @@ import vn.nguongocso.event.dto.response.FailedEventLogResponse;
 import vn.nguongocso.event.dto.response.LotValidationResponse;
 import vn.nguongocso.event.entity.FailedEventLog;
 import vn.nguongocso.event.enums.ChainEventType;
+import vn.nguongocso.event.repository.ChainEventRepository;
 import vn.nguongocso.event.repository.FailedEventLogRepository;
 import vn.nguongocso.event.service.EventValidationService;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
+import vn.nguongocso.report.repository.DossierExportHistoryRepository;
 import vn.nguongocso.trace.entity.CodeRange;
 import vn.nguongocso.trace.entity.Shipment;
 import vn.nguongocso.trace.enums.ShipmentStatus;
@@ -30,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventValidationServiceImpl implements EventValidationService {
@@ -40,6 +45,8 @@ public class EventValidationServiceImpl implements EventValidationService {
     private final UserRepository userRepository;
     private final TraceCodeRepository traceCodeRepository;
     private final CodeRangeRepository codeRangeRepository;
+    private final ChainEventRepository chainEventRepository;
+    private final DossierExportHistoryRepository dossierExportHistoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -108,36 +115,41 @@ public class EventValidationServiceImpl implements EventValidationService {
         throw new BusinessException("Loại sự kiện không được hỗ trợ để xác thực lô.");
     }
 
-    @Override
     @Transactional
+    @Override
     public void deleteDraft(UUID draftId, CustomUserDetails currentUser) {
-        Shipment shipment = shipmentRepository.findById(draftId).orElse(null);
-        if (shipment != null) {
-            if (!shipment.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
-                throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô hàng này.");
-            }
+        Shipment shipment = shipmentRepository.findById(draftId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bản nháp hợp lệ."));
 
-            if (shipment.getStatus() != ShipmentStatus.DRAFT && shipment.getStatus() != ShipmentStatus.CODE_PRINTED) {
-                throw new BusinessException("Không thể hủy bản nháp vì lô hàng đã được kích hoạt hoặc thu hồi.");
-            }
-
-            // Hoàn lại dải mã truy xuất của tổ chức
-            CodeRange codeRange = codeRangeRepository.findByOrganizationOrganizationId(currentUser.getOrganizationId())
-                    .orElse(null);
-            if (codeRange != null) {
-                codeRange.setUsedCount(Math.max(0, codeRange.getUsedCount() - shipment.getTotalQuantity()));
-                codeRangeRepository.save(codeRange);
-            }
-
-            // Xóa trace codes
-            traceCodeRepository.deleteByShipmentId(shipment.getId());
-
-            // Xóa shipment
-            shipmentRepository.delete(shipment);
-            return;
+        // Kiểm tra quyền
+        if (!shipment.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
+            throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô hàng này.");
         }
 
-        throw new BusinessException("Không tìm thấy bản nháp hợp lệ để thực hiện hủy.");
+        // Kiểm tra trạng thái
+        if (shipment.getStatus() != ShipmentStatus.DRAFT && shipment.getStatus() != ShipmentStatus.CODE_PRINTED) {
+            throw new BusinessException("Không thể hủy bản nháp vì lô hàng đã được kích hoạt hoặc thu hồi.");
+        }
+
+        // 1. Xóa ChainEvent liên quan
+        chainEventRepository.deleteByShipmentId(shipment.getId());
+
+        // 2. Xóa TraceCode liên quan
+        traceCodeRepository.deleteByShipmentId(shipment.getId());
+
+        // 3. Xóa DossierExportHistory liên quan (nếu có)
+        dossierExportHistoryRepository.deleteByShipmentId(shipment.getId());
+
+        // 4. Hoàn lại dải mã
+        CodeRange codeRange = codeRangeRepository.findByOrganizationOrganizationId(currentUser.getOrganizationId())
+                .orElseThrow(() -> new BusinessException("Không tìm thấy dải mã của tổ chức."));
+        codeRange.setUsedCount(Math.max(0, codeRange.getUsedCount() - shipment.getTotalQuantity()));
+        codeRangeRepository.save(codeRange);
+
+        // 5. Xóa Shipment
+        shipmentRepository.delete(shipment);
+
+        log.info("Hủy bản nháp lô hàng thành công: id={}, name={}", shipment.getId(), shipment.getName());
     }
 
     @Override
@@ -161,10 +173,10 @@ public class EventValidationServiceImpl implements EventValidationService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW) // 👈 quan trọng
     public void logFailedAttempt(UUID lotId, String lotCode, ChainEventType eventType, String reason, CustomUserDetails currentUser) {
         User user = userRepository.findById(currentUser.getUserId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin người dùng."));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng."));
 
         FailedEventLog log = FailedEventLog.builder()
                 .user(user)

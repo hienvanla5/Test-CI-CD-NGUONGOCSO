@@ -30,4 +30,6 @@ public interface ProductionLotService {
             String groupBy,
             CustomUserDetails userDetails,
             String ipAddress);
+
+    CreateProductionLotResponse getProductionLotById(UUID id);
 }

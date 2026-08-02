@@ -12,12 +12,15 @@ import com.lowagie.text.Phrase;
 import com.lowagie.text.Element;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.nguongocso.alert.event.ActivityLogEvent;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
+import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.event.entity.ChainEvent;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
@@ -66,6 +69,7 @@ public class DossierServiceImpl implements DossierService {
     private final DossierExportHistoryRepository exportHistoryRepository;
     private final UserRepository userRepository;
     private final OrganizationUserRepository organizationUserRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional(readOnly = true)
@@ -297,6 +301,14 @@ public class DossierServiceImpl implements DossierService {
             // Ghi nhận nhật ký thành công
             logDossierExport(shipment, currentUser, "SUCCESS", ipAddress, fileSize);
 
+            publishActivityLog(
+                    currentUser,
+                    "EXPORT",
+                    "Xuất hồ sơ truy xuất cho lô hàng " + shipment.getName(),
+                    "Shipment",
+                    shipment.getId().toString()
+            );
+
             return pdfData;
         } catch (Exception e) {
             log.error("Lỗi xuất file PDF cho shipmentId = {}: {}", shipmentId, e.getMessage());
@@ -393,5 +405,21 @@ public class DossierServiceImpl implements DossierService {
         } catch (Exception e) {
             log.error("Lỗi khi lưu lịch sử xuất hồ sơ truy xuất: {}", e.getMessage());
         }
+    }
+
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+        eventPublisher.publishEvent(ActivityLogEvent.builder()
+                .userId(currentUser.getUserId())
+                .username(currentUser.getUsername())
+                .fullName(currentUser.getFullName())
+                .organizationId(currentUser.getOrganizationId())
+                .action(action)
+                .description(description)
+                .entityType(entityType)
+                .entityId(entityId)
+                .ipAddress(IpUtils.getClientIp())
+                .timestamp(LocalDateTime.now())
+                .build()
+        );
     }
 }

@@ -24,6 +24,10 @@ public class UpdateProductionLotRequest {
     @Positive(message = "Sản lượng dự kiến phải >0 !")
     private double expectedQuantity;
 
+    // Có thể bắt buộc hoặc không, tùy logic
+    // Nếu không bắt buộc, để optional
+    private String expectedQuantityUnit;
+
     @NotNull(message = "Ngày xuống giống không được để trống !")
     private LocalDate plantingDate;
 }

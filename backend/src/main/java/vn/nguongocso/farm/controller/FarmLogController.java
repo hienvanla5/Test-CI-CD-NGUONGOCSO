@@ -2,6 +2,7 @@ package vn.nguongocso.farm.controller;
 
 import java.util.UUID;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,6 +47,7 @@ public class FarmLogController {
      * @return danh sách nhật ký canh tác
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
     public ApiResult<PageResponse<FarmLogResponse>> getFarmLogsByProductionLot(
             @RequestParam UUID productionLotId,
             @RequestParam(defaultValue = "0") int page,

@@ -1,9 +1,14 @@
 package vn.nguongocso.event.service;
 
 import vn.nguongocso.auth.service.CustomUserDetails;
-import vn.nguongocso.event.dto.request.*;
+import vn.nguongocso.event.dto.request.CorrectPackagingEventRequest;
+import vn.nguongocso.event.dto.request.RecordHarvestEventRequest;
+import vn.nguongocso.event.dto.request.RecordMobileEventRequest;
+import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
+import vn.nguongocso.event.dto.request.RecordTransportEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -12,6 +17,7 @@ import java.util.UUID;
  * Team WEB 1
  */
 public interface ChainEventService {
+
 	ChainEventResponse recordHarvestEvent(RecordHarvestEventRequest request, CustomUserDetails currentUser);
 
 	ChainEventResponse recordPackagingEvent(RecordPackagingEventRequest request, CustomUserDetails currentUser);
@@ -19,8 +25,15 @@ public interface ChainEventService {
 	ChainEventResponse recordTransportEvent(RecordTransportEventRequest request, CustomUserDetails currentUser);
 
 	ChainEventResponse correctPackagingEvent(UUID originalEventId, CorrectPackagingEventRequest request,
-			CustomUserDetails currentUser);
+	                                         CustomUserDetails currentUser);
 
+	/**
+	 * Lấy dòng thời gian các sự kiện của một lô hàng.
+	 */
+	List<ChainEventResponse> getShipmentTimeline(UUID shipmentId);
+
+	/**
+	 * Ghi sự kiện từ thiết bị di động.
+	 */
 	ChainEventResponse recordMobileEvent(RecordMobileEventRequest request, CustomUserDetails currentUser);
-
 }
