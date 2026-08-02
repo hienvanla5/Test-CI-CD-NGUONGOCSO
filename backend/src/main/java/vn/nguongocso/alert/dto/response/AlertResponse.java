@@ -25,7 +25,7 @@ public class AlertResponse {
 
     private AlertSeverity severity;
 
-    private AlertDetails details;
+    private Object details;
 
     private AlertStatus status;
 

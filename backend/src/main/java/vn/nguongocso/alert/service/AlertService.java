@@ -13,8 +13,8 @@ import vn.nguongocso.alert.enums.AlertStatus;
 /** Dịch vụ quản lý cảnh báo. */
 public interface AlertService {
 
-    /** Lấy danh sách cảnh báo. */
-    AlertListResponse getScanAnomalyAlerts(
+    AlertListResponse getAlerts(
+            vn.nguongocso.alert.enums.AlertType type,
             AlertStatus status,
             LocalDate fromDate,
             LocalDate toDate,

@@ -18,7 +18,10 @@ public interface NotificationService {
 
     /** Gửi thông báo thu hồi lô hàng. */
     void sendShipmentRecallNotification(Recall recall);
-
+    /**
+    * Gửi thông báo chứng nhận sắp hết hạn hoặc đã hết hạn.
+    */
+    void sendCertificationExpiryNotification(Alert alert);
     /** Lấy danh sách thông báo của người dùng đang đăng nhập. */
     PageResponse<NotificationResponse> getNotifications(
             Boolean isRead,

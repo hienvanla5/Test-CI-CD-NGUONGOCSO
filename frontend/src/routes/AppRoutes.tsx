@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-
+import NotificationsPage from "@/pages/notification/NotificationsPage";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
     AUTHENTICATED_ROLE_CODES,
@@ -374,6 +374,16 @@ const AppRoutes = () => (
                 element={
                     <RoleRoute allowedRoles={["VT-05"]}>
                         <IndustryReportPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* ===== Notifications ===== */}
+            <Route
+                path="notifications"
+                element={
+                    <RoleRoute allowedRoles={AUTHENTICATED_ROLE_CODES}>
+                        <NotificationsPage />
                     </RoleRoute>
                 }
             />

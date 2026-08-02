@@ -29,7 +29,9 @@ public class AlertController {
      * Danh sách cảnh báo quét bất thường.
      */
     @GetMapping
-    public ResponseEntity<ApiResult<AlertListResponse>> getScanAnomalyAlerts(
+    public ResponseEntity<ApiResult<AlertListResponse>> getAlerts(
+            @RequestParam(required = false)
+            vn.nguongocso.alert.enums.AlertType type,
 
             @RequestParam(required = false)
             AlertStatus status,
@@ -54,7 +56,8 @@ public class AlertController {
         Pageable pageable = PageRequest.of(page, size);
 
         AlertListResponse response =
-                alertService.getScanAnomalyAlerts(
+                alertService.getAlerts(
+                        type,
                         status,
                         fromDate,
                         toDate,
