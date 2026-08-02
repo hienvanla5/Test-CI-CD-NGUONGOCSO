@@ -22,10 +22,13 @@ import vn.nguongocso.alert.dto.response.AlertResponse;
 import vn.nguongocso.alert.dto.response.ResolveAlertResponse;
 import vn.nguongocso.alert.entity.Alert;
 import vn.nguongocso.alert.entity.AlertDetails;
+import vn.nguongocso.alert.entity.CertificationAlertDetails;
 import vn.nguongocso.alert.enums.AlertStatus;
 import vn.nguongocso.alert.enums.AlertType;
 import vn.nguongocso.alert.repository.AlertRepository;
 import vn.nguongocso.alert.service.AlertService;
+import vn.nguongocso.certification.entity.Certification;
+import vn.nguongocso.certification.repository.CertificationRepository;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
@@ -48,10 +51,12 @@ public class AlertServiceImpl implements AlertService {
     private final TraceCodeRepository traceCodeRepository;
     private final OrganizationUserRepository organizationUserRepository;
     private final ObjectMapper objectMapper;
+    private final CertificationRepository certificationRepository;
 
     /** Lấy danh sách cảnh báo quét bất thường. */
     @Override
-    public AlertListResponse getScanAnomalyAlerts(
+    public AlertListResponse getAlerts(
+            AlertType type,
             AlertStatus status,
             LocalDate fromDate,
             LocalDate toDate,
@@ -73,6 +78,7 @@ public class AlertServiceImpl implements AlertService {
         }
 
         Page<Alert> alertPage = findAlerts(
+                type,
                 status,
                 fromDate,
                 toDate,
@@ -208,20 +214,33 @@ public class AlertServiceImpl implements AlertService {
             return false;
         }
 
-        TraceCode traceCode = traceCodeRepository
-                .findById(alert.getRelatedEntityId())
-                .orElseThrow(() -> new BusinessException(
-                        "Mã truy xuất không tồn tại."));
+        if (alert.getType() == AlertType.SCAN_ANOMALY) {
+            TraceCode traceCode = traceCodeRepository
+                    .findById(alert.getRelatedEntityId())
+                    .orElseThrow(() -> new BusinessException(
+                            "Mã truy xuất không tồn tại."));
 
-        UUID alertOrganizationId = traceCode.getShipment()
-                .getOrganization()
-                .getOrganizationId();
+            UUID alertOrganizationId = traceCode.getShipment()
+                    .getOrganization()
+                    .getOrganizationId();
 
-        return alertOrganizationId.equals(organizationId);
+            return alertOrganizationId.equals(organizationId);
+        } else {
+            Certification cert = certificationRepository
+                    .findById(alert.getRelatedEntityId())
+                    .orElseThrow(() -> new BusinessException(
+                            "Chứng nhận không tồn tại."));
+
+            UUID alertOrganizationId = cert.getOrganization()
+                    .getOrganizationId();
+
+            return alertOrganizationId.equals(organizationId);
+        }
     }
 
     /** Tìm danh sách cảnh báo theo điều kiện. */
     private Page<Alert> findAlerts(
+            AlertType type,
             AlertStatus status,
             LocalDate fromDate,
             LocalDate toDate,
@@ -236,8 +255,8 @@ public class AlertServiceImpl implements AlertService {
                 ? toDate.atTime(23, 59, 59)
                 : null;
 
-        return alertRepository.searchScanAnomalyAlerts(
-                AlertType.SCAN_ANOMALY,
+        return alertRepository.searchAlerts(
+                type,
                 status,
                 organizationId,
                 from,
@@ -259,10 +278,17 @@ public class AlertServiceImpl implements AlertService {
 
         response.setSeverity(alert.getSeverity());
         try {
-            response.setDetails(
-                    objectMapper.readValue(
-                            alert.getDetails(),
-                            AlertDetails.class));
+            if (alert.getType() == AlertType.SCAN_ANOMALY) {
+                response.setDetails(
+                        objectMapper.readValue(
+                                alert.getDetails(),
+                                AlertDetails.class));
+            } else {
+                response.setDetails(
+                        objectMapper.readValue(
+                                alert.getDetails(),
+                                CertificationAlertDetails.class));
+            }
         } catch (JsonProcessingException e) {
             throw new BusinessException(
                     "Không thể đọc dữ liệu cảnh báo.");
