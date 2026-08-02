@@ -13,7 +13,7 @@ import vn.nguongocso.report.service.PublicLookupService;
  * @author Triệu Văn Đại
  */
 @RestController
-@RequestMapping("/public/api/v1/trace-codes")
+@RequestMapping("/api/v1/public/trace-codes")
 @RequiredArgsConstructor
 public class PublicLookupController {
 

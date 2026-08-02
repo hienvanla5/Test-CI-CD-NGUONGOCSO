@@ -3,10 +3,12 @@ package vn.nguongocso.auth.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import vn.nguongocso.alert.event.ActivityLogEvent;
 import vn.nguongocso.auth.dto.request.AddMemberRequest;
 import vn.nguongocso.auth.dto.request.AssignRoleRequest;
 import vn.nguongocso.auth.dto.response.OrganizationUserResponse;
@@ -15,6 +17,7 @@ import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.enums.UserStatus;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
+import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.exception.ResourceNotFoundException;
 import vn.nguongocso.organization.constant.RoleCode;
@@ -39,6 +42,8 @@ public class PermissionService {
     private final RoleRepository roleRepository;
     private final OrganizationRepository organizationRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     // helper
     private UUID getCurrentOrganizationId() {
@@ -91,12 +96,40 @@ public class PermissionService {
             throw new BusinessException("Quản lý HTX không thể gán vai trò Quản trị viên nền tảng");
         }
 
-        orgUser.setRole(newRole);
+        // 🆕 Nếu role mới là VT-02, kiểm tra và chuyển quyền quản lý cũ
+        if (RoleCode.ORG_MANAGER.equals(newRole.getCode())) {
+            // Tìm thành viên đang giữ VT-02 trong cùng tổ chức, ngoại trừ chính người được cập nhật
+            OrganizationUser currentManager = orgUserRepository
+                    .findByOrganization_OrganizationIdAndRole_Code(orgId, RoleCode.ORG_MANAGER)
+                    .filter(m -> !m.getUser().getUserId().equals(request.getUserId()))
+                    .orElse(null);
 
+            if (currentManager != null) {
+                Role vt03Role = roleRepository.findByCode(RoleCode.EVENT_RECORDER)
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy role VT-03"));
+
+                // Hạ quản lý cũ xuống VT-03
+                currentManager.setRole(vt03Role);
+                orgUserRepository.save(currentManager);
+                log.info("Hạ quản lý cũ {} xuống VT-03", currentManager.getUser().getFullName());
+            }
+        }
+
+        // Gán role mới cho thành viên được chọn
+        orgUser.setRole(newRole);
         orgUser = orgUserRepository.save(orgUser);
 
-        log.info("Gán role thành công: userId={}, orgId={}, newRole={}", request.getUserId(), orgId, newRole.getCode());
+        CustomUserDetails currentUser = getCurrentUser();
+        User targetUser = orgUser.getUser();
+        publishActivityLog(
+                currentUser,
+                "ASSIGN_ROLE",
+                "Gán vai trò " + newRole.getName() + " cho " + targetUser.getFullName(),
+                "OrganizaitonUser",
+                orgUser.getId().toString()
+        );
 
+        log.info("Gán role thành công: userId={}, orgId={}, newRole={}", request.getUserId(), orgId, newRole.getCode());
         return toResponse(orgUser);
     }
 
@@ -141,10 +174,44 @@ public class PermissionService {
         orgUser.setStatus(OrganizationUserStatus.ACTIVE);
         orgUserRepository.save(orgUser);
 
+        CustomUserDetails currentUser = getCurrentUser();
+        publishActivityLog(
+                currentUser,
+                "CREATE",
+                "Thêm thành viên " + newUser.getFullName() + " vào tổ chức",
+                "OrganizationUser",
+                orgUser.getId().toString()
+        );
+
         log.info("Thêm thành viên thành công: userId={}, orgId={}, role={}",
             newUser.getUserId(), orgId, role.getCode());
 
         return toResponse(orgUser);
+    }
+
+    // Thêm helper method lấy current user
+    private CustomUserDetails getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new BusinessException("Chưa đăng nhập");
+        }
+        return (CustomUserDetails) auth.getPrincipal();
+    }
+
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+        eventPublisher.publishEvent(ActivityLogEvent.builder()
+                .userId(currentUser.getUserId())
+                .username(currentUser.getUsername())
+                .fullName(currentUser.getFullName())
+                .organizationId(currentUser.getOrganizationId())
+                .action(action)
+                .description(description)
+                .entityType(entityType)
+                .entityId(entityId)
+                .ipAddress(IpUtils.getClientIp())
+                .timestamp(LocalDateTime.now())
+                .build()
+        );
     }
 
     // mapping

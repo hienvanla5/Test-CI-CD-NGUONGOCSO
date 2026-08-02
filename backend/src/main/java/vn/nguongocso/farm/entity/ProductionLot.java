@@ -5,11 +5,14 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.certification.entity.ProductionLotCertification;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.organization.entity.Organization;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -45,6 +48,9 @@ public class ProductionLot {
     @Column(name = "expected_quantity", nullable = false)
     private Double expectedQuantity;
 
+    @Column(name = "expected_quantity_unit", length = 20)
+    private String expectedQuantityUnit; // ví dụ: "kg", "tấn", "tạ", "gói", ...
+
     @Column(name = "actual_quantity")
     private Double actualQuantity;
 
@@ -74,6 +80,9 @@ public class ProductionLot {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "productionLot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ProductionLotCertification> certifications = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
