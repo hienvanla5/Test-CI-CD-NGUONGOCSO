@@ -90,13 +90,6 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
      * Lấy danh sách lô hàng đủ điều kiện xuất báo cáo / lọc theo nhiều tiêu chí.
      * Bao gồm: tổ chức, khoảng thời gian, danh mục sản phẩm, danh sách shipment.
      * Mặc định loại trừ các lô đã bị thu hồi (RECALLED).
-     *
-     * @param orgId        ID tổ chức (có thể null)
-     * @param fromDate     Ngày bắt đầu (có thể null)
-     * @param toDate       Ngày kết thúc (có thể null)
-     * @param categoryIds  Danh sách ID danh mục sản phẩm (có thể null hoặc rỗng)
-     * @param shipmentIds  Danh sách ID lô hàng cụ thể (có thể null hoặc rỗng)
-     * @return Danh sách lô hàng thỏa mãn điều kiện
      */
     @Query("SELECT s FROM Shipment s " +
             "LEFT JOIN s.productionLot pl " +
@@ -105,8 +98,8 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
             "AND (:fromDate IS NULL OR s.createdAt >= :fromDate) " +
             "AND (:toDate IS NULL OR s.createdAt <= :toDate) " +
             "AND s.status <> vn.nguongocso.trace.enums.ShipmentStatus.RECALLED " +
-            "AND (:categoryIds IS NULL OR SIZE(:categoryIds) = 0 OR pc.id IN :categoryIds) " +
-            "AND (:shipmentIds IS NULL OR SIZE(:shipmentIds) = 0 OR s.id IN :shipmentIds)")
+            "AND (:categoryIds IS NULL OR pc.id IN :categoryIds) " +
+            "AND (:shipmentIds IS NULL OR s.id IN :shipmentIds)")
     List<Shipment> findEligibleShipments(
             @Param("orgId") UUID orgId,
             @Param("fromDate") LocalDateTime fromDate,

@@ -214,3 +214,37 @@ export const createCertificationSchema = z
   });
 
 export type CreateCertificationFormValues = z.infer<typeof createCertificationSchema>;
+
+// ---------- Export Open Data (NCL-10-CN-007) ----------
+export const exportOpenDataSchema = z
+  .object({
+    organizationId: z.string().uuid('Vui lòng chọn tổ chức hợp lệ').optional(),
+    fromDate: z.string().optional()
+  .refine(val => !val || !isNaN(Date.parse(val)), {
+    message: 'Ngày bắt đầu không hợp lệ'
+  }),
+toDate: z.string().optional()
+  .refine(val => !val || !isNaN(Date.parse(val)), {
+    message: 'Ngày kết thúc không hợp lệ'
+  }),
+    productCategoryIds: z.array(z.string().uuid()).optional(),
+    shipmentIds: z.array(z.string().uuid()).optional(),
+    format: z.enum(['JSON', 'CSV', 'XML'], {
+      required_error: 'Vui lòng chọn định dạng',
+    }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.fromDate && data.toDate) {
+      const from = new Date(data.fromDate);
+      const to = new Date(data.toDate);
+      if (from > to) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['toDate'],
+          message: 'Ngày kết thúc phải sau ngày bắt đầu',
+        });
+      }
+    }
+  });
+
+export type ExportOpenDataFormValues = z.infer<typeof exportOpenDataSchema>;
