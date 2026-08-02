@@ -57,7 +57,7 @@ public interface AlertRepository extends JpaRepository<Alert, UUID> {
                     SELECT 1 FROM TraceCode tc JOIN tc.shipment s 
                     WHERE tc.id = a.relatedEntityId AND s.organization.organizationId = :organizationId
                 )) OR
-                (a.type IN (vn.nguongocso.alert.enums.AlertType.CERTIFICATION_EXPIRING, vn.nguongocso.alert.enums.AlertType.CERTIFICATION_EXPIRED) AND EXISTS (
+                (a.type IN (vn.nguongocso.alert.enums.AlertType.CERT_EXPIRING, vn.nguongocso.alert.enums.AlertType.CERT_EXPIRED) AND EXISTS (
                     SELECT 1 FROM Certification c 
                     WHERE c.id = a.relatedEntityId AND c.organization.organizationId = :organizationId
                 ))

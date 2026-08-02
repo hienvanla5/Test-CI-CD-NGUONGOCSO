@@ -84,7 +84,7 @@ class CertificationExpiryTest {
         when(certificationRepository.findAll()).thenReturn(List.of(certExpiring));
         when(alertRepository.existsByRelatedEntityIdAndTypeAndStatus(
                 certExpiring.getId(),
-                AlertType.CERTIFICATION_EXPIRING,
+                AlertType.CERT_EXPIRING,
                 AlertStatus.PENDING
         )).thenReturn(false);
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
@@ -103,19 +103,19 @@ class CertificationExpiryTest {
         when(certificationRepository.findAll()).thenReturn(List.of(certExpired));
         when(alertRepository.existsByRelatedEntityIdAndTypeAndStatus(
                 certExpired.getId(),
-                AlertType.CERTIFICATION_EXPIRED,
+                AlertType.CERT_EXPIRED,
                 AlertStatus.PENDING
         )).thenReturn(false);
 
         Alert pendingExpiringAlert = new Alert();
         pendingExpiringAlert.setId(UUID.randomUUID());
-        pendingExpiringAlert.setType(AlertType.CERTIFICATION_EXPIRING);
+        pendingExpiringAlert.setType(AlertType.CERT_EXPIRING);
         pendingExpiringAlert.setRelatedEntityId(certExpired.getId());
         pendingExpiringAlert.setStatus(AlertStatus.PENDING);
 
         when(alertRepository.findByRelatedEntityIdAndTypeAndStatus(
                 certExpired.getId(),
-                AlertType.CERTIFICATION_EXPIRING,
+                AlertType.CERT_EXPIRING,
                 AlertStatus.PENDING
         )).thenReturn(List.of(pendingExpiringAlert));
 
@@ -130,7 +130,7 @@ class CertificationExpiryTest {
         assertThat(pendingExpiringAlert.getStatus()).isEqualTo(AlertStatus.RESOLVED);
 
         // Verify expired alert was saved and notification sent
-        verify(alertRepository, times(1)).save(argThat(alert -> alert.getType() == AlertType.CERTIFICATION_EXPIRED));
-        verify(alertNotificationService, times(1)).sendCertificationExpiryNotification(argThat(alert -> alert.getType() == AlertType.CERTIFICATION_EXPIRED));
+        verify(alertRepository, times(1)).save(argThat(alert -> alert.getType() == AlertType.CERT_EXPIRED));
+        verify(alertNotificationService, times(1)).sendCertificationExpiryNotification(argThat(alert -> alert.getType() == AlertType.CERT_EXPIRED));
     }
 }

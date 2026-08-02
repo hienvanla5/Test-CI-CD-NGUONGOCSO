@@ -100,11 +100,11 @@ public class AlertNotificationServiceImpl implements AlertNotificationService {
                                 organizationId,
                                 ORG_MANAGER_ROLE));
 
-        String title = alert.getType() == AlertType.CERTIFICATION_EXPIRED 
+        String title = alert.getType() == AlertType.CERT_EXPIRED 
                 ? "Chứng nhận đã hết hạn hiệu lực" 
                 : "Chứng nhận sắp hết hiệu lực";
 
-        String content = alert.getType() == AlertType.CERTIFICATION_EXPIRED
+        String content = alert.getType() == AlertType.CERT_EXPIRED
                 ? "Chứng nhận '" + cert.getName() + "' (mã " + cert.getCode() + ") đã hết hiệu lực từ ngày " + cert.getExpiryDate() + ". Vui lòng cập nhật."
                 : "Chứng nhận '" + cert.getName() + "' (mã " + cert.getCode() + ") sắp hết hạn vào ngày " + cert.getExpiryDate() + ". Vui lòng kiểm tra gia hạn.";
 

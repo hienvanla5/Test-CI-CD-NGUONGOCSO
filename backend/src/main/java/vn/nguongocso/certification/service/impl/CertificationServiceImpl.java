@@ -225,7 +225,7 @@ public class CertificationServiceImpl implements CertificationService {
         // Tạo cảnh báo đã hết hạn nếu chưa tồn tại alert PENDING cùng loại
         boolean exists = alertRepository.existsByRelatedEntityIdAndTypeAndStatus(
                 cert.getId(),
-                AlertType.CERTIFICATION_EXPIRED,
+                AlertType.CERT_EXPIRED,
                 AlertStatus.PENDING
         );
 
@@ -244,7 +244,7 @@ public class CertificationServiceImpl implements CertificationService {
 
             Alert alert = new Alert();
             alert.setId(UUID.randomUUID());
-            alert.setType(AlertType.CERTIFICATION_EXPIRED);
+            alert.setType(AlertType.CERT_EXPIRED);
             alert.setRelatedEntityType("Certification");
             alert.setRelatedEntityId(cert.getId());
             alert.setSeverity(AlertSeverity.HIGH);
@@ -259,7 +259,7 @@ public class CertificationServiceImpl implements CertificationService {
 
             alertRepository.save(alert);
             alertNotificationService.sendCertificationExpiryNotification(alert);
-            log.warn("🚨 Đã tạo cảnh báo CERTIFICATION_EXPIRED cho chứng nhận '{}'", cert.getName());
+            log.warn("🚨 Đã tạo cảnh báo CERT_EXPIRED cho chứng nhận '{}'", cert.getName());
         }
     }
 
@@ -267,7 +267,7 @@ public class CertificationServiceImpl implements CertificationService {
         // Tạo cảnh báo sắp hết hạn nếu chưa tồn tại alert PENDING cùng loại
         boolean exists = alertRepository.existsByRelatedEntityIdAndTypeAndStatus(
                 cert.getId(),
-                AlertType.CERTIFICATION_EXPIRING,
+                AlertType.CERT_EXPIRING,
                 AlertStatus.PENDING
         );
 
@@ -284,7 +284,7 @@ public class CertificationServiceImpl implements CertificationService {
 
             Alert alert = new Alert();
             alert.setId(UUID.randomUUID());
-            alert.setType(AlertType.CERTIFICATION_EXPIRING);
+            alert.setType(AlertType.CERT_EXPIRING);
             alert.setRelatedEntityType("Certification");
             alert.setRelatedEntityId(cert.getId());
             alert.setSeverity(AlertSeverity.MEDIUM);
@@ -299,14 +299,14 @@ public class CertificationServiceImpl implements CertificationService {
 
             alertRepository.save(alert);
             alertNotificationService.sendCertificationExpiryNotification(alert);
-            log.info("⚠️ Đã tạo cảnh báo CERTIFICATION_EXPIRING cho chứng nhận '{}' (còn {} ngày)", cert.getName(), daysRemaining);
+            log.info("⚠️ Đã tạo cảnh báo CERT_EXPIRING cho chứng nhận '{}' (còn {} ngày)", cert.getName(), daysRemaining);
         }
     }
 
     private void autoResolveExpiringAlert(UUID certificationId) {
         java.util.List<Alert> pendingExpiringAlerts = alertRepository.findByRelatedEntityIdAndTypeAndStatus(
                 certificationId,
-                AlertType.CERTIFICATION_EXPIRING,
+                AlertType.CERT_EXPIRING,
                 AlertStatus.PENDING
         );
 

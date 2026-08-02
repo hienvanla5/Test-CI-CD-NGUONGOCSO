@@ -35,8 +35,8 @@ Hệ thống tự động theo dõi ngày hết hạn (`expiryDate`) của các 
   - Trên trang tra cứu công khai, chứng nhận hết hạn sẽ không hiển thị là đang đạt hoặc hiển thị rõ trạng thái đã hết hạn.
 - **Ngưỡng cảnh báo sắp hết hạn (Threshold):**
   - Ngưỡng cảnh báo được cấu hình thông qua thuộc tính hệ thống: `app.certification.expiry-warning-threshold-days` (mặc định là `30` ngày).
-  - Khi `0 < expiryDate - LocalDate.now() <= threshold`, hệ thống tạo Alert với loại `CERTIFICATION_EXPIRING` và mức độ nghiêm trọng `MEDIUM`.
-  - Khi `expiryDate < LocalDate.now()`, hệ thống tạo Alert với loại `CERTIFICATION_EXPIRED` và mức độ nghiêm trọng `HIGH`.
+  - Khi `0 < expiryDate - LocalDate.now() <= threshold`, hệ thống tạo Alert với loại `CERT_EXPIRING` và mức độ nghiêm trọng `MEDIUM`.
+  - Khi `expiryDate < LocalDate.now()`, hệ thống tạo Alert với loại `CERT_EXPIRED` và mức độ nghiêm trọng `HIGH`.
 - **Tần suất quét (Batch Check):**
   - Một tiến trình nền (Scheduled Job/Cron) chạy định kỳ mỗi ngày lúc 01:00 AM để quét và cập nhật trạng thái thời hạn của tất cả các chứng nhận.
 
@@ -53,7 +53,7 @@ Hệ thống tự động theo dõi ngày hết hạn (`expiryDate`) của các 
 **Request**
 | Location | Field Name | Data Type | Required | Constraints / Validation | Example |
 |---|---|---|---|---|---|
-| Query | `type` | String | No | Lọc theo loại cảnh báo. Giá trị hỗ trợ: `SCAN_ANOMALY`, `CERTIFICATION_EXPIRING`, `CERTIFICATION_EXPIRED` | `"CERTIFICATION_EXPIRING"` |
+| Query | `type` | String | No | Lọc theo loại cảnh báo. Giá trị hỗ trợ: `SCAN_ANOMALY`, `CERT_EXPIRING`, `CERT_EXPIRED` | `"CERT_EXPIRING"` |
 | Query | `status` | String | No | Lọc theo trạng thái xử lý: `PENDING`, `RESOLVED` | `"PENDING"` |
 | Query | `fromDate` | String | No | Định dạng ngày `YYYY-MM-DD`. Lọc cảnh báo tạo ra từ ngày này | `"2026-08-01"` |
 | Query | `toDate` | String | No | Định dạng ngày `YYYY-MM-DD`. Lọc cảnh báo tạo ra đến ngày này | `"2026-08-31"` |
@@ -63,7 +63,7 @@ Hệ thống tự động theo dõi ngày hết hạn (`expiryDate`) của các 
 **Request Example (JSON)**
 *Không có Body cho phương thức GET.*
 ```http
-GET /api/v1/alerts?type=CERTIFICATION_EXPIRING&status=PENDING&page=0&size=10
+GET /api/v1/alerts?type=CERT_EXPIRING&status=PENDING&page=0&size=10
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 ```
 
@@ -81,7 +81,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
     "content": [
       {
         "id": "e2a3b4c5-5555-4a2a-9f3d-1a2b3c4d5e6f",
-        "type": "CERTIFICATION_EXPIRING",
+        "type": "CERT_EXPIRING",
         "relatedEntityType": "Certification",
         "relatedEntityId": "7d6c5b4a-1234-4a2a-9f3d-1a2b3c4d5e6f",
         "severity": "MEDIUM",
@@ -392,12 +392,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
                      ├─► TH1: Hết hạn (expiryDate < Today)
                      │    │
                      │    ├─► Cập nhật trạng thái chứng nhận (hoặc tự tính toán hết hiệu lực)
-                     │    ├─► Tạo Alert (CERTIFICATION_EXPIRED, Severity: HIGH) nếu chưa tồn tại alert PENDING cùng loại
+                     │    ├─► Tạo Alert (CERT_EXPIRED, Severity: HIGH) nếu chưa tồn tại alert PENDING cùng loại
                      │    └─► Gửi Notification tới Admin (VT-01) & Quản lý HTX sở hữu (VT-02)
                      │
                      └─► TH2: Sắp hết hạn (0 < expiryDate - Today <= Threshold)
                           │
-                          ├─► Tạo Alert (CERTIFICATION_EXPIRING, Severity: MEDIUM) nếu chưa tồn tại alert PENDING cùng loại
+                          ├─► Tạo Alert (CERT_EXPIRING, Severity: MEDIUM) nếu chưa tồn tại alert PENDING cùng loại
                           └─► Gửi Notification tới Admin (VT-01) & Quản lý HTX sở hữu (VT-02)
 ```
 
@@ -451,7 +451,7 @@ public class NotificationResponse {
 - ** Given:** Chứng nhận A có `expiryDate` cách ngày hiện tại 15 ngày, ngưỡng cấu hình cảnh báo là 30 ngày.
 - **When:** Hệ thống chạy quét định kỳ hoặc gọi POST `/check-expiry`.
 - **Then:** 
-  - Tạo Alert với loại `CERTIFICATION_EXPIRING`, độ nghiêm trọng `MEDIUM`.
+  - Tạo Alert với loại `CERT_EXPIRING`, độ nghiêm trọng `MEDIUM`.
   - Tạo Notification gửi tới hòm thư Quản lý HTX.
   - Phản hồi của chứng nhận A khi xem chi tiết vẫn có `isValid = true` nhưng có cảnh báo đính kèm.
 
@@ -459,7 +459,7 @@ public class NotificationResponse {
 - **Given:** Chứng nhận B có `expiryDate` trước ngày hiện tại (đã hết hạn).
 - **When:** Hệ thống quét thời hạn.
 - **Then:**
-  - Tạo Alert với loại `CERTIFICATION_EXPIRED`, mức độ nghiêm trọng `HIGH`.
+  - Tạo Alert với loại `CERT_EXPIRED`, mức độ nghiêm trọng `HIGH`.
   - Tạo Notification gửi tới Quản lý HTX và Admin nền tảng.
   - Trạng thái `isValid` của chứng nhận B chuyển thành `false`.
   - Khi người dùng cố gắng gọi POST `/production-lots/{lotId}/certifications` để gắn chứng nhận B, hệ thống trả về lỗi `400 Bad Request` với thông điệp: *"Chứng nhận đã hết hạn hiệu lực, không thể gắn cho lô sản xuất mới."*
