@@ -16,6 +16,7 @@ import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
 import vn.nguongocso.publicapi.dto.response.PublicCertificationResponse;
 import vn.nguongocso.publicapi.dto.response.PublicChainEventItem;
+import vn.nguongocso.publicapi.dto.response.PublicLotCertificationsResponse;
 import vn.nguongocso.publicapi.dto.response.PublicTraceResponse;
 import vn.nguongocso.publicapi.service.PublicTraceService;
 import vn.nguongocso.report.entity.TraceCodeScanLog;
@@ -117,13 +118,19 @@ public class PublicTraceServiceImpl implements PublicTraceService {
 
 		String productName = shipment.getProductionLot() != null ? shipment.getProductionLot().getName() : "Sản phẩm";
 
-		List<PublicCertificationResponse> certifications = getPublicCertifications(traceCode.getCodeValue());
-
-		return PublicTraceResponse.builder().codeValue(traceCode.getCodeValue())
-				.productionLotId(shipment.getProductionLot() != null ? shipment.getProductionLot().getId() : null)
-				.productName(productName).shipmentCode(shipment.getId().toString())
-				.shipmentStatus(shipment.getStatus().name()).recalled(isRecalled).recallMessage(recallMessage)
-				.certifications(certifications).events(publicEvents).build();
+		return PublicTraceResponse.builder()
+				.codeValue(traceCode.getCodeValue())
+				.productionLotId(
+						shipment.getProductionLot() != null
+								? shipment.getProductionLot().getId()
+								: null)
+				.productName(productName)
+				.shipmentCode(shipment.getId().toString())
+				.shipmentStatus(shipment.getStatus().name())
+				.recalled(isRecalled)
+				.recallMessage(recallMessage)
+				.events(publicEvents)
+				.build();
 	}
 
 	private PublicChainEventItem convertToPublicEvent(ChainEvent event) {
@@ -161,24 +168,24 @@ public class PublicTraceServiceImpl implements PublicTraceService {
 		Map<String, Object> result = new HashMap<>();
 
 		switch (eventType) {
-		case HARVEST:
-			keepFields(rawData, result, "productionLotName", "quantity", "harvestDate");
-			break;
-		case PACKAGING:
-			keepFields(rawData, result, "productionLotName", "packagingSpecification", "packagingDate");
-			break;
-		case TRANSPORT:
-			keepFields(rawData, result, "fromLocation", "toLocation", "transportDate");
-			break;
-		case PROCUREMENT:
-			keepFields(rawData, result, "buyerName", "purchaseDate", "quantity");
-			break;
-		default:
-			// Chỉ giữ các trường an toàn, tránh lộ thông tin nội bộ
-			result.putAll(rawData);
-			result.remove("recordedBy");
-			result.remove("createdAt");
-			result.remove("updatedAt");
+			case HARVEST:
+				keepFields(rawData, result, "productionLotName", "quantity", "harvestDate");
+				break;
+			case PACKAGING:
+				keepFields(rawData, result, "productionLotName", "packagingSpecification", "packagingDate");
+				break;
+			case TRANSPORT:
+				keepFields(rawData, result, "fromLocation", "toLocation", "transportDate");
+				break;
+			case PROCUREMENT:
+				keepFields(rawData, result, "buyerName", "purchaseDate", "quantity");
+				break;
+			default:
+				// Chỉ giữ các trường an toàn, tránh lộ thông tin nội bộ
+				result.putAll(rawData);
+				result.remove("recordedBy");
+				result.remove("createdAt");
+				result.remove("updatedAt");
 		}
 
 		return result;
@@ -192,16 +199,41 @@ public class PublicTraceServiceImpl implements PublicTraceService {
 		}
 	}
 
-	private List<PublicCertificationResponse> getPublicCertifications(String codeValue) {
+	@Override
+	public PublicLotCertificationsResponse getPublicCertifications(String codeValue) {
+
+		TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
+				.orElseThrow(() -> new BusinessException("Không tìm thấy mã tra cứu hoặc mã chưa được kích hoạt."));
+
+		if (traceCode.getStatus() == TraceCodeStatus.RECALLED) {
+			throw new BusinessException(
+					"Sản phẩm này đã bị thu hồi, vui lòng liên hệ nhà cung cấp để biết thêm chi tiết.");
+		}
+
+		if (traceCode.getStatus() != TraceCodeStatus.ACTIVE) {
+			throw new BusinessException(
+					"Không tìm thấy mã tra cứu hoặc mã chưa được kích hoạt.");
+		}
+
+		Shipment shipment = traceCode.getShipment();
+
+		if (shipment == null || shipment.getProductionLot() == null) {
+			throw new BusinessException("Không tìm thấy lô sản xuất.");
+		}
 
 		List<ProductionLotCertification> lotCertifications = productionLotCertificationRepository
 				.findByTraceCode(codeValue);
 
-		if (lotCertifications.isEmpty()) {
-			return Collections.emptyList();
-		}
+		List<PublicCertificationResponse> certifications = lotCertifications.stream()
+				.map(this::toPublicCertification)
+				.toList();
 
-		return lotCertifications.stream().map(this::toPublicCertification).toList();
+		return PublicLotCertificationsResponse.builder()
+				.productionLotId(shipment.getProductionLot().getId())
+				.lotName(shipment.getProductionLot().getName())
+				.hasCertification(!certifications.isEmpty())
+				.certifications(certifications)
+				.build();
 	}
 
 	private PublicCertificationResponse toPublicCertification(ProductionLotCertification lotCertification) {
