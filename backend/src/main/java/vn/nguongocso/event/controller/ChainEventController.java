@@ -14,6 +14,7 @@ import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.dto.response.OfflineEventSyncResponse;
 import vn.nguongocso.event.service.ChainEventService;
 import vn.nguongocso.event.service.OfflineSyncService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.util.UUID;
 
@@ -41,6 +42,7 @@ import java.util.UUID;
 public class ChainEventController {
     private final OfflineSyncService offlineSyncService;
     private final ChainEventService chainEventService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * API ghi nhận sự kiện thu hoạch cho lô sản xuất.
@@ -52,6 +54,7 @@ public class ChainEventController {
             @Valid @RequestBody RecordHarvestEventRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CHAIN_EVENT", "CREATE");
         ChainEventResponse response = chainEventService.recordHarvestEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
@@ -64,6 +67,7 @@ public class ChainEventController {
             @Valid @RequestBody RecordPackagingEventRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CHAIN_EVENT", "CREATE");
         ChainEventResponse response = chainEventService.recordPackagingEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
@@ -78,6 +82,7 @@ public class ChainEventController {
             @Valid @RequestBody RecordTransportEventRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CHAIN_EVENT", "CREATE");
         ChainEventResponse response =
                 chainEventService.recordTransportEvent(request, currentUser);
 
@@ -95,6 +100,7 @@ public class ChainEventController {
             @Valid @RequestBody CorrectPackagingEventRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CHAIN_EVENT", "UPDATE");
         ChainEventResponse response = chainEventService.correctPackagingEvent(originalEventId, request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
@@ -108,6 +114,7 @@ public class ChainEventController {
             @Valid @RequestBody RecordMobileEventRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CHAIN_EVENT", "CREATE");
         ChainEventResponse response = chainEventService.recordMobileEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResult.success(HttpStatus.CREATED.value(), response));
@@ -117,6 +124,7 @@ public class ChainEventController {
     public ResponseEntity<ApiResult<OfflineEventSyncResponse>> syncOfflineEvents(
             @Valid @RequestBody OfflineEventSyncRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
+        permissionChecker.check("CHAIN_EVENT", "CREATE");
         OfflineEventSyncResponse response = offlineSyncService.syncOfflineEvents(request, currentUser);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResult.success(HttpStatus.OK.value(), response));

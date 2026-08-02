@@ -15,6 +15,7 @@ import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.event.dto.request.RecordProcurementEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.service.ProcurementEventService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 @RestController
 @RequestMapping("/api/v1/chain-events")
@@ -22,6 +23,7 @@ import vn.nguongocso.event.service.ProcurementEventService;
 public class ProcurementEventController {
 
     private final ProcurementEventService procurementEventService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * API ghi nhận sự kiện thu mua cho lô hàng.
@@ -33,6 +35,7 @@ public class ProcurementEventController {
             @Valid @RequestBody RecordProcurementEventRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CHAIN_EVENT", "CREATE");
         ChainEventResponse response = procurementEventService.recordProcurementEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(response));
     }

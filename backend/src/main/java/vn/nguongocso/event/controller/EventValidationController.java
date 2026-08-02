@@ -16,6 +16,7 @@ import vn.nguongocso.event.dto.response.FailedEventLogResponse;
 import vn.nguongocso.event.dto.response.LotValidationResponse;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.service.EventValidationService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.util.UUID;
 /**
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class EventValidationController {
 
     private final EventValidationService eventValidationService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * API 1: Kiểm tra tính hợp lệ của Lô/Lô hàng trước khi tạo sự kiện.
@@ -40,6 +42,7 @@ public class EventValidationController {
             @RequestParam @NotNull ChainEventType eventType,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CHAIN_EVENT", "READ");
         LotValidationResponse response = eventValidationService.validateLot(lotId, eventType, currentUser);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -53,6 +56,7 @@ public class EventValidationController {
             @PathVariable("id") UUID id,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CHAIN_EVENT", "DELETE");
         eventValidationService.deleteDraft(id, currentUser);
         return ResponseEntity.ok(ApiResult.success(HttpStatus.OK.value(), null));
     }
@@ -66,6 +70,7 @@ public class EventValidationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
+        permissionChecker.check("CHAIN_EVENT", "READ");
         Pageable pageable = PageRequest.of(page, size);
         PageResponse<FailedEventLogResponse> response = eventValidationService.getFailedLogs(pageable);
         return ResponseEntity.ok(ApiResult.success(response));

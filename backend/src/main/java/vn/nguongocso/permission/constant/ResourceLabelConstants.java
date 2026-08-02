@@ -27,7 +27,14 @@ public final class ResourceLabelConstants {
             Map.entry("alert", "Cảnh báo"),
             Map.entry("report", "Báo cáo"),
             Map.entry("scan_statistics", "Thống kê lượt quét"),
-            Map.entry("activity_log", "Lịch sử hoạt động")
+            Map.entry("activity_log", "Lịch sử hoạt động"),
+            // ✅ Các resource bổ sung
+            Map.entry("user", "Thành viên"),
+            Map.entry("role", "Vai trò"),
+            Map.entry("export", "Xuất dữ liệu"),
+            Map.entry("code_range", "Dải mã truy xuất"),
+            Map.entry("traceability", "Truy xuất nguồn gốc"),
+            Map.entry("recall", "Thu hồi lô")
     );
 
     public static String getLabel(String resource) {

@@ -15,6 +15,7 @@ import vn.nguongocso.farm.dto.request.CreateProductCategoryRequest;
 import vn.nguongocso.farm.dto.request.UpdateProductCategoryRequest;
 import vn.nguongocso.farm.dto.response.ProductCategoryResponse;
 import vn.nguongocso.farm.service.ProductCategoryService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 /**
  * REST Controller quản lý các API liên quan đến loại cây trồng.
@@ -25,6 +26,7 @@ import vn.nguongocso.farm.service.ProductCategoryService;
 public class ProductCategoryController {
 
 	private final ProductCategoryService productCategoryService;
+	private final PermissionChecker permissionChecker;
 
 	/**
 	 * Lấy và lọc danh sách loại nông sản.
@@ -38,6 +40,7 @@ public class ProductCategoryController {
 			@RequestParam(required = false) Boolean isActive,
 			@AuthenticationPrincipal CustomUserDetails currentUser) {
 
+		permissionChecker.check("PRODUCT_CATEGORY", "READ");
 		List<ProductCategoryResponse> response = productCategoryService.search(name, categoryGroup, isActive, currentUser);
 		return ResponseEntity.ok(ApiResult.success(response));
 	}
@@ -50,6 +53,7 @@ public class ProductCategoryController {
 	public ResponseEntity<ApiResult<ProductCategoryResponse>> create(
 			@Valid @RequestBody CreateProductCategoryRequest request) {
 
+		permissionChecker.check("PRODUCT_CATEGORY", "CREATE");
 		ProductCategoryResponse response = productCategoryService.create(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
 	}
@@ -63,6 +67,7 @@ public class ProductCategoryController {
 			@PathVariable UUID id,
 			@Valid @RequestBody UpdateProductCategoryRequest request) {
 
+		permissionChecker.check("PRODUCT_CATEGORY", "UPDATE");
 		ProductCategoryResponse response = productCategoryService.update(id, request);
 		return ResponseEntity.ok(ApiResult.success(response));
 	}

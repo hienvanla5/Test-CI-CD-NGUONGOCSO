@@ -13,6 +13,7 @@ import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
 import vn.nguongocso.organization.service.OrganizationService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,17 +32,21 @@ public class OrganizationController {
 
     private final OrganizationService
             organizationService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * Khởi tạo controller quản lý tổ chức.
      *
      * @param organizationService service xử lý nghiệp vụ tổ chức
+     * @param permissionChecker   service kiểm tra phân quyền chi tiết
      */
     public OrganizationController(
-            OrganizationService organizationService
+            OrganizationService organizationService,
+            PermissionChecker permissionChecker
     ) {
         this.organizationService =
                 organizationService;
+        this.permissionChecker = permissionChecker;
     }
 
     /**
@@ -56,6 +61,8 @@ public class OrganizationController {
     public ResponseEntity<
             ApiResult<List<OrganizationResponse>>
             > getAllOrganizations() {
+
+        permissionChecker.check("ORGANIZATION", "READ");
 
         log.info(
                 "Nhận yêu cầu lấy danh sách organization"
@@ -92,6 +99,9 @@ public class OrganizationController {
             @RequestBody
             CreateOrganizationRequest request
     ) {
+
+        permissionChecker.check("ORGANIZATION", "CREATE");
+
         log.info(
                 "Nhận yêu cầu tạo organization với code={}",
                 request.getOrganizationCode()
@@ -132,6 +142,9 @@ public class OrganizationController {
             @RequestBody
             OrganizationUpdateRequest request
     ) {
+
+        permissionChecker.check("ORGANIZATION", "UPDATE");
+
         log.info(
                 "Admin cập nhật hồ sơ organization id={}",
                 id

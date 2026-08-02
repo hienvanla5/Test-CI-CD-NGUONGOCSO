@@ -10,6 +10,7 @@ import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.service.OrganizationService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 @Slf4j
 @RestController
@@ -18,10 +19,12 @@ import vn.nguongocso.organization.service.OrganizationService;
 public class OrganizationProfileController {
 
     private final OrganizationService organizationService;
+    private final PermissionChecker permissionChecker;
 
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResult<OrganizationProfileResponse>> getProfile() {
+        permissionChecker.check("ORGANIZATION", "READ");
         log.info("Lấy hồ sơ tổ chức hiện tại");
         return ResponseEntity.ok(ApiResult.success(organizationService.getCurrentOrganizationProfile()));
     }
@@ -30,6 +33,7 @@ public class OrganizationProfileController {
     @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
     public ResponseEntity<ApiResult<OrganizationProfileResponse>> updateProfile(
             @Valid @RequestBody OrganizationUpdateRequest request) {
+        permissionChecker.check("ORGANIZATION", "UPDATE");
         log.info("Cập nhật hồ sơ tổ chức hiện tại");
         return ResponseEntity.ok(ApiResult.success(organizationService.updateCurrentOrganization(request)));
     }
