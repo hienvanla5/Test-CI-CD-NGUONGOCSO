@@ -17,10 +17,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.PageResponse;
-import vn.nguongocso.alert_reclaim_history.dto.response.ActivityLogResponse;
-import vn.nguongocso.alert_reclaim_history.entity.ActivityLog;
-import vn.nguongocso.alert_reclaim_history.repository.ActivityLogRepository;
-import vn.nguongocso.alert_reclaim_history.service.impl.ActivityLogServiceImpl;
+import vn.nguongocso.alert.dto.response.ActivityLogResponse;
+import vn.nguongocso.alert.entity.ActivityLog;
+import vn.nguongocso.alert.repository.ActivityLogRepository;
+import vn.nguongocso.alert.service.impl.ActivityLogServiceImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;

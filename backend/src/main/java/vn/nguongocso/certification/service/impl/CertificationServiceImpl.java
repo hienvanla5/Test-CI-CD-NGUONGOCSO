@@ -25,12 +25,12 @@ import vn.nguongocso.farm.repository.ProductionLotRepository;
 import org.springframework.beans.factory.annotation.Value;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import vn.nguongocso.alert.entity.Alert;
-import vn.nguongocso.alert.entity.CertificationAlertDetails;
 import vn.nguongocso.alert.enums.AlertSeverity;
 import vn.nguongocso.alert.enums.AlertStatus;
 import vn.nguongocso.alert.enums.AlertType;
 import vn.nguongocso.alert.repository.AlertRepository;
 import vn.nguongocso.alert.service.AlertNotificationService;
+import java.util.Map;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -232,15 +232,15 @@ public class CertificationServiceImpl implements CertificationService {
         if (!exists) {
             long daysOverdue = today.toEpochDay() - cert.getExpiryDate().toEpochDay();
 
-            CertificationAlertDetails details = CertificationAlertDetails.builder()
-                    .certificationName(cert.getName())
-                    .certificationCode(cert.getCode())
-                    .issuedBy(cert.getIssuedBy())
-                    .issueDate(cert.getIssueDate())
-                    .expiryDate(cert.getExpiryDate())
-                    .daysOverdue(daysOverdue)
-                    .thresholdConfigured(warningThresholdDays)
-                    .build();
+            java.util.Map<String, Object> details = java.util.Map.of(
+                    "certificationName", cert.getName(),
+                    "certificationCode", cert.getCode(),
+                    "issuedBy", cert.getIssuedBy() != null ? cert.getIssuedBy() : "",
+                    "issueDate", cert.getIssueDate() != null ? cert.getIssueDate().toString() : "",
+                    "expiryDate", cert.getExpiryDate().toString(),
+                    "daysOverdue", daysOverdue,
+                    "thresholdConfigured", warningThresholdDays
+            );
 
             Alert alert = new Alert();
             alert.setId(UUID.randomUUID());
@@ -272,15 +272,15 @@ public class CertificationServiceImpl implements CertificationService {
         );
 
         if (!exists) {
-            CertificationAlertDetails details = CertificationAlertDetails.builder()
-                    .certificationName(cert.getName())
-                    .certificationCode(cert.getCode())
-                    .issuedBy(cert.getIssuedBy())
-                    .issueDate(cert.getIssueDate())
-                    .expiryDate(cert.getExpiryDate())
-                    .daysRemaining(daysRemaining)
-                    .thresholdConfigured(warningThresholdDays)
-                    .build();
+            java.util.Map<String, Object> details = java.util.Map.of(
+                    "certificationName", cert.getName(),
+                    "certificationCode", cert.getCode(),
+                    "issuedBy", cert.getIssuedBy() != null ? cert.getIssuedBy() : "",
+                    "issueDate", cert.getIssueDate() != null ? cert.getIssueDate().toString() : "",
+                    "expiryDate", cert.getExpiryDate().toString(),
+                    "daysRemaining", daysRemaining,
+                    "thresholdConfigured", warningThresholdDays
+            );
 
             Alert alert = new Alert();
             alert.setId(UUID.randomUUID());

@@ -12,7 +12,8 @@ import vn.nguongocso.auth.service.CustomUserDetailsService;
 import vn.nguongocso.common.PageResponse;
 import vn.nguongocso.config.JwtTokenProvider;
 import vn.nguongocso.config.SecurityConfig;
-import vn.nguongocso.alert_reclaim_history.service.ActivityLogService;
+import vn.nguongocso.alert.controller.ActivityLogController;
+import vn.nguongocso.alert.service.ActivityLogService;
 
 import java.util.Collections;
 

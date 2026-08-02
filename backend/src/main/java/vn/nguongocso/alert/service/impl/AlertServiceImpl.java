@@ -21,8 +21,6 @@ import vn.nguongocso.alert.dto.response.AlertListResponse;
 import vn.nguongocso.alert.dto.response.AlertResponse;
 import vn.nguongocso.alert.dto.response.ResolveAlertResponse;
 import vn.nguongocso.alert.entity.Alert;
-import vn.nguongocso.alert.entity.AlertDetails;
-import vn.nguongocso.alert.entity.CertificationAlertDetails;
 import vn.nguongocso.alert.enums.AlertStatus;
 import vn.nguongocso.alert.enums.AlertType;
 import vn.nguongocso.alert.repository.AlertRepository;
@@ -278,17 +276,10 @@ public class AlertServiceImpl implements AlertService {
 
         response.setSeverity(alert.getSeverity());
         try {
-            if (alert.getType() == AlertType.SCAN_ANOMALY) {
-                response.setDetails(
-                        objectMapper.readValue(
-                                alert.getDetails(),
-                                AlertDetails.class));
-            } else {
-                response.setDetails(
-                        objectMapper.readValue(
-                                alert.getDetails(),
-                                CertificationAlertDetails.class));
-            }
+            response.setDetails(
+                    objectMapper.readValue(
+                            alert.getDetails(),
+                            Object.class));
         } catch (JsonProcessingException e) {
             throw new BusinessException(
                     "Không thể đọc dữ liệu cảnh báo.");
