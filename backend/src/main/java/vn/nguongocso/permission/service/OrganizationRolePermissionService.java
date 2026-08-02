@@ -7,6 +7,8 @@ import vn.nguongocso.permission.dto.response.RolePermissionResponse;
 import java.util.List;
 import java.util.UUID;
 
+import vn.nguongocso.auth.service.CustomUserDetails;
+
 public interface OrganizationRolePermissionService {
 
     /**
@@ -31,5 +33,11 @@ public interface OrganizationRolePermissionService {
             Integer roleId,
             UpdateRolePermissionRequest request
     );
+
+    /**
+     * Xác thực rằng người dùng hiện tại là VT-02 và thuộc đúng tổ chức.
+     * Trả về CustomUserDetails nếu hợp lệ, nếu không ném BusinessException.
+     */
+    CustomUserDetails validateOrganizationManager(UUID organizationId);
 
 }

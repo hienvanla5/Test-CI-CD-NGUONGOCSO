@@ -75,6 +75,9 @@ import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
 // ✅ Thêm import
 import ExportOpenDataPage from "@/pages/export/ExportOpenDataPage";
 
+// ✅ Phân quyền chi tiết (NCL-09-CN-008)
+import RolePermissionConfigPage from "@/pages/permission/RolePermissionConfigPage";
+
 const COOPERATIVE_MANAGER_ROLES = [
     "VT-02",
 ] as const satisfies readonly AuthenticatedRoleCode[];
@@ -437,6 +440,16 @@ const AppRoutes = () => (
                         <ExportOpenDataPage />
                     </RoleRoute>
                 }
+            />
+
+            {/* ===== Permission Config (NCL-09-CN-008) ===== */}
+            <Route
+              path="permissions/config"
+              element={
+                <RoleRoute allowedRoles={ROLE_ACCESS.rolePermissionConfig}>
+                  <RolePermissionConfigPage />
+                </RoleRoute>
+              }
             />
 
             {/* ===== Procurement (NCL-05-CN-004) ===== */}

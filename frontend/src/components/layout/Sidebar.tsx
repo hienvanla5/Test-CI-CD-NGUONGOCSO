@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   MapPinned,
   Package,
+  Shield,
   Smartphone,
   Sprout,
   Truck,
@@ -177,6 +178,13 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Xuất dữ liệu mở",
     href: "/export/open-data",
     allowedRoles: ["VT-05"],
+  },
+  // ✅ Phân quyền (NCL-09-CN-008)
+  {
+    icon: <Shield className="h-5 w-5" />,
+    label: "Phân quyền",
+    href: "/permissions/config",
+    allowedRoles: ["VT-02"],
   },
 ];
 

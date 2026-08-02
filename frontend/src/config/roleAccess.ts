@@ -32,6 +32,9 @@ export const ROLE_ACCESS = {
   // ✅ Từ file 2
   exportOpenData: ['VT-05'] as const,
 
+  // ✅ Phân quyền chi tiết (NCL-09-CN-008)
+  rolePermissionConfig: ['VT-02'] as const,
+
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
 export function hasAnyRole(
