@@ -7,6 +7,7 @@ import { RecallAlert } from '@/components/public/RecallAlert';
 import { Timeline } from '@/components/public/Timeline';
 import { RouteMap } from '@/components/public/RouteMap';
 import { ProductFeedbackForm } from '@/components/public/ProductFeedbackForm';
+import { PublicCertificationsSection } from '@/components/public/PublicCertificationsSection';
 import { LoaderCircle, AlertCircle, Home, MapPin, List } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -105,6 +106,10 @@ export default function TraceLookupPage() {
           <RecallAlert message={data.recallMessage} />
         )}
 
+        <PublicCertificationsSection
+        certifications={data.certifications}
+        />
+        
         {data.productionLotId && (
         <ProductFeedbackForm
         productionLotId={data.productionLotId}

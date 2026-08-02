@@ -12,11 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
   PublicCertification,
-  PublicLotCertificationsResponse,
 } from "@/types/publicCertification";
 
 interface PublicCertificationsSectionProps {
-  data?: PublicLotCertificationsResponse | null;
+  certifications?: PublicCertification[];
   isLoading?: boolean;
   error?: string | null;
 }
@@ -90,12 +89,12 @@ function CertificationCard({ certification }: { certification: PublicCertificati
 }
 
 export function PublicCertificationsSection({
-  data,
+  certifications: data,
   isLoading = false,
   error,
 }: PublicCertificationsSectionProps) {
-  const certifications = data?.certifications ?? [];
-  const hasCertification = Boolean(data?.hasCertification && certifications.length > 0);
+  const certifications = data ?? [];
+  const hasCertification = Boolean(data && certifications.length > 0);
 
   return (
     <section aria-labelledby="public-certifications-title">
