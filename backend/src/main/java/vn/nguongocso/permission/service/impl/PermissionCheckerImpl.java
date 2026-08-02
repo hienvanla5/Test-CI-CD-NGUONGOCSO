@@ -42,6 +42,15 @@ public class PermissionCheckerImpl implements PermissionChecker {
                 .orElseThrow(() ->
                         new BusinessException("Vai trò không tồn tại."));
 
+                            // ===== DEBUG =====
+    System.out.println("===== PermissionChecker =====");
+    System.out.println("resource = " + resource);
+    System.out.println("action = " + action);
+    System.out.println("permissionId = " + permission.getPermissionId());
+    System.out.println("roleCode = " + currentUser.getRoleCode());
+    System.out.println("roleId = " + role.getRoleId());
+    System.out.println("organizationId = " + currentUser.getOrganizationId());
+    // =================
         Optional<OrganizationRolePermission> organizationPermission =
                 organizationRolePermissionRepository
                         .findByOrganization_OrganizationIdAndRole_RoleIdAndPermission_PermissionId(

@@ -20,6 +20,7 @@ import vn.nguongocso.common.annotation.Auditable;
 import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.event.dto.request.*;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
+import vn.nguongocso.event.dto.response.ScanLookupResponse;
 import vn.nguongocso.event.entity.ChainEvent;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
@@ -29,6 +30,7 @@ import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.trace.entity.Shipment;
 import vn.nguongocso.trace.entity.TraceCode;
 import vn.nguongocso.trace.enums.ShipmentStatus;
@@ -53,16 +55,16 @@ public class ChainEventServiceImpl implements ChainEventService {
     private final ShipmentRepository shipmentRepository;
     private final EventValidationService eventValidationService;
     private final ApplicationEventPublisher eventPublisher;
+    private final PermissionChecker permissionChecker;
 
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     // ============================
-    //  Ghi sự kiện thu hoạch
+    // Ghi sự kiện thu hoạch
     // ============================
     @Override
     @Transactional
-    @Auditable(action = "RECORD_HARVEST_EVENT", entityType = "CHAIN_EVENT",
-            description = "'Ghi nhận sự kiện thu hoạch cho lô sản xuất ID: ' + #request.productionLotId + ', Sản lượng: ' + #request.quantity + ' kg'")
+    @Auditable(action = "RECORD_HARVEST_EVENT", entityType = "CHAIN_EVENT", description = "'Ghi nhận sự kiện thu hoạch cho lô sản xuất ID: ' + #request.productionLotId + ', Sản lượng: ' + #request.quantity + ' kg'")
     public ChainEventResponse recordHarvestEvent(RecordHarvestEventRequest request, CustomUserDetails currentUser) {
         validateEventPermission(currentUser);
 
@@ -118,12 +120,11 @@ public class ChainEventServiceImpl implements ChainEventService {
     }
 
     // ============================
-    //  Ghi sự kiện đóng gói
+    // Ghi sự kiện đóng gói
     // ============================
     @Override
     @Transactional
-    @Auditable(action = "RECORD_PACKAGING_EVENT", entityType = "CHAIN_EVENT",
-            description = "'Ghi nhận sự kiện đóng gói cho lô sản xuất ID: ' + #request.productionLotId + ', Quy cách: ' + #request.packagingSpecification")
+    @Auditable(action = "RECORD_PACKAGING_EVENT", entityType = "CHAIN_EVENT", description = "'Ghi nhận sự kiện đóng gói cho lô sản xuất ID: ' + #request.productionLotId + ', Quy cách: ' + #request.packagingSpecification")
     public ChainEventResponse recordPackagingEvent(RecordPackagingEventRequest request, CustomUserDetails currentUser) {
         validateEventPermission(currentUser);
 
@@ -179,14 +180,13 @@ public class ChainEventServiceImpl implements ChainEventService {
     }
 
     // ============================
-    //  Đính chính sự kiện đóng gói
+    // Đính chính sự kiện đóng gói
     // ============================
     @Override
     @Transactional
-    @Auditable(action = "CORRECT_PACKAGING_EVENT", entityType = "CHAIN_EVENT",
-            description = "'Đính chính thông tin đóng gói cho sự kiện gốc ID: ' + #originalEventId")
+    @Auditable(action = "CORRECT_PACKAGING_EVENT", entityType = "CHAIN_EVENT", description = "'Đính chính thông tin đóng gói cho sự kiện gốc ID: ' + #originalEventId")
     public ChainEventResponse correctPackagingEvent(UUID originalEventId, CorrectPackagingEventRequest request,
-                                                    CustomUserDetails currentUser) {
+            CustomUserDetails currentUser) {
         validateEventPermission(currentUser);
 
         ChainEvent originalEvent = chainEventRepository.findById(originalEventId)
@@ -247,12 +247,11 @@ public class ChainEventServiceImpl implements ChainEventService {
     }
 
     // ============================
-    //  Ghi sự kiện vận chuyển
+    // Ghi sự kiện vận chuyển
     // ============================
     @Override
     @Transactional
-    @Auditable(action = "RECORD_TRANSPORT_EVENT", entityType = "CHAIN_EVENT",
-            description = "'Ghi nhận sự kiện vận chuyển mã tem: ' + #request.codeValue + ', Từ: ' + #request.fromLocation + ', Đến: ' + #request.toLocation")
+    @Auditable(action = "RECORD_TRANSPORT_EVENT", entityType = "CHAIN_EVENT", description = "'Ghi nhận sự kiện vận chuyển mã tem: ' + #request.codeValue + ', Từ: ' + #request.fromLocation + ', Đến: ' + #request.toLocation")
     public ChainEventResponse recordTransportEvent(RecordTransportEventRequest request, CustomUserDetails currentUser) {
         if (!"VT-03".equals(currentUser.getRoleCode())) {
             throw new BusinessException("Bạn không có quyền ghi sự kiện vận chuyển.");
@@ -315,7 +314,7 @@ public class ChainEventServiceImpl implements ChainEventService {
     }
 
     // ============================
-    //  Ghi sự kiện từ thiết bị di động
+    // Ghi sự kiện từ thiết bị di động
     // ============================
     @Override
     @Transactional
@@ -347,8 +346,7 @@ public class ChainEventServiceImpl implements ChainEventService {
                     lot.getName(),
                     request.getEventType(),
                     e.getMessage(),
-                    currentUser
-            );
+                    currentUser);
             throw e;
         }
 
@@ -391,7 +389,7 @@ public class ChainEventServiceImpl implements ChainEventService {
     }
 
     // ============================
-    //  Lấy dòng thời gian của lô hàng
+    // Lấy dòng thời gian của lô hàng
     // ============================
     @Override
     public List<ChainEventResponse> getShipmentTimeline(UUID shipmentId) {
@@ -404,8 +402,7 @@ public class ChainEventServiceImpl implements ChainEventService {
         if (shipment.getProductionLot() != null) {
             UUID productionLotId = shipment.getProductionLot().getId();
             List<ChainEvent> allUnassignedEvents = chainEventRepository.findByShipmentIsNullAndEventTypeIn(
-                    List.of(ChainEventType.HARVEST, ChainEventType.PACKAGING)
-            );
+                    List.of(ChainEventType.HARVEST, ChainEventType.PACKAGING));
             productionLotEvents = allUnassignedEvents.stream()
                     .filter(e -> {
                         Map<String, Object> data = parseEventData(e.getEventData());
@@ -426,7 +423,7 @@ public class ChainEventServiceImpl implements ChainEventService {
     }
 
     // ============================
-    //  Private helper methods
+    // Private helper methods
     // ============================
 
     private void validateEventPermission(CustomUserDetails currentUser) {
@@ -469,7 +466,7 @@ public class ChainEventServiceImpl implements ChainEventService {
     }
 
     private void publishActivityLog(CustomUserDetails currentUser, String description,
-                                    String entityType, String entityId) {
+            String entityType, String entityId) {
         eventPublisher.publishEvent(ActivityLogEvent.builder()
                 .userId(currentUser.getUserId())
                 .username(currentUser.getUsername())
@@ -485,7 +482,7 @@ public class ChainEventServiceImpl implements ChainEventService {
     }
 
     private ChainEventResponse buildResponse(ChainEvent event, Map<String, Object> eventData,
-                                             Double latitude, Double longitude, User actor) {
+            Double latitude, Double longitude, User actor) {
         return ChainEventResponse.builder()
                 .id(event.getId())
                 .eventType(event.getEventType())
@@ -503,7 +500,8 @@ public class ChainEventServiceImpl implements ChainEventService {
             return new HashMap<>();
         }
         try {
-            return objectMapper.readValue(eventDataJson, new TypeReference<Map<String, Object>>() {});
+            return objectMapper.readValue(eventDataJson, new TypeReference<Map<String, Object>>() {
+            });
         } catch (Exception e) {
             log.warn("Không thể parse eventData: {}", eventDataJson);
             return new HashMap<>();
@@ -595,5 +593,78 @@ public class ChainEventServiceImpl implements ChainEventService {
 
         lot.setStatus(ProductionLotStatus.PACKAGED);
         productionLotRepository.save(lot);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ScanLookupResponse scanLookup(String codeValue, CustomUserDetails currentUser) {
+
+        // Chỉ VT-03 được sử dụng chức năng quét để ghi sự kiện
+        permissionChecker.check("chain_event", "CREATE");
+
+        TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
+                .orElseThrow(() -> new BusinessException("Mã truy xuất không tồn tại."));
+
+        Shipment shipment = traceCode.getShipment();
+
+        if (shipment == null) {
+            throw new BusinessException("Mã truy xuất chưa được gắn với lô hàng.");
+        }
+
+        validateOrganization(shipment, currentUser);
+
+        if (shipment.getStatus() == ShipmentStatus.RECALLED) {
+            throw new BusinessException("Lô hàng đã bị thu hồi.");
+        }
+
+        if (shipment.getStatus() != ShipmentStatus.ACTIVATED) {
+            throw new BusinessException("Lô hàng chưa được kích hoạt.");
+        }
+
+        Optional<ChainEvent> latestEvent = chainEventRepository
+                .findTopByShipmentIdOrderByRecordedAtDesc(shipment.getId());
+
+        List<String> allowedEventTypes = determineAllowedEventTypes(latestEvent);
+
+        ProductionLot productionLot = shipment.getProductionLot();
+
+        return ScanLookupResponse.builder()
+                .valid(true)
+                .message(null)
+                .traceCode(traceCode.getCodeValue())
+                .shipmentId(shipment.getId())
+                .shipmentName(shipment.getName())
+                .shipmentStatus(shipment.getStatus().name())
+                .productionLotId(productionLot.getId())
+                .productCategoryName(
+                        productionLot.getProductCategory() != null
+                                ? productionLot.getProductCategory().getName()
+                                : null)
+                .farmAreaName(
+                        productionLot.getFarmArea() != null
+                                ? productionLot.getFarmArea().getName()
+                                : null)
+                .organizationId(shipment.getOrganization().getOrganizationId())
+                .organizationName(shipment.getOrganization().getName())
+                .allowedEventTypes(allowedEventTypes)
+                .lastEventType(
+                        latestEvent.map(e -> e.getEventType().name()).orElse(null))
+                .lastEventRecordedAt(
+                        latestEvent.map(ChainEvent::getRecordedAt).orElse(null))
+                .build();
+    }
+
+    private List<String> determineAllowedEventTypes(Optional<ChainEvent> latestEvent) {
+
+        if (latestEvent.isEmpty()) {
+            return List.of(ChainEventType.TRANSPORT.name());
+        }
+
+        ChainEventType lastType = latestEvent.get().getEventType();
+
+        return switch (lastType) {
+            case TRANSPORT -> List.of(ChainEventType.TRANSPORT.name());
+            default -> Collections.emptyList();
+        };
     }
 }

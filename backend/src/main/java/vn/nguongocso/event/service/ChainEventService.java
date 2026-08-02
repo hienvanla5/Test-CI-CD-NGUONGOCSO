@@ -7,6 +7,7 @@ import vn.nguongocso.event.dto.request.RecordMobileEventRequest;
 import vn.nguongocso.event.dto.request.RecordPackagingEventRequest;
 import vn.nguongocso.event.dto.request.RecordTransportEventRequest;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
+import vn.nguongocso.event.dto.response.ScanLookupResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -36,4 +37,6 @@ public interface ChainEventService {
 	 * Ghi sự kiện từ thiết bị di động.
 	 */
 	ChainEventResponse recordMobileEvent(RecordMobileEventRequest request, CustomUserDetails currentUser);
+
+	ScanLookupResponse scanLookup(String codeValue, CustomUserDetails currentUser);
 }
