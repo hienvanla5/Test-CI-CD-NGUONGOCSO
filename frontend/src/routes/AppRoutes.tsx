@@ -9,11 +9,7 @@ import {
   type AuthenticatedRoleCode,
 } from "@/config/roleAccess";
 import { useAuth } from "@/hooks/useAuth";
-<<<<<<< HEAD
 
-// Pages
-=======
->>>>>>> feature/remove-projection-lot
 import LoginPage from "@/pages/auth/LoginPage";
 import { DashboardPage } from "@/pages/daskboard/DashboardPase";
 import { CreateFarmAreaPage } from "@/pages/farm-area/CreateFarmAreaPage";
@@ -26,78 +22,41 @@ import CreateProductionLotPage from "@/pages/production-lot/CreateProductionLotP
 import ProductionLotListPage from "@/pages/production-lot/ProductionLotListPage";
 import RecordTransportEventPage from "@/pages/transport-event/RecordTransportEventPage";
 
-<<<<<<< HEAD
-// Admin pages
 import CreateCodeRangePage from "@/pages/admin/CreateCodeRangePage";
 import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
 import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
 import StandardManagementPage from "@/pages/admin/StandardManagementPage";
-
-// Packaging
 import CreatePackagingEventPage from "@/pages/packaging-event/CreatePackagingEventPage";
 import CorrectPackagingEventPage from "@/pages/packaging-event/CorrectPackagingEventPage";
 
-// Organization
 import { OrganizationListPage } from "@/pages/organization/OrganizationListPage";
 import CreateMemberPage from "@/pages/organization/CreateMemberPage";
-
-// Farm log
 import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 
-// Shipment
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
 
-// Public
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
 
-// Reports
 import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
 import ActivityLogPage from "@/pages/report/ActivityLogPage";
 import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
 import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
 
-// Alerts
 import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
 
-// Farm area
 import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 
-// Mobile
 import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
 import CreateCertificationPage from "@/pages/certification/CreateCertificationPage";
 import CertificationListPage from "@/pages/certification/CertificationListPage";
 
-// Constants
-=======
-import CreateCodeRangePage from "@/pages/admin/CreateCodeRangePage";
-import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
-import CreatePackagingEventPage from "@/pages/packaging-event/CreatePackagingEventPage";
-import CorrectPackagingEventPage from "@/pages/packaging-event/CorrectPackagingEventPage";
-import { OrganizationListPage } from "@/pages/organization/OrganizationListPage";
-import CreateMemberPage from "@/pages/organization/CreateMemberPage";
-import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
-import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
-import TraceLookupPage from "@/pages/public/TraceLookupPage";
-import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
-import ActivityLogPage from "@/pages/report/ActivityLogPage";
-import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
-import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
-import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
-import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
-import IndustryReportPage from "@/pages/report/IndustryReportPage";
-import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
 import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
 
->>>>>>> feature/remove-projection-lot
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
 ] as const satisfies readonly AuthenticatedRoleCode[];
 
-<<<<<<< HEAD
-// ---------- Helpers ----------
-=======
->>>>>>> feature/remove-projection-lot
 function PageLoader() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
@@ -112,7 +71,6 @@ function PrivateRoute({ children }: { children: ReactNode }) {
   if (isLoading) return <PageLoader />;
   if (!user) return <Navigate to="/login" replace />;
 
-  // VT-06 chỉ tra cứu công khai, không sử dụng khu vực quản trị nội bộ.
   if (!hasAnyRole(user.roleCode, AUTHENTICATED_ROLE_CODES)) {
     return <Navigate to="/login" replace />;
   }
@@ -151,16 +109,10 @@ function UnauthorizedPage() {
   );
 }
 
-<<<<<<< HEAD
-// ---------- Routes ----------
-=======
->>>>>>> feature/remove-projection-lot
 const AppRoutes = () => (
   <Routes>
-    {/* Route công khai */}
     <Route path="/login" element={<LoginPage />} />
 
-    {/* Toàn bộ route nội bộ dùng chung Header + Sidebar + Outlet */}
     <Route
       element={
         <PrivateRoute>
@@ -168,17 +120,8 @@ const AppRoutes = () => (
         </PrivateRoute>
       }
     >
-<<<<<<< HEAD
-      {/* Dashboard */}
       <Route index element={<DashboardPage />} />
 
-      {/* ===== Organization ===== */}
-=======
-      {/* Dashboard thật */}
-      <Route index element={<DashboardPage />} />
-
-      {/* Hồ sơ tổ chức — VT-01, VT-02 */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="organizations/profile"
         element={
@@ -187,11 +130,6 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-<<<<<<< HEAD
-=======
-
-      {/* Tạo tổ chức — VT-01 */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="organizations/create"
         element={
@@ -200,10 +138,6 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-<<<<<<< HEAD
-=======
-
->>>>>>> feature/remove-projection-lot
       <Route
         path="organizations"
         element={
@@ -213,11 +147,6 @@ const AppRoutes = () => (
         }
       />
 
-<<<<<<< HEAD
-      {/* ===== Members ===== */}
-=======
-      {/* Cấp quyền thành viên — VT-02 */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="members"
         element={
@@ -235,11 +164,6 @@ const AppRoutes = () => (
         }
       />
 
-<<<<<<< HEAD
-      {/* ===== Farm Areas ===== */}
-=======
-      {/* Tạo vùng trồng — VT-02 */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="farm-areas/create"
         element={
@@ -248,10 +172,6 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-<<<<<<< HEAD
-=======
-
->>>>>>> feature/remove-projection-lot
       <Route
         path="farm-areas"
         element={
@@ -261,11 +181,6 @@ const AppRoutes = () => (
         }
       />
 
-<<<<<<< HEAD
-      {/* ===== Production Lots ===== */}
-=======
-      {/* Danh sách lô sản xuất — VT-01, VT-02, VT-03 */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="production-lots"
         element={
@@ -274,11 +189,6 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-<<<<<<< HEAD
-=======
-
-      {/* Tạo lô sản xuất — VT-02 */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="production-lots/create"
         element={
@@ -287,11 +197,6 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-<<<<<<< HEAD
-=======
-
-      {/* Chỉnh sửa lô sản xuất — VT-02 */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="production-lots/:id/edit"
         element={
@@ -300,7 +205,6 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-<<<<<<< HEAD
       <Route
         path="production-lots/:id"
         element={
@@ -310,11 +214,6 @@ const AppRoutes = () => (
         }
       />
 
-      {/* ===== Farm Logs ===== */}
-=======
-
-      {/* Ghi nhật ký canh tác — VT-03 */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="farm-logs/create"
         element={
@@ -323,7 +222,6 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-<<<<<<< HEAD
       <Route
         path="production-lots/:productionLotId/farm-logs"
         element={
@@ -333,7 +231,6 @@ const AppRoutes = () => (
         }
       />
 
-      {/* ===== Packaging Events ===== */}
       <Route
         path="packaging-events/create"
         element={
@@ -351,7 +248,6 @@ const AppRoutes = () => (
         }
       />
 
-      {/* ===== Transport Events ===== */}
       <Route
         path="transport-events/record"
         element={
@@ -361,11 +257,6 @@ const AppRoutes = () => (
         }
       />
 
-      {/* ===== Admin: Code Ranges ===== */}
-=======
-
-      {/* 👇 Các route quản lý dải mã — chỉ VT-01 (Admin) */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="admin/code-ranges"
         element={
@@ -383,87 +274,33 @@ const AppRoutes = () => (
         }
       />
 
-<<<<<<< HEAD
-      {/* ===== Admin: Product Categories ===== */}
       <Route
         path="admin/product-categories"
         element={
           <RoleRoute allowedRoles={["VT-01"]}>
             <ProductCategoryManagementPage />
-=======
-      {/* Lịch sử nhật ký canh tác — VT-02 */}
-      <Route
-        path="production-lots/:productionLotId/farm-logs"
-        element={
-          <RoleRoute allowedRoles={["VT-02"]}>
-            <FarmLogHistoryPage />
->>>>>>> feature/remove-projection-lot
           </RoleRoute>
         }
       />
 
-<<<<<<< HEAD
-      {/* ===== Admin: Standards (NCL-09-CN-002) ===== */}
       <Route
         path="admin/standards"
         element={
           <RoleRoute allowedRoles={ROLE_ACCESS.standardManagement}>
             <StandardManagementPage />
-=======
-      {/* Chi tiết lô sản xuất — chứa chức năng Lô hàng & Mã QR */}
-      <Route
-        path="production-lots/:id"
-        element={
-          <RoleRoute allowedRoles={["VT-01", "VT-02", "VT-03"]}>
-            <ProductionLotDetailPage />
->>>>>>> feature/remove-projection-lot
           </RoleRoute>
         }
       />
 
-<<<<<<< HEAD
-      {/* ===== Mobile: Record Event (NCL-10-CN-003) ===== */}
       <Route
         path="mobile/record-event"
         element={
           <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
             <RecordMobileEventPage />
-=======
-      {/* Ghi và đính chính sự kiện đóng gói — VT-02, VT-03 */}
-      <Route
-        path="packaging-events/create"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCreate}>
-            <CreatePackagingEventPage />
->>>>>>> feature/remove-projection-lot
           </RoleRoute>
         }
       />
 
-<<<<<<< HEAD
-      {/* ===== Reports ===== */}
-=======
-      <Route
-        path="packaging-events/:id/correct"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.packagingEventCorrect}>
-            <CorrectPackagingEventPage />
-          </RoleRoute>
-        }
-      />
-
-      {/* Ghi sự kiện vận chuyển — chỉ VT-03 */}
-      <Route
-        path="transport-events/record"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.transportEventRecord}>
-            <RecordTransportEventPage />
-          </RoleRoute>
-        }
-      />
-
-      {/* Thống kê tra cứu — VT-01, VT-02 */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="reports/lookup-statistics"
         element={
@@ -472,7 +309,6 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-<<<<<<< HEAD
       <Route
         path="activity-logs"
         element={
@@ -506,11 +342,15 @@ const AppRoutes = () => (
         }
       />
 
-      {/* ===== Alerts ===== */}
-=======
+      <Route
+        path="procurement-event"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.procurementEvent}>
+            <ProcurementEventPage />
+          </RoleRoute>
+        }
+      />
 
-      {/* Cảnh báo tem quét bất thường — VT-01, VT-02 */}
->>>>>>> feature/remove-projection-lot
       <Route
         path="alerts/scan-anomaly"
         element={
@@ -521,7 +361,6 @@ const AppRoutes = () => (
       />
 
       <Route
-<<<<<<< HEAD
         path="certifications"
         element={
           <RoleRoute allowedRoles={["VT-02"]}>
@@ -534,72 +373,15 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={["VT-02"]}>
             <CreateCertificationPage />
-=======
-        path="activity-logs"
-        element={
-          <RoleRoute allowedRoles={["VT-02"]}>
-            <ActivityLogPage />
->>>>>>> feature/remove-projection-lot
           </RoleRoute>
         }
       />
 
-<<<<<<< HEAD
-      {/* ===== Unauthorized ===== */}
-=======
-      <Route
-        path="admin/product-categories"
-        element={
-          <RoleRoute allowedRoles={["VT-01"]}>
-            <ProductCategoryManagementPage />
-          </RoleRoute>
-        }
-      />
-
-      <Route
-        path="failed-event-logs"
-        element={
-          <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
-            <FailedEventLogsPage />
-          </RoleRoute>
-        }
-      />
-
-      <Route
-        path="reports/crop-area-analysis"
-        element={
-          <RoleRoute allowedRoles={["VT-01", "VT-05"]}>
-            <CropAreaAnalysisPage />
-          </RoleRoute>
-        }
-      />
-
-      <Route
-        path="reports/industry"
-        element={
-          <RoleRoute allowedRoles={["VT-05"]}>
-            <IndustryReportPage />
-          </RoleRoute>
-        }
-      />
-      <Route
-        path="procurement-event"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.procurementEvent}>
-            <ProcurementEventPage />
-          </RoleRoute>
-        }
-      />
-
-      {/* Trang báo không đủ quyền vẫn nằm trong layout */}
->>>>>>> feature/remove-projection-lot
       <Route path="unauthorized" element={<UnauthorizedPage />} />
     </Route>
 
-    {/* Route công khai tra cứu */}
     <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
 
-    {/* Route không tồn tại */}
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
 );

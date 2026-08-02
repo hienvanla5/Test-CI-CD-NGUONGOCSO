@@ -32,6 +32,7 @@ public class Certification {
     @Column(name = "name", nullable = false)
     private String name;
 
+<<<<<<< HEAD
     // ✅ Thêm trường name
     @Column(name = "name", nullable = false)
     private String name;
@@ -41,6 +42,8 @@ public class Certification {
     private Standard standard;
 >>>>>>> feature/remove-projection-lot
 
+=======
+>>>>>>> 984526e76e7e14a7bd83773d3d58d777e796fa4d
     @Column(name = "code", nullable = false, unique = true)
     private String code;
 

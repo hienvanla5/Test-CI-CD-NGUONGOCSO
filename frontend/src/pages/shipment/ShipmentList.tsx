@@ -15,21 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-<<<<<<< HEAD
-import { BadgeCheck, FileText, Plus, QrCode } from "lucide-react";
-import { useShipments } from "@/hooks/useShipments";
-=======
 import { BadgeCheck, FileText, Plus, QrCode, Ban, MoreHorizontal, History } from "lucide-react";
 import { useShipments } from "@/hooks/useShipments";
 import { useRecallShipment } from "@/hooks/useRecallShipment";
->>>>>>> feature/remove-projection-lot
 import type { Shipment, CreateShipmentPayload } from "@/types/shipment";
 import { CreateShipmentModal } from "@/components/shipment/CreateShipmentModal";
 import { QrCodeGrid } from "@/components/shipment/QrCodeGrid";
 import { ShipmentTimelineDialog } from "@/components/shipment/ShipmentTimelineDialog";
 import { ActivateShipmentDialog } from "@/components/shipment/ActivateShipmentDialog";
-<<<<<<< HEAD
-=======
 import { RecallShipmentDialog } from "@/components/shipment/RecallShipmentDialog";
 import {
   DropdownMenu,
@@ -38,7 +31,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
->>>>>>> feature/remove-projection-lot
 import { toast } from "sonner";
 import { checkDossierEligibility, exportDossier } from "@/api/dossierApi";
 import { DossierIneligibleDialog } from "@/components/shipment/DossierIneligibleDialog";
@@ -63,10 +55,7 @@ interface ShipmentListProps {
   productionLotStatus: string;
   canCreate: boolean;
   canActivate: boolean;
-<<<<<<< HEAD
-=======
   canRecall: boolean;
->>>>>>> feature/remove-projection-lot
 }
 
 export const ShipmentList = ({
@@ -74,10 +63,7 @@ export const ShipmentList = ({
   productionLotStatus,
   canCreate,
   canActivate,
-<<<<<<< HEAD
-=======
   canRecall,
->>>>>>> feature/remove-projection-lot
 }: ShipmentListProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -87,12 +73,9 @@ export const ShipmentList = ({
   const [activatingShipment, setActivatingShipment] = useState<Shipment | null>(
     null,
   );
-<<<<<<< HEAD
-=======
   const [recallingShipment, setRecallingShipment] = useState<Shipment | null>(
     null,
   );
->>>>>>> feature/remove-projection-lot
   const [timelineDialog, setTimelineDialog] = useState<{
     open: boolean;
     shipmentId: string;
@@ -123,11 +106,8 @@ export const ShipmentList = ({
     reload,
   } = useShipments(productionLotId);
 
-<<<<<<< HEAD
-=======
   const { recallingShipmentId, recallShipment } = useRecallShipment(reload);
 
->>>>>>> feature/remove-projection-lot
   const handleCreate = async (payload: CreateShipmentPayload) => {
     await createShipment(payload);
   };
@@ -265,23 +245,7 @@ export const ShipmentList = ({
                         {shipment.traceCodes?.length || 0}
                       </TableCell>
                       <TableCell className="text-center">
-<<<<<<< HEAD
-                        <div className="flex flex-wrap justify-center gap-1.5">
-                          {canActivate &&
-                            shipment.status === "CODE_PRINTED" && (
-                              <Button
-                                size="sm"
-                                variant="default"
-                                className="px-2.5 py-1 text-xs h-auto"
-                                onClick={() => setActivatingShipment(shipment)}
-                              >
-                                <BadgeCheck className="mr-1 h-3 w-3" />
-                                Kích hoạt
-                              </Button>
-                            )}
-=======
                         <div className="flex items-center justify-center gap-1.5">
->>>>>>> feature/remove-projection-lot
                           <Button
                             size="sm"
                             variant="outline"
@@ -291,41 +255,6 @@ export const ShipmentList = ({
                             <QrCode className="mr-1 h-3 w-3" />
                             QR
                           </Button>
-<<<<<<< HEAD
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="px-2.5 py-1 text-xs h-auto"
-                            onClick={() =>
-                              setTimelineDialog({
-                                open: true,
-                                shipmentId: shipment.id,
-                                name: shipment.name,
-                              })
-                            }
-                          >
-                            Sự kiện
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="px-2.5 py-1 text-xs h-auto"
-                            onClick={() => handleExportDossier(shipment)}
-                          >
-                            <FileText className="mr-1 h-3 w-3" />
-                            Xuất hồ sơ
-                          </Button>
-                          {(shipment.status === "DRAFT" ||
-                            shipment.status === "CODE_PRINTED") && (
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteDraft(shipment)}
-                            >
-                              Hủy nháp
-                            </Button>
-                          )}
-=======
 
                           <DropdownMenu>
                             <DropdownMenuTrigger
@@ -391,7 +320,6 @@ export const ShipmentList = ({
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
->>>>>>> feature/remove-projection-lot
                         </div>
                       </TableCell>
                     </TableRow>
@@ -469,8 +397,6 @@ export const ShipmentList = ({
         }}
       />
 
-<<<<<<< HEAD
-=======
       <RecallShipmentDialog
         shipment={recallingShipment}
         isRecalling={recallingShipmentId === recallingShipment?.id}
@@ -480,7 +406,6 @@ export const ShipmentList = ({
         }}
       />
 
->>>>>>> feature/remove-projection-lot
       <DossierIneligibleDialog
         open={ineligibleDialog.open}
         onClose={() =>
@@ -495,8 +420,4 @@ export const ShipmentList = ({
       />
     </>
   );
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> feature/remove-projection-lot

@@ -25,7 +25,6 @@ export interface ProductionLotCertification {
 export interface AttachCertificationRequest {
   certificationId: string;
   note?: string;
-<<<<<<< HEAD
 }
 
 export interface CreateCertificationRequest {
@@ -45,6 +44,4 @@ export interface CertificationResponse {
   issueDate: string;
   expiryDate: string;
   isValid: boolean;
-=======
->>>>>>> feature/remove-projection-lot
 }

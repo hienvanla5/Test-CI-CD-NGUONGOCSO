@@ -1,6 +1,3 @@
-// src/types/recall.ts
-// Theo tài liệu API: Thu hồi lô (NCL-08-CN-003)
-
 export interface RecallRequest {
   reason: string;
 }

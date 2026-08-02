@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-package vn.nguongocso.publicapi.controller;
-
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import vn.nguongocso.common.ApiResult;
-import vn.nguongocso.publicapi.dto.response.PublicLotCertificationsResponse;
-=======
 // PublicTraceController.java
 package vn.nguongocso.publicapi.controller;
 
@@ -22,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
 import vn.nguongocso.common.ApiResult;
->>>>>>> feature/remove-projection-lot
 import vn.nguongocso.publicapi.dto.response.PublicTraceResponse;
 import vn.nguongocso.publicapi.service.PublicTraceService;
 
@@ -33,12 +21,6 @@ public class PublicTraceController {
 
     private final PublicTraceService publicTraceService;
 
-<<<<<<< HEAD
-    /**
-     * Tra cứu công khai thông tin lô và hành trình.
-     */
-=======
->>>>>>> feature/remove-projection-lot
     @GetMapping("/{codeValue}")
     public ResponseEntity<ApiResult<PublicTraceResponse>> getPublicTrace(
             @PathVariable String codeValue,
@@ -57,20 +39,4 @@ public class PublicTraceController {
 
         return ResponseEntity.ok(ApiResult.success(response));
     }
-<<<<<<< HEAD
-
-    /**
-     * Tra cứu danh sách chứng nhận của lô sản xuất.
-     */
-    @GetMapping("/{codeValue}/certifications")
-    public ResponseEntity<ApiResult<PublicLotCertificationsResponse>> getPublicCertifications(
-            @PathVariable String codeValue) {
-
-        PublicLotCertificationsResponse response =
-                publicTraceService.getPublicCertifications(codeValue);
-
-        return ResponseEntity.ok(ApiResult.success(response));
-    }
-=======
->>>>>>> feature/remove-projection-lot
 }

@@ -95,7 +95,9 @@ export function PublicCertificationsSection({
   error,
 }: PublicCertificationsSectionProps) {
   const certifications = data?.certifications ?? [];
-  const hasCertification = Boolean(data?.hasCertification && certifications.length > 0);
+  const hasCertification = Boolean(
+    data?.hasCertification && certifications.length > 0
+  );
 
   return (
     <section aria-labelledby="public-certifications-title">
