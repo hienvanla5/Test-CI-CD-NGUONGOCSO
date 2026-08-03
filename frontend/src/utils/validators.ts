@@ -248,3 +248,27 @@ toDate: z.string().optional()
   });
 
 export type ExportOpenDataFormValues = z.infer<typeof exportOpenDataSchema>;
+
+// ===== Import Production Lot (NCL-10-CN-006) =====
+export const importProductionLotSchema = z.object({
+  file: z
+    .instanceof(File)
+    .refine((file) => file.size > 0, 'Vui lòng chọn tệp dữ liệu')
+    .refine(
+      (file) => {
+        const name = file.name.toLowerCase();
+        return name.endsWith('.csv') || name.endsWith('.xlsx');
+      },
+      'Chỉ hỗ trợ định dạng .csv hoặc .xlsx'
+    )
+    .refine(
+      (file) => file.size <= 10 * 1024 * 1024,
+      'Dung lượng tệp không được vượt quá 10MB'
+    ),
+  organizationId: z
+    .union([z.string().uuid('Vui lòng chọn tổ chức hợp lệ'), z.literal('')])
+    .optional()
+    .transform((val) => (val === '' ? undefined : val)),
+});
+
+export type ImportProductionLotFormValues = z.infer<typeof importProductionLotSchema>;

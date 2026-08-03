@@ -10,6 +10,7 @@ import {
   Database,
   Download,
   FileText,
+  FileUp,
   Hash,
   History,
   Layers,
@@ -77,6 +78,12 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Lô sản xuất",
     href: "/production-lots",
     allowedRoles: ROLE_ACCESS.productionLotList,
+  },
+  {
+    icon: <FileUp className="h-5 w-5" />,
+    label: "Nhập lô hàng loạt",
+    href: "/production-lots/import",
+    allowedRoles: ["VT-02"],
   },
   {
     icon: <Truck className="h-5 w-5" />,

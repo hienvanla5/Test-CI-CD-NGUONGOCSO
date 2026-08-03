@@ -147,8 +147,13 @@ public class ProductionLotImportFileParserImpl implements ProductionLotImportFil
     private String get(CSVRecord record, String rawColumnName) {
         if (rawColumnName == null) return null;
         if (!record.isMapped(rawColumnName)) return null;
-        String value = record.get(rawColumnName);
-        return value == null ? null : value.trim();
+        try {
+            String value = record.get(rawColumnName);
+            return value == null ? null : value.trim();
+        } catch (IllegalArgumentException e) {
+            // Dòng thiếu cột này, bỏ qua
+            return null;
+        }
     }
 
     private Double parseDouble(String value) {
