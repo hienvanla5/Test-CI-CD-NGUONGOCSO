@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.exception.ResourceNotFoundException;
 import vn.nguongocso.alert.service.ScanAnomalyDetectionService;
 import vn.nguongocso.certification.entity.Certification;
 import vn.nguongocso.certification.entity.ProductionLotCertification;
@@ -61,12 +62,12 @@ public class PublicTraceServiceImpl implements PublicTraceService {
 
         // TC-02: Kiểm tra tồn tại mã
         TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
-                .orElseThrow(() -> new BusinessException("Mã lô hàng không tồn tại."));
+                .orElseThrow(() -> new ResourceNotFoundException("Mã lô hàng không tồn tại."));
 
         // Lấy Shipment
         Shipment shipment = traceCode.getShipment();
         if (shipment == null) {
-            throw new BusinessException("Không tìm thấy lô hàng liên kết.");
+            throw new ResourceNotFoundException("Không tìm thấy lô hàng liên kết.");
         }
 
         // TC-04: Kiểm tra thu hồi
@@ -230,11 +231,11 @@ public class PublicTraceServiceImpl implements PublicTraceService {
 	public PublicLotCertificationsResponse getPublicCertifications(String codeValue) {
 		// 1. Tìm trace code
 		TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
-				.orElseThrow(() -> new BusinessException("Mã lô hàng không tồn tại."));
+				.orElseThrow(() -> new ResourceNotFoundException("Mã lô hàng không tồn tại."));
 
 		Shipment shipment = traceCode.getShipment();
 		if (shipment == null) {
-			throw new BusinessException("Không tìm thấy lô hàng liên kết.");
+			throw new ResourceNotFoundException("Không tìm thấy lô hàng liên kết.");
 		}
 
 		ProductionLot lot = shipment.getProductionLot();

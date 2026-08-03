@@ -1,9 +1,10 @@
 import apiClient from './axiosConfig';
-import type {
-  IndustryReportResponse,
-  IndustryReportExportResponse,
-  IndustryReportParams,
-} from '@/types/report';
+import type { IndustryReportResponse, IndustryReportParams } from '@/types/report';
+
+export interface DownloadedReport {
+  blob: Blob;
+  fileName: string;
+}
 
 export interface DashboardStatistics {
   summary: {
@@ -77,9 +78,38 @@ export const getIndustrySummary = async (
 };
 export const exportIndustrySummary = async (
   params: IndustryReportParams & { format?: 'PDF' | 'EXCEL' }
-): Promise<IndustryReportExportResponse> => {
-  const response = await apiClient.get<
-    IndustryReportExportResponse | { success: boolean; data: IndustryReportExportResponse }
-  >('/reports/industry-summary/export', { params });
-  return unwrapReportResponse(response.data);
+): Promise<DownloadedReport> => {
+  const response = await apiClient.get('/reports/industry-summary/export', {
+    params,
+    responseType: 'blob',
+  });
+
+  const blob = response.data as Blob;
+  const fileName = extractFileNameFromContentDisposition(
+    response.headers?.['content-disposition']
+  );
+
+  return { blob, fileName };
 };
+
+/**
+ * Lấy tên file từ header Content-Disposition.
+ * Hỗ trợ cả dạng `attachment; filename="x.pdf"` lẫn `filename*=UTF-8''...`.
+ */
+function extractFileNameFromContentDisposition(
+  contentDisposition?: string
+): string {
+  if (!contentDisposition) return 'industry-summary';
+
+  const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1].replace(/"/g, ''));
+    } catch {
+      // fall through nếu decode thất bại
+    }
+  }
+
+  const plainMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+  return plainMatch?.[1]?.replace(/"/g, '') || 'industry-summary';
+}

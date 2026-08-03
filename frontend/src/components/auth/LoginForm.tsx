@@ -48,7 +48,7 @@ export const LoginForm: React.FC = () => {
 
       authLogin(user, accessToken);
       toast.success('Đăng nhập thành công!');
-      navigate('/');
+      navigate('/dashboard');
     } catch (error: any) {
       const message =
         error.response?.data?.message ||

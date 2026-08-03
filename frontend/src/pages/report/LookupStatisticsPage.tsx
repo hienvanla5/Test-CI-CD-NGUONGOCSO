@@ -26,8 +26,14 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
 
-// 👇 Định nghĩa type cho groupBy
 type GroupByType = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
+
+const groupByLabels: Record<GroupByType, string> = {
+  DAY: 'Ngày',
+  WEEK: 'Tuần',
+  MONTH: 'Tháng',
+  YEAR: 'Năm',
+};
 
 export default function LookupStatisticsPage() {
   const [stats, setStats] = useState<LookupStatisticsResponse | null>(null);
@@ -40,7 +46,7 @@ export default function LookupStatisticsPage() {
   // Bộ lọc
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [groupBy, setGroupBy] = useState<GroupByType>('MONTH'); // 👈 sửa type
+  const [groupBy, setGroupBy] = useState<GroupByType>('MONTH');
 
   const fetchStats = async () => {
     try {
@@ -48,7 +54,7 @@ export default function LookupStatisticsPage() {
       const data = await getLookupStatistics({
         startDate: startDate || undefined,
         endDate: endDate || undefined,
-        groupBy, // 👈 đã đúng type
+        groupBy,
       });
       setStats(data);
     } catch (error: any) {
@@ -133,13 +139,16 @@ export default function LookupStatisticsPage() {
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Chọn nhóm">
+                    {groupByLabels[groupBy]}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DAY">Ngày</SelectItem>
-                  <SelectItem value="WEEK">Tuần</SelectItem>
-                  <SelectItem value="MONTH">Tháng</SelectItem>
-                  <SelectItem value="YEAR">Năm</SelectItem>
+                  {Object.entries(groupByLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -166,19 +175,12 @@ export default function LookupStatisticsPage() {
         </div>
       ) : stats ? (
         <>
-          {/* Summary Cards */}
           <StatisticsSummary stats={stats.summary} />
-
-          {/* Charts: 2 columns */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <LocationChart data={stats.byLocation} />
             <TimeSeriesChart data={stats.timeSeries} />
           </div>
-
-          {/* Lot Stats Table */}
           <LotStatsTable data={stats.byProductionLot} />
-
-          {/* Abnormal Scans */}
           <AbnormalScansTable
             data={abnormalScans}
             totalPages={totalPages}

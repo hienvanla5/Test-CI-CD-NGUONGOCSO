@@ -128,7 +128,6 @@ public class ProductionLotController {
             @RequestParam(required = false, defaultValue = "MONTH") String groupBy,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest request) {
-        permissionChecker.check("PRODUCTION_LOT", "READ");
         String ipAddress = getClientIp(request);
         ProductionLotDashboardResponse response = productionLotService.getDashboard(startDate, endDate, organizationId,
                 groupBy, userDetails, ipAddress);

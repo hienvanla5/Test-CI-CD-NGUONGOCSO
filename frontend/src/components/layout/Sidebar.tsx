@@ -50,7 +50,7 @@ const MENU_ITEMS: MenuItem[] = [
   {
     icon: <LayoutDashboard className="h-5 w-5" />,
     label: "Dashboard",
-    href: "/",
+    href: "/dashboard",
     allowedRoles: ROLE_ACCESS.dashboard,
   },
   {
@@ -215,7 +215,9 @@ export function Sidebar({
   const finalItems =
       visibleItems.length === 0
           ? MENU_ITEMS.filter(
-              (item) => item.href === "/" || item.href === "/production-lots",
+              (item) =>
+                  item.href === "/dashboard" ||
+                  item.href === "/production-lots",
           )
           : visibleItems;
 
@@ -232,7 +234,7 @@ export function Sidebar({
       <aside className="flex h-full min-h-0 flex-col border-r bg-background">
         <div className="flex h-16 items-center gap-2 border-b px-5">
           <Link
-              to="/"
+              to="/dashboard"
               onClick={onNavigate}
               className="flex min-w-0 flex-1 items-center gap-2 font-bold"
           >

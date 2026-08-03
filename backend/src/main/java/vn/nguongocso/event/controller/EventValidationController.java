@@ -42,7 +42,6 @@ public class EventValidationController {
             @RequestParam @NotNull ChainEventType eventType,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        permissionChecker.check("CHAIN_EVENT", "READ");
         LotValidationResponse response = eventValidationService.validateLot(lotId, eventType, currentUser);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -56,7 +55,6 @@ public class EventValidationController {
             @PathVariable("id") UUID id,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        permissionChecker.check("CHAIN_EVENT", "DELETE");
         eventValidationService.deleteDraft(id, currentUser);
         return ResponseEntity.ok(ApiResult.success(HttpStatus.OK.value(), null));
     }
@@ -70,7 +68,6 @@ public class EventValidationController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        permissionChecker.check("CHAIN_EVENT", "READ");
         Pageable pageable = PageRequest.of(page, size);
         PageResponse<FailedEventLogResponse> response = eventValidationService.getFailedLogs(pageable);
         return ResponseEntity.ok(ApiResult.success(response));

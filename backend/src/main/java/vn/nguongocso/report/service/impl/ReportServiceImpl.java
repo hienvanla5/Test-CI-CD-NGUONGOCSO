@@ -12,10 +12,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
+import lombok.extern.slf4j.Slf4j;
 import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.repository.OrganizationRepository;
 import vn.nguongocso.report.dto.response.IndustryReportResponse;
 import vn.nguongocso.report.dto.response.ProductBreakdownItem;
+import vn.nguongocso.report.excel.IndustryReportExcelGenerator;
 import vn.nguongocso.report.pdf.IndustryReportPdfGenerator;
 import vn.nguongocso.report.service.ReportService;
 import vn.nguongocso.trace.repository.ShipmentRepository;
@@ -23,6 +25,7 @@ import vn.nguongocso.trace.repository.ShipmentRepository;
 /**
  * Service xử lý báo cáo tổng hợp ngành (theo địa bàn và thời gian).
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -31,11 +34,14 @@ public class ReportServiceImpl implements ReportService {
     private final OrganizationRepository organizationRepository;
     private final ShipmentRepository shipmentRepository;
     private final IndustryReportPdfGenerator pdfGenerator;
+    private final IndustryReportExcelGenerator excelGenerator;
 
     private static final String REGULATOR_ROLE = "VT-05";
     private static final String VIEW_PERMISSION_MESSAGE = "Bạn không có quyền xem báo cáo tổng hợp.";
     private static final String INVALID_DATE_MESSAGE = "Khoảng thời gian không hợp lệ.";
     private static final String EMPTY_REGION_MESSAGE = "Địa bàn không được để trống.";
+    private static final String INVALID_FORMAT_MESSAGE = "Định dạng xuất không hợp lệ. Chỉ hỗ trợ PDF hoặc EXCEL.";
+    private static final String EXPORT_ERROR_MESSAGE = "Không thể xuất báo cáo.";
 
     /**
      * Lấy báo cáo tổng hợp ngành dưới dạng đối tượng response.
@@ -62,8 +68,65 @@ public class ReportServiceImpl implements ReportService {
             LocalDate fromDate,
             LocalDate toDate) {
 
-        IndustryReportResponse report = getIndustrySummary(region, fromDate, toDate);
-        return pdfGenerator.generate(report);
+        return exportIndustrySummary(region, fromDate, toDate, "PDF");
+    }
+
+    /**
+     * Xuất báo cáo tổng hợp ngành theo định dạng PDF hoặc EXCEL.
+     */
+    @Override
+    public byte[] exportIndustrySummary(
+            String region,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String format) {
+
+        CustomUserDetails currentUser = getCurrentUser();
+        validateRole(currentUser);
+        validateRequest(region, fromDate, toDate);
+
+        String normalizedFormat = format == null ? "PDF" : format.trim().toUpperCase();
+
+        long startTime = System.currentTimeMillis();
+        try {
+            IndustryReportResponse report = buildIndustrySummary(region, fromDate, toDate);
+
+            byte[] file = switch (normalizedFormat) {
+                case "PDF" -> pdfGenerator.generate(report);
+                case "EXCEL", "XLSX" -> excelGenerator.generate(report);
+                default -> throw new BusinessException(INVALID_FORMAT_MESSAGE);
+            };
+
+            log.info("Export industry report succeeded. role={}, user={}, region={}, "
+                            + "fromDate={}, toDate={}, format={}, sizeBytes={}, durationMs={}",
+                    currentUser.getRoleCode(),
+                    currentUser.getUsername(),
+                    region,
+                    fromDate,
+                    toDate,
+                    normalizedFormat,
+                    file.length,
+                    System.currentTimeMillis() - startTime);
+
+            return file;
+
+        } catch (BusinessException ex) {
+            log.warn("Export industry report rejected. reason={}, region={}, fromDate={}, toDate={}, format={}",
+                    ex.getMessage(),
+                    region,
+                    fromDate,
+                    toDate,
+                    normalizedFormat);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Export industry report failed unexpectedly. region={}, fromDate={}, toDate={}, format={}",
+                    region,
+                    fromDate,
+                    toDate,
+                    normalizedFormat,
+                    ex);
+            throw new BusinessException(EXPORT_ERROR_MESSAGE);
+        }
     }
 
     /**

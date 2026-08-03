@@ -30,6 +30,13 @@ import type { Standard } from "@/types/standard";
 
 const PAGE_SIZE = 10;
 
+// Mapping cho bộ lọc trạng thái
+const statusFilterOptions = [
+  { value: "all", label: "Tất cả" },
+  { value: "true", label: "Đang hoạt động" },
+  { value: "false", label: "Không hoạt động" },
+];
+
 export const StandardList: React.FC = () => {
   const [standards, setStandards] = useState<Standard[]>([]);
   const [totalElements, setTotalElements] = useState(0);
@@ -72,7 +79,7 @@ export const StandardList: React.FC = () => {
     try {
       await createStandard({
         name: data.name,
-        description: data.description || undefined, // nếu rỗng thì gửi undefined
+        description: data.description || undefined,
         issuingBody: data.issuingBody || undefined,
       });
       toast.success("Thêm tiêu chuẩn thành công");
@@ -126,6 +133,16 @@ export const StandardList: React.FC = () => {
 
   const totalPages = Math.ceil(totalElements / PAGE_SIZE);
 
+  // Lấy label hiển thị cho bộ lọc trạng thái
+  const getStatusFilterLabel = (value: string) => {
+    const option = statusFilterOptions.find((opt) => opt.value === value);
+    return option ? option.label : "Trạng thái";
+  };
+
+  // Xác định giá trị hiện tại của select
+  const currentFilterValue =
+    isActiveFilter === undefined ? "all" : String(isActiveFilter);
+
   return (
     <>
       <Card>
@@ -134,21 +151,23 @@ export const StandardList: React.FC = () => {
             <CardTitle>Danh mục tiêu chuẩn chất lượng</CardTitle>
             <div className="flex flex-wrap items-center gap-2">
               <Select
-                value={
-                  isActiveFilter === undefined ? "all" : String(isActiveFilter)
-                }
+                value={currentFilterValue}
                 onValueChange={(val) => {
                   if (val === "all") setIsActiveFilter(undefined);
                   else setIsActiveFilter(val === "true");
                 }}
               >
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Trạng thái" />
+                  <SelectValue placeholder="Trạng thái">
+                    {getStatusFilterLabel(currentFilterValue)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  <SelectItem value="true">Đang hoạt động</SelectItem>
-                  <SelectItem value="false">Không hoạt động</SelectItem>
+                  {statusFilterOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Button
@@ -225,7 +244,6 @@ export const StandardList: React.FC = () => {
                 </Table>
               </div>
 
-              {/* Phân trang */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-muted-foreground">
@@ -258,7 +276,6 @@ export const StandardList: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Dialog Form */}
       <StandardForm
         open={formDialogOpen}
         onClose={closeDialog}
