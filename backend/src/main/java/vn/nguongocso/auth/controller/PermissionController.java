@@ -26,7 +26,7 @@ public class PermissionController {
     @GetMapping
     public ResponseEntity<ApiResult<List<OrganizationUserResponse>>> getMembers() {
 
-        permissionChecker.check("USER", "READ");
+        permissionChecker.check("organization_user", "READ");
 
         return ResponseEntity.ok(ApiResult.success(
                 permissionService.getMembersOfCurrentOrganization()
@@ -37,7 +37,7 @@ public class PermissionController {
     public ResponseEntity<ApiResult<OrganizationUserResponse>> assignRole(
             @Valid @RequestBody AssignRoleRequest request) {
 
-        permissionChecker.check("USER", "UPDATE");
+        permissionChecker.check("organization_user", "UPDATE");
 
         return ResponseEntity.ok(ApiResult.success(
                 permissionService.assignRole(request)
@@ -49,7 +49,7 @@ public class PermissionController {
             @Valid @RequestBody AddMemberRequest request
     ) {
 
-        permissionChecker.check("USER", "CREATE");
+        permissionChecker.check("organization_user", "CREATE");
 
         return ResponseEntity.ok(ApiResult.success(
                 permissionService.addMember(request)

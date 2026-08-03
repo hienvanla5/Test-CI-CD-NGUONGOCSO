@@ -106,15 +106,22 @@ export function SeasonYieldComparisonFilter({
                 })
             : Promise.resolve([]),
         ]);
+
+        if (!active) return;
+
         setProductCategories(categories);
         setFarmAreas(areas);
         setOrganizations(orgs);
         setHasUnavailableOptions(false);
       } catch (err) {
+        if (!active) return;
+
         console.error("Lỗi load options:", err);
         setHasUnavailableOptions(true);
       } finally {
-        setLoadingOptions(false);
+        if (active) {
+          setLoadingOptions(false);
+        }
       }
     };
 

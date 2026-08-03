@@ -37,9 +37,10 @@ export const syncOfflineEvents = async (
 export const scanLookupTraceCode = async (
   code: string,
 ): Promise<ScanLookupResponse> => {
-  const response = await apiClient.get<{ data: ScanLookupResponse}>(
-    '/chain-events/scan-lookup',
-    { params: { code } },
+  const response = await apiClient.get<{ data: ScanLookupResponse }>(
+    "/chain-events/scan-lookup",
+    { params: { codeValue: code } },
   );
+
   return response.data.data;
 };
