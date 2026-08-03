@@ -10,6 +10,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.alert.event.ActivityLogEvent;
@@ -435,13 +436,15 @@ public class ChainEventServiceImpl implements ChainEventService {
 
     private void validateOrganization(ProductionLot lot, CustomUserDetails currentUser) {
         if (!lot.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
-            throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô sản xuất này.");
+            throw new BusinessException(HttpStatus.FORBIDDEN,
+                    "Bạn không thuộc tổ chức quản lý của lô sản xuất này.");
         }
     }
 
     private void validateOrganization(Shipment shipment, CustomUserDetails currentUser) {
         if (!shipment.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
-            throw new BusinessException("Bạn không thuộc tổ chức quản lý của lô hàng.");
+            throw new BusinessException(HttpStatus.FORBIDDEN,
+                    "Bạn không thuộc tổ chức quản lý của lô hàng.");
         }
     }
 
@@ -599,8 +602,6 @@ public class ChainEventServiceImpl implements ChainEventService {
     @Transactional(readOnly = true)
     public ScanLookupResponse scanLookup(String codeValue, CustomUserDetails currentUser) {
 
-        // Chỉ VT-03 được sử dụng chức năng quét để ghi sự kiện
-        permissionChecker.check("chain_event", "CREATE");
 
         TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
                 .orElseThrow(() -> new BusinessException("Mã truy xuất không tồn tại."));
@@ -614,7 +615,7 @@ public class ChainEventServiceImpl implements ChainEventService {
         validateOrganization(shipment, currentUser);
 
         if (shipment.getStatus() == ShipmentStatus.RECALLED) {
-            throw new BusinessException("Lô hàng đã bị thu hồi.");
+            throw new BusinessException(HttpStatus.CONFLICT, "Lô hàng đã bị thu hồi.");
         }
 
         if (shipment.getStatus() != ShipmentStatus.ACTIVATED) {

@@ -139,7 +139,6 @@ export default function ScanQuickEventPage() {
 
         streamRef.current = stream;
         video.srcObject = stream;
-        await video.play();
 
         const controls = await codeReader.decodeFromVideoElement(
           video,
@@ -219,7 +218,6 @@ export default function ScanQuickEventPage() {
               <video
                 ref={videoRef}
                 className="aspect-video w-full object-cover"
-                autoPlay
                 muted
                 playsInline
               />

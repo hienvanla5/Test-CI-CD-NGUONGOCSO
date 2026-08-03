@@ -35,7 +35,6 @@ public class ProcurementEventController {
             @Valid @RequestBody RecordProcurementEventRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        permissionChecker.check("CHAIN_EVENT", "CREATE");
         ChainEventResponse response = procurementEventService.recordProcurementEvent(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(response));
     }

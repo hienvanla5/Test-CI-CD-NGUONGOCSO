@@ -76,7 +76,6 @@ export default function PublicHomePage() {
 
         streamRef.current = stream;
         video.srcObject = stream;
-        await video.play();
 
         const controls = await codeReader.decodeFromVideoElement(
           video,
@@ -193,7 +192,6 @@ export default function PublicHomePage() {
                 <video
                   ref={videoRef}
                   className="w-full aspect-square object-cover"
-                  autoPlay
                   muted
                   playsInline
                 />

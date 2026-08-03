@@ -76,7 +76,6 @@ export function ScanCodeField({
 
         streamRef.current = stream;
         video.srcObject = stream;
-        await video.play();
 
         const controls = await codeReader.decodeFromVideoElement(
           video,
@@ -196,7 +195,6 @@ export function ScanCodeField({
             <video
               ref={videoRef}
               className="aspect-video w-full object-cover"
-              autoPlay
               muted
               playsInline
             />

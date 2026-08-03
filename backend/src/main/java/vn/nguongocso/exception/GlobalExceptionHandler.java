@@ -42,7 +42,8 @@ public class GlobalExceptionHandler {
             BusinessException e,
             HttpServletRequest request) {
 
-        return build(HttpStatus.BAD_REQUEST, e.getMessage(), null, request);
+        HttpStatus status = e.getStatus() != null ? e.getStatus() : HttpStatus.BAD_REQUEST;
+        return build(status, e.getMessage(), null, request);
     }
 
     /**

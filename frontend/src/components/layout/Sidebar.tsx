@@ -223,7 +223,14 @@ export function Sidebar({
       : visibleItems;
 
   const isActive = (href: string) => {
-    return location.pathname === href;
+    const matchingItems = finalItems.filter((item) =>
+      location.pathname.startsWith(item.href)
+    );
+    if (matchingItems.length === 0) return false;
+    const longestMatch = matchingItems.reduce((a, b) =>
+      a.href.length > b.href.length ? a : b
+    );
+    return longestMatch.href === href;
   };
 
   return (
@@ -258,7 +265,7 @@ export function Sidebar({
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
               isActive(item.href)
-                ? "bg-primary text-primary-foreground"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >

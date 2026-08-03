@@ -1,6 +1,7 @@
 package vn.nguongocso.permission.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.auth.entity.Permission;
@@ -42,15 +43,6 @@ public class PermissionCheckerImpl implements PermissionChecker {
                 .orElseThrow(() ->
                         new BusinessException("Vai trò không tồn tại."));
 
-                            // ===== DEBUG =====
-    System.out.println("===== PermissionChecker =====");
-    System.out.println("resource = " + resource);
-    System.out.println("action = " + action);
-    System.out.println("permissionId = " + permission.getPermissionId());
-    System.out.println("roleCode = " + currentUser.getRoleCode());
-    System.out.println("roleId = " + role.getRoleId());
-    System.out.println("organizationId = " + currentUser.getOrganizationId());
-    // =================
         Optional<OrganizationRolePermission> organizationPermission =
                 organizationRolePermissionRepository
                         .findByOrganization_OrganizationIdAndRole_RoleIdAndPermission_PermissionId(
@@ -81,6 +73,7 @@ public class PermissionCheckerImpl implements PermissionChecker {
 
         if (!enabled) {
             throw new BusinessException(
+                    HttpStatus.FORBIDDEN,
                     "Bạn không có quyền thực hiện chức năng này.");
         }
     }
