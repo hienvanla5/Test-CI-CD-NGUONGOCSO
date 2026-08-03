@@ -38,19 +38,18 @@ public class ShipmentController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public ApiResult<ShipmentResponse> createShipment(@Valid @RequestBody CreateShipmentRequest request) {
 
-		permissionChecker.check("SHIPMENT", "CREATE");
 		return ApiResult.success(shipmentService.createShipment(request));
 	}
 	@PostMapping("/{id}/activate")
 	public ApiResult<ShipmentResponse> activateStamps(@PathVariable UUID id) {
-		permissionChecker.check("SHIPMENT", "UPDATE");
+
 		return ApiResult.success(shipmentService.activateShipmentStamps(id));
 	}
 
 	@GetMapping("/production-lots/{productionLotId}")
 	@PreAuthorize("hasAnyRole('VT-01', 'VT-02', 'VT-03')")
 	public ApiResult<List<ShipmentResponse>> getShipmentsByProductionLot(@PathVariable UUID productionLotId) {
-		permissionChecker.check("SHIPMENT", "READ");
+
 		return ApiResult.success(shipmentService.getShipmentsByProductionLot(productionLotId));
 	}
 
@@ -60,7 +59,7 @@ public class ShipmentController {
 	 */
 	@GetMapping("/by-code")
 	public ApiResult<ShipmentSummaryResponse> getShipmentByCode(@RequestParam String code) {
-		permissionChecker.check("SHIPMENT", "READ");
+
 		return ApiResult.success(shipmentService.getShipmentByCode(code));
 	}
 
@@ -70,7 +69,7 @@ public class ShipmentController {
 	 */
 	@GetMapping("/eligible")
 	public ApiResult<List<ProcurementShipmentResponse>> getEligibleShipments() {
-		permissionChecker.check("SHIPMENT", "READ");
+
 		return ApiResult.success(shipmentService.getEligibleShipments());
 	}
 }
