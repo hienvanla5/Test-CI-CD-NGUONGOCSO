@@ -24,7 +24,7 @@ import vn.nguongocso.alert.enums.AlertSeverity;
 import vn.nguongocso.alert.enums.AlertStatus;
 import vn.nguongocso.alert.enums.AlertType;
 import vn.nguongocso.alert.repository.AlertRepository;
-import vn.nguongocso.alert.service.AlertNotificationService;
+import vn.nguongocso.notification.service.NotificationService;
 import vn.nguongocso.certification.entity.Certification;
 import vn.nguongocso.certification.repository.CertificationRepository;
 import vn.nguongocso.certification.service.impl.CertificationServiceImpl;
@@ -40,7 +40,7 @@ class CertificationExpiryTest {
     private AlertRepository alertRepository;
 
     @Mock
-    private AlertNotificationService alertNotificationService;
+    private NotificationService notificationService;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -94,7 +94,7 @@ class CertificationExpiryTest {
 
         // Then
         verify(alertRepository, times(1)).save(any(Alert.class));
-        verify(alertNotificationService, times(1)).sendCertificationExpiryNotification(any(Alert.class));
+        verify(notificationService, times(1)).sendCertificationExpiryNotification(any(Alert.class));
     }
 
     @Test
@@ -131,6 +131,6 @@ class CertificationExpiryTest {
 
         // Verify expired alert was saved and notification sent
         verify(alertRepository, times(1)).save(argThat(alert -> alert.getType() == AlertType.CERT_EXPIRED));
-        verify(alertNotificationService, times(1)).sendCertificationExpiryNotification(argThat(alert -> alert.getType() == AlertType.CERT_EXPIRED));
+        verify(notificationService, times(1)).sendCertificationExpiryNotification(argThat(alert -> alert.getType() == AlertType.CERT_EXPIRED));
     }
 }

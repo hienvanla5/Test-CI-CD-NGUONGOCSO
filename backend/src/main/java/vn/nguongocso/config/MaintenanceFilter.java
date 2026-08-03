@@ -17,17 +17,30 @@ import vn.nguongocso.common.ApiResult;
 import java.io.IOException;
 
 @Component
-@RequiredArgsConstructor
 public class MaintenanceFilter extends OncePerRequestFilter {
 
-    private final RestoreService restoreService;
+    private final org.springframework.context.ApplicationContext applicationContext;
     private final ObjectMapper objectMapper;
+
+    public MaintenanceFilter(org.springframework.context.ApplicationContext applicationContext, ObjectMapper objectMapper) {
+        this.applicationContext = applicationContext;
+        this.objectMapper = objectMapper;
+    }
+
+    private RestoreService getRestoreService() {
+        try {
+            return applicationContext.getBean(RestoreService.class);
+        } catch (org.springframework.beans.factory.NoSuchBeanDefinitionException e) {
+            return null;
+        }
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (restoreService.isMaintenanceMode()) {
+        RestoreService restoreService = getRestoreService();
+        if (restoreService != null && restoreService.isMaintenanceMode()) {
             String uri = request.getRequestURI();
 
             // Allow Actuator health endpoint and Backup APIs
