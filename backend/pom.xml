@@ -171,6 +171,12 @@
 			<scope>compile</scope>
 		</dependency>
 
+		<dependency>
+    		<groupId>org.apache.commons</groupId>
+    		<artifactId>commons-csv</artifactId>
+    		<version>1.13.0</version>
+    	</dependency>
+
 		<!-- Apache POI (xuất báo cáo Excel) -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>

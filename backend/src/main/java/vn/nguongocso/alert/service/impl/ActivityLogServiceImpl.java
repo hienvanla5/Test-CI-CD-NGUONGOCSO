@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.PageResponse;
+import vn.nguongocso.alert.dto.request.ActivityLogRequest;
 import vn.nguongocso.alert.dto.response.ActivityLogResponse;
 import vn.nguongocso.alert.entity.ActivityLog;
 import vn.nguongocso.alert.repository.ActivityLogRepository;
@@ -46,7 +47,6 @@ public class ActivityLogServiceImpl implements ActivityLogService {
             spec = spec.and(ActivityLogSpecification.createdBetween(startDate, endDate));
         }
 
-
         Page<ActivityLog> logPage = activityLogRepository.findAll(spec, pageable);
 
         List<ActivityLogResponse> items = logPage.getContent().stream()
@@ -69,5 +69,27 @@ public class ActivityLogServiceImpl implements ActivityLogService {
                 .ipAddress(log.getIpAddress())
                 .createdAt(log.getCreatedAt())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void logActivity(ActivityLogRequest request) {
+
+        ActivityLog activityLog = ActivityLog.builder()
+                .organizationId(request.getOrganizationId())
+                .userId(request.getUserId())
+                .username(request.getUsername())
+                .fullName(request.getFullName())
+                .action(request.getAction())
+                .description(request.getDescription())
+                .entityType(request.getEntityType())
+                .entityId(
+                        request.getEntityId() == null
+                                ? null
+                                : request.getEntityId().toString())
+                .ipAddress(request.getIpAddress())
+                .build();
+
+        activityLogRepository.save(activityLog);
     }
 }
