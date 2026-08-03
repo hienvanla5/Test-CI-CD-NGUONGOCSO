@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BrowserQRCodeReader } from "@zxing/browser";
-import { QrCode, ScanLine, Sprout } from "lucide-react";
+import { LogIn, QrCode, ScanLine, Sprout } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -160,7 +160,19 @@ export default function PublicHomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col items-center justify-center px-4 py-10 relative">
+      {/* Nút Đăng nhập – góc trên phải */}
+      {!isAuthLoading && !user && (
+        <Button
+          variant="outline"
+          className="absolute top-4 right-4 gap-2"
+          onClick={() => navigate("/login")}
+        >
+          <LogIn className="h-4 w-4" />
+          Đăng nhập
+        </Button>
+      )}
+
       <div className="max-w-md w-full text-center space-y-8">
         {/* Logo & Title */}
         <div className="space-y-3">
