@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { recordTransportEvent } from "@/api/transportEventApi";
@@ -34,6 +34,9 @@ function getCurrentDateTimeLocal() {
 
 export function TransportEventForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefilledCode =
+    (location.state as { codeValue?: string } | null)?.codeValue ?? "";
 
   const {
     register,
@@ -45,7 +48,7 @@ export function TransportEventForm() {
   } = useForm<TransportEventFormValues>({
     resolver: zodResolver(transportEventSchema),
     defaultValues: {
-      codeValue: "",
+      codeValue: prefilledCode,
       fromLocation: "",
       toLocation: "",
       transportTime: getCurrentDateTimeLocal(),
