@@ -6,7 +6,7 @@
 
 **Epic:** NCL-10 — Phân tích chuyên sâu, trải nghiệm di động và quản trị dữ liệu
 
-**Phụ thuộc:** NCL-02-CN-002 (tạo lô sản xuất thủ công — module `productionlot` đã có)
+**Phụ thuộc:** NCL-02-CN-002 (tạo lô sản xuất thủ công — module `farm` đã có)
 
 # 1. Thông tin chung
 
@@ -29,7 +29,7 @@ Cho phép Quản lý hợp tác xã (VT-02) tải lên một tệp bảng tính 
 
 ```
 src/main/java/vn/nguongocso/
-└── productionlot/                              # Package đã có từ NCL-02-CN-002
+└── farm/                              # Package đã có từ NCL-02-CN-002
     ├── controller/
     │   └── ProductionLotController.java        # Sửa đổi - bổ sung endpoint import
     ├── dto/
@@ -51,7 +51,7 @@ src/main/java/vn/nguongocso/
         └── ProductionLotImportFileParser.java  # 📁 Tạo mới - đọc & validate tệp (Apache POI)
 ```
 
-Lưu ý: Story này không tạo module mới hoàn toàn. Chức năng nhập hàng loạt được phát triển mở rộng trên module `productionlot` đã có từ NCL-02-CN-002, tái sử dụng entity `ProductionLot`, `FarmLog`, `FarmArea`, `ProductCategory` sẵn có; chỉ bổ sung thêm entity lịch sử nhập (`ProductionLotImportHistory`) và các lớp phục vụ đọc/validate tệp.
+Lưu ý: Story này không tạo module mới hoàn toàn. Chức năng nhập hàng loạt được phát triển mở rộng trên module `farm` đã có từ NCL-02-CN-002, tái sử dụng entity `ProductionLot`, `FarmLog`, `FarmArea`, `ProductCategory` sẵn có; chỉ bổ sung thêm entity lịch sử nhập (`ProductionLotImportHistory`) và các lớp phục vụ đọc/validate tệp.
 
 # 3. Cơ sở dữ liệu
 
@@ -278,7 +278,7 @@ Service đọc tệp bằng `ProductionLotImportFileParser` (dùng Apache POI ch
 ### ProductionLotImportRequest
 
 ```java
-package vn.nguongocso.productionlot.dto.request;
+package vn.nguongocso.farm.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -308,34 +308,29 @@ public class ProductionLotImportRequest {
 ### ProductionLotImportRowError
 
 ```java
-package vn.nguongocso.productionlot.dto.response;
+package vn.nguongocso.farm.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Thông tin lỗi của một dòng dữ liệu trong tệp nhập.
+ * Thông tin lỗi của một dòng dữ liệu khi nhập tệp.
  */
 @Getter
 @Builder
 public class ProductionLotImportRowError {
 
-    /**
-     * Số thứ tự dòng trong tệp (không tính dòng tiêu đề).
-     */
-    private Integer rowNumber;
+    private Integer rowNumber; // Số dòng trong tệp xảy ra lỗi.
 
-    /**
-     * Lý do dòng dữ liệu không hợp lệ.
-     */
-    private String reason;
+    private String reason; // Lý do dòng dữ liệu không hợp lệ.
+
 }
 ```
 
 ### ProductionLotImportResultResponse
 
 ```java
-package vn.nguongocso.productionlot.dto.response;
+package vn.nguongocso.farm.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -346,54 +341,40 @@ import java.util.UUID;
 /**
  * Kết quả tổng hợp sau khi nhập dữ liệu lô sản xuất từ tệp.
  */
+package vn.nguongocso.farm.dto.response;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+import lombok.Builder;
+import lombok.Getter;
+
+/**
+ * Kết quả sau khi hoàn tất nhập dữ liệu lô sản xuất.
+ */
 @Getter
 @Builder
 public class ProductionLotImportResultResponse {
 
-    /**
-     * ID bản ghi lịch sử nhập vừa tạo.
-     */
-    private UUID importHistoryId;
+    private UUID importHistoryId; // ID lịch sử nhập dữ liệu.
 
-    /**
-     * Trạng thái tổng thể: SUCCESS, PARTIAL_SUCCESS, FAILED.
-     */
-    private String status;
+    private String status; // Trạng thái: SUCCESS, PARTIAL_SUCCESS hoặc FAILED.
 
-    /**
-     * Tên tệp đã tải lên.
-     */
-    private String fileName;
+    private String fileName; // Tên tệp đã nhập.
 
-    /**
-     * Tổng số dòng dữ liệu trong tệp.
-     */
-    private Integer totalRows;
+    private Integer totalRows; // Tổng số dòng dữ liệu.
 
-    /**
-     * Số dòng được lưu thành công.
-     */
-    private Integer successCount;
+    private Integer successCount; // Số dòng được lưu thành công.
 
-    /**
-     * Số dòng bị bỏ qua do lỗi.
-     */
-    private Integer failedCount;
+    private Integer failedCount; // Số dòng bị lỗi.
 
-    /**
-     * Danh sách ID các lô sản xuất đã được lưu.
-     */
-    private List<UUID> savedLotIds;
+    private List<UUID> savedLotIds; // Danh sách ID các lô đã được tạo.
 
-    /**
-     * Danh sách dòng lỗi kèm lý do.
-     */
-    private List<ProductionLotImportRowError> errors;
+    private List<ProductionLotImportRowError> errors; // Danh sách dòng lỗi.
 
-    /**
-     * Thời điểm hoàn tất xử lý.
-     */
-    private Instant importedAt;
+    private Instant importedAt; // Thời điểm hoàn tất nhập dữ liệu.
+
 }
 ```
 
@@ -410,13 +391,13 @@ public class ProductionLotImportResultResponse {
 
 | Công việc | Package | File |
 |---|---|---|
-| Tạo entity lịch sử nhập | productionlot.entity | ProductionLotImportHistory (mới) + migration |
-| Tạo Repository lịch sử nhập | productionlot.repository | ProductionLotImportHistoryRepository (mới) |
-| Tạo bộ đọc & validate tệp | productionlot.util | ProductionLotImportFileParser (mới) |
-| Tạo Request/Response DTO | productionlot.dto | ProductionLotImportRequest, ProductionLotImportResultResponse, ProductionLotImportRowError |
-| Bổ sung logic nhập: kiểm tra role/tổ chức/cột bắt buộc, validate từng dòng, lưu lô + nhật ký, lưu lịch sử | productionlot.service.impl | ProductionLotImportServiceImpl (mới) |
-| Thêm endpoint POST import | productionlot.controller | ProductionLotController.java (sửa) |
-| Viết test case TC-01, TC-02, TC-03, TC-04 | productionlot (test) | ProductionLotControllerTest.java |
+| Tạo entity lịch sử nhập | farm.entity | ProductionLotImportHistory (mới) + migration |
+| Tạo Repository lịch sử nhập | farm.repository | ProductionLotImportHistoryRepository (mới) |
+| Tạo bộ đọc & validate tệp | farm.util | ProductionLotImportFileParser (mới) |
+| Tạo Request/Response DTO | farm.dto | ProductionLotImportRequest, ProductionLotImportResultResponse, ProductionLotImportRowError |
+| Bổ sung logic nhập: kiểm tra role/tổ chức/cột bắt buộc, validate từng dòng, lưu lô + nhật ký, lưu lịch sử | farm.service.impl | ProductionLotImportServiceImpl (mới) |
+| Thêm endpoint POST import | farm.controller | ProductionLotController.java (sửa) |
+| Viết test case TC-01, TC-02, TC-03, TC-04 | farm (test) | ProductionLotControllerTest.java |
 
 ### Ánh xạ Test Case ↔ Xử lý backend
 
