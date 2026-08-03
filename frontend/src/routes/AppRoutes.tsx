@@ -77,6 +77,9 @@ import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
 // ✅ Thêm import
 import ExportOpenDataPage from "@/pages/export/ExportOpenDataPage";
 
+// Import Production Lot (NCL-10-CN-006)
+import ImportProductionLotPage from "@/pages/production-lot/ImportProductionLotPage";
+
 // ✅ Phân quyền chi tiết (NCL-09-CN-008)
 import RolePermissionConfigPage from "@/pages/permission/RolePermissionConfigPage";
 
@@ -247,6 +250,15 @@ const AppRoutes = () => (
                 element={
                     <RoleRoute allowedRoles={["VT-01", "VT-02", "VT-03"]}>
                         <ProductionLotDetailPage />
+                    </RoleRoute>
+                }
+            />
+            {/* ===== Import Production Lots (NCL-10-CN-006) ===== */}
+            <Route
+                path="production-lots/import"
+                element={
+                    <RoleRoute allowedRoles={["VT-02"]}>
+                        <ImportProductionLotPage />
                     </RoleRoute>
                 }
             />

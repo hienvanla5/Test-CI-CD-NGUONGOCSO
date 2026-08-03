@@ -112,18 +112,32 @@ public class ProductionLotImportServiceImpl implements ProductionLotImportServic
 
     /**
      * Xác định tổ chức được phép nhập dữ liệu.
+     * VT-01 (Admin hệ thống) được phép nhập cho tổ chức khác.
+     * VT-02 (Quản lý HTX) chỉ được nhập cho tổ chức của mình.
      */
     private Organization resolveOrganization(
             UUID organizationId,
             CustomUserDetails userDetails) {
 
-        UUID targetOrganizationId = organizationId != null
-                ? organizationId
-                : userDetails.getOrganizationId();
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_VT-01"));
 
-        if (!targetOrganizationId.equals(userDetails.getOrganizationId())) {
-            throw new BusinessException(
-                    "Bạn không có quyền nhập dữ liệu cho tổ chức này.");
+        UUID targetOrganizationId;
+
+        if (isAdmin && organizationId != null) {
+            // Admin chọn tổ chức cụ thể để nhập hộ
+            targetOrganizationId = organizationId;
+        } else {
+            // Người dùng thường: nhập cho tổ chức của mình
+            targetOrganizationId = userDetails.getOrganizationId();
+            if (organizationId != null && !organizationId.equals(targetOrganizationId)) {
+                throw new BusinessException(
+                        "Bạn không có quyền nhập dữ liệu cho tổ chức này.");
+            }
+        }
+
+        if (targetOrganizationId == null) {
+            throw new BusinessException("Không xác định được tổ chức để nhập dữ liệu.");
         }
 
         return organizationRepository.findById(targetOrganizationId)
@@ -301,6 +315,7 @@ public class ProductionLotImportServiceImpl implements ProductionLotImportServic
                 .harvestDate(row.getHarvestDate())
                 .status(ProductionLotStatus.DRAFT)
                 .createdBy(userDetails.getUser())
+                .expectedQuantityUnit("kg") // ✅ Thêm dòng này
                 .build();
     }
 
