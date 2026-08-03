@@ -106,4 +106,7 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
             @Param("toDate") LocalDateTime toDate,
             @Param("categoryIds") List<UUID> categoryIds,
             @Param("shipmentIds") List<UUID> shipmentIds);
+
+    @Query("SELECT s FROM Shipment s WHERE s.productionLot.id IN :productionLotIds")
+    List<Shipment> findByProductionLotIdIn(@Param("productionLotIds") List<UUID> productionLotIds);
 }
