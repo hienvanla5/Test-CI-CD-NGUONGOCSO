@@ -24,7 +24,6 @@ public class OrganizationProfileController {
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResult<OrganizationProfileResponse>> getProfile() {
-        permissionChecker.check("ORGANIZATION", "READ");
         log.info("Lấy hồ sơ tổ chức hiện tại");
         return ResponseEntity.ok(ApiResult.success(organizationService.getCurrentOrganizationProfile()));
     }
@@ -33,7 +32,6 @@ public class OrganizationProfileController {
     @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
     public ResponseEntity<ApiResult<OrganizationProfileResponse>> updateProfile(
             @Valid @RequestBody OrganizationUpdateRequest request) {
-        permissionChecker.check("ORGANIZATION", "UPDATE");
         log.info("Cập nhật hồ sơ tổ chức hiện tại");
         return ResponseEntity.ok(ApiResult.success(organizationService.updateCurrentOrganization(request)));
     }

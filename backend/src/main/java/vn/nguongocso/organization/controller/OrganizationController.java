@@ -13,7 +13,6 @@ import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
 import vn.nguongocso.organization.service.OrganizationService;
-import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,21 +31,17 @@ public class OrganizationController {
 
     private final OrganizationService
             organizationService;
-    private final PermissionChecker permissionChecker;
 
     /**
      * Khởi tạo controller quản lý tổ chức.
      *
      * @param organizationService service xử lý nghiệp vụ tổ chức
-     * @param permissionChecker   service kiểm tra phân quyền chi tiết
      */
     public OrganizationController(
-            OrganizationService organizationService,
-            PermissionChecker permissionChecker
+            OrganizationService organizationService
     ) {
         this.organizationService =
                 organizationService;
-        this.permissionChecker = permissionChecker;
     }
 
     /**
@@ -62,7 +57,6 @@ public class OrganizationController {
             ApiResult<List<OrganizationResponse>>
             > getAllOrganizations() {
 
-        permissionChecker.check("ORGANIZATION", "READ");
 
         log.info(
                 "Nhận yêu cầu lấy danh sách organization"
@@ -100,7 +94,6 @@ public class OrganizationController {
             CreateOrganizationRequest request
     ) {
 
-        permissionChecker.check("ORGANIZATION", "CREATE");
 
         log.info(
                 "Nhận yêu cầu tạo organization với code={}",
@@ -143,7 +136,6 @@ public class OrganizationController {
             OrganizationUpdateRequest request
     ) {
 
-        permissionChecker.check("ORGANIZATION", "UPDATE");
 
         log.info(
                 "Admin cập nhật hồ sơ organization id={}",
