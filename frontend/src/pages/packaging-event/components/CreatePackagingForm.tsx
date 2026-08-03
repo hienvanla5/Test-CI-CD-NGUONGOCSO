@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getAllFarmLogsByProductionLot } from "@/api/farmLogApi";
 import {
   Card,
@@ -92,6 +92,7 @@ const getPackagingError = (error: unknown) => {
 
 export function CreatePackagingForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [productionLots, setProductionLots] = useState<ProductionLot[]>([]);
   const [loadingLots, setLoadingLots] = useState(true);
@@ -140,6 +141,33 @@ export function CreatePackagingForm() {
     };
     fetchLots();
   }, []);
+
+  // Điền sẵn lô sản xuất khi được điều hướng từ trang "Quét mã ghi sự kiện
+  // nhanh" (state.productionLotId lấy từ ScanLookupResponse). Chỉ áp dụng
+  // khi lô đó thực sự có trong danh sách lô đã thu hoạch tải được ở trên;
+  // nếu không, báo rõ lý do thay vì set một giá trị không khớp dropdown.
+  useEffect(() => {
+    if (loadingLots || selectedLotId) return;
+
+    const prefilledLotId = (
+      location.state as { productionLotId?: string } | null
+    )?.productionLotId;
+    if (!prefilledLotId) return;
+
+    const matchedLot = productionLots.find((lot) => lot.id === prefilledLotId);
+    if (!matchedLot) {
+      toast.error(
+        "Lô sản xuất từ mã vừa quét chưa ở trạng thái đã thu hoạch, không thể chọn sẵn.",
+      );
+      return;
+    }
+
+    eligibilityRequestRef.current += 1;
+    setSelectedLotId(prefilledLotId);
+    setValue("productionLotId", prefilledLotId, { shouldValidate: true });
+    void checkFarmLogEligibility(prefilledLotId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingLots, productionLots]);
 
   const handleLocationSelect = (lat: number, lng: number) => {
     setValue("latitude", lat);

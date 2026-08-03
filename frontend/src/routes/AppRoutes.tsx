@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import NotificationsPage from "@/pages/notification/NotificationsPage";
+
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
     AUTHENTICATED_ROLE_CODES,
@@ -10,7 +10,7 @@ import {
 } from "@/config/roleAccess";
 import { useAuth } from "@/hooks/useAuth";
 
-// Pages – chung
+// ===== Pages – chung =====
 import LoginPage from "@/pages/auth/LoginPage";
 import { DashboardPage } from "@/pages/daskboard/DashboardPase";
 import { CreateFarmAreaPage } from "@/pages/farm-area/CreateFarmAreaPage";
@@ -23,31 +23,31 @@ import CreateProductionLotPage from "@/pages/production-lot/CreateProductionLotP
 import ProductionLotListPage from "@/pages/production-lot/ProductionLotListPage";
 import RecordTransportEventPage from "@/pages/transport-event/RecordTransportEventPage";
 
-// Admin
+// ===== Admin =====
 import CreateCodeRangePage from "@/pages/admin/CreateCodeRangePage";
 import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
 import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
 import StandardManagementPage from "@/pages/admin/StandardManagementPage";
 
-// Packaging
+// ===== Packaging =====
 import CreatePackagingEventPage from "@/pages/packaging-event/CreatePackagingEventPage";
 import CorrectPackagingEventPage from "@/pages/packaging-event/CorrectPackagingEventPage";
 
-// Organization
+// ===== Organization =====
 import { OrganizationListPage } from "@/pages/organization/OrganizationListPage";
 import CreateMemberPage from "@/pages/organization/CreateMemberPage";
 
-// Farm logs
+// ===== Farm logs =====
 import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 
-// Shipment
+// ===== Shipment =====
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
 
-// Public
+// ===== Public =====
 import PublicHomePage from "@/pages/public/PublicHomePage";
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
 
-// Reports
+// ===== Reports =====
 import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
 import ActivityLogPage from "@/pages/report/ActivityLogPage";
 import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
@@ -55,34 +55,41 @@ import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
 import SeasonYieldComparisonPage from "@/pages/report/SeasonYieldComparisonPage";
 
-// Alerts
+// ===== Alerts =====
 import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
 
-// Farm area
+// ===== Farm area =====
 import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 
-// Mobile
+// ===== Mobile =====
 import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
 
-// Certification
+// ===== Certification =====
 import CreateCertificationPage from "@/pages/certification/CreateCertificationPage";
 import CertificationListPage from "@/pages/certification/CertificationListPage";
 
-// Offline events (NCL-10-CN-005)
+// ===== Offline events (NCL-10-CN-005) =====
 import OfflineEventPage from "@/pages/offline/OfflineEventPage";
 
-// Procurement
+// ===== Procurement =====
 import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
 
-// ✅ Thêm import
+// ===== Notifications =====
+import NotificationsPage from "@/pages/notification/NotificationsPage";
+
+// ===== Export Open Data (NCL-10-CN-007) =====
 import ExportOpenDataPage from "@/pages/export/ExportOpenDataPage";
 
-// Import Production Lot (NCL-10-CN-006)
+// ===== Import Production Lot (NCL-10-CN-006) =====
 import ImportProductionLotPage from "@/pages/production-lot/ImportProductionLotPage";
 
-// ✅ Phân quyền chi tiết (NCL-09-CN-008)
+// ===== Permission Config (NCL-09-CN-008) =====
 import RolePermissionConfigPage from "@/pages/permission/RolePermissionConfigPage";
 
+// ===== Scan Quick Event (NCL-10-CN-004) =====
+import ScanQuickEventPage from "@/pages/scan-anomaly-alert/components/ScanQuickEventPage";
+
+// ===== Constants =====
 const COOPERATIVE_MANAGER_ROLES = [
     "VT-02",
 ] as const satisfies readonly AuthenticatedRoleCode[];
@@ -102,6 +109,7 @@ function PrivateRoute({ children }: { children: ReactNode }) {
     if (isLoading) return <PageLoader />;
     if (!user) return <Navigate to="/login" replace />;
 
+    // VT-06 chỉ tra cứu công khai, không sử dụng khu vực quản trị nội bộ.
     if (!hasAnyRole(user.roleCode, AUTHENTICATED_ROLE_CODES)) {
         return <Navigate to="/login" replace />;
     }
@@ -143,11 +151,12 @@ function UnauthorizedPage() {
 // ---------- Routes ----------
 const AppRoutes = () => (
     <Routes>
-        {/* Route công khai */}
+        {/* ===== Public routes ===== */}
         <Route path="/" element={<PublicHomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
 
-        {/* Toàn bộ route nội bộ dùng chung Header + Sidebar + Outlet */}
+        {/* ===== Protected routes with layout ===== */}
         <Route
             element={
                 <PrivateRoute>
@@ -309,7 +318,17 @@ const AppRoutes = () => (
                 }
             />
 
-            {/* ===== Admin: Code Ranges ===== */}
+            {/* ===== Scan Quick Event (NCL-10-CN-004) ===== */}
+            <Route
+                path="chain-events/scan"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.scanQuickEvent}>
+                        <ScanQuickEventPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* ===== Admin ===== */}
             <Route
                 path="admin/code-ranges"
                 element={
@@ -326,8 +345,6 @@ const AppRoutes = () => (
                     </RoleRoute>
                 }
             />
-
-            {/* ===== Admin: Product Categories ===== */}
             <Route
                 path="admin/product-categories"
                 element={
@@ -336,8 +353,6 @@ const AppRoutes = () => (
                     </RoleRoute>
                 }
             />
-
-            {/* ===== Admin: Standards (NCL-09-CN-002) ===== */}
             <Route
                 path="admin/standards"
                 element={
@@ -347,7 +362,7 @@ const AppRoutes = () => (
                 }
             />
 
-            {/* ===== Mobile: Record Event (NCL-10-CN-003) ===== */}
+            {/* ===== Mobile ===== */}
             <Route
                 path="mobile/record-event"
                 element={
@@ -445,16 +460,6 @@ const AppRoutes = () => (
                 }
             />
 
-            {/* ===== Notifications (NCL-08-CN-005) ===== */}
-            <Route
-                path="notifications"
-                element={
-                    <RoleRoute allowedRoles={AUTHENTICATED_ROLE_CODES}>
-                        <NotificationsPage />
-                    </RoleRoute>
-                }
-            />
-
             {/* ===== Export Open Data (NCL-10-CN-007) ===== */}
             <Route
                 path="export/open-data"
@@ -467,12 +472,12 @@ const AppRoutes = () => (
 
             {/* ===== Permission Config (NCL-09-CN-008) ===== */}
             <Route
-              path="permissions/config"
-              element={
-                <RoleRoute allowedRoles={ROLE_ACCESS.rolePermissionConfig}>
-                  <RolePermissionConfigPage />
-                </RoleRoute>
-              }
+                path="permissions/config"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.rolePermissionConfig}>
+                        <RolePermissionConfigPage />
+                    </RoleRoute>
+                }
             />
 
             {/* ===== Procurement (NCL-05-CN-004) ===== */}
@@ -499,10 +504,7 @@ const AppRoutes = () => (
             <Route path="unauthorized" element={<UnauthorizedPage />} />
         </Route>
 
-        {/* Route công khai tra cứu */}
-        <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
-
-        {/* Route không tồn tại */}
+        {/* ===== Fallback ===== */}
         <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
 );
