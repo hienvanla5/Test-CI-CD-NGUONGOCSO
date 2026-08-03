@@ -16,11 +16,15 @@ import { Badge } from '@/components/ui/badge';
 import { getOrganizations } from '@/api/organizationApi';
 import { type Organization } from '@/types/organization';
 import { ORGANIZATION_TYPES } from '@/utils/constants';
+import { usePermission } from '@/hooks/usePermission';
+import { ROLE_ACCESS } from '@/config/roleAccess';
 
 export function OrganizationListPage() {
   const navigate = useNavigate();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const canCreate = usePermission(ROLE_ACCESS.organizationCreate);
 
   const fetchOrganizations = async () => {
     try {
@@ -83,10 +87,12 @@ export function OrganizationListPage() {
               <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
               Làm mới
             </Button>
-            <Button onClick={() => navigate('/organizations/create')}>
-              <PlusCircle className="h-4 w-4 mr-1" />
-              Tạo tổ chức
-            </Button>
+            {canCreate && (
+              <Button onClick={() => navigate('/organizations/create')}>
+                <PlusCircle className="h-4 w-4 mr-1" />
+                Tạo tổ chức
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>

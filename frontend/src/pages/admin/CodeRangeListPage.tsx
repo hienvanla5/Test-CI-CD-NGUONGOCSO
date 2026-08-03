@@ -15,6 +15,8 @@ import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { usePermission } from "@/hooks/usePermission";
+import { ROLE_ACCESS } from "@/config/roleAccess";
 
 const getStatusConfig = (status: string) => {
   switch (status) {
@@ -32,6 +34,8 @@ const getStatusConfig = (status: string) => {
 const CodeRangeListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [ranges, setRanges] = useState<CodeRangeStatusResponse[]>([]);
+
+  const canCreate = usePermission(ROLE_ACCESS.codeRangeList);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,12 +72,14 @@ const CodeRangeListPage: React.FC = () => {
             Quản lý các dải mã truy xuất đã cấp cho tổ chức
           </p>
         </div>
-        <Link to="/admin/code-ranges/create">
-          <Button className="shrink-0">
-            <Plus className="h-4 w-4 mr-2" />
-            Cấp dải mã mới
-          </Button>
-        </Link>
+        {canCreate && (
+          <Link to="/admin/code-ranges/create">
+            <Button className="shrink-0">
+              <Plus className="h-4 w-4 mr-2" />
+              Cấp dải mã mới
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Card */}

@@ -14,11 +14,15 @@ import { toast } from 'sonner';
 import { getFarmAreas } from '@/api/farmAreaApi';
 import type { FarmArea } from '@/types/farmArea';
 import { useNavigate } from 'react-router-dom';
+import { usePermission } from '@/hooks/usePermission';
+import { ROLE_ACCESS } from '@/config/roleAccess';
 
 export default function FarmAreaListPage() {
   const navigate = useNavigate();
   const [areas, setAreas] = useState<FarmArea[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const canCreate = usePermission(ROLE_ACCESS.farmAreaCreate);
 
   const fetchAreas = async () => {
     try {
@@ -50,10 +54,12 @@ export default function FarmAreaListPage() {
             <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
             Làm mới
           </Button>
-          <Button onClick={() => navigate('/farm-areas/create')}> {/* 👈 chuyển hướng */}
-            <Plus className="h-4 w-4 mr-1" />
-            Tạo vùng trồng
-          </Button>
+          {canCreate && (
+            <Button onClick={() => navigate('/farm-areas/create')}>
+              <Plus className="h-4 w-4 mr-1" />
+              Tạo vùng trồng
+            </Button>
+          )}
         </div>
       </div>
 

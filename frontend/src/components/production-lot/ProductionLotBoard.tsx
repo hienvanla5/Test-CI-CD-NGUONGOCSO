@@ -1,6 +1,8 @@
 import { approveProductionLot, submitProductionLot } from '@/api/productionLotApi';
 import { ProductionLotList } from '@/components/production-lot/ProductionLotList';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermission } from '@/hooks/usePermission';
+import { ROLE_ACCESS } from '@/config/roleAccess';
 import type { ProductionLot } from '@/types/productionLot';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -58,8 +60,9 @@ export const ProductionLotBoard = ({
   const isLoading = propLots !== undefined ? propIsLoading || false : internalLoading;
   const lots = propLots !== undefined ? propLots : internalLots;
 
-  const canCreate = propCanCreate !== undefined ? propCanCreate : user?.roleCode === 'VT-02';
-  const canEdit = propCanEdit !== undefined ? propCanEdit : user?.roleCode === 'VT-02';
+  const canCreateByRole = usePermission(ROLE_ACCESS.productionLotEdit);
+  const canCreate = propCanCreate !== undefined ? propCanCreate : canCreateByRole;
+  const canEdit = propCanEdit !== undefined ? propCanEdit : canCreateByRole;
   const canSubmitForApproval = propCanSubmitForApproval !== undefined
     ? propCanSubmitForApproval
     : (user?.roleCode === 'VT-01' || user?.roleCode === 'VT-02');

@@ -18,6 +18,8 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermission } from "@/hooks/usePermission";
+import { ROLE_ACCESS } from "@/config/roleAccess";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +46,7 @@ const getRoleBadgeClass = (roleCode: string | null) => {
 export const MemberList = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const canCreate = usePermission(ROLE_ACCESS.memberManagement);
 
   const [members, setMembers] = useState<OrganizationMember[]>([]);
   const [roles, setRoles] = useState<RoleOption[]>([]);
@@ -234,9 +237,11 @@ const assignableRoles = useMemo(
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                   {filteredMembers.length} kết quả
                 </span>
-                <Button size="sm" onClick={() => navigate("/members/create")}>
-                  Thêm thành viên
-                </Button>
+                {canCreate && (
+                  <Button size="sm" onClick={() => navigate("/members/create")}>
+                    Thêm thành viên
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
