@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,10 +12,13 @@ import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.security.SecurityUtils;
 import vn.nguongocso.farm.dto.request.ApproveProductionLotRequest;
 import vn.nguongocso.farm.dto.request.CreateProductionLotRequest;
+import vn.nguongocso.farm.dto.request.ProductionLotImportRequest;
 import vn.nguongocso.farm.dto.request.UpdateProductionLotRequest;
 import vn.nguongocso.farm.dto.response.CreateProductionLotResponse;
+import vn.nguongocso.farm.dto.response.ProductionLotImportResultResponse;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.farm.dto.response.UpdateProductionLotResponse;
+import vn.nguongocso.farm.service.ProductionLotImportService;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.permission.service.PermissionChecker;
@@ -31,11 +35,13 @@ public class ProductionLotController {
 
     private final ProductionLotService productionLotService;
     private final PermissionChecker permissionChecker;
+    private final ProductionLotImportService productionLotImportService;
 
     /**
      * API tạo mới lô sản xuất.
      * Yêu cầu người dùng đã đăng nhập.
-     * Bạn cũng có thể giới hạn quyền cụ thể như Quản lý tổ chức (VT-02) hoặc Người ghi nhận sự kiện (VT-03):
+     * Bạn cũng có thể giới hạn quyền cụ thể như Quản lý tổ chức (VT-02) hoặc Người
+     * ghi nhận sự kiện (VT-03):
      * Ví dụ: @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
      */
     @PostMapping
@@ -48,6 +54,7 @@ public class ProductionLotController {
         CreateProductionLotResponse response = productionLotService.createProductionLot(request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
+
     /**
      * API cập nhật lô sản xuất.
      * Thêm vào đây, gọi thông qua đối tượng productionLotService viết thường
@@ -60,7 +67,7 @@ public class ProductionLotController {
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResult<CreateProductionLotResponse>> getById(@PathVariable UUID id) {
-//        permissionChecker.check("PRODUCTION_LOT", "READ");
+        // permissionChecker.check("PRODUCTION_LOT", "READ");
         CreateProductionLotResponse response = productionLotService.getProductionLotById(id);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -71,7 +78,7 @@ public class ProductionLotController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateProductionLotRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-//        permissionChecker.check("PRODUCTION_LOT", "UPDATE");
+        // permissionChecker.check("PRODUCTION_LOT", "UPDATE");
         UpdateProductionLotResponse response = productionLotService.updateProductionLot(id, request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -86,11 +93,11 @@ public class ProductionLotController {
     public ResponseEntity<ApiResult<List<CreateProductionLotResponse>>> getAll(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-//        permissionChecker.check("PRODUCTION_LOT", "READ");
+        // permissionChecker.check("PRODUCTION_LOT", "READ");
         List<CreateProductionLotResponse> response = productionLotService.getAllProductionLots(userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
-    
+
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('VT-02')")
     public ResponseEntity<ApiResult<CreateProductionLotResponse>> submitForApproval(
@@ -111,6 +118,7 @@ public class ProductionLotController {
         CreateProductionLotResponse response = productionLotService.approveProductionLot(id, request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
+
     @GetMapping("/dashboard")
     @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
     public ResponseEntity<ApiResult<ProductionLotDashboardResponse>> getDashboard(
@@ -122,15 +130,32 @@ public class ProductionLotController {
             HttpServletRequest request) {
         permissionChecker.check("PRODUCTION_LOT", "READ");
         String ipAddress = getClientIp(request);
-        ProductionLotDashboardResponse response =
-                productionLotService.getDashboard(startDate, endDate, organizationId, groupBy, userDetails, ipAddress);
+        ProductionLotDashboardResponse response = productionLotService.getDashboard(startDate, endDate, organizationId,
+                groupBy, userDetails, ipAddress);
         return ResponseEntity.ok(ApiResult.success(response));
     }
+
     private String getClientIp(HttpServletRequest request) {
         String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader == null || xfHeader.isEmpty() || "unknown".equalsIgnoreCase(xfHeader)) {
             return request.getRemoteAddr();
         }
         return xfHeader.split(",")[0].trim();
+    }
+
+    /**
+     * API nhập danh sách lô sản xuất từ tệp CSV.
+     */
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResult<ProductionLotImportResultResponse>> importProductionLots(
+            @ModelAttribute ProductionLotImportRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        ProductionLotImportResultResponse response = productionLotImportService.importProductionLots(
+                request,
+                userDetails);
+
+        return ResponseEntity.ok(ApiResult.success(response));
     }
 }
