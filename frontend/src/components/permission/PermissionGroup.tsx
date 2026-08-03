@@ -1,6 +1,5 @@
 import React from 'react';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { HelpCircle } from 'lucide-react';
 import {

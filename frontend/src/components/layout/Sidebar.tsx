@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link, useLocation, useMatch } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   AlertTriangle,
   Award,
@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   MapPinned,
   Package,
+  ScanLine,
   Shield,
   Smartphone,
   Sprout,
@@ -84,6 +85,12 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ROLE_ACCESS.transportEventRecord,
   },
   {
+    icon: <ScanLine className="h-5 w-5" />,
+    label: "Quét mã ghi sự kiện nhanh",
+    href: "/chain-events/scan",
+    allowedRoles: ROLE_ACCESS.scanQuickEvent,
+  },
+  {
     icon: <Hash className="h-5 w-5" />,
     label: "Quản lý dải mã",
     href: "/admin/code-ranges",
@@ -100,12 +107,6 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Thống kê tra cứu",
     href: "/reports/lookup-statistics",
     allowedRoles: ["VT-01", "VT-02"] as const,
-  },
-  {
-    icon: <AlertTriangle className="h-5 w-5" />,
-    label: "Cảnh báo tem bất thường",
-    href: "/alerts/scan-anomaly",
-    allowedRoles: ROLE_ACCESS.scanAnomalyAlerts,
   },
   {
     icon: <History className="h-5 w-5" />,
@@ -143,139 +144,127 @@ const MENU_ITEMS: MenuItem[] = [
     href: "/reports/industry",
     allowedRoles: ["VT-05"] as const,
   },
-  // ✅ Ghi sự kiện ngoài đồng
+  {
+    icon: <AlertTriangle className="h-5 w-5" />,
+    label: "Cảnh báo tem bất thường",
+    href: "/scan-anomaly-alerts",
+    allowedRoles: ["VT-01"] as const,
+  },
   {
     icon: <Smartphone className="h-5 w-5" />,
     label: "Ghi sự kiện ngoài đồng",
     href: "/mobile/record-event",
-    allowedRoles: ["VT-02", "VT-03"],
+    allowedRoles: ["VT-02", "VT-03"] as const,
   },
-  // ✅ Tiêu chuẩn chất lượng
   {
     icon: <BookOpen className="h-5 w-5" />,
     label: "Tiêu chuẩn chất lượng",
     href: "/admin/standards",
     allowedRoles: ROLE_ACCESS.standardManagement,
   },
-  // ✅ Chứng nhận
   {
     icon: <Award className="h-5 w-5" />,
     label: "Chứng nhận",
     href: "/certifications",
-    allowedRoles: ["VT-02"],
+    allowedRoles: ["VT-02"] as const,
   },
-  // ✅ Sự kiện chờ đồng bộ
   {
     icon: <Database className="h-5 w-5" />,
     label: "Sự kiện chờ đồng bộ",
     href: "/offline-events",
-    allowedRoles: ["VT-02", "VT-03"],
+    allowedRoles: ["VT-02", "VT-03"] as const,
   },
-  // ✅ Thông báo (NCL-08-CN-005)
   {
     icon: <Bell className="h-5 w-5" />,
     label: "Thông báo",
     href: "/notifications",
-    allowedRoles: ["VT-01", "VT-02", "VT-03", "VT-04", "VT-05"],
+    allowedRoles: ["VT-01", "VT-02", "VT-03", "VT-04", "VT-05"] as const,
   },
-  // ✅ Xuất dữ liệu mở (NCL-10-CN-007)
   {
     icon: <Download className="h-5 w-5" />,
     label: "Xuất dữ liệu mở",
     href: "/export/open-data",
-    allowedRoles: ["VT-05"],
+    allowedRoles: ["VT-05"] as const,
   },
-  // ✅ Phân quyền (NCL-09-CN-008)
   {
     icon: <Shield className="h-5 w-5" />,
     label: "Phân quyền",
     href: "/permissions/config",
-    allowedRoles: ["VT-02"],
+    allowedRoles: ["VT-02"] as const,
   },
 ];
 
 export function Sidebar({
-                          onNavigate,
-                          onClose,
-                          showCloseButton = false,
-                        }: SidebarProps) {
+  onNavigate,
+  onClose,
+  showCloseButton = false,
+}: SidebarProps) {
   const { user } = useAuth();
   const location = useLocation();
 
-  // 🔍 Debug: kiểm tra roleCode
-  console.log("🔑 user.roleCode:", user?.roleCode);
-
   const visibleItems = MENU_ITEMS.filter((item) => {
     const hasAccess = hasAnyRole(user?.roleCode, item.allowedRoles);
-    console.log(`📌 ${item.label} → ${hasAccess ? "✅" : "❌"}`);
     return hasAccess;
   });
 
-  // Fallback nếu không có menu nào
   const finalItems =
-      visibleItems.length === 0
-          ? MENU_ITEMS.filter(
-              (item) =>
-                  item.href === "/dashboard" ||
-                  item.href === "/production-lots",
-          )
-          : visibleItems;
+    visibleItems.length === 0
+      ? MENU_ITEMS.filter(
+          (item) =>
+            item.href === "/dashboard" || item.href === "/production-lots",
+        )
+      : visibleItems;
 
   const isActive = (href: string) => {
-    // Đối với route "/organizations" và "/organizations/profile" chúng ta muốn tách biệt
-    if (href === "/organizations") {
-      return location.pathname === "/organizations";
-    }
-    // Các route khác có thể dùng startsWith nếu cần
-    return !!useMatch(href);
+    return location.pathname === href;
   };
 
   return (
-      <aside className="flex h-full min-h-0 flex-col border-r bg-background">
-        <div className="flex h-16 items-center gap-2 border-b px-5">
-          <Link
-              to="/dashboard"
-              onClick={onNavigate}
-              className="flex min-w-0 flex-1 items-center gap-2 font-bold"
+    <aside className="flex h-full min-h-0 flex-col border-r bg-background">
+      <div className="flex h-16 items-center gap-2 border-b px-5">
+        <Link
+          to="/dashboard"
+          onClick={onNavigate}
+          className="flex min-w-0 flex-1 items-center gap-2 font-bold"
+        >
+          <Sprout className="h-6 w-6 shrink-0 text-primary" />
+          <span className="truncate text-lg">Nguồn gốc số</span>
+        </Link>
+        {showCloseButton && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            aria-label="Đóng menu"
           >
-            <Sprout className="h-6 w-6 shrink-0 text-primary" />
-            <span className="truncate text-lg">Nguồn gốc số</span>
+            <X className="h-5 w-5" />
+          </Button>
+        )}
+      </div>
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        {finalItems.map((item) => (
+          <Link
+            key={item.href}
+            to={item.href}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+              isActive(item.href)
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
+          >
+            {item.icon}
+            <span>{item.label}</span>
           </Link>
-          {showCloseButton && (
-              <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClose}
-                  aria-label="Đóng menu"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-          )}
-        </div>
-        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {finalItems.map((item) => (
-              <Link
-                  key={item.href}
-                  to={item.href}
-                  onClick={onNavigate}
-                  className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                      isActive(item.href)
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-          ))}
-          {finalItems.length === 0 && (
-              <p className="px-3 py-2 text-sm text-muted-foreground">
-                Không có menu
-              </p>
-          )}
-        </nav>
-      </aside>
+        ))}
+        {finalItems.length === 0 && (
+          <p className="px-3 py-2 text-sm text-muted-foreground">
+            Không có menu
+          </p>
+        )}
+      </nav>
+    </aside>
   );
 }
