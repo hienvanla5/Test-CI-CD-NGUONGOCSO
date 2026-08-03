@@ -33,6 +33,7 @@ import { getRoleLabel } from "@/config/roleAccess";
 const roleBadgeClasses: Record<string, string> = {
   "VT-02": "bg-blue-100 text-blue-700",
   "VT-03": "bg-purple-100 text-purple-700",
+  "VT-04": "bg-orange-100 text-orange-700",
 };
 
 const getRoleBadgeClass = (roleCode: string | null) => {
@@ -59,11 +60,14 @@ export const MemberList = () => {
   const [pendingRoleId, setPendingRoleId] = useState<number | null>(null);
   const [oldManager, setOldManager] = useState<OrganizationMember | null>(null); // 🆕 state quản lý cũ
 
-  // Chỉ lấy VT-02, VT-03 để gán
-  const assignableRoles = useMemo(
-    () => roles.filter((role) => role.code === "VT-02" || role.code === "VT-03"),
-    [roles],
-  );
+  // Các vai trò được phép gán cho thành viên
+const assignableRoles = useMemo(
+  () =>
+    roles.filter((role) =>
+      ["VT-02", "VT-03", "VT-04"].includes(role.code),
+    ),
+  [roles],
+);
 
   const selectedRole = roles.find(
     (role) => role.roleId === Number(selectedRoleId),

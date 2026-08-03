@@ -1,7 +1,21 @@
-import { useState, useCallback } from 'react';
-import { scanLookup } from '@/api/scan';
-import type { ScanLookupResponse, ScanError, ScanErrorCode } from '@/types/scan';
-import { addPendingScan, getPendingScans, removePendingScan } from '@/utils/offlineScanQueue';
+import { useCallback, useState } from "react";
+import { isAxiosError } from "axios";
+import { scanLookupTraceCode } from "@/api/chainEventApi";
+import type { ScanLookupResponse } from "@/types/scan";
+
+export type ScanErrorCode =
+  | "INVALID_CODE"
+  | "FORBIDDEN_ORG"
+  | "FORBIDDEN_ROLE"
+  | "RECALLED"
+  | "NETWORK"
+  | "UNKNOWN";
+
+export interface ScanError {
+  code: ScanErrorCode;
+  message: string;
+  status?: number;
+}
 
 interface UseScanLookupReturn {
   data: ScanLookupResponse | null;
@@ -9,53 +23,82 @@ interface UseScanLookupReturn {
   error: ScanError | null;
   lookup: (code: string) => Promise<ScanLookupResponse | null>;
   reset: () => void;
-  pendingScans: import('@/types/scan').PendingScan[];
-  syncPending: () => Promise<void>;
 }
 
 export function useScanLookup(): UseScanLookupReturn {
   const [data, setData] = useState<ScanLookupResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ScanError | null>(null);
-  const [pendingScans, setPendingScans] = useState<import('@/types/scan').PendingScan[]>(getPendingScans);
 
-  const lookup = useCallback(async (code: string): Promise<ScanLookupResponse | null> => {
-    setIsLoading(true);
-    setError(null);
-    setData(null);
+  const lookup = useCallback(
+    async (code: string): Promise<ScanLookupResponse | null> => {
+      const normalizedCode = code.trim();
 
-    try {
-      const result = await scanLookup(code);
-      setData(result);
-      return result;
-    } catch (err: any) {
-      const status = err.response?.status;
-      const message = err.response?.data?.message || 'Đã xảy ra lỗi không xác định.';
-      let codeError: ScanErrorCode = 'UNKNOWN';
-
-      if (!err.response) {
-        addPendingScan(code);
-        setPendingScans(getPendingScans());
-        codeError = 'NETWORK';
-      } else if (status === 400) {
-        codeError = 'INVALID_CODE';
-      } else if (status === 403) {
-        if (message.toLowerCase().includes('tổ chức') || message.toLowerCase().includes('organization')) {
-          codeError = 'FORBIDDEN_ORG';
-        } else {
-          codeError = 'FORBIDDEN_ROLE';
-        }
-      } else if (status === 409) {
-        codeError = 'RECALLED';
+      if (!normalizedCode) {
+        setError({
+          code: "INVALID_CODE",
+          message: "Mã truy xuất không được để trống.",
+          status: 400,
+        });
+        return null;
       }
 
-      const scanError: ScanError = { code: codeError, message, status };
-      setError(scanError);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      setIsLoading(true);
+      setError(null);
+      setData(null);
+
+      try {
+        const result = await scanLookupTraceCode(normalizedCode);
+        setData(result);
+        return result;
+      } catch (requestError: unknown) {
+        let scanError: ScanError;
+
+        if (!isAxiosError<{ message?: string }>(requestError)) {
+          scanError = {
+            code: "UNKNOWN",
+            message: "Đã xảy ra lỗi không xác định.",
+          };
+        } else if (!requestError.response) {
+          scanError = {
+            code: "NETWORK",
+            message: "Không thể kết nối tới máy chủ.",
+          };
+        } else {
+          const status = requestError.response.status;
+          const message =
+            requestError.response.data?.message ??
+            "Không thể tra cứu mã truy xuất.";
+
+          let errorCode: ScanErrorCode = "UNKNOWN";
+
+          if (status === 400 || status === 404) {
+            errorCode = "INVALID_CODE";
+          } else if (status === 403) {
+            errorCode =
+              message.toLowerCase().includes("tổ chức") ||
+              message.toLowerCase().includes("organization")
+                ? "FORBIDDEN_ORG"
+                : "FORBIDDEN_ROLE";
+          } else if (status === 409) {
+            errorCode = "RECALLED";
+          }
+
+          scanError = {
+            code: errorCode,
+            message,
+            status,
+          };
+        }
+
+        setError(scanError);
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   const reset = useCallback(() => {
     setData(null);
@@ -63,18 +106,11 @@ export function useScanLookup(): UseScanLookupReturn {
     setIsLoading(false);
   }, []);
 
-  const syncPending = useCallback(async () => {
-    const queue = getPendingScans();
-    for (const item of queue) {
-      try {
-        await scanLookup(item.code);
-        removePendingScan(item.id);
-      } catch {
-        // Giữ lại nếu vẫn lỗi
-      }
-    }
-    setPendingScans(getPendingScans());
-  }, []);
-
-  return { data, isLoading, error, lookup, reset, pendingScans, syncPending };
+  return {
+    data,
+    isLoading,
+    error,
+    lookup,
+    reset,
+  };
 }
