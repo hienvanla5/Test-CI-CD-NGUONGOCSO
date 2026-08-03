@@ -13,6 +13,7 @@ import vn.nguongocso.certification.dto.response.CertificationResponse;
 import vn.nguongocso.certification.dto.response.ProductionLotCertificationResponse;
 import vn.nguongocso.certification.service.CertificationService;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class ProductionLotCertificationController {
 
     private final CertificationService certificationService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * Lấy danh sách chứng nhận của một lô sản xuất.
@@ -33,6 +35,7 @@ public class ProductionLotCertificationController {
             @PathVariable UUID lotId,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CERTIFICATION", "READ");
         List<ProductionLotCertificationResponse> list = certificationService.getCertificationsOfLot(lotId, currentUser);
         return ResponseEntity.ok(ApiResult.success(list));
     }
@@ -47,6 +50,7 @@ public class ProductionLotCertificationController {
             @Valid @RequestBody AttachCertificationRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CERTIFICATION", "CREATE");
         ProductionLotCertificationResponse response = certificationService.attachCertification(lotId, request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
@@ -61,6 +65,7 @@ public class ProductionLotCertificationController {
             @PathVariable UUID certificationId,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("CERTIFICATION", "DELETE");
         certificationService.detachCertification(lotId, certificationId, currentUser);
         return ResponseEntity.ok(ApiResult.success(HttpStatus.OK.value(), null));
     }

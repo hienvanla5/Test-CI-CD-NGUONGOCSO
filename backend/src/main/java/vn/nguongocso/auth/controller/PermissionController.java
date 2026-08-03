@@ -10,6 +10,7 @@ import vn.nguongocso.auth.dto.request.AssignRoleRequest;
 import vn.nguongocso.auth.dto.response.OrganizationUserResponse;
 import vn.nguongocso.auth.service.PermissionService;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.util.List;
 
@@ -20,9 +21,13 @@ import java.util.List;
 public class PermissionController {
 
     private final PermissionService permissionService;
+    private final PermissionChecker permissionChecker;
 
     @GetMapping
     public ResponseEntity<ApiResult<List<OrganizationUserResponse>>> getMembers() {
+
+        permissionChecker.check("USER", "READ");
+
         return ResponseEntity.ok(ApiResult.success(
                 permissionService.getMembersOfCurrentOrganization()
         ));
@@ -31,6 +36,9 @@ public class PermissionController {
     @PutMapping("/roles")
     public ResponseEntity<ApiResult<OrganizationUserResponse>> assignRole(
             @Valid @RequestBody AssignRoleRequest request) {
+
+        permissionChecker.check("USER", "UPDATE");
+
         return ResponseEntity.ok(ApiResult.success(
                 permissionService.assignRole(request)
         ));
@@ -40,6 +48,9 @@ public class PermissionController {
     public ResponseEntity<ApiResult<OrganizationUserResponse>> addMember(
             @Valid @RequestBody AddMemberRequest request
     ) {
+
+        permissionChecker.check("USER", "CREATE");
+
         return ResponseEntity.ok(ApiResult.success(
                 permissionService.addMember(request)
         ));

@@ -16,6 +16,7 @@ import vn.nguongocso.event.dto.response.FailedEventLogResponse;
 import vn.nguongocso.event.dto.response.LotValidationResponse;
 import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.service.EventValidationService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.util.UUID;
 /**
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class EventValidationController {
 
     private final EventValidationService eventValidationService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * API 1: Kiểm tra tính hợp lệ của Lô/Lô hàng trước khi tạo sự kiện.

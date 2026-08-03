@@ -17,6 +17,7 @@ import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.farm.dto.response.UpdateProductionLotResponse;
 import vn.nguongocso.farm.service.ProductionLotService;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.report.dto.response.ProductionLotDashboardResponse;
 
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class ProductionLotController {
 
     private final ProductionLotService productionLotService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * API tạo mới lô sản xuất.
@@ -42,6 +44,7 @@ public class ProductionLotController {
             @Valid @RequestBody CreateProductionLotRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
+        permissionChecker.check("PRODUCTION_LOT", "CREATE");
         CreateProductionLotResponse response = productionLotService.createProductionLot(request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -57,6 +60,7 @@ public class ProductionLotController {
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResult<CreateProductionLotResponse>> getById(@PathVariable UUID id) {
+//        permissionChecker.check("PRODUCTION_LOT", "READ");
         CreateProductionLotResponse response = productionLotService.getProductionLotById(id);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -67,6 +71,7 @@ public class ProductionLotController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateProductionLotRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
+//        permissionChecker.check("PRODUCTION_LOT", "UPDATE");
         UpdateProductionLotResponse response = productionLotService.updateProductionLot(id, request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -81,6 +86,7 @@ public class ProductionLotController {
     public ResponseEntity<ApiResult<List<CreateProductionLotResponse>>> getAll(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
+//        permissionChecker.check("PRODUCTION_LOT", "READ");
         List<CreateProductionLotResponse> response = productionLotService.getAllProductionLots(userDetails);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -90,6 +96,7 @@ public class ProductionLotController {
     public ResponseEntity<ApiResult<CreateProductionLotResponse>> submitForApproval(
             @PathVariable UUID id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
+        permissionChecker.check("PRODUCTION_LOT", "UPDATE");
         return ResponseEntity.ok(ApiResult.success(productionLotService.submitForApproval(id, userDetails)));
     }
 
@@ -99,6 +106,7 @@ public class ProductionLotController {
             @PathVariable UUID id,
             @Valid @RequestBody ApproveProductionLotRequest request) {
 
+        permissionChecker.check("PRODUCTION_LOT", "UPDATE");
         CustomUserDetails userDetails = SecurityUtils.getCurrentUserDetails();
         CreateProductionLotResponse response = productionLotService.approveProductionLot(id, request, userDetails);
         return ResponseEntity.ok(ApiResult.success(response));

@@ -11,9 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
-import { getProductCategories } from "@/api/productCategoryApi"; // dùng API hiện có
-import { getFarmAreas } from "@/api/farmAreaApi"; // giả sử có
-import { getOrganizations } from "@/api/organizationApi"; // giả sử có
+import { getProductCategories } from "@/api/productCategoryApi";
+import { getFarmAreas } from "@/api/farmAreaApi";
+import { getOrganizations } from "@/api/organizationApi";
 import type { ProductCategory } from "@/types/productCategory";
 import type { FarmArea } from "@/types/farmArea";
 import type { Organization } from "@/types/organization";
@@ -43,11 +43,22 @@ export const CropAreaFilter = ({
   const [organizations, setOrganizations] = useState<Organization[]>([]);
 
   useEffect(() => {
-    // Tải dữ liệu cho dropdown (chỉ khi có quyền)
     Promise.all([
       getProductCategories(),
       getFarmAreas(),
-      currentUserRole === "VT-01" ? getOrganizations() : Promise.resolve([]),
+      currentUserRole === "VT-01"
+        ? getOrganizations().then((data) =>
+            data.map((item: any) => ({
+              id: item.organizationID || item.id,
+              name: item.organizationName || item.name,
+              code: item.organizationCode || item.code,
+              type: item.organizationType || item.type,
+              status: item.status,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+            }))
+          )
+        : Promise.resolve([]),
     ]).then(([cats, areas, orgs]) => {
       setProductCategories(cats);
       setFarmAreas(areas);
@@ -73,6 +84,22 @@ export const CropAreaFilter = ({
     onReset();
   };
 
+  // Helper để lấy tên hiển thị
+  const getFarmAreaName = (id: string) => {
+    const area = farmAreas.find((a) => a.id === id);
+    return area ? area.name : "Tất cả";
+  };
+
+  const getCategoryName = (id: string) => {
+    const cat = productCategories.find((c) => c.id === id);
+    return cat ? cat.name : "Tất cả";
+  };
+
+  const getOrganizationName = (id: string) => {
+    const org = organizations.find((o) => o.id === id);
+    return org ? org.name : "Tất cả";
+  };
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -88,6 +115,7 @@ export const CropAreaFilter = ({
                 placeholder="VD: 2026"
               />
             </div>
+
             <div>
               <Label htmlFor="productCategory">Loại nông sản</Label>
               <Select
@@ -95,7 +123,11 @@ export const CropAreaFilter = ({
                 onValueChange={(value) => setProductCategoryId(value || "")}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Tất cả" />
+                  <SelectValue placeholder="Tất cả">
+                    {productCategoryId
+                      ? getCategoryName(productCategoryId)
+                      : "Tất cả"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Tất cả</SelectItem>
@@ -107,14 +139,17 @@ export const CropAreaFilter = ({
                 </SelectContent>
               </Select>
             </div>
+
             <div>
               <Label htmlFor="farmArea">Vùng trồng</Label>
-                <Select
-                  value={farmAreaId}
-                  onValueChange={(value) => setFarmAreaId(value || '')}
-                >
+              <Select
+                value={farmAreaId}
+                onValueChange={(value) => setFarmAreaId(value || "")}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Tất cả" />
+                  <SelectValue placeholder="Tất cả">
+                    {farmAreaId ? getFarmAreaName(farmAreaId) : "Tất cả"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Tất cả</SelectItem>
@@ -126,15 +161,20 @@ export const CropAreaFilter = ({
                 </SelectContent>
               </Select>
             </div>
+
             {currentUserRole === "VT-01" && (
               <div>
                 <Label htmlFor="organization">Tổ chức</Label>
-                  <Select
-                    value={organizationId}
-                    onValueChange={(value) => setOrganizationId(value || '')}
-                  >
+                <Select
+                  value={organizationId}
+                  onValueChange={(value) => setOrganizationId(value || "")}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Tất cả" />
+                    <SelectValue placeholder="Tất cả">
+                      {organizationId
+                        ? getOrganizationName(organizationId)
+                        : "Tất cả"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Tất cả</SelectItem>
@@ -147,6 +187,7 @@ export const CropAreaFilter = ({
                 </Select>
               </div>
             )}
+
             <div className="flex items-end gap-2">
               <Button type="submit" disabled={loading}>
                 <Search className="h-4 w-4 mr-1" /> Lọc

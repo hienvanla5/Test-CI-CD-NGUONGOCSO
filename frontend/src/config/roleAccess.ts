@@ -32,7 +32,11 @@ export const ROLE_ACCESS = {
   // ✅ Từ file 2
   exportOpenData: ['VT-05'] as const,
 
+  // ✅ Từ file 1
   seasonYieldComparison: ['VT-01', 'VT-05'] as const,
+
+  // ✅ Từ file 2
+  rolePermissionConfig: ['VT-02'] as const,
 
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 

@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.report.exception.DossierValidationException;
 import vn.nguongocso.report.dto.response.DossierCheckResponse;
 import vn.nguongocso.report.service.DossierService;
@@ -31,6 +32,7 @@ import java.util.UUID;
 public class DossierController {
 
     private final DossierService dossierService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * API Kiểm tra điều kiện xuất hồ sơ truy xuất.
@@ -42,6 +44,7 @@ public class DossierController {
             @PathVariable UUID shipmentId,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        permissionChecker.check("SHIPMENT", "READ");
         DossierCheckResponse response = dossierService.checkEligibility(shipmentId, currentUser);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -56,6 +59,7 @@ public class DossierController {
             @AuthenticationPrincipal CustomUserDetails currentUser,
             HttpServletRequest request) {
 
+        permissionChecker.check("SHIPMENT", "READ");
         String ipAddress = extractClientIp(request);
         byte[] pdfBytes = dossierService.exportDossierPdf(shipmentId, currentUser, ipAddress);
 

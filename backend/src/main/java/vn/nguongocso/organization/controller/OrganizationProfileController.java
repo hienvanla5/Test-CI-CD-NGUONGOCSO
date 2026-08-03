@@ -10,6 +10,7 @@ import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.service.OrganizationService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 @Slf4j
 @RestController
@@ -18,6 +19,7 @@ import vn.nguongocso.organization.service.OrganizationService;
 public class OrganizationProfileController {
 
     private final OrganizationService organizationService;
+    private final PermissionChecker permissionChecker;
 
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")

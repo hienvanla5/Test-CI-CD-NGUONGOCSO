@@ -44,6 +44,7 @@ import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
 
 // Public
+import PublicHomePage from "@/pages/public/PublicHomePage";
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
 
 // Reports
@@ -75,6 +76,9 @@ import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
 
 // ✅ Thêm import
 import ExportOpenDataPage from "@/pages/export/ExportOpenDataPage";
+
+// ✅ Phân quyền chi tiết (NCL-09-CN-008)
+import RolePermissionConfigPage from "@/pages/permission/RolePermissionConfigPage";
 
 const COOPERATIVE_MANAGER_ROLES = [
     "VT-02",
@@ -137,6 +141,7 @@ function UnauthorizedPage() {
 const AppRoutes = () => (
     <Routes>
         {/* Route công khai */}
+        <Route path="/" element={<PublicHomePage />} />
         <Route path="/login" element={<LoginPage />} />
 
         {/* Toàn bộ route nội bộ dùng chung Header + Sidebar + Outlet */}
@@ -148,7 +153,7 @@ const AppRoutes = () => (
             }
         >
             {/* Dashboard */}
-            <Route index element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
 
             {/* ===== Organization ===== */}
             <Route
@@ -446,6 +451,16 @@ const AppRoutes = () => (
                         <ExportOpenDataPage />
                     </RoleRoute>
                 }
+            />
+
+            {/* ===== Permission Config (NCL-09-CN-008) ===== */}
+            <Route
+              path="permissions/config"
+              element={
+                <RoleRoute allowedRoles={ROLE_ACCESS.rolePermissionConfig}>
+                  <RolePermissionConfigPage />
+                </RoleRoute>
+              }
             />
 
             {/* ===== Procurement (NCL-05-CN-004) ===== */}

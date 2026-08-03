@@ -55,54 +55,61 @@ export const SeasonAnalysisTable = ({ data }: Props) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((season) => {
+            {data.flatMap((season) => {
               const isExpanded = expandedSeasons.has(season.seasonCode);
-              return (
-                <>
-                  <TableRow key={season.seasonCode} className="cursor-pointer hover:bg-muted/50" onClick={() => toggleExpand(season.seasonCode)}>
-                    <TableCell className="font-medium">
-                      <Badge>{season.seasonName}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">{season.year}</TableCell>
-                    <TableCell className="text-right">{season.totalLots}</TableCell>
-                    <TableCell className="text-right">{formatNumber(season.expectedYield)}</TableCell>
-                    <TableCell className="text-right">{formatNumber(season.actualYield)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" className="p-0">
-                        {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      </Button>
+              const rows = [
+                <TableRow
+                  key={season.seasonCode}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => toggleExpand(season.seasonCode)}
+                >
+                  <TableCell className="font-medium">
+                    <Badge>{season.seasonName}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">{season.year}</TableCell>
+                  <TableCell className="text-right">{season.totalLots}</TableCell>
+                  <TableCell className="text-right">{formatNumber(season.expectedYield)}</TableCell>
+                  <TableCell className="text-right">{formatNumber(season.actualYield)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" className="p-0">
+                      {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                  </TableCell>
+                </TableRow>,
+              ];
+
+              if (isExpanded && season.areas && season.areas.length > 0) {
+                rows.push(
+                  <TableRow key={`${season.seasonCode}-expand`}>
+                    <TableCell colSpan={6} className="p-0">
+                      <div className="pl-8 pr-4 py-3 bg-muted/30">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Vùng trồng</TableHead>
+                              <TableHead className="text-right">Số lô</TableHead>
+                              <TableHead className="text-right">Dự kiến (kg)</TableHead>
+                              <TableHead className="text-right">Thực tế (kg)</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {season.areas.map((area) => (
+                              <TableRow key={area.farmAreaId}>
+                                <TableCell>{area.farmAreaName}</TableCell>
+                                <TableCell className="text-right">{area.lotCount}</TableCell>
+                                <TableCell className="text-right">{formatNumber(area.expectedYield)}</TableCell>
+                                <TableCell className="text-right">{formatNumber(area.actualYield)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </TableCell>
                   </TableRow>
-                  {isExpanded && season.areas && season.areas.length > 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="p-0">
-                        <div className="pl-8 pr-4 py-3 bg-muted/30">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Vùng trồng</TableHead>
-                                <TableHead className="text-right">Số lô</TableHead>
-                                <TableHead className="text-right">Dự kiến (kg)</TableHead>
-                                <TableHead className="text-right">Thực tế (kg)</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {season.areas.map((area) => (
-                                <TableRow key={area.farmAreaId}>
-                                  <TableCell>{area.farmAreaName}</TableCell>
-                                  <TableCell className="text-right">{area.lotCount}</TableCell>
-                                  <TableCell className="text-right">{formatNumber(area.expectedYield)}</TableCell>
-                                  <TableCell className="text-right">{formatNumber(area.actualYield)}</TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </>
-              );
+                );
+              }
+
+              return rows;
             })}
           </TableBody>
         </Table>
