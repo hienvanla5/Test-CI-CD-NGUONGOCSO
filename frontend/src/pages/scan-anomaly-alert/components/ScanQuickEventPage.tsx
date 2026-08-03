@@ -4,13 +4,15 @@ import { BrowserQRCodeReader } from "@zxing/browser";
 import {
   Camera,
   CheckCircle2,
+  ChevronDown,
+  ClipboardPlus,
   RefreshCw,
   ScanLine,
   TriangleAlert,
 } from "lucide-react";
 
 import { useScanLookup } from "@/hooks/useScanLookup";
-import { Badge } from "@/components/ui/badge";
+import { HarvestForm } from "@/components/trace-event/HarvestForm";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +21,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type CameraState =
   | { step: "scanning" }
@@ -36,18 +44,39 @@ function eventTypeLabel(type: string) {
   return EVENT_TYPE_LABELS[type] ?? type;
 }
 
-// Mỗi loại sự kiện, nếu có thể mở nhanh biểu mẫu ghi tiếp từ đây, sẽ khai báo
-// route đích + nhãn nút. Loại sự kiện không có trong danh sách này (VD:
-// PROCUREMENT thuộc quyền VT-04, HARVEST không có route mở nhanh) chỉ hiển
-// thị dạng nhãn tham khảo, không thể bấm — vì trang quét mã chỉ dành cho
-// VT-03 và VT-03 không có quyền mở các biểu mẫu đó.
-const EVENT_TYPE_ROUTES: Record<
-  string,
-  { path: string; label: string }
-> = {
-  TRANSPORT: { path: "/transport-events/record", label: "Ghi sự kiện vận chuyển" },
-  PACKAGING: { path: "/packaging-events/create", label: "Ghi sự kiện đóng gói" },
+// Mỗi loại sự kiện mà VT-03 (Người ghi sự kiện) có quyền ghi sẽ khai báo một
+// hành động mở nhanh biểu mẫu tương ứng trong dropdown "Ghi sự kiện":
+// - "route": điều hướng sang trang riêng (kèm state codeValue/shipmentId/
+//   productionLotId để form tự điền) - dùng cho các loại lấy từ
+//   allowedEventTypes trả về từ API scan-lookup (VD: TRANSPORT, PACKAGING).
+// - "inline": mở ngay biểu mẫu tại chỗ - dùng cho HARVEST, vì HarvestForm là
+//   component nhận props chứ không phải trang độc lập.
+//
+// HARVEST không nằm trong allowedEventTypes của scan-lookup (mã QR chỉ được
+// in lên bao bì sau khi lô đã đóng gói, tức bước thu hoạch đã hoàn tất từ
+// trước khi có mã để quét), nên được thêm cố định vào đầu danh sách dropdown
+// thay vì lấy từ allowedEventTypes.
+type EventAction =
+  | { kind: "route"; path: string; label: string }
+  | { kind: "inline"; label: string };
+
+const EVENT_TYPE_ACTIONS: Record<string, EventAction> = {
+  HARVEST: { kind: "inline", label: "Ghi sự kiện thu hoạch" },
+  TRANSPORT: {
+    kind: "route",
+    path: "/transport-events/record",
+    label: "Ghi sự kiện vận chuyển",
+  },
+  PACKAGING: {
+    kind: "route",
+    path: "/packaging-events/create",
+    label: "Ghi sự kiện đóng gói",
+  },
 };
+
+// HARVEST luôn xuất hiện trong dropdown (không phụ thuộc allowedEventTypes),
+// các loại còn lại lấy từ allowedEventTypes trả về từ API.
+const ALWAYS_AVAILABLE_EVENT_TYPES = ["HARVEST"];
 
 export default function ScanQuickEventPage() {
   const navigate = useNavigate();
@@ -59,6 +88,9 @@ export default function ScanQuickEventPage() {
   const [cameraState, setCameraState] = useState<CameraState>({
     step: "scanning",
   });
+  const [activeInlineEvent, setActiveInlineEvent] = useState<string | null>(
+    null,
+  );
   const { data, isLoading, error, lookup, reset } = useScanLookup();
 
   const stopCamera = () => {
@@ -78,6 +110,7 @@ export default function ScanQuickEventPage() {
   const restartScanning = () => {
     hasHandledResultRef.current = false;
     reset();
+    setActiveInlineEvent(null);
     setCameraState({ step: "scanning" });
   };
 
@@ -244,7 +277,16 @@ export default function ScanQuickEventPage() {
           </div>
         )}
 
-        {data && (
+        {data && activeInlineEvent === "HARVEST" && (
+          <HarvestForm
+            productionLotId={data.productionLotId}
+            productionLotName={data.shipmentName}
+            onSuccess={restartScanning}
+            onCancel={() => setActiveInlineEvent(null)}
+          />
+        )}
+
+        {data && activeInlineEvent === null && (
           <div className="space-y-4">
             <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
@@ -290,41 +332,66 @@ export default function ScanQuickEventPage() {
 
             <div className="space-y-2">
               <p className="text-sm font-medium">Ghi sự kiện tiếp theo</p>
-              <div className="flex flex-wrap gap-2">
-                {data.allowedEventTypes.map((type) => {
-                  const route = EVENT_TYPE_ROUTES[type];
-                  return route ? (
-                    <Button
-                      key={type}
-                      size="sm"
-                      onClick={() =>
-                        navigate(route.path, {
-                          state: {
-                            codeValue: data.traceCode,
-                            productionLotId: data.productionLotId,
-                          },
-                        })
-                      }
-                    >
-                      {route.label}
-                    </Button>
-                  ) : (
-                    <Badge key={type} variant="outline">
-                      {eventTypeLabel(type)}
-                    </Badge>
-                  );
-                })}
+
+              <div className="flex flex-wrap items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button size="sm">
+                        <ClipboardPlus className="mr-2 h-4 w-4" />
+                        Ghi sự kiện
+                        <ChevronDown className="ml-2 h-3 w-3" />
+                      </Button>
+                    }
+                  />
+                  <DropdownMenuContent align="start">
+                    {[
+                      ...new Set([
+                        ...ALWAYS_AVAILABLE_EVENT_TYPES,
+                        ...data.allowedEventTypes,
+                      ]),
+                    ].map((type) => {
+                      const action = EVENT_TYPE_ACTIONS[type];
+                      return (
+                        <DropdownMenuItem
+                          key={type}
+                          disabled={!action}
+                          onClick={() => {
+                            if (!action) return;
+                            if (action.kind === "inline") {
+                              setActiveInlineEvent(type);
+                              return;
+                            }
+                            navigate(action.path, {
+                              state: {
+                                codeValue: data.traceCode,
+                                shipmentId: data.shipmentId,
+                                productionLotId: data.productionLotId,
+                              },
+                            });
+                          }}
+                        >
+                          {action
+                            ? action.label
+                            : `${eventTypeLabel(type)} (chưa hỗ trợ mở nhanh)`}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button variant="outline" onClick={restartScanning}>
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Quét mã khác
+                </Button>
               </div>
+
               <p className="text-xs text-muted-foreground">
                 Các loại sự kiện hiện chưa hỗ trợ mở nhanh từ đây (hoặc không
-                thuộc quyền của bạn) sẽ chỉ hiển thị để tham khảo.
+                thuộc quyền của bạn) sẽ hiển thị mờ trong danh sách, chỉ để
+                tham khảo.
               </p>
             </div>
-
-            <Button variant="outline" onClick={restartScanning}>
-              <RefreshCw className="mr-2 h-3 w-3" />
-              Quét mã khác
-            </Button>
           </div>
         )}
       </CardContent>
