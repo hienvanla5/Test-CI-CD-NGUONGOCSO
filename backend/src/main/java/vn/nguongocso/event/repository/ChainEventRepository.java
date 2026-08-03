@@ -20,6 +20,8 @@ import vn.nguongocso.event.enums.ChainEventType;
 @Repository
 public interface ChainEventRepository extends JpaRepository<ChainEvent, UUID> {
 
+    // ==================== Phương thức hiện có ====================
+
     List<ChainEvent> findByShipment_IdOrderByRecordedAtAsc(UUID shipmentId);
 
     @Query("""
@@ -49,7 +51,9 @@ public interface ChainEventRepository extends JpaRepository<ChainEvent, UUID> {
 
     void deleteByShipmentId(UUID id);
 
-    // Đếm số lượng event theo loại cho từng shipment
+    /**
+     * Đếm số lượng event theo loại cho từng shipment.
+     */
     @Query("SELECT ce.shipment.id, ce.eventType, COUNT(ce) " +
             "FROM ChainEvent ce " +
             "WHERE ce.shipment.id IN :shipmentIds " +
@@ -59,10 +63,27 @@ public interface ChainEventRepository extends JpaRepository<ChainEvent, UUID> {
     List<Object[]> countEventsByShipmentAndTypes(@Param("shipmentIds") List<UUID> shipmentIds,
                                                   @Param("requiredTypes") List<ChainEventType> requiredTypes);
 
+    // ==================== Phương thức bổ sung ====================
+
+    /**
+     * Lấy danh sách sự kiện (không phải đính chính) của nhiều lô hàng,
+     * sắp xếp theo thời gian tăng dần.
+     */
     @Query("SELECT ce FROM ChainEvent ce " +
             "WHERE ce.shipment.id IN :shipmentIds " +
             "AND ce.isCorrection = false " +
             "ORDER BY ce.recordedAt ASC")
-    List<ChainEvent> findByShipmentIdInOrderByRecordedAtAsc(@Param("shipmentIds") List<UUID> shipmentIds,
-                                                           @Param("isCorrection") Boolean isCorrection);
+    List<ChainEvent> findByShipmentIdInOrderByRecordedAtAsc(@Param("shipmentIds") List<UUID> shipmentIds);
+
+    /**
+     * Lấy danh sách sự kiện của nhiều lô hàng, có thể lọc theo isCorrection,
+     * sắp xếp theo thời gian tăng dần.
+     */
+    @Query("SELECT ce FROM ChainEvent ce " +
+            "WHERE ce.shipment.id IN :shipmentIds " +
+            "AND ce.isCorrection = :isCorrection " +
+            "ORDER BY ce.recordedAt ASC")
+    List<ChainEvent> findByShipmentIdInOrderByRecordedAtAsc(
+            @Param("shipmentIds") List<UUID> shipmentIds,
+            @Param("isCorrection") Boolean isCorrection);
 }
