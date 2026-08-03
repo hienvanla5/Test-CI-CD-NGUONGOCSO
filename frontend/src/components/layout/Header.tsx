@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { NotificationBell } from '@/components/notification/NotificationBell';
+import { SyncBadge } from '@/components/layout/SyncBadge';
 import { ROLE_ACCESS, getRoleLabel, hasAnyRole } from '@/config/roleAccess';
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, Menu, User } from 'lucide-react';
@@ -67,6 +68,8 @@ export function Header({ onMenuClick }: HeaderProps) {
           )}
 
           <NotificationBell />
+
+          <SyncBadge />
 
           <Button
             type="button"

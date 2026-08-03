@@ -225,11 +225,12 @@ public class PermissionService {
                 .userId(user.getUserId())
                 .username(user.getUserName())
                 .fullName(user.getFullName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
                 .roleId(role.getRoleId())
                 .roleCode(role.getCode())
                 .roleName(role.getName())
                 .customPermissions(orgUser.getCustomPermissions())
-                .status(orgUser.getStatus())
                 .status(orgUser.getStatus())
                 .joinedAt(orgUser.getJoinedAt())
                 .build();

@@ -1,21 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import {
   getOfflineEvents,
   removeOfflineEvent,
-  clearOfflineQueue,
-  getOfflineQueueCount,
   updateOfflineEventStatus,
 } from '@/services/offlineQueue';
 import { syncOfflineEvents } from '@/api/chainEventApi';
-import type { OfflineSyncResultDto } from '@/types/offlineEvent';
+import type { OfflineEvent, OfflineSyncResultDto } from '@/types/offlineEvent';
 
+const SYNC_POLL_INTERVAL = 10_000;
+const AUTO_SYNC_DEBOUNCE = 15_000;
+const MAX_RETRIES = 3;
 
 export const useOfflineSync = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [pendingCount, setPendingCount] = useState(getOfflineQueueCount());
+  const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
+
+  const isSyncingRef = useRef(false);
+  const lastAutoSyncRef = useRef(0);
+  const toastShownRef = useRef(new Set<string>());
+
+  // Refresh pending count periodically
+  const refreshCount = useCallback(() => {
+    const events = getOfflineEvents();
+    const count = events.filter(
+      (e) => e.status !== 'success' && e.status !== 'invalid' && (e.retryCount ?? 0) < MAX_RETRIES,
+    ).length;
+    setPendingCount(count);
+  }, []);
 
   // Cập nhật trạng thái mạng
   useEffect(() => {
@@ -23,129 +39,217 @@ export const useOfflineSync = () => {
     const handleOffline = () => setIsOnline(false);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    refreshCount();
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [refreshCount]);
 
-  // Cập nhật số lượng pending mỗi 3 giây (vì storage event không trigger cùng tab)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPendingCount(getOfflineQueueCount());
-    }, 3000);
+    const interval = setInterval(refreshCount, SYNC_POLL_INTERVAL);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshCount]);
 
-  // Hàm thực hiện đồng bộ
-  const sync = async (): Promise<void> => {
-    const events = getOfflineEvents();
-    // Chỉ lấy những event có status !== 'success' (trường hợp có thể vẫn còn)
-    const pendingEvents = events.filter(e => e.status !== 'success');
-    if (pendingEvents.length === 0) {
-      // Nếu không còn event nào, xóa toàn bộ queue (đảm bảo sạch)
-      clearOfflineQueue();
-      setPendingCount(0);
-      return;
-    }
-
-    // Đánh dấu tất cả là đang sync
-    pendingEvents.forEach(e => updateOfflineEventStatus(e.offlineEventId, { status: 'syncing' }));
-
+  const sync = useCallback(async (): Promise<void> => {
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
     setIsSyncing(true);
+    setLastError(null);
+
     try {
-      const syncId = uuidv4();
-      const payload = {
-        syncId,
-        events: pendingEvents,
-      };
+      const allEvents = getOfflineEvents();
 
-      const response = await syncOfflineEvents(payload);
+      const activeEvents = allEvents.filter(
+        (e) => e.status !== 'success' && e.status !== 'invalid',
+      );
 
-      // Xử lý kết quả từ server
-      const results = response.results || [];
-      const successIds: string[] = [];
-      const failedIds: string[] = [];
+      // Separate events that still have retry budget and are due
+      const dueEvents: OfflineEvent[] = [];
+      const exhaustedEvents: OfflineEvent[] = [];
 
-      results.forEach((r: OfflineSyncResultDto) => {
-        if (r.status === 'SUCCESS') {
-          successIds.push(r.offlineEventId);
-          // Cập nhật status thành success
-          updateOfflineEventStatus(r.offlineEventId, { status: 'success' });
-        } else if (r.status === 'DUPLICATE') {
-          successIds.push(r.offlineEventId); // coi như thành công
-          updateOfflineEventStatus(r.offlineEventId, { status: 'success' });
-        } else if (r.status === 'FAILED') {
-          failedIds.push(r.offlineEventId);
-          updateOfflineEventStatus(r.offlineEventId, {
-            status: 'failed',
-            errorMessage: r.message || 'Lỗi không xác định',
-            retryCount: (events.find(e => e.offlineEventId === r.offlineEventId)?.retryCount || 0) + 1,
+      for (const e of activeEvents) {
+        const retries = e.retryCount ?? 0;
+        if (retries >= MAX_RETRIES) {
+          exhaustedEvents.push(e);
+        } else if (
+          !e.lastSyncAttempt ||
+          Date.now() - e.lastSyncAttempt >= getBackoffDelay(retries)
+        ) {
+          dueEvents.push(e);
+        }
+        // else: still in backoff
+      }
+
+      // Remove exhausted events
+      for (const event of exhaustedEvents) {
+        const label = getEventLabel(event);
+        const key = `exhausted-${event.offlineEventId}`;
+        if (!toastShownRef.current.has(key)) {
+          toastShownRef.current.add(key);
+          toast.error(`Sự kiện ${label} đã thất bại sau 3 lần thử và bị xóa.`, {
+            duration: 5000,
           });
         }
-      });
-
-      // Xóa những event đã success (giải phóng bộ nhớ)
-      successIds.forEach((id) => {
-        // Có thể giữ lại để xem lịch sử nhưng để đơn giản ta xóa
-        // removeOfflineEvent(id);
-        // Hoặc có thể xóa luôn, vì đã đánh dấu success
-        // removeOfflineEvent(id);
-        // Tuy nhiên nếu muốn hiển thị lịch sử, giữ lại với status success
-        // Hiện tại ta sẽ xóa để queue gọn
-        removeOfflineEvent(id);
-      });
-
-      // Thông báo kết quả
-      if (response.successCount > 0) {
-        toast.success(`Đồng bộ thành công ${response.successCount} sự kiện.`);
-      }
-      if (response.duplicateCount > 0) {
-        toast.info(`Bỏ qua ${response.duplicateCount} sự kiện đã tồn tại.`);
-      }
-      if (response.failedCount > 0) {
-        toast.error(`Có ${response.failedCount} sự kiện đồng bộ thất bại.`);
-        // Log chi tiết
-        results.filter((r: OfflineSyncResultDto) => r.status === 'FAILED').forEach((f: OfflineSyncResultDto) => {
-          console.warn(`Sync failed for event ${f.offlineEventId}: ${f.message}`);
-        });
+        removeOfflineEvent(event.offlineEventId);
       }
 
-      // Cập nhật lại số lượng pending (số event còn lại có status !== 'success')
-      const remaining = getOfflineEvents().filter(e => e.status !== 'success');
-      setPendingCount(remaining.length);
-    } catch (error: any) {
-      // Nếu có lỗi chung khi gọi API, đánh dấu tất cả event là failed
-      pendingEvents.forEach(e => {
+      if (dueEvents.length === 0) {
+        refreshCount();
+        return;
+      }
+
+      // Mark as syncing
+      const now = Date.now();
+      for (const e of dueEvents) {
         updateOfflineEventStatus(e.offlineEventId, {
-          status: 'failed',
-          errorMessage: error.message || 'Lỗi kết nối server',
-        });
-      });
-      const msg = error.response?.data?.message || 'Đồng bộ thất bại. Vui lòng thử lại sau.';
-      toast.error(msg);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  // Tự động đồng bộ khi mạng online và có sự kiện chờ (chỉ những event có status !== 'success')
-  useEffect(() => {
-    if (isOnline) {
-      const pending = getOfflineEvents().filter(e => e.status !== 'success');
-      if (pending.length > 0 && !isSyncing) {
-        console.log("🔄 Tự động đồng bộ...");
-        sync();
+          status: 'syncing',
+          lastSyncAttempt: now,
+        } as any);
       }
-    }
-  }, [isOnline, isSyncing]);
 
-  // Mỗi khi pendingCount thay đổi (có thể do ngoài luồng), kiểm tra
+      try {
+        const syncId = uuidv4();
+        const payload = { syncId, events: dueEvents };
+        const response = await syncOfflineEvents(payload);
+
+        const results: OfflineSyncResultDto[] = response.results || [];
+        let permanentFailures = 0;
+
+        for (const r of results) {
+          if (r.status === 'SUCCESS' || r.status === 'DUPLICATE') {
+            removeOfflineEvent(r.offlineEventId);
+          } else {
+            const event = dueEvents.find((e) => e.offlineEventId === r.offlineEventId);
+            const newRetryCount = (event?.retryCount ?? 0) + 1;
+            if (newRetryCount >= MAX_RETRIES) {
+              removeOfflineEvent(r.offlineEventId);
+              permanentFailures++;
+            } else {
+              updateOfflineEventStatus(r.offlineEventId, {
+                status: 'failed',
+                errorMessage: r.message || 'Lỗi không xác định',
+                retryCount: newRetryCount,
+                lastSyncAttempt: Date.now(),
+              } as any);
+            }
+          }
+        }
+
+        if (response.successCount > 0) {
+          toast.success(`Đồng bộ thành công ${response.successCount} sự kiện.`);
+        }
+        if (response.duplicateCount > 0) {
+          toast.info(`Bỏ qua ${response.duplicateCount} sự kiện đã tồn tại.`);
+        }
+        if (permanentFailures > 0) {
+          toast.error(`${permanentFailures} sự kiện đã thất bại vĩnh viễn và bị xóa.`);
+        }
+        const transient = response.failedCount - permanentFailures;
+        if (transient > 0) {
+          toast.warning(`Còn ${transient} sự kiện chưa đồng bộ được, sẽ thử lại sau.`);
+        }
+      } catch (error: unknown) {
+        const status = isAxiosError(error) ? error.response?.status : undefined;
+
+        if (status === 400) {
+          // Invalid data — never retry
+          const serverMessage =
+            isAxiosError(error)
+              ? ((error.response?.data as any)?.message ?? 'Dữ liệu không hợp lệ.')
+              : 'Dữ liệu không hợp lệ.';
+
+          for (const e of dueEvents) {
+            removeOfflineEvent(e.offlineEventId);
+          }
+
+          toast.error(`Đã xóa ${dueEvents.length} sự kiện không hợp lệ khỏi hàng chờ.`, {
+            description: serverMessage,
+            duration: 6000,
+          });
+          setLastError(serverMessage);
+        } else {
+          // Network error or 5xx — retry with backoff
+          for (const e of dueEvents) {
+            const newRetryCount = (e.retryCount ?? 0) + 1;
+            if (newRetryCount >= MAX_RETRIES) {
+              removeOfflineEvent(e.offlineEventId);
+            } else {
+              updateOfflineEventStatus(e.offlineEventId, {
+                status: 'failed',
+                errorMessage:
+                  error instanceof Error ? error.message : 'Lỗi kết nối máy chủ',
+                retryCount: newRetryCount,
+                lastSyncAttempt: Date.now(),
+              } as any);
+            }
+          }
+
+          const msg =
+            status === 500
+              ? 'Máy chủ gặp lỗi, sẽ thử lại sau.'
+              : 'Đồng bộ thất bại. Sẽ thử lại khi có kết nối.';
+          toast.error(msg);
+        }
+      }
+    } finally {
+      isSyncingRef.current = false;
+      setIsSyncing(false);
+      refreshCount();
+    }
+  }, [refreshCount]);
+
+  // Tự động đồng bộ với debounce
   useEffect(() => {
-    if (isOnline && pendingCount > 0 && !isSyncing) {
-      sync();
-    }
-  }, [pendingCount]);
+    if (!isOnline || isSyncingRef.current) return;
 
-  return { isOnline, pendingCount, isSyncing, sync };
+    const now = Date.now();
+    if (now - lastAutoSyncRef.current < AUTO_SYNC_DEBOUNCE) return;
+
+    const events = getOfflineEvents();
+    const hasActionable = events.some((e) => {
+      if (e.status === 'success' || e.status === 'invalid') return false;
+      const retries = e.retryCount ?? 0;
+      if (retries >= MAX_RETRIES) return false;
+      if (e.status === 'failed') {
+        const delay = getBackoffDelay(retries);
+        if (e.lastSyncAttempt && now - e.lastSyncAttempt < delay) return false;
+      }
+      return true;
+    });
+
+    if (!hasActionable) return;
+
+    lastAutoSyncRef.current = now;
+    sync();
+  }, [isOnline, sync]);
+
+  const forceSync = useCallback(() => {
+    if (isSyncingRef.current) return;
+    sync();
+  }, [sync]);
+
+  return {
+    isOnline,
+    pendingCount,
+    isSyncing,
+    lastError,
+    sync: forceSync,
+  };
 };
+
+function getBackoffDelay(retryCount: number): number {
+  const delays = [5_000, 15_000, 30_000];
+  return delays[Math.min(retryCount, delays.length - 1)] ?? 30_000;
+}
+
+function getEventLabel(event: OfflineEvent): string {
+  const typeLabels: Record<string, string> = {
+    HARVEST: 'Thu hoạch',
+    TRANSPORT: 'Vận chuyển',
+    PACKAGING: 'Đóng gói',
+    PROCUREMENT: 'Thu mua',
+    MOBILE: 'Ngoài đồng',
+  };
+  return typeLabels[event.eventType] ?? event.eventType;
+}

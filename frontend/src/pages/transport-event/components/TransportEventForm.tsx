@@ -5,6 +5,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { recordTransportEvent } from "@/api/transportEventApi";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { addOfflineEvent } from "@/services/offlineQueue";
+import { ChainEventType } from "@/enums/chainEventType";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -57,8 +60,49 @@ export function TransportEventForm() {
 
   const codeValue = watch("codeValue");
 
+  const { isOnline } = useOfflineSync();
+
+  const saveOffline = (values: TransportEventFormValues) => {
+    const validationError = addOfflineEvent({
+      eventType: ChainEventType.TRANSPORT,
+      recordedAt: new Date().toISOString(),
+      latitude: 0,
+      longitude: 0,
+      images: [],
+      deviceSource: "WEB",
+      eventData: {
+        codeValue: values.codeValue,
+        fromLocation: values.fromLocation,
+        toLocation: values.toLocation,
+        transportTime: values.transportTime,
+      },
+    });
+
+    if (validationError) {
+      toast.error(`Không thể lưu tạm: ${validationError}`);
+      return false;
+    }
+
+    toast.info(
+      "Không có kết nối mạng. Sự kiện đã được lưu tạm và sẽ đồng bộ khi có mạng.",
+    );
+    reset({
+      codeValue: "",
+      fromLocation: "",
+      toLocation: "",
+      transportTime: getCurrentDateTimeLocal(),
+    });
+    return true;
+  };
+
   const onSubmit = async (values: TransportEventFormValues) => {
     try {
+      if (!isOnline) {
+        saveOffline(values);
+        return;
+      }
+
+      // 🟢 Gửi trực tiếp
       await recordTransportEvent(values);
 
       toast.success("Ghi sự kiện vận chuyển thành công.");
@@ -70,6 +114,18 @@ export function TransportEventForm() {
         transportTime: getCurrentDateTimeLocal(),
       });
     } catch (error: unknown) {
+      // Nếu lỗi network khi online, cũng lưu tạm
+      const isNetworkError =
+        !isAxiosError(error) ||
+        (error as { code?: string }).code === "ERR_NETWORK" ||
+        (error as { message?: string })?.message?.includes("Network") ||
+        !(error as { response?: unknown }).response;
+
+      if (isNetworkError) {
+        saveOffline(values);
+        return;
+      }
+
       const message = isAxiosError<{ message?: string }>(error)
         ? error.response?.data?.message ??
           (error.response

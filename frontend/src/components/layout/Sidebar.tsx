@@ -7,7 +7,6 @@ import {
   Bell,
   BookOpen,
   Building2,
-  Database,
   Download,
   FileText,
   FileUp,
@@ -174,12 +173,6 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Chứng nhận",
     href: "/certifications",
     allowedRoles: ["VT-02"] as const,
-  },
-  {
-    icon: <Database className="h-5 w-5" />,
-    label: "Sự kiện chờ đồng bộ",
-    href: "/offline-events",
-    allowedRoles: ["VT-02", "VT-03"] as const,
   },
   {
     icon: <Bell className="h-5 w-5" />,

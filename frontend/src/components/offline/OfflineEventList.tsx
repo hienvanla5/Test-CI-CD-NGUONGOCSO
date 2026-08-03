@@ -22,11 +22,12 @@ const EventItem: React.FC<{
   }, [event.productionLotId]);
 
   // ✅ Map trạng thái sang Badge
-  const statusConfig = {
-    pending: { label: 'Chờ', variant: 'secondary' as const },
-    syncing: { label: 'Đang đồng bộ', variant: 'default' as const },
-    failed: { label: 'Thất bại', variant: 'destructive' as const },
-    success: { label: 'Thành công', variant: 'default' as const },
+  const statusConfig: Record<string, { label: string; variant: 'secondary' | 'default' | 'destructive' | 'outline' }> = {
+    pending: { label: 'Chờ', variant: 'secondary' },
+    syncing: { label: 'Đang đồng bộ', variant: 'default' },
+    failed: { label: 'Thất bại', variant: 'destructive' },
+    success: { label: 'Thành công', variant: 'default' },
+    invalid: { label: 'Không hợp lệ', variant: 'outline' },
   };
   const currentStatus = event.status || 'pending';
   const config = statusConfig[currentStatus];
@@ -45,7 +46,7 @@ const EventItem: React.FC<{
           </Badge>
         </div>
         <div className="text-sm text-muted-foreground">
-          Lô: {lotName} (ID: {event.productionLotId.slice(0, 8)})
+          Lô: {lotName} (ID: {event.productionLotId?.slice(0, 8) ?? 'N/A'})
         </div>
         <div className="text-xs text-muted-foreground">
           Ghi lúc: {new Date(event.recordedAt).toLocaleString()}

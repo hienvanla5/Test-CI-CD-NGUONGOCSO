@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { addMember, getRoles } from '@/api/memberApi';
 import type { RoleOption } from '@/types/member';
 import { getRoleLabel } from '@/config/roleAccess';
@@ -21,7 +20,7 @@ const createMemberSchema = z
     fullName: z.string().min(1, 'Họ tên không được để trống'),
     phone: z.string().optional().nullable(),
     email: z.string().email('Email không hợp lệ').optional().nullable(),
-    roleId: z.number({ required_error: 'Vui lòng chọn vai trò' }),
+    roleId: z.number({ required_error: 'Vai trò là bắt buộc' }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Mật khẩu xác nhận không khớp',
@@ -40,7 +39,6 @@ export function CreateMemberForm() {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<CreateMemberFormValues>({
     resolver: zodResolver(createMemberSchema),
@@ -51,19 +49,28 @@ export function CreateMemberForm() {
       fullName: '',
       phone: '',
       email: '',
-      roleId: undefined,
+      roleId: 0, // placeholder, sẽ được cập nhật sau
     },
   });
 
-  const selectedRoleId = watch('roleId');
-
+  // Load roles và tự động gán VT-03
   useEffect(() => {
     const loadRoles = async () => {
       try {
         setIsLoading(true);
-        const data = await getRoles();
-        // Chỉ hiển thị VT-03 (Người ghi sự kiện) khi tạo mới
-        setRoles(data.filter((role) => role.code === 'VT-03'));
+        const allRoles = await getRoles();
+        // Chỉ lấy VT-03 (Người ghi sự kiện)
+        const vt03Roles = allRoles.filter((role) => role.code === 'VT-03');
+
+        if (vt03Roles.length === 0) {
+          toast.error('Không tìm thấy vai trò VT-03. Vui lòng kiểm tra dữ liệu.');
+          return;
+        }
+
+        setRoles(vt03Roles);
+        // Tự động gán roleId của VT-03
+        const vt03Role = vt03Roles[0];
+        setValue('roleId', vt03Role.roleId);
       } catch {
         toast.error('Không thể tải danh sách vai trò');
       } finally {
@@ -71,7 +78,7 @@ export function CreateMemberForm() {
       }
     };
     loadRoles();
-  }, []);
+  }, [setValue]);
 
   const onSubmit = async (values: CreateMemberFormValues) => {
     try {
@@ -140,24 +147,13 @@ export function CreateMemberForm() {
             </div>
           </div>
 
-          {/* Chọn vai trò – chỉ VT-03 */}
+          {/* Hiển thị vai trò dưới dạng text (đã mặc định VT-03) */}
           <div className="space-y-2">
-            <Label htmlFor="roleId">Vai trò *</Label>
-            <Select
-              value={selectedRoleId ? String(selectedRoleId) : ''}
-              onValueChange={(val) => setValue('roleId', Number(val))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn vai trò" />
-              </SelectTrigger>
-              <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role.roleId} value={String(role.roleId)}>
-                    {getRoleLabel(role.code)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Vai trò *</Label>
+            <div className="text-sm font-medium text-muted-foreground">
+              {roles.length > 0 ? getRoleLabel('VT-03') : 'Đang tải...'}
+            </div>
+            <input type="hidden" {...register('roleId')} />
             {errors.roleId && <p className="text-sm text-red-500">{errors.roleId.message}</p>}
           </div>
         </CardContent>

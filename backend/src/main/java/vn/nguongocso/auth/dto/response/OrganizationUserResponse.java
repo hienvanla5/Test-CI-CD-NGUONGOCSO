@@ -16,6 +16,8 @@ public class OrganizationUserResponse {
     private UUID userId;
     private String username;
     private String fullName;
+    private String email;
+    private String phone;
     private Integer roleId;
     private String roleCode;
     private String roleName;

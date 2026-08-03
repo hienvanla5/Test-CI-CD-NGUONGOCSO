@@ -2,7 +2,7 @@ import { ChainEventType } from '@/enums/chainEventType';
 
 export interface OfflineEvent {
   offlineEventId: string;
-  productionLotId: string;
+  productionLotId?: string;
   eventType: ChainEventType;
   recordedAt: string;
   latitude: number;
@@ -10,10 +10,10 @@ export interface OfflineEvent {
   images: string[];
   deviceSource?: string;
   eventData: Record<string, any>;
-  // --- thêm mới ---
-  status?: 'pending' | 'syncing' | 'failed' | 'success';
+  status?: 'pending' | 'syncing' | 'failed' | 'success' | 'invalid';
   errorMessage?: string;
   retryCount?: number;
+  lastSyncAttempt?: number;
 }
 
 export interface OfflineSyncRequest {

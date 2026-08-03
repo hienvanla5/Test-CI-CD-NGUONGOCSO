@@ -169,14 +169,18 @@ try {
 
       if (!isOnline) {
         // 🔴 Lưu tạm khi mất mạng
-        addOfflineEvent(payload);
-        toast.info(
-          "Không có kết nối. Sự kiện đã được lưu tạm và sẽ đồng bộ sau.",
-        );
-        reset();
-        setImageFiles([]);
-        setImagePreviews([]);
-        onSuccess?.();
+        const validationError = addOfflineEvent(payload);
+        if (validationError) {
+          toast.error(`Không thể lưu tạm: ${validationError}`);
+        } else {
+          toast.info(
+            "Không có kết nối. Sự kiện đã được lưu tạm và sẽ đồng bộ sau.",
+          );
+          reset();
+          setImageFiles([]);
+          setImagePreviews([]);
+          onSuccess?.();
+        }
       } else {
         // 🟢 Gửi trực tiếp
         await recordMobileEvent(payload);
@@ -192,8 +196,12 @@ try {
         payload &&
         (error.code === "ERR_NETWORK" || error.message?.includes("Network"))
       ) {
-        addOfflineEvent(payload);
-        toast.info("Lỗi mạng. Sự kiện đã được lưu tạm.");
+        const validationError = addOfflineEvent(payload);
+        if (validationError) {
+          toast.error(`Không thể lưu tạm: ${validationError}`);
+        } else {
+          toast.info("Lỗi mạng. Sự kiện đã được lưu tạm.");
+        }
       } else {
         toast.error(error.response?.data?.message || "Ghi sự kiện thất bại");
       }
