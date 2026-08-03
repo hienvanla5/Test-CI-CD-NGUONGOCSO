@@ -18,7 +18,6 @@ import {
   Package,
   ScanLine,
   Shield,
-  Smartphone,
   Sprout,
   Truck,
   UserCheck,
@@ -155,12 +154,6 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Cảnh báo tem bất thường",
     href: "/scan-anomaly-alerts",
     allowedRoles: ["VT-01"] as const,
-  },
-  {
-    icon: <Smartphone className="h-5 w-5" />,
-    label: "Ghi sự kiện ngoài đồng",
-    href: "/mobile/record-event",
-    allowedRoles: ["VT-02", "VT-03"] as const,
   },
   {
     icon: <BookOpen className="h-5 w-5" />,

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { isAxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,21 +26,32 @@ import {
 } from "@/utils/validators/transportEventSchema";
 
 import { ScanCodeField } from "./ScanCodeField";
+import { Camera } from "lucide-react";
+
+const MAX_IMAGES = 5;
 
 function getCurrentDateTimeLocal() {
   const now = new Date();
   const timezoneOffset = now.getTimezoneOffset() * 60_000;
-
-  return new Date(now.getTime() - timezoneOffset)
-    .toISOString()
-    .slice(0, 16);
+  return new Date(now.getTime() - timezoneOffset).toISOString().slice(0, 16);
 }
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
 
 export function TransportEventForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const prefilledCode =
     (location.state as { codeValue?: string } | null)?.codeValue ?? "";
+
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const {
     register,
@@ -59,17 +71,35 @@ export function TransportEventForm() {
   });
 
   const codeValue = watch("codeValue");
-
   const { isOnline } = useOfflineSync();
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const fileArray = Array.from(files);
+    if (imageFiles.length + fileArray.length > MAX_IMAGES) {
+      toast.error(`Chỉ được chọn tối đa ${MAX_IMAGES} ảnh`);
+      return;
+    }
+    setImageFiles((prev) => [...prev, ...fileArray]);
+    const newPreviews = fileArray.map((f) => URL.createObjectURL(f));
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const saveOffline = (values: TransportEventFormValues) => {
     const validationError = addOfflineEvent({
       eventType: ChainEventType.TRANSPORT,
-      recordedAt: new Date().toISOString(),
+      recordedAt: values.transportTime,
       latitude: 0,
       longitude: 0,
-      images: [],
+      images: imagePreviews,
       deviceSource: "WEB",
+      codeValue: values.codeValue,
       eventData: {
         codeValue: values.codeValue,
         fromLocation: values.fromLocation,
@@ -83,15 +113,15 @@ export function TransportEventForm() {
       return false;
     }
 
-    toast.info(
-      "Không có kết nối mạng. Sự kiện đã được lưu tạm và sẽ đồng bộ khi có mạng.",
-    );
+    toast.info("Không có kết nối mạng. Sự kiện đã được lưu tạm và sẽ đồng bộ khi có mạng.");
     reset({
       codeValue: "",
       fromLocation: "",
       toLocation: "",
       transportTime: getCurrentDateTimeLocal(),
     });
+    setImageFiles([]);
+    setImagePreviews([]);
     return true;
   };
 
@@ -102,8 +132,20 @@ export function TransportEventForm() {
         return;
       }
 
-      // 🟢 Gửi trực tiếp
-      await recordTransportEvent(values);
+      // Convert images to base64
+      let base64Images: string[] = [];
+      try {
+        base64Images = await Promise.all(imageFiles.map(fileToBase64));
+      } catch {
+        toast.error("Không thể xử lý ảnh. Vui lòng thử lại.");
+        return;
+      }
+
+      // Send to backend with images
+      await recordTransportEvent({
+        ...values,
+        images: base64Images.length > 0 ? base64Images : undefined,
+      } as any);
 
       toast.success("Ghi sự kiện vận chuyển thành công.");
 
@@ -113,8 +155,9 @@ export function TransportEventForm() {
         toLocation: "",
         transportTime: getCurrentDateTimeLocal(),
       });
+      setImageFiles([]);
+      setImagePreviews([]);
     } catch (error: unknown) {
-      // Nếu lỗi network khi online, cũng lưu tạm
       const isNetworkError =
         !isAxiosError(error) ||
         (error as { code?: string }).code === "ERR_NETWORK" ||
@@ -200,6 +243,51 @@ export function TransportEventForm() {
               <p className="text-sm text-destructive">
                 {errors.transportTime.message}
               </p>
+            )}
+          </div>
+
+          {/* Image Upload */}
+          <div className="space-y-2">
+            <Label>Hình ảnh thực địa (tối đa {MAX_IMAGES})</Label>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById('transport-image-input')?.click()}
+                disabled={isSubmitting || imageFiles.length >= MAX_IMAGES}
+              >
+                <Camera className="h-4 w-4 mr-1" />
+                Chọn ảnh
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {imageFiles.length}/{MAX_IMAGES}
+              </span>
+              <input
+                id="transport-image-input"
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageChange}
+                disabled={isSubmitting}
+              />
+            </div>
+            {imagePreviews.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {imagePreviews.map((src, idx) => (
+                  <div key={idx} className="relative w-16 h-16 rounded border overflow-hidden">
+                    <img src={src} alt={`preview-${idx}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                      onClick={() => removeImage(idx)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </CardContent>

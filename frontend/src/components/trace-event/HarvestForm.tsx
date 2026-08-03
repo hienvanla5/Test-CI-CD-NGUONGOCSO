@@ -2,15 +2,21 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { isAxiosError } from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { Calendar, LoaderCircle, Sprout } from 'lucide-react';
+import { Calendar, Camera, LoaderCircle, Sprout } from 'lucide-react';
 import { recordHarvestEvent } from '@/api/traceEventApi';
 import { LocationPicker } from '@/pages/packaging-event/components/LocationPicker';
+import { useOfflineSync } from '@/hooks/useOfflineSync';
+import { addOfflineEvent } from '@/services/offlineQueue';
+import { ChainEventType } from '@/enums/chainEventType';
+
+const MAX_IMAGES = 5;
 
 const formSchema = z.object({
   harvestDate: z.string().min(1, 'Vui lòng chọn ngày thu hoạch'),
@@ -31,6 +37,14 @@ interface HarvestFormProps {
   onCancel?: () => void;
 }
 
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+
 export const HarvestForm = ({
   productionLotId,
   productionLotName,
@@ -39,6 +53,10 @@ export const HarvestForm = ({
 }: HarvestFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+  const { isOnline } = useOfflineSync();
 
   const {
     register,
@@ -65,22 +83,101 @@ export const HarvestForm = ({
     setValue('longitude', lng);
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const fileArray = Array.from(files);
+    if (imageFiles.length + fileArray.length > MAX_IMAGES) {
+      toast.error(`Chỉ được chọn tối đa ${MAX_IMAGES} ảnh`);
+      return;
+    }
+    setImageFiles((prev) => [...prev, ...fileArray]);
+    const newPreviews = fileArray.map((f) => URL.createObjectURL(f));
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const saveOffline = (data: FormValues) => {
+    const eventData = {
+      productionLotId,
+      harvestDate: data.harvestDate,
+      quantity: data.quantity,
+    };
+
+    const validationError = addOfflineEvent({
+      eventType: ChainEventType.HARVEST,
+      productionLotId,
+      recordedAt: new Date().toISOString(),
+      latitude: data.latitude ?? 0,
+      longitude: data.longitude ?? 0,
+      images: imagePreviews,
+      deviceSource: 'WEB',
+      eventData,
+    });
+
+    if (validationError) {
+      toast.error(`Không thể lưu tạm: ${validationError}`);
+      return false;
+    }
+    toast.info('Không có kết nối mạng. Sự kiện đã được lưu tạm và sẽ đồng bộ khi có mạng.');
+    reset();
+    setImageFiles([]);
+    setImagePreviews([]);
+    onSuccess?.();
+    return true;
+  };
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     setError(null);
+
+    if (!isOnline) {
+      saveOffline(data);
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
+      let base64Images: string[] = [];
+      try {
+        base64Images = await Promise.all(imageFiles.map(fileToBase64));
+      } catch {
+        toast.error('Không thể xử lý ảnh. Vui lòng thử lại.');
+        setIsSubmitting(false);
+        return;
+      }
+
       await recordHarvestEvent({
         productionLotId,
         harvestDate: data.harvestDate,
         quantity: data.quantity,
         latitude: data.latitude || undefined,
         longitude: data.longitude || undefined,
+        images: base64Images.length > 0 ? base64Images : undefined,
       });
       toast.success(`Đã ghi nhận thu hoạch cho lô "${productionLotName}"`);
       reset();
+      setImageFiles([]);
+      setImagePreviews([]);
       onSuccess?.();
-    } catch (error: any) {
-      const response = error.response?.data;
+    } catch (err: unknown) {
+      const isNetworkError =
+        !isAxiosError(err) ||
+        (err as { code?: string }).code === 'ERR_NETWORK' ||
+        (err as { message?: string })?.message?.includes('Network') ||
+        !(err as { response?: unknown }).response;
+
+      if (isNetworkError) {
+        saveOffline(data);
+        setIsSubmitting(false);
+        return;
+      }
+
+      const response = (err as any)?.response?.data;
       let message = 'Có lỗi xảy ra khi ghi nhận thu hoạch.';
 
       if (response) {
@@ -160,7 +257,7 @@ export const HarvestForm = ({
             )}
           </div>
 
-          {/* Thêm LocationPicker */}
+          {/* LocationPicker */}
           <div className="space-y-2">
             <Label>Vị trí thu hoạch (click trên bản đồ)</Label>
             <div className="flex gap-2">
@@ -168,6 +265,51 @@ export const HarvestForm = ({
               <Input value={lng || ''} disabled placeholder="Kinh độ" />
             </div>
             <LocationPicker onLocationSelect={handleLocationSelect} height="300px" />
+          </div>
+
+          {/* Image Upload */}
+          <div className="space-y-2">
+            <Label>Hình ảnh thực địa (tối đa {MAX_IMAGES})</Label>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById('harvest-image-input')?.click()}
+                disabled={isSubmitting || imageFiles.length >= MAX_IMAGES}
+              >
+                <Camera className="h-4 w-4 mr-1" />
+                Chọn ảnh
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {imageFiles.length}/{MAX_IMAGES}
+              </span>
+              <input
+                id="harvest-image-input"
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageChange}
+                disabled={isSubmitting}
+              />
+            </div>
+            {imagePreviews.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {imagePreviews.map((src, idx) => (
+                  <div key={idx} className="relative w-16 h-16 rounded border overflow-hidden">
+                    <img src={src} alt={`preview-${idx}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                      onClick={() => removeImage(idx)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">

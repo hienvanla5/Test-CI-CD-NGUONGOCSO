@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -31,4 +32,14 @@ public class RecordPackagingEventRequest {
 
     private Double latitude;
     private Double longitude;
+
+    /**
+     * Danh sách ảnh thực địa (base64 hoặc URL), tùy chọn.
+     */
+    private List<String> images;
+
+    /**
+     * Nguồn thiết bị ghi sự kiện, mặc định "WEB".
+     */
+    private String deviceSource = "WEB";
 }

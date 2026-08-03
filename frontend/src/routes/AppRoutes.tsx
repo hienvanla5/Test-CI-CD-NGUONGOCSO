@@ -61,9 +61,6 @@ import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPag
 // ===== Farm area =====
 import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 
-// ===== Mobile =====
-import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
-
 // ===== Certification =====
 import CreateCertificationPage from "@/pages/certification/CreateCertificationPage";
 import CertificationListPage from "@/pages/certification/CertificationListPage";
@@ -358,16 +355,6 @@ const AppRoutes = () => (
                 element={
                     <RoleRoute allowedRoles={ROLE_ACCESS.standardManagement}>
                         <StandardManagementPage />
-                    </RoleRoute>
-                }
-            />
-
-            {/* ===== Mobile ===== */}
-            <Route
-                path="mobile/record-event"
-                element={
-                    <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
-                        <RecordMobileEventPage />
                     </RoleRoute>
                 }
             />

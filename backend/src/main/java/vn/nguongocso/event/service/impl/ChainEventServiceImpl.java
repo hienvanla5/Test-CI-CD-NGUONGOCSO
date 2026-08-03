@@ -98,6 +98,10 @@ public class ChainEventServiceImpl implements ChainEventService {
         eventDataMap.put("productionLotName", lot.getName());
         eventDataMap.put("harvestDate", request.getHarvestDate().toString());
         eventDataMap.put("quantity", request.getQuantity());
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            eventDataMap.put("images", request.getImages());
+        }
+        eventDataMap.put("deviceSource", request.getDeviceSource() != null ? request.getDeviceSource() : "WEB");
 
         String eventDataJson = toJson(eventDataMap);
 
@@ -159,6 +163,10 @@ public class ChainEventServiceImpl implements ChainEventService {
         eventDataMap.put("productionLotName", lot.getName());
         eventDataMap.put("packagingSpecification", request.getPackagingSpecification());
         eventDataMap.put("packagingDate", request.getPackagingDate().toString());
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            eventDataMap.put("images", request.getImages());
+        }
+        eventDataMap.put("deviceSource", request.getDeviceSource() != null ? request.getDeviceSource() : "WEB");
 
         String eventDataJson = toJson(eventDataMap);
         User actor = getActor(currentUser);
@@ -283,6 +291,10 @@ public class ChainEventServiceImpl implements ChainEventService {
         Map<String, Object> eventDataMap = new HashMap<>();
         eventDataMap.put("fromLocation", request.getFromLocation());
         eventDataMap.put("toLocation", request.getToLocation());
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            eventDataMap.put("images", request.getImages());
+        }
+        eventDataMap.put("deviceSource", request.getDeviceSource() != null ? request.getDeviceSource() : "WEB");
 
         String eventDataJson = toJson(eventDataMap);
         User actor = getActor(currentUser);
@@ -325,67 +337,36 @@ public class ChainEventServiceImpl implements ChainEventService {
         ProductionLot lot = productionLotRepository.findById(request.getProductionLotId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô sản xuất."));
 
-        try {
-            validateOrganization(lot, currentUser);
+        validateOrganization(lot, currentUser);
 
-            if (request.getRecordedAt().isAfter(LocalDateTime.now())) {
-                throw new BusinessException("Thời điểm ghi nhận không được là thời gian ở tương lai.");
-            }
-
-            // Xử lý theo loại sự kiện
-            if (request.getEventType() == ChainEventType.HARVEST) {
-                handleHarvestMobile(lot, request);
-            } else if (request.getEventType() == ChainEventType.PACKAGING) {
-                handlePackagingMobile(lot, request);
-            } else {
-                throw new BusinessException("Loại sự kiện không được hỗ trợ ghi nhận từ thiết bị di động.");
-            }
-
-        } catch (BusinessException e) {
-            eventValidationService.logFailedAttempt(
-                    request.getProductionLotId(),
-                    lot.getName(),
-                    request.getEventType(),
-                    e.getMessage(),
-                    currentUser);
-            throw e;
+        if (request.getRecordedAt().isAfter(LocalDateTime.now())) {
+            throw new BusinessException("Thời điểm ghi nhận không được là thời gian ở tương lai.");
         }
 
-        Point locationPoint = buildPoint(request.getLatitude(), request.getLongitude());
+        // Delegate to shared online service methods to ensure consistent validation and processing
+        ChainEventResponse delegateResponse;
+        if (request.getEventType() == ChainEventType.HARVEST) {
+            delegateResponse = delegateHarvestFromMobile(lot, request, currentUser);
+        } else if (request.getEventType() == ChainEventType.PACKAGING) {
+            delegateResponse = delegatePackagingFromMobile(lot, request, currentUser);
+        } else {
+            throw new BusinessException("Loại sự kiện không được hỗ trợ ghi nhận từ thiết bị di động.");
+        }
 
-        Map<String, Object> finalEventDataMap = new HashMap<>();
-        finalEventDataMap.put("productionLotId", lot.getId().toString());
-        finalEventDataMap.put("productionLotName", lot.getName());
-        finalEventDataMap.put("images", request.getImages());
-        finalEventDataMap.put("deviceSource", request.getDeviceSource() != null ? request.getDeviceSource() : "MOBILE");
-        finalEventDataMap.putAll(request.getEventData());
-
-        String eventDataJson = toJson(finalEventDataMap);
-        User actor = getActor(currentUser);
-
-        ChainEvent chainEvent = ChainEvent.builder()
-                .eventType(request.getEventType())
-                .eventData(eventDataJson)
-                .location(locationPoint)
-                .recordedAt(request.getRecordedAt())
-                .recordedBy(actor)
-                .isCorrection(false)
-                .build();
-
-        chainEvent = chainEventRepository.save(chainEvent);
-
-        publishActivityLog(currentUser, "Ghi sự kiện từ di động cho lô " + lot.getName(),
-                "ChainEvent", chainEvent.getId().toString());
+        // Enrich response with mobile-specific fields (deviceSource, images)
+        Map<String, Object> enrichedData = new HashMap<>(delegateResponse.getEventData());
+        enrichedData.put("images", request.getImages());
+        enrichedData.put("deviceSource", request.getDeviceSource() != null ? request.getDeviceSource() : "MOBILE");
 
         return ChainEventResponse.builder()
-                .id(chainEvent.getId())
-                .eventType(chainEvent.getEventType())
-                .eventData(finalEventDataMap)
+                .id(delegateResponse.getId())
+                .eventType(delegateResponse.getEventType())
+                .eventData(enrichedData)
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
-                .recordedAt(chainEvent.getRecordedAt())
-                .recordedByName(actor.getFullName())
-                .createdAt(chainEvent.getCreatedAt())
+                .recordedAt(delegateResponse.getRecordedAt())
+                .recordedByName(delegateResponse.getRecordedByName())
+                .createdAt(delegateResponse.getCreatedAt())
                 .build();
     }
 
@@ -538,11 +519,11 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .build();
     }
 
-    private void handleHarvestMobile(ProductionLot lot, RecordMobileEventRequest request) {
-        if (lot.getStatus() != ProductionLotStatus.APPROVED) {
-            throw new BusinessException("Lô sản xuất chưa được duyệt, không thể ghi sự kiện thu hoạch.");
-        }
-
+    /**
+     * Delegates harvest event creation from mobile to the online recordHarvestEvent method.
+     * Constructs a RecordHarvestEventRequest from mobile DTO fields and delegates.
+     */
+    private ChainEventResponse delegateHarvestFromMobile(ProductionLot lot, RecordMobileEventRequest request, CustomUserDetails currentUser) {
         Object quantityObj = request.getEventData().get("quantity");
         Object harvestDateStrObj = request.getEventData().get("harvestDate");
 
@@ -560,17 +541,22 @@ public class ChainEventServiceImpl implements ChainEventService {
             throw new BusinessException("Ngày thu hoạch không được là ngày ở tương lai.");
         }
 
-        lot.setStatus(ProductionLotStatus.HARVESTED);
-        lot.setHarvestDate(harvestDate);
-        lot.setActualQuantity(quantity);
-        productionLotRepository.save(lot);
+        RecordHarvestEventRequest harvestRequest = new RecordHarvestEventRequest();
+        harvestRequest.setProductionLotId(request.getProductionLotId());
+        harvestRequest.setHarvestDate(harvestDate);
+        harvestRequest.setQuantity(quantity);
+        harvestRequest.setLatitude(request.getLatitude());
+        harvestRequest.setLongitude(request.getLongitude());
+
+        // Delegate to the shared online method — ensures identical validation, status updates, and error logging
+        return recordHarvestEvent(harvestRequest, currentUser);
     }
 
-    private void handlePackagingMobile(ProductionLot lot, RecordMobileEventRequest request) {
-        if (lot.getStatus() != ProductionLotStatus.HARVESTED) {
-            throw new BusinessException("Chỉ được ghi nhận sự kiện đóng gói cho lô đã thu hoạch.");
-        }
-
+    /**
+     * Delegates packaging event creation from mobile to the online recordPackagingEvent method.
+     * Constructs a RecordPackagingEventRequest from mobile DTO fields and delegates.
+     */
+    private ChainEventResponse delegatePackagingFromMobile(ProductionLot lot, RecordMobileEventRequest request, CustomUserDetails currentUser) {
         Object specObj = request.getEventData().get("packagingSpecification");
         Object packagingDateStrObj = request.getEventData().get("packagingDate");
 
@@ -594,8 +580,15 @@ public class ChainEventServiceImpl implements ChainEventService {
             throw new BusinessException("Ngày đóng gói phải sau hoặc bằng ngày thu hoạch của lô sản xuất.");
         }
 
-        lot.setStatus(ProductionLotStatus.PACKAGED);
-        productionLotRepository.save(lot);
+        RecordPackagingEventRequest packagingRequest = new RecordPackagingEventRequest();
+        packagingRequest.setProductionLotId(request.getProductionLotId());
+        packagingRequest.setPackagingSpecification(packagingSpecification);
+        packagingRequest.setPackagingDate(packagingDate);
+        packagingRequest.setLatitude(request.getLatitude());
+        packagingRequest.setLongitude(request.getLongitude());
+
+        // Delegate to the shared online method — ensures identical validation, status updates, and error logging
+        return recordPackagingEvent(packagingRequest, currentUser);
     }
 
     @Override

@@ -10,6 +10,16 @@ import { getFailedLogs } from '@/api/eventValidationApi';
 import type { FailedEventLog } from '@/types/eventValidation';
 import type { PageResponse } from '@/types/common';
 
+// 👇 Thêm mapping loại sự kiện
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  HARVEST: 'Thu hoạch',
+  PACKAGING: 'Đóng gói',
+  TRANSPORT: 'Vận chuyển',
+  PROCUREMENT: 'Thu mua',
+  MOBILE: 'Ngoài đồng',
+  // Có thể thêm các loại khác nếu cần
+};
+
 const formatDate = (iso: string) => {
   try {
     return new Date(iso).toLocaleString('vi-VN', {
@@ -112,7 +122,9 @@ export default function FailedEventLogsPage() {
                       </TableCell>
                       <TableCell>{log.userFullName}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{log.eventType}</Badge>
+                        <Badge variant="outline">
+                          {EVENT_TYPE_LABELS[log.eventType] || log.eventType}
+                        </Badge>
                       </TableCell>
                       <TableCell className="font-mono text-sm">{log.lotCode}</TableCell>
                       <TableCell className="max-w-[300px] text-amber-700">

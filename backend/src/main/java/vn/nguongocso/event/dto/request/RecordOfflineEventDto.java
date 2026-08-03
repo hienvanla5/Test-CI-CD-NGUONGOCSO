@@ -1,6 +1,5 @@
 package vn.nguongocso.event.dto.request;
 
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,8 +17,21 @@ public class RecordOfflineEventDto {
     @NotNull(message = "ID sự kiện ngoại tuyến không được để trống")
     private UUID offlineEventId;
 
-    @NotNull(message = "Vui lòng chọn lô sản xuất/lô hàng")
+    /**
+     * ID của lô sản xuất (dùng cho HARVEST, PACKAGING).
+     * Đối với TRANSPORT/PROCUREMENT, sử dụng shipmentId hoặc codeValue.
+     */
     private UUID productionLotId;
+
+    /**
+     * ID của lô hàng (dùng cho TRANSPORT, PROCUREMENT).
+     */
+    private UUID shipmentId;
+
+    /**
+     * Mã truy xuất (dùng cho TRANSPORT để lookup shipment thay vì dùng shipmentId trực tiếp).
+     */
+    private String codeValue;
 
     @NotNull(message = "Loại sự kiện không được để trống")
     private ChainEventType eventType;
@@ -27,13 +39,10 @@ public class RecordOfflineEventDto {
     @NotNull(message = "Thời điểm ghi nhận không được để trống")
     private LocalDateTime recordedAt;
 
-    @NotNull(message = "Vĩ độ không được để trống")
     private Double latitude;
 
-    @NotNull(message = "Kinh độ không được để trống")
     private Double longitude;
 
-    @NotEmpty(message = "Sự kiện ngoại tuyến yêu cầu tối thiểu một hình ảnh thực địa")
     private List<String> images;
 
     private String deviceSource = "MOBILE";
