@@ -74,16 +74,4 @@ public interface ChainEventRepository extends JpaRepository<ChainEvent, UUID> {
             "AND ce.isCorrection = false " +
             "ORDER BY ce.recordedAt ASC")
     List<ChainEvent> findByShipmentIdInOrderByRecordedAtAsc(@Param("shipmentIds") List<UUID> shipmentIds);
-
-    /**
-     * Lấy danh sách sự kiện của nhiều lô hàng, có thể lọc theo isCorrection,
-     * sắp xếp theo thời gian tăng dần.
-     */
-    @Query("SELECT ce FROM ChainEvent ce " +
-            "WHERE ce.shipment.id IN :shipmentIds " +
-            "AND ce.isCorrection = :isCorrection " +
-            "ORDER BY ce.recordedAt ASC")
-    List<ChainEvent> findByShipmentIdInOrderByRecordedAtAsc(
-            @Param("shipmentIds") List<UUID> shipmentIds,
-            @Param("isCorrection") Boolean isCorrection);
 }

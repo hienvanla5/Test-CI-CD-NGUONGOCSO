@@ -95,4 +95,21 @@ public interface ProductionLotRepository extends JpaRepository<ProductionLot, UU
       @Param("farmAreaId") UUID farmAreaId,
       @Param("productCategoryId") UUID productCategoryId,
       @Param("organizationId") UUID organizationId);
+
+  @Query("""
+          SELECT DISTINCT pl
+          FROM ProductionLot pl
+          JOIN FETCH pl.organization org
+          LEFT JOIN FETCH pl.farmArea fa
+          JOIN FETCH pl.productCategory pc
+          WHERE org.organizationId IN :orgIds
+            AND pl.harvestDate BETWEEN :fromDate AND :toDate
+            AND pl.status IN :statuses
+          ORDER BY pl.harvestDate DESC
+      """)
+  List<ProductionLot> findEligibleLotsForExport(
+          @Param("orgIds") List<UUID> orgIds,
+          @Param("fromDate") LocalDate fromDate,
+          @Param("toDate") LocalDate toDate,
+          @Param("statuses") List<ProductionLotStatus> statuses);
 }
