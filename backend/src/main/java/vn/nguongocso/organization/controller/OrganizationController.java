@@ -57,6 +57,7 @@ public class OrganizationController {
             ApiResult<List<OrganizationResponse>>
             > getAllOrganizations() {
 
+
         log.info(
                 "Nhận yêu cầu lấy danh sách organization"
         );
@@ -92,6 +93,8 @@ public class OrganizationController {
             @RequestBody
             CreateOrganizationRequest request
     ) {
+
+
         log.info(
                 "Nhận yêu cầu tạo organization với code={}",
                 request.getOrganizationCode()
@@ -132,6 +135,8 @@ public class OrganizationController {
             @RequestBody
             OrganizationUpdateRequest request
     ) {
+
+
         log.info(
                 "Admin cập nhật hồ sơ organization id={}",
                 id

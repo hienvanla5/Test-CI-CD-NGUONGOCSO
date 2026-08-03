@@ -5,11 +5,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nguongocso.auth.service.CustomUserDetails;
-import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.entity.FarmArea;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
-import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.report.dto.response.CropAreaAnalysisResponse;
 import vn.nguongocso.report.dto.response.SeasonYieldComparisonResponse;
 import vn.nguongocso.report.dto.response.SeasonYieldItemResponse;
@@ -31,7 +29,6 @@ public class CropAreaAnalysisServiceImpl implements CropAreaAnalysisService {
 
         private final ProductionLotRepository productionLotRepository;
         private final ReportAccessLogService reportAccessLogService;
-        private final PermissionChecker permissionChecker;
 
         @Override
         @Transactional(readOnly = true)
@@ -276,10 +273,10 @@ public class CropAreaAnalysisServiceImpl implements CropAreaAnalysisService {
                                 ? organizationId
                                 : currentUser.getOrganizationId();
 
-                try {
-                        permissionChecker.check("report", "READ");
-                } catch (AccessDeniedException ex) {
+                String role = currentUser.getRoleCode();
+                boolean isAllowed = "VT-01".equals(role) || "VT-05".equals(role);
 
+                if (!isAllowed) {
                         reportAccessLogService.logAccess(
                                         currentUser.getUserId(),
                                         currentUser.getOrganizationId(),
@@ -288,7 +285,8 @@ public class CropAreaAnalysisServiceImpl implements CropAreaAnalysisService {
                                         false,
                                         ipAddress);
 
-                        throw ex;
+                        throw new AccessDeniedException(
+                                        "Bạn không có quyền xem báo cáo so sánh mùa vụ.");
                 }
 
                 reportAccessLogService.logAccess(

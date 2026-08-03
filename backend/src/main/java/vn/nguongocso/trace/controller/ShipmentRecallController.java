@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.trace.dto.request.RecallRequest;
 import vn.nguongocso.trace.dto.response.RecallInfoResponse;
 import vn.nguongocso.trace.dto.response.RecallResponse;
@@ -25,6 +26,7 @@ import vn.nguongocso.trace.service.ShipmentRecallService;
 public class ShipmentRecallController {
 
     private final ShipmentRecallService shipmentRecallService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * Thu hồi một lô hàng.
@@ -36,6 +38,7 @@ public class ShipmentRecallController {
             @PathVariable UUID shipmentId,
             @Valid @RequestBody RecallRequest request) {
 
+        permissionChecker.check("SHIPMENT", "CREATE");
         RecallResponse response =
                 shipmentRecallService.recallShipment(shipmentId, request);
 
@@ -54,6 +57,7 @@ public class ShipmentRecallController {
     public ResponseEntity<ApiResult<RecallInfoResponse>> getRecallInfo(
             @PathVariable UUID shipmentId) {
 
+        permissionChecker.check("SHIPMENT", "READ");
         RecallInfoResponse response =
                 shipmentRecallService.getRecallInfo(shipmentId);
 

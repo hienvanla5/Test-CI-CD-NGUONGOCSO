@@ -23,4 +23,15 @@ public interface ReportService {
             String region,
             LocalDate fromDate,
             LocalDate toDate);
+
+    /**
+     * Xuất báo cáo tổng hợp theo định dạng yêu cầu (PDF / EXCEL).
+     *
+     * @return mảng byte nội dung file đã tạo
+     */
+    byte[] exportIndustrySummary(
+            String region,
+            LocalDate fromDate,
+            LocalDate toDate,
+            String format);
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.trace.dto.request.CreateShipmentRequest;
 import vn.nguongocso.trace.dto.response.ShipmentResponse;
 import vn.nguongocso.trace.dto.response.ProcurementShipmentResponse;
@@ -25,6 +26,7 @@ import java.util.UUID;
 public class ShipmentController {
 
 	private final ShipmentService shipmentService;
+	private final PermissionChecker permissionChecker;
 
     /**
      * Tạo lô hàng và sinh mã truy xuất.
@@ -40,12 +42,14 @@ public class ShipmentController {
 	}
 	@PostMapping("/{id}/activate")
 	public ApiResult<ShipmentResponse> activateStamps(@PathVariable UUID id) {
+
 		return ApiResult.success(shipmentService.activateShipmentStamps(id));
 	}
 
 	@GetMapping("/production-lots/{productionLotId}")
 	@PreAuthorize("hasAnyRole('VT-01', 'VT-02', 'VT-03')")
 	public ApiResult<List<ShipmentResponse>> getShipmentsByProductionLot(@PathVariable UUID productionLotId) {
+
 		return ApiResult.success(shipmentService.getShipmentsByProductionLot(productionLotId));
 	}
 
@@ -55,6 +59,7 @@ public class ShipmentController {
 	 */
 	@GetMapping("/by-code")
 	public ApiResult<ShipmentSummaryResponse> getShipmentByCode(@RequestParam String code) {
+
 		return ApiResult.success(shipmentService.getShipmentByCode(code));
 	}
 
@@ -64,7 +69,7 @@ public class ShipmentController {
 	 */
 	@GetMapping("/eligible")
 	public ApiResult<List<ProcurementShipmentResponse>> getEligibleShipments() {
+
 		return ApiResult.success(shipmentService.getEligibleShipments());
 	}
 }
-

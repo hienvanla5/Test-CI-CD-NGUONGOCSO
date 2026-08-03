@@ -30,15 +30,29 @@ import { OrganizationListPage } from "@/pages/organization/OrganizationListPage"
 import CreateMemberPage from "@/pages/organization/CreateMemberPage";
 import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
+
+// Public
+import PublicHomePage from "@/pages/public/PublicHomePage";
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
 import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
 import ActivityLogPage from "@/pages/report/ActivityLogPage";
 import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
 import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
 import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
-import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
+
+// New imports from branch
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
-import ProcurementEventPage from '@/pages/procurement-event/procurement-event';
+import SeasonYieldComparisonPage from "@/pages/report/SeasonYieldComparisonPage";
+import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
+import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
+import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
+import CreateCertificationPage from "@/pages/certification/CreateCertificationPage";
+import CertificationListPage from "@/pages/certification/CertificationListPage";
+import OfflineEventPage from "@/pages/offline/OfflineEventPage";
+import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
+import ExportOpenDataPage from "@/pages/export/ExportOpenDataPage";
+import RolePermissionConfigPage from "@/pages/permission/RolePermissionConfigPage";
+
 const COOPERATIVE_MANAGER_ROLES = [
   "VT-02",
 ] as const satisfies readonly AuthenticatedRoleCode[];
@@ -99,6 +113,7 @@ function UnauthorizedPage() {
 const AppRoutes = () => (
   <Routes>
     {/* Route công khai */}
+    <Route path="/" element={<PublicHomePage />} />
     <Route path="/login" element={<LoginPage />} />
 
     {/* Toàn bộ route nội bộ dùng chung Header + Sidebar + Outlet */}
@@ -109,8 +124,8 @@ const AppRoutes = () => (
         </PrivateRoute>
       }
     >
-      {/* Dashboard thật */}
-      <Route index element={<DashboardPage />} />
+      {/* Dashboard */}
+      <Route path="/dashboard" element={<DashboardPage />} />
 
       {/* Hồ sơ tổ chức — VT-01, VT-02 */}
       <Route
@@ -342,6 +357,15 @@ const AppRoutes = () => (
       />
 
       <Route
+        path="reports/season-yield-comparison"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.seasonYieldComparison}>
+            <SeasonYieldComparisonPage />
+          </RoleRoute>
+        }
+      />
+
+      <Route
         path="reports/industry"
         element={
           <RoleRoute allowedRoles={["VT-05"]}>
@@ -349,7 +373,84 @@ const AppRoutes = () => (
           </RoleRoute>
         }
       />
-      <Route path="/procurement-event" element={<ProcurementEventPage />} />
+
+      {/* Cảnh báo tem bất thường */}
+      <Route
+        path="scan-anomaly-alerts"
+        element={
+          <RoleRoute allowedRoles={["VT-01"]}>
+            <ScanAnomalyAlertPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Ghi sự kiện ngoài đồng */}
+      <Route
+        path="mobile/record-event"
+        element={
+          <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+            <RecordMobileEventPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Chứng nhận */}
+      <Route
+        path="certifications"
+        element={
+          <RoleRoute allowedRoles={["VT-02"]}>
+            <CertificationListPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="certifications/create"
+        element={
+          <RoleRoute allowedRoles={["VT-02"]}>
+            <CreateCertificationPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Sự kiện chờ đồng bộ */}
+      <Route
+        path="offline-events"
+        element={
+          <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+            <OfflineEventPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Thu mua */}
+      <Route
+        path="procurement-event"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.procurementEvent}>
+            <ProcurementEventPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Xuất dữ liệu mở */}
+      <Route
+        path="export/open-data"
+        element={
+          <RoleRoute allowedRoles={["VT-05"]}>
+            <ExportOpenDataPage />
+          </RoleRoute>
+        }
+      />
+
+      {/* Phân quyền chi tiết */}
+      <Route
+        path="permissions/config"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.rolePermissionConfig}>
+            <RolePermissionConfigPage />
+          </RoleRoute>
+        }
+      />
 
       {/* Trang báo không đủ quyền vẫn nằm trong layout */}
       <Route path="unauthorized" element={<UnauthorizedPage />} />

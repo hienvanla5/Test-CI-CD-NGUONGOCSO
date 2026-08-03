@@ -21,6 +21,24 @@ export const ROLE_ACCESS = {
   
   memberManagement: ['VT-02'] as const,
 
+  scanAnomalyAlerts: ['VT-01', 'VT-02'] as const,
+
+  procurementEvent: ['VT-04'] as const,
+
+  standardManagement: ['VT-01'] as const,
+
+  // ✅ Từ file 1
+  notificationInbox: AUTHENTICATED_ROLE_CODES,
+
+  // ✅ Từ file 2
+  exportOpenData: ['VT-05'] as const,
+
+  // ✅ Từ file 1
+  seasonYieldComparison: ['VT-01', 'VT-05'] as const,
+
+  // ✅ Từ file 2
+  rolePermissionConfig: ['VT-02'] as const,
+
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
 export function hasAnyRole(

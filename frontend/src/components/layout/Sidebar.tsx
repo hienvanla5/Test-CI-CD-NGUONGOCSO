@@ -1,9 +1,14 @@
 import type { ReactNode } from "react";
-import { Link, useLocation, useMatch } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   AlertTriangle,
+  Award,
   BarChart2,
+  Bell,
+  BookOpen,
   Building2,
+  Database,
+  Download,
   FileText,
   Hash,
   History,
@@ -12,6 +17,8 @@ import {
   MapPinned,
   Package,
   ScanLine,
+  Shield,
+  Smartphone,
   Sprout,
   Truck,
   UserCheck,
@@ -44,7 +51,7 @@ const MENU_ITEMS: MenuItem[] = [
   {
     icon: <LayoutDashboard className="h-5 w-5" />,
     label: "Dashboard",
-    href: "/",
+    href: "/dashboard",
     allowedRoles: ROLE_ACCESS.dashboard,
   },
   {
@@ -98,7 +105,7 @@ const MENU_ITEMS: MenuItem[] = [
   {
     icon: <BarChart2 className="h-5 w-5" />,
     label: "Thống kê tra cứu",
-    href: "/reports/lookup-statistics", // 👈 đổi thành đường dẫn này
+    href: "/reports/lookup-statistics",
     allowedRoles: ["VT-01", "VT-02"] as const,
   },
   {
@@ -126,10 +133,64 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ["VT-01", "VT-05"] as const,
   },
   {
+    icon: <BarChart2 className="h-5 w-5" />,
+    label: "So sánh mùa vụ",
+    href: "/reports/season-yield-comparison",
+    allowedRoles: ROLE_ACCESS.seasonYieldComparison,
+  },
+  {
     icon: <FileText className="h-5 w-5" />,
     label: "Báo cáo ngành",
     href: "/reports/industry",
     allowedRoles: ["VT-05"] as const,
+  },
+  {
+    icon: <AlertTriangle className="h-5 w-5" />,
+    label: "Cảnh báo tem bất thường",
+    href: "/scan-anomaly-alerts",
+    allowedRoles: ["VT-01"] as const,
+  },
+  {
+    icon: <Smartphone className="h-5 w-5" />,
+    label: "Ghi sự kiện ngoài đồng",
+    href: "/mobile/record-event",
+    allowedRoles: ["VT-02", "VT-03"] as const,
+  },
+  {
+    icon: <BookOpen className="h-5 w-5" />,
+    label: "Tiêu chuẩn chất lượng",
+    href: "/admin/standards",
+    allowedRoles: ROLE_ACCESS.standardManagement,
+  },
+  {
+    icon: <Award className="h-5 w-5" />,
+    label: "Chứng nhận",
+    href: "/certifications",
+    allowedRoles: ["VT-02"] as const,
+  },
+  {
+    icon: <Database className="h-5 w-5" />,
+    label: "Sự kiện chờ đồng bộ",
+    href: "/offline-events",
+    allowedRoles: ["VT-02", "VT-03"] as const,
+  },
+  {
+    icon: <Bell className="h-5 w-5" />,
+    label: "Thông báo",
+    href: "/notifications",
+    allowedRoles: ["VT-01", "VT-02", "VT-03", "VT-04", "VT-05"] as const,
+  },
+  {
+    icon: <Download className="h-5 w-5" />,
+    label: "Xuất dữ liệu mở",
+    href: "/export/open-data",
+    allowedRoles: ["VT-05"] as const,
+  },
+  {
+    icon: <Shield className="h-5 w-5" />,
+    label: "Phân quyền",
+    href: "/permissions/config",
+    allowedRoles: ["VT-02"] as const,
   },
 ];
 
@@ -141,37 +202,28 @@ export function Sidebar({
   const { user } = useAuth();
   const location = useLocation();
 
-  // 🔍 Debug: kiểm tra roleCode
-  console.log("🔑 user.roleCode:", user?.roleCode);
-
   const visibleItems = MENU_ITEMS.filter((item) => {
     const hasAccess = hasAnyRole(user?.roleCode, item.allowedRoles);
-    console.log(`📌 ${item.label} → ${hasAccess ? "✅" : "❌"}`);
     return hasAccess;
   });
 
-  // Fallback nếu không có menu nào
   const finalItems =
     visibleItems.length === 0
       ? MENU_ITEMS.filter(
-          (item) => item.href === "/" || item.href === "/production-lots",
+          (item) =>
+            item.href === "/dashboard" || item.href === "/production-lots",
         )
       : visibleItems;
 
   const isActive = (href: string) => {
-    // Đối với route "/organizations" và "/organizations/profile" chúng ta muốn tách biệt
-    if (href === "/organizations") {
-      return location.pathname === "/organizations";
-    }
-    // Các route khác có thể dùng startsWith nếu cần
-    return !!useMatch(href);
+    return location.pathname === href;
   };
 
   return (
     <aside className="flex h-full min-h-0 flex-col border-r bg-background">
       <div className="flex h-16 items-center gap-2 border-b px-5">
         <Link
-          to="/"
+          to="/dashboard"
           onClick={onNavigate}
           className="flex min-w-0 flex-1 items-center gap-2 font-bold"
         >

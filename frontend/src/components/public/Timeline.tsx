@@ -17,6 +17,47 @@ const EVENT_LABELS: Record<string, string> = {
   CORRECTION: 'Đính chính',
 };
 
+// Mapping field keys → tiếng Việt theo loại sự kiện
+const FIELD_LABELS: Record<string, Record<string, string>> = {
+  HARVEST: {
+    productionLotName: 'Tên lô sản xuất',
+    quantity: 'Sản lượng (kg)',
+    harvestDate: 'Ngày thu hoạch',
+  },
+  PACKAGING: {
+    productionLotName: 'Tên lô sản xuất',
+    packagingSpecification: 'Quy cách đóng gói',
+    packagingDate: 'Ngày đóng gói',
+  },
+  TRANSPORT: {
+    fromLocation: 'Điểm đi',
+    toLocation: 'Điểm đến',
+    transportDate: 'Ngày vận chuyển',
+  },
+  PROCUREMENT: {
+    buyerName: 'Người thu mua',
+    purchaseDate: 'Ngày thu mua',
+    quantity: 'Số lượng',
+  },
+  CORRECTION: {
+    correctionReason: 'Lý do đính chính',
+    packagingSpecification: 'Quy cách mới',
+    packagingDate: 'Ngày mới',
+  },
+};
+
+// Lọc và dịch dữ liệu sự kiện
+const getTranslatedData = (eventType: string, data: Record<string, any>): Record<string, string> => {
+  const fieldMap = FIELD_LABELS[eventType] || {};
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value === null || value === undefined || value === '') continue;
+    const label = fieldMap[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
+    result[label] = String(value);
+  }
+  return result;
+};
+
 interface TimelineProps {
   events: PublicChainEventItem[];
 }
@@ -50,6 +91,8 @@ export const Timeline = ({ events }: TimelineProps) => {
       {events.map((event, index) => {
         const Icon = EVENT_ICONS[event.eventType] || Calendar;
         const label = EVENT_LABELS[event.eventType] || event.eventType;
+        const translatedData = getTranslatedData(event.eventType, event.eventData || {});
+        const entries = Object.entries(translatedData);
 
         return (
           <div key={index} className="relative pl-6">
@@ -69,14 +112,16 @@ export const Timeline = ({ events }: TimelineProps) => {
                       {formatDate(event.recordedAt)}
                     </span>
                   </div>
-                  <div className="mt-1 text-sm text-gray-600 space-y-1">
-                    {Object.entries(event.eventData).map(([key, value]) => (
-                      <div key={key} className="flex gap-2">
-                        <span className="font-medium text-gray-500 capitalize">{key}:</span>
-                        <span>{String(value)}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {entries.length > 0 && (
+                    <div className="mt-1 text-sm text-gray-600 space-y-1">
+                      {entries.map(([label, value]) => (
+                        <div key={label} className="flex gap-2">
+                          <span className="font-medium text-gray-500">{label}:</span>
+                          <span className="text-gray-900">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
