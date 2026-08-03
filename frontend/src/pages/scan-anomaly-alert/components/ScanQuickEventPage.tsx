@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BrowserQRCodeReader } from "@zxing/browser";
-import { isAxiosError } from "axios";
 import {
   Camera,
   CheckCircle2,
@@ -10,8 +9,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 
-import { scanLookupTraceCode } from "@/api/chainEventApi";
-import type { ScanLookupResponse } from "@/types/scan";
+import { useScanLookup } from "@/hooks/useScanLookup";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,31 +20,46 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-type LookupState =
+type CameraState =
   | { step: "scanning" }
   | { step: "camera-error"; message: string }
-  | { step: "looking-up"; code: string }
-  | { step: "result"; data: ScanLookupResponse }
-  | { step: "blocked"; code: number; message: string };
+  | { step: "ready" };
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   HARVEST: "Thu hoạch",
   TRANSPORT: "Vận chuyển",
   PACKAGING: "Đóng gói",
-  PURCHASE: "Thu mua",
+  PROCUREMENT: "Thu mua",
 };
 
 function eventTypeLabel(type: string) {
   return EVENT_TYPE_LABELS[type] ?? type;
 }
 
+// Mỗi loại sự kiện, nếu có thể mở nhanh biểu mẫu ghi tiếp từ đây, sẽ khai báo
+// route đích + nhãn nút. Loại sự kiện không có trong danh sách này (VD:
+// PROCUREMENT thuộc quyền VT-04, HARVEST không có route mở nhanh) chỉ hiển
+// thị dạng nhãn tham khảo, không thể bấm — vì trang quét mã chỉ dành cho
+// VT-03 và VT-03 không có quyền mở các biểu mẫu đó.
+const EVENT_TYPE_ROUTES: Record<
+  string,
+  { path: string; label: string }
+> = {
+  TRANSPORT: { path: "/transport-events/record", label: "Ghi sự kiện vận chuyển" },
+  PACKAGING: { path: "/packaging-events/create", label: "Ghi sự kiện đóng gói" },
+};
+
 export default function ScanQuickEventPage() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const hasHandledResultRef = useRef(false);
 
-  const [state, setState] = useState<LookupState>({ step: "scanning" });
+  const [cameraState, setCameraState] = useState<CameraState>({
+    step: "scanning",
+  });
+  const { data, isLoading, error, lookup, reset } = useScanLookup();
 
   const stopCamera = () => {
     controlsRef.current?.stop();
@@ -55,36 +68,21 @@ export default function ScanQuickEventPage() {
     streamRef.current = null;
   };
 
-  const handleLookup = async (code: string) => {
+  const handleDetectedCode = (code: string) => {
+    if (hasHandledResultRef.current) return;
+    hasHandledResultRef.current = true;
     stopCamera();
-    setState({ step: "looking-up", code });
-
-    try {
-      const data = await scanLookupTraceCode(code);
-      setState({ step: "result", data });
-    } catch (error: unknown) {
-      if (isAxiosError<{ status?: number; message?: string }>(error)) {
-        const status = error.response?.status ?? 0;
-        const message =
-          error.response?.data?.message ??
-          "Không thể tra cứu mã truy xuất. Vui lòng thử lại.";
-        setState({ step: "blocked", code: status, message });
-      } else {
-        setState({
-          step: "blocked",
-          code: 0,
-          message: "Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng.",
-        });
-      }
-    }
+    void lookup(code);
   };
 
   const restartScanning = () => {
-    setState({ step: "scanning" });
+    hasHandledResultRef.current = false;
+    reset();
+    setCameraState({ step: "scanning" });
   };
 
   useEffect(() => {
-    if (state.step !== "scanning") return;
+    if (cameraState.step !== "scanning") return;
 
     let isActive = true;
     const codeReader = new BrowserQRCodeReader();
@@ -114,7 +112,7 @@ export default function ScanQuickEventPage() {
           video,
           (result) => {
             if (!result || !isActive) return;
-            void handleLookup(result.getText());
+            handleDetectedCode(result.getText());
           },
         );
 
@@ -130,7 +128,7 @@ export default function ScanQuickEventPage() {
           scanError instanceof DOMException &&
           scanError.name === "NotAllowedError"
         ) {
-          setState({
+          setCameraState({
             step: "camera-error",
             message:
               "Bạn chưa cho phép dùng camera. Hãy cấp quyền camera rồi thử lại.",
@@ -141,14 +139,14 @@ export default function ScanQuickEventPage() {
           scanError instanceof DOMException &&
           scanError.name === "NotReadableError"
         ) {
-          setState({
+          setCameraState({
             step: "camera-error",
             message:
               "Camera đang được ứng dụng khác sử dụng. Hãy đóng ứng dụng đó rồi thử lại.",
           });
           return;
         }
-        setState({
+        setCameraState({
           step: "camera-error",
           message: "Không thể mở camera. Hãy kiểm tra camera rồi thử lại.",
         });
@@ -162,7 +160,11 @@ export default function ScanQuickEventPage() {
       stopCamera();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.step]);
+  }, [cameraState.step]);
+
+  const showCamera =
+    !data && !error && !isLoading &&
+    (cameraState.step === "scanning" || cameraState.step === "camera-error");
 
   return (
     <Card className="mx-auto max-w-2xl">
@@ -178,7 +180,7 @@ export default function ScanQuickEventPage() {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {(state.step === "scanning" || state.step === "camera-error") && (
+        {showCamera && (
           <>
             <div className="overflow-hidden rounded-lg bg-black">
               <video
@@ -189,11 +191,11 @@ export default function ScanQuickEventPage() {
                 playsInline
               />
             </div>
-            {state.step === "camera-error" && (
+            {cameraState.step === "camera-error" && (
               <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
                 <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
-                  <p>{state.message}</p>
+                  <p>{cameraState.message}</p>
                   <Button
                     size="sm"
                     variant="outline"
@@ -209,26 +211,30 @@ export default function ScanQuickEventPage() {
           </>
         )}
 
-        {state.step === "looking-up" && (
+        {isLoading && (
           <div className="flex flex-col items-center gap-3 rounded-lg border p-8 text-center text-muted-foreground">
             <Camera className="h-8 w-8 animate-pulse" />
-            <p>Đang tra cứu mã "{state.code}"...</p>
+            <p>Đang tra cứu mã...</p>
           </div>
         )}
 
-        {state.step === "blocked" && (
+        {error && (
           <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
             <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" />
             <div className="space-y-3">
               <p className="font-semibold">
-                {state.code === 409
+                {error.code === "RECALLED"
                   ? "Lô hàng đã bị thu hồi"
-                  : state.code === 403
+                  : error.code === "FORBIDDEN_ROLE"
                     ? "Không có quyền"
-                    : "Mã không hợp lệ"}
+                    : error.code === "FORBIDDEN_ORG"
+                      ? "Không thuộc tổ chức sở hữu lô hàng"
+                      : error.code === "NETWORK"
+                        ? "Lỗi kết nối"
+                        : "Mã không hợp lệ"}
               </p>
-              <p>{state.message}</p>
-              {state.code !== 403 && (
+              <p>{error.message}</p>
+              {error.code !== "FORBIDDEN_ROLE" && (
                 <Button size="sm" variant="outline" onClick={restartScanning}>
                   <RefreshCw className="mr-2 h-3 w-3" />
                   Quét lại
@@ -238,7 +244,7 @@ export default function ScanQuickEventPage() {
           </div>
         )}
 
-        {state.step === "result" && (
+        {data && (
           <div className="space-y-4">
             <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
@@ -249,34 +255,34 @@ export default function ScanQuickEventPage() {
               <div className="flex items-start justify-between gap-4 py-3">
                 <dt className="text-sm text-muted-foreground">Lô hàng</dt>
                 <dd className="text-right text-sm font-semibold">
-                  {state.data.shipmentName}
+                  {data.shipmentName}
                 </dd>
               </div>
               <div className="flex items-start justify-between gap-4 py-3">
                 <dt className="text-sm text-muted-foreground">Loại nông sản</dt>
                 <dd className="text-right text-sm font-semibold">
-                  {state.data.productCategoryName}
+                  {data.productCategoryName}
                 </dd>
               </div>
               <div className="flex items-start justify-between gap-4 py-3">
                 <dt className="text-sm text-muted-foreground">Vùng trồng</dt>
                 <dd className="text-right text-sm font-semibold">
-                  {state.data.farmAreaName}
+                  {data.farmAreaName}
                 </dd>
               </div>
               <div className="flex items-start justify-between gap-4 py-3">
                 <dt className="text-sm text-muted-foreground">Tổ chức</dt>
                 <dd className="text-right text-sm font-semibold">
-                  {state.data.organizationName}
+                  {data.organizationName}
                 </dd>
               </div>
-              {state.data.lastEventType && (
+              {data.lastEventType && (
                 <div className="flex items-start justify-between gap-4 py-3">
                   <dt className="text-sm text-muted-foreground">
                     Sự kiện gần nhất
                   </dt>
                   <dd className="text-right text-sm font-semibold">
-                    {eventTypeLabel(state.data.lastEventType)}
+                    {eventTypeLabel(data.lastEventType)}
                   </dd>
                 </div>
               )}
@@ -285,29 +291,33 @@ export default function ScanQuickEventPage() {
             <div className="space-y-2">
               <p className="text-sm font-medium">Ghi sự kiện tiếp theo</p>
               <div className="flex flex-wrap gap-2">
-                {state.data.allowedEventTypes.map((type) =>
-                  type === "TRANSPORT" ? (
+                {data.allowedEventTypes.map((type) => {
+                  const route = EVENT_TYPE_ROUTES[type];
+                  return route ? (
                     <Button
                       key={type}
                       size="sm"
                       onClick={() =>
-                        navigate("/transport-events/record", {
-                          state: { codeValue: state.data.traceCode },
+                        navigate(route.path, {
+                          state: {
+                            codeValue: data.traceCode,
+                            productionLotId: data.productionLotId,
+                          },
                         })
                       }
                     >
-                      Ghi sự kiện vận chuyển
+                      {route.label}
                     </Button>
                   ) : (
                     <Badge key={type} variant="outline">
                       {eventTypeLabel(type)}
                     </Badge>
-                  ),
-                )}
+                  );
+                })}
               </div>
               <p className="text-xs text-muted-foreground">
-                Các loại sự kiện hiện chưa hỗ trợ mở nhanh từ đây sẽ được bổ
-                sung sau; hiện chỉ hiển thị để tham khảo.
+                Các loại sự kiện hiện chưa hỗ trợ mở nhanh từ đây (hoặc không
+                thuộc quyền của bạn) sẽ chỉ hiển thị để tham khảo.
               </p>
             </div>
 
