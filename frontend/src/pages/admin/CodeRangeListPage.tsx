@@ -1,11 +1,33 @@
 import { getCodeRangeStatus } from "@/api/codeRangeApi";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { CodeRangeStatusResponse } from "@/types/codeRange";
-import { Badge, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+
+const getStatusConfig = (status: string) => {
+  switch (status) {
+    case "OK":
+      return { label: "OK", variant: "success" as const };
+    case "NEARLY_EXHAUSTED":
+      return { label: "Gần hết", variant: "warning" as const };
+    case "EXHAUSTED":
+      return { label: "Đã hết", variant: "destructive" as const };
+    default:
+      return { label: status, variant: "secondary" as const };
+  }
+};
 
 const CodeRangeListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -17,7 +39,7 @@ const CodeRangeListPage: React.FC = () => {
         const data = await getCodeRangeStatus();
         setRanges(data);
       } catch (error) {
-        toast.error('Không thể tải danh sách dải mã');
+        toast.error("Không thể tải danh sách dải mã");
       } finally {
         setLoading(false);
       }
@@ -25,68 +47,129 @@ const CodeRangeListPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'OK':
-        return <Badge className="bg-green-500">OK</Badge>;
-      case 'NEARLY_EXHAUSTED':
-        return <Badge className="bg-yellow-500">Gần hết</Badge>;
-      case 'EXHAUSTED':
-        return <Badge className="bg-red-500">Đã hết</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
-
   if (loading) {
-    return <div className="flex justify-center p-8">Đang tải...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+          <p className="mt-4 text-sm text-muted-foreground">Đang tải...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Quản lý dải mã truy xuất</h1>
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Quản lý dải mã truy xuất</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Quản lý các dải mã truy xuất đã cấp cho tổ chức
+          </p>
+        </div>
         <Link to="/admin/code-ranges/create">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
+          <Button className="shrink-0">
+            <Plus className="h-4 w-4 mr-2" />
             Cấp dải mã mới
           </Button>
         </Link>
       </div>
 
+      {/* Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách dải mã</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            Danh sách dải mã
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              ({ranges.length})
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {ranges.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">Chưa có dải mã nào</div>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="rounded-full bg-muted p-4 mb-4">
+                <Plus className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground">Chưa có dải mã nào</p>
+              <p className="text-sm text-muted-foreground/70 mt-1">
+                Nhấn "Cấp dải mã mới" để tạo dải mã cho tổ chức
+              </p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Tổ chức</th>
-                    <th className="text-left p-2">Tiền tố</th>
-                    <th className="text-right p-2">Hạn mức</th>
-                    <th className="text-right p-2">Đã dùng</th>
-                    <th className="text-right p-2">% sử dụng</th>
-                    <th className="text-center p-2">Trạng thái</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ranges.map((range) => (
-                    <tr key={range.id} className="border-b hover:bg-gray-50">
-                      <td className="p-2">{range.organizationName}</td>
-                      <td className="p-2 font-mono">{range.prefix}</td>
-                      <td className="p-2 text-right">{range.totalLimit}</td>
-                      <td className="p-2 text-right">{range.usedCount}</td>
-                      <td className="p-2 text-right">{range.usagePercent.toFixed(1)}%</td>
-                      <td className="p-2 text-center">{getStatusBadge(range.status)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="py-3">Tổ chức</TableHead>
+                    <TableHead className="py-3">Tiền tố</TableHead>
+                    <TableHead className="py-3 text-right">Hạn mức</TableHead>
+                    <TableHead className="py-3 text-right">Đã dùng</TableHead>
+                    <TableHead className="py-3 text-right">% sử dụng</TableHead>
+                    <TableHead className="py-3 text-center">Trạng thái</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ranges.map((range) => {
+                    const config = getStatusConfig(range.status);
+                    return (
+                      <TableRow
+                        key={range.id}
+                        className="transition-colors hover:bg-muted/50"
+                      >
+                        <TableCell className="font-medium">
+                          {range.organizationName}
+                        </TableCell>
+                        <TableCell>
+                          <code className="rounded bg-muted px-2 py-0.5 text-sm font-mono">
+                            {range.prefix}
+                          </code>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {range.totalLimit.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {range.usedCount.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span
+                            className={
+                              range.usagePercent > 80
+                                ? "text-red-600 font-semibold"
+                                : range.usagePercent > 50
+                                ? "text-yellow-600 font-semibold"
+                                : "text-green-600"
+                            }
+                          >
+                            {range.usagePercent.toFixed(1)}%
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge
+                            variant={
+                              range.status === "OK"
+                                ? "default"
+                                : range.status === "NEARLY_EXHAUSTED"
+                                ? "default"
+                                : "destructive"
+                            }
+                            className={
+                              range.status === "NEARLY_EXHAUSTED"
+                                ? "bg-yellow-500 hover:bg-yellow-600 text-white"
+                                : range.status === "OK"
+                                ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                                : ""
+                            }
+                          >
+                            {config.label}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>

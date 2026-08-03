@@ -1,7 +1,7 @@
 import React from 'react';
 import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import type { PermissionItem } from '@/types/permission';
 import { HelpCircle } from 'lucide-react';
 import {
   Tooltip,
@@ -9,6 +9,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { getActionLabel } from '@/utils/permissionLables';
+import type { PermissionItem } from '@/types/permission';
 
 interface PermissionGroupProps {
   resourceLabel: string;
@@ -30,7 +32,7 @@ export const PermissionGroup: React.FC<PermissionGroupProps> = ({
         {permissions.map((perm) => (
           <div key={perm.permissionId} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm">{perm.action}</span>
+              <span className="text-sm">{getActionLabel(perm.action)}</span>
               {perm.description && (
                 <TooltipProvider>
                   <Tooltip>

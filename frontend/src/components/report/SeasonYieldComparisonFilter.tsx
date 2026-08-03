@@ -21,7 +21,10 @@ import { cn } from "@/lib/utils";
 
 const ALL_VALUE = "__all__";
 const CURRENT_YEAR = new Date().getFullYear();
-const YEAR_OPTIONS = Array.from({ length: 7 }, (_, index) => CURRENT_YEAR + 1 - index);
+const YEAR_OPTIONS = Array.from(
+  { length: 7 },
+  (_, index) => CURRENT_YEAR + 1 - index,
+);
 
 interface SeasonYieldComparisonFilterProps {
   defaultYears: number[];
@@ -45,53 +48,75 @@ export function SeasonYieldComparisonFilter({
   const [hasUnavailableOptions, setHasUnavailableOptions] = useState(false);
 
   const [farmAreas, setFarmAreas] = useState<FarmArea[]>([]);
-  const [productCategories, setProductCategories] = useState<ProductCategory[]>([]);
+  const [productCategories, setProductCategories] = useState<ProductCategory[]>(
+    [],
+  );
   const [organizations, setOrganizations] = useState<Organization[]>([]);
 
   const selectedProductCategoryLabel =
     productCategoryId === ALL_VALUE
       ? "Tất cả loại nông sản"
-      : productCategories.find((category) => category.id === productCategoryId)?.name ??
-        "Không xác định";
+      : (productCategories.find((category) => category.id === productCategoryId)
+          ?.name ?? "Không xác định");
 
   const selectedFarmAreaLabel =
     farmAreaId === ALL_VALUE
       ? "Tất cả vùng trồng"
-      : farmAreas.find((area) => area.id === farmAreaId)?.name ?? "Không xác định";
+      : (farmAreas.find((area) => area.id === farmAreaId)?.name ??
+        "Không xác định");
 
   const selectedOrganizationLabel =
     organizationId === ALL_VALUE
       ? "Tất cả tổ chức"
-      : organizations.find((organization) => organization.id === organizationId)?.name ??
-        "Không xác định";
+      : (organizations.find(
+          (organization) => organization.id === organizationId,
+        )?.name ?? "Không xác định");
 
   useEffect(() => {
     let active = true;
 
-    async function loadOptions() {
+    const loadOptions = async () => {
       setLoadingOptions(true);
-      const results = await Promise.allSettled([
-        getProductCategories({ isActive: true }),
-        getFarmAreas(),
-        currentUserRole === "VT-01" ? getOrganizations() : Promise.resolve([]),
-      ]);
-
-      if (!active) return;
-
-      const [categoryResult, farmAreaResult, organizationResult] = results;
-      if (categoryResult.status === "fulfilled") {
-        setProductCategories(categoryResult.value);
+      try {
+        const [categories, areas, orgs] = await Promise.all([
+          getProductCategories({ isActive: true }).catch((err) => {
+            console.error("Lỗi product categories:", err);
+            return [];
+          }),
+          getFarmAreas().catch((err) => {
+            console.error("Lỗi farm areas:", err);
+            return [];
+          }),
+          currentUserRole === "VT-01"
+            ? getOrganizations()
+                .then((data) =>
+                  data.map((item: any) => ({
+                    id: item.organizationID || item.id,
+                    name: item.organizationName || item.name,
+                    code: item.organizationCode || item.code,
+                    type: item.organizationType || item.type,
+                    status: item.status,
+                    createdAt: item.createdAt,
+                    updatedAt: item.updatedAt,
+                  }))
+                )
+                .catch((err) => {
+                  console.error("Lỗi organizations:", err);
+                  return [];
+                })
+            : Promise.resolve([]),
+        ]);
+        setProductCategories(categories);
+        setFarmAreas(areas);
+        setOrganizations(orgs);
+        setHasUnavailableOptions(false);
+      } catch (err) {
+        console.error("Lỗi load options:", err);
+        setHasUnavailableOptions(true);
+      } finally {
+        setLoadingOptions(false);
       }
-      if (farmAreaResult.status === "fulfilled") {
-        setFarmAreas(farmAreaResult.value);
-      }
-      if (organizationResult.status === "fulfilled") {
-        setOrganizations(organizationResult.value);
-      }
-
-      setHasUnavailableOptions(results.some((result) => result.status === "rejected"));
-      setLoadingOptions(false);
-    }
+    };
 
     void loadOptions();
     return () => {
@@ -142,7 +167,8 @@ export function SeasonYieldComparisonFilter({
               <div>
                 <Label>Năm cần so sánh</Label>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Có thể chọn một hoặc nhiều năm. API sẽ tự phân loại các mùa vụ theo ngày gieo.
+                  Có thể chọn một hoặc nhiều năm. API sẽ tự phân loại các mùa vụ
+                  theo ngày gieo.
                 </p>
               </div>
               <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
@@ -167,24 +193,36 @@ export function SeasonYieldComparisonFilter({
               })}
             </div>
             {validationMessage && (
-              <p className="mt-2 text-sm font-medium text-destructive">{validationMessage}</p>
+              <p className="mt-2 text-sm font-medium text-destructive">
+                {validationMessage}
+              </p>
             )}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="season-yield-product-category">Loại nông sản</Label>
+              <Label htmlFor="season-yield-product-category">
+                Loại nông sản
+              </Label>
               <Select
                 value={productCategoryId}
-                onValueChange={(value) => setProductCategoryId(value ?? ALL_VALUE)}
+                onValueChange={(value) =>
+                  setProductCategoryId(value ?? ALL_VALUE)
+                }
               >
-                <SelectTrigger id="season-yield-product-category" className="w-full" disabled={loadingOptions}>
+                <SelectTrigger
+                  id="season-yield-product-category"
+                  className="w-full"
+                  disabled={loadingOptions}
+                >
                   <SelectValue placeholder="Tất cả loại nông sản">
                     {selectedProductCategoryLabel}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={ALL_VALUE}>Tất cả loại nông sản</SelectItem>
+                  <SelectItem value={ALL_VALUE}>
+                    Tất cả loại nông sản
+                  </SelectItem>
                   {productCategories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
@@ -200,7 +238,11 @@ export function SeasonYieldComparisonFilter({
                 value={farmAreaId}
                 onValueChange={(value) => setFarmAreaId(value ?? ALL_VALUE)}
               >
-                <SelectTrigger id="season-yield-farm-area" className="w-full" disabled={loadingOptions}>
+                <SelectTrigger
+                  id="season-yield-farm-area"
+                  className="w-full"
+                  disabled={loadingOptions}
+                >
                   <SelectValue placeholder="Tất cả vùng trồng">
                     {selectedFarmAreaLabel}
                   </SelectValue>
@@ -226,7 +268,11 @@ export function SeasonYieldComparisonFilter({
                     setFarmAreaId(ALL_VALUE);
                   }}
                 >
-                  <SelectTrigger id="season-yield-organization" className="w-full" disabled={loadingOptions}>
+                  <SelectTrigger
+                    id="season-yield-organization"
+                    className="w-full"
+                    disabled={loadingOptions}
+                  >
                     <SelectValue placeholder="Tất cả tổ chức">
                       {selectedOrganizationLabel}
                     </SelectValue>
@@ -247,12 +293,18 @@ export function SeasonYieldComparisonFilter({
           {hasUnavailableOptions && (
             <div className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-amber-200">
               <Info className="mt-0.5 h-4 w-4 shrink-0" />
-              Một số danh sách bộ lọc không tải được theo quyền hiện tại. Bạn vẫn có thể so sánh theo năm.
+              Một số danh sách bộ lọc không tải được theo quyền hiện tại. Bạn
+              vẫn có thể so sánh theo năm.
             </div>
           )}
 
           <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
-            <Button type="button" variant="outline" onClick={handleReset} disabled={loading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleReset}
+              disabled={loading}
+            >
               <RotateCcw />
               Đặt lại
             </Button>

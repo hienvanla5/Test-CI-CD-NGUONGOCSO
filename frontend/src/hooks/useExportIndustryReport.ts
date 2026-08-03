@@ -4,11 +4,6 @@ import { toast } from 'sonner';
 import { getIndustrySummary, exportIndustrySummary } from '@/api/reportApi';
 import type { IndustryReportResponse, IndustryReportParams } from '@/types/report';
 
-const ASSET_BASE_URL = import.meta.env.VITE_ASSET_BASE_URL || 'http://localhost:8080';
-
-const resolveFileUrl = (fileUrl: string) =>
-  fileUrl.startsWith('http') ? fileUrl : `${ASSET_BASE_URL}${fileUrl}`;
-
 interface UseExportIndustryReportResult {
   report: IndustryReportResponse | null;
   isLoading: boolean;
@@ -50,11 +45,11 @@ export const useExportIndustryReport = (): UseExportIndustryReportResult => {
     setIsExporting(true);
     try {
       const result = await exportIndustrySummary({ ...params, format });
-      window.open(resolveFileUrl(result.fileUrl), '_blank');
+      downloadBlob(result.blob, result.fileName);
       toast.success(`Xuất báo cáo ${format} thành công.`);
     } catch (err: any) {
       const message =
-        err.response?.data?.message ||
+        extractErrorMessage(err) ||
         (err.response ? 'Không thể xuất báo cáo.' : 'Không thể kết nối đến máy chủ.');
       toast.error(message);
     } finally {
@@ -69,3 +64,44 @@ export const useExportIndustryReport = (): UseExportIndustryReportResult => {
 
   return { report, isLoading, isExporting, error, fetchReport, exportReport, reset };
 };
+
+/**
+ * Kích hoạt trình duyệt tải file từ Blob.
+ */
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}
+
+/**
+ * Khi backend trả lỗi (BusinessException/4xx/5xx) kèm responseType blob,
+ * error.response.data là Blob chứa JSON. Hàm này parse Blob để lấy message.
+ */
+async function extractErrorMessage(err: any): Promise<string | null> {
+  const data = err.response?.data;
+  if (!data) return null;
+
+  // Trường hợp response lỗi thường (JSON object trực tiếp)
+  if (typeof data === 'object' && data.message) {
+    return data.message as string;
+  }
+
+  // Trường hợp response lỗi là Blob JSON (do responseType: 'blob')
+  if (data instanceof Blob && data.type?.includes('application/json')) {
+    try {
+      const text = await data.text();
+      const parsed = JSON.parse(text);
+      return parsed?.message || parsed?.error || null;
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
