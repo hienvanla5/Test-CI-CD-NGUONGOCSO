@@ -28,7 +28,6 @@ const inputIconClass =
 export const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showOrganizationCode, setShowOrganizationCode] = useState(false);
 
   const { login: authLogin } = useAuth();
   const navigate = useNavigate();
@@ -104,6 +103,7 @@ export const LoginForm: React.FC = () => {
         onSubmit={handleSubmit(onSubmit)}
         noValidate
       >
+        {/* Tên đăng nhập */}
         <div className="flex flex-col gap-1.5">
           <Label className="sr-only" htmlFor="username">
             Tên đăng nhập
@@ -133,6 +133,7 @@ export const LoginForm: React.FC = () => {
           )}
         </div>
 
+        {/* Mật khẩu */}
         <div className="flex flex-col gap-1.5">
           <Label className="sr-only" htmlFor="password">
             Mật khẩu
@@ -184,55 +185,33 @@ export const LoginForm: React.FC = () => {
           )}
         </div>
 
-        <button
-          type="button"
-          className={cn(
-            "-mt-0.5 cursor-pointer self-center border-0 bg-transparent",
-            "text-xs font-medium text-emerald-700",
-            "hover:text-emerald-800 hover:underline hover:underline-offset-3",
-            "focus-visible:rounded focus-visible:outline-2",
-            "focus-visible:outline-offset-2 focus-visible:outline-emerald-400",
-          )}
-          onClick={() => setShowOrganizationCode((current) => !current)}
-          aria-expanded={showOrganizationCode}
-          aria-controls="organization-code-field"
-        >
-          {showOrganizationCode
-            ? "Ẩn mã tổ chức"
-            : "Đăng nhập bằng mã tổ chức"}
-        </button>
+        {/* Mã tổ chức - luôn hiển thị */}
+        <div className="flex flex-col gap-1.5">
+          <Label className="sr-only" htmlFor="organizationCode">
+            Mã tổ chức
+          </Label>
 
-        {showOrganizationCode && (
           <div
-            id="organization-code-field"
-            className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-2 duration-200"
+            className={inputShellClass(Boolean(errors.organizationCode))}
           >
-            <Label className="sr-only" htmlFor="organizationCode">
-              Mã tổ chức
-            </Label>
+            <Building2 className={inputIconClass} aria-hidden="true" />
 
-            <div
-              className={inputShellClass(Boolean(errors.organizationCode))}
-            >
-              <Building2 className={inputIconClass} aria-hidden="true" />
-
-              <Input
-                id="organizationCode"
-                autoComplete="organization"
-                aria-invalid={Boolean(errors.organizationCode)}
-                className={inputClass}
-                placeholder="Mã tổ chức"
-                {...register("organizationCode")}
-              />
-            </div>
-
-            {errors.organizationCode && (
-              <p className="mx-4 text-xs text-red-500" role="alert">
-                {errors.organizationCode.message}
-              </p>
-            )}
+            <Input
+              id="organizationCode"
+              autoComplete="organization"
+              aria-invalid={Boolean(errors.organizationCode)}
+              className={inputClass}
+              placeholder="Mã tổ chức"
+              {...register("organizationCode")}
+            />
           </div>
-        )}
+
+          {errors.organizationCode && (
+            <p className="mx-4 text-xs text-red-500" role="alert">
+              {errors.organizationCode.message}
+            </p>
+          )}
+        </div>
 
         <Button
           type="submit"
