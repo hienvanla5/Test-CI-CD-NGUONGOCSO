@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BrowserQRCodeReader } from "@zxing/browser";
-import { LogIn, QrCode, ScanLine, Sprout, Leaf, Search, ArrowRight, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
+import { LogIn, QrCode, ScanLine, Sprout, Leaf, Search, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";

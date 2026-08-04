@@ -3,11 +3,9 @@ import { Link, useLocation } from "react-router-dom";
 import {
   AlertTriangle,
   Award,
-  BarChart2,
   Bell,
   BookOpen,
   Building2,
-  Download,
   FileText,
   FileUp,
   Hash,
