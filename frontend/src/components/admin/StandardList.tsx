@@ -30,7 +30,6 @@ import type { Standard } from "@/types/standard";
 
 const PAGE_SIZE = 10;
 
-// Mapping cho bộ lọc trạng thái
 const statusFilterOptions = [
   { value: "all", label: "Tất cả" },
   { value: "true", label: "Đang hoạt động" },
@@ -46,7 +45,6 @@ export const StandardList: React.FC = () => {
   );
   const [loading, setLoading] = useState(true);
 
-  // Dialog state
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [editingStandard, setEditingStandard] = useState<Standard | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -133,13 +131,11 @@ export const StandardList: React.FC = () => {
 
   const totalPages = Math.ceil(totalElements / PAGE_SIZE);
 
-  // Lấy label hiển thị cho bộ lọc trạng thái
   const getStatusFilterLabel = (value: string) => {
     const option = statusFilterOptions.find((opt) => opt.value === value);
     return option ? option.label : "Trạng thái";
   };
 
-  // Xác định giá trị hiện tại của select
   const currentFilterValue =
     isActiveFilter === undefined ? "all" : String(isActiveFilter);
 
@@ -210,36 +206,49 @@ export const StandardList: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {standards.map((std) => (
-                      <TableRow key={std.id}>
-                        <TableCell className="font-medium">
-                          {std.name}
-                        </TableCell>
-                        <TableCell>{std.issuingBody || "---"}</TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {std.description || "---"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={std.isActive ? "default" : "secondary"}
-                          >
-                            {std.isActive ? "Hoạt động" : "Không hoạt động"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(std.createdAt).toLocaleDateString("vi-VN")}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditDialog(std)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {standards.map((std) => {
+                      const isActive = std.isActive;
+                      return (
+                        <TableRow
+                          key={std.id}
+                          className={!isActive ? "opacity-60" : ""}
+                        >
+                          <TableCell className="font-medium">
+                            {std.name}
+                          </TableCell>
+                          <TableCell>{std.issuingBody || "---"}</TableCell>
+                          <TableCell className="max-w-xs truncate">
+                            {std.description || "---"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={isActive ? "default" : "outline"}
+                              className={
+                                !isActive
+                                  ? "text-muted-foreground bg-muted/50 border-muted-foreground/20"
+                                  : ""
+                              }
+                            >
+                              {isActive ? "Hoạt động" : "Không hoạt động"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(std.createdAt).toLocaleDateString("vi-VN")}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditDialog(std)}
+                              disabled={!isActive}
+                              className={!isActive ? "text-muted-foreground" : ""}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

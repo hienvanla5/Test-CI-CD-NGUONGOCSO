@@ -15,10 +15,8 @@ export interface OrganizationMember {
   roleId: number;
   roleCode: string | null;
   roleName: string | null;
-  customPermissions: string | null;
   status: MemberStatus;
   joinedAt: string;
-  
   email?: string | null;
   phone?: string | null;
 }
