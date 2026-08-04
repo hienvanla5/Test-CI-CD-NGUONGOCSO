@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BrowserQRCodeReader } from "@zxing/browser";
-import { LogIn, QrCode, ScanLine, Sprout } from "lucide-react";
+import { LogIn, QrCode, ScanLine, Sprout, Leaf, Search, ArrowRight, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ export default function PublicHomePage() {
   const streamRef = useRef<MediaStream | null>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
 
-  // Nếu user đã đăng nhập, chuyển hướng vào dashboard nội bộ
   useEffect(() => {
     if (!isAuthLoading && user) {
       navigate("/dashboard", { replace: true });
@@ -29,10 +28,8 @@ export default function PublicHomePage() {
   const stopScanner = () => {
     controlsRef.current?.stop();
     controlsRef.current = null;
-
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
-
     setIsScanning(false);
   };
 
@@ -41,7 +38,6 @@ export default function PublicHomePage() {
       toast.error("Trình duyệt không hỗ trợ camera");
       return;
     }
-
     setIsScanning(true);
   };
 
@@ -54,7 +50,6 @@ export default function PublicHomePage() {
     const startScanning = async () => {
       try {
         await new Promise((resolve) => window.setTimeout(resolve, 150));
-
         const video = videoRef.current;
         if (!video) {
           throw new Error("Không tìm thấy vùng hiển thị camera.");
@@ -62,11 +57,7 @@ export default function PublicHomePage() {
 
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: false,
-          video: {
-            facingMode: {
-              ideal: "environment",
-            },
-          },
+          video: { facingMode: { ideal: "environment" } },
         });
 
         if (!isActive) {
@@ -82,7 +73,6 @@ export default function PublicHomePage() {
           (result) => {
             if (!result || !isActive) return;
 
-            // Trích xuất codeValue từ nội dung QR
             let codeValue = result.getText();
             if (codeValue.includes("/public/trace/")) {
               codeValue = codeValue.split("/public/trace/")[1];
@@ -107,27 +97,17 @@ export default function PublicHomePage() {
           controls.stop();
           return;
         }
-
         controlsRef.current = controls;
       } catch (scanError: unknown) {
         if (!isActive) return;
-
-        if (
-          scanError instanceof DOMException &&
-          scanError.name === "NotAllowedError"
-        ) {
+        if (scanError instanceof DOMException && scanError.name === "NotAllowedError") {
           toast.error("Bạn chưa cho phép dùng camera. Hãy cấp quyền camera rồi thử lại.");
           return;
         }
-
-        if (
-          scanError instanceof DOMException &&
-          scanError.name === "NotReadableError"
-        ) {
+        if (scanError instanceof DOMException && scanError.name === "NotReadableError") {
           toast.error("Camera đang được ứng dụng khác sử dụng. Hãy đóng ứng dụng đó rồi thử lại.");
           return;
         }
-
         toast.error("Không thể mở camera. Hãy kiểm tra camera hoặc nhập mã thủ công.");
       } finally {
         if (!isActive) return;
@@ -143,7 +123,6 @@ export default function PublicHomePage() {
       isActive = false;
       controlsRef.current?.stop();
       controlsRef.current = null;
-
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
@@ -158,95 +137,144 @@ export default function PublicHomePage() {
     navigate(`/public/trace/${code.trim()}`);
   };
 
+  const features = [
+    { icon: ShieldCheck, title: "Minh bạch", desc: "Thông tin rõ ràng từ nông trại" },
+    { icon: Truck, title: "Hành trình", desc: "Theo dõi từng công đoạn vận chuyển" },
+    { icon: BadgeCheck, title: "Chứng nhận", desc: "Đạt chuẩn an toàn thực phẩm" },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col items-center justify-center px-4 py-10 relative">
-      {/* Nút Đăng nhập – góc trên phải */}
-      {!isAuthLoading && !user && (
-        <Button
-          variant="outline"
-          className="absolute top-4 right-4 gap-2"
-          onClick={() => navigate("/login")}
-        >
-          <LogIn className="h-4 w-4" />
-          Đăng nhập
-        </Button>
-      )}
-
-      <div className="max-w-md w-full text-center space-y-8">
-        {/* Logo & Title */}
-        <div className="space-y-3">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
-            <Sprout className="h-10 w-10 text-emerald-600" />
-          </div>
-          <h1 className="text-3xl font-bold text-emerald-700">Nguồn gốc số</h1>
-          <p className="text-muted-foreground text-sm">
-            Tra cứu hành trình sản phẩm nông sản
-          </p>
-        </div>
-
-        {/* QR Scanner Container */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          {isScanning ? (
-            <div className="space-y-3">
-              <div className="overflow-hidden rounded-lg bg-black">
-                <video
-                  ref={videoRef}
-                  className="w-full aspect-square object-cover"
-                  muted
-                  playsInline
-                />
-              </div>
-              <Button
-                variant="outline"
-                onClick={stopScanner}
-                className="w-full"
-              >
-                Hủy quét
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <Button
-                onClick={startScanner}
-                className="w-full h-14 text-lg gap-2 bg-emerald-600 hover:bg-emerald-700"
-              >
-                <ScanLine className="h-5 w-5" />
-                Quét mã QR
-              </Button>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-muted-foreground">
-                    Hoặc nhập mã
-                  </span>
-                </div>
-              </div>
-
-              <form onSubmit={handleSubmit} className="flex gap-2">
-                <Input
-                  type="text"
-                  placeholder="Nhập mã tra cứu"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  className="flex-1"
-                />
-                <Button type="submit" variant="secondary">
-                  <QrCode className="h-4 w-4" />
-                </Button>
-              </form>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Nguồn gốc số – Thông tin minh bạch từ
-          nông trại đến bàn ăn
-        </p>
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-green-50 flex flex-col items-center relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute -top-20 -left-20 w-80 h-80 bg-emerald-200/40 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -right-20 w-96 h-96 bg-green-100/50 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-lime-200/30 rounded-full blur-3xl" />
       </div>
+
+      {/* Header */}
+      <header className="w-full py-4 px-6 flex justify-between items-center relative z-10">
+        <div className="flex items-center gap-2">
+          <Sprout className="h-6 w-6 text-emerald-700" />
+          <span className="font-bold text-lg text-emerald-800">Nguồn gốc số</span>
+        </div>
+        {!isAuthLoading && !user && (
+          <Button
+            variant="outline"
+            className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+            onClick={() => navigate("/login")}
+          >
+            <LogIn className="h-4 w-4" />
+            Đăng nhập
+          </Button>
+        )}
+      </header>
+
+      {/* Hero Section */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8 md:py-16 relative z-10 flex flex-col lg:flex-row items-center gap-12">
+        {/* Left Content */}
+        <div className="flex-1 text-center lg:text-left space-y-6">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
+              <Leaf className="h-4 w-4" />
+              Truy xuất nguồn gốc thực phẩm
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight">
+              <span className="text-gray-800">Hành trình </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-green-500">
+                xanh
+              </span>
+              <br />
+              <span className="text-gray-800">từ nông trại</span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-md mx-auto lg:mx-0">
+              Khám phá câu chuyện đằng sau mỗi sản phẩm nông sản bạn chọn. Minh bạch, an toàn, và trọn vẹn thiên nhiên.
+            </p>
+          </div>
+
+          {/* Feature Icons */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0">
+            {features.map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="flex flex-col items-center lg:items-start gap-1 p-3 rounded-xl bg-white/70 backdrop-blur-sm border border-emerald-100 shadow-sm">
+                <Icon className="h-6 w-6 text-emerald-600" />
+                <span className="text-sm font-semibold text-gray-700">{title}</span>
+                <span className="text-xs text-muted-foreground text-center lg:text-left">{desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: QR Scanner Card */}
+        <div className="flex-1 w-full max-w-md">
+          <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-emerald-100 p-6 md:p-8 space-y-5">
+            {isScanning ? (
+              <div className="space-y-4">
+                <div className="overflow-hidden rounded-2xl bg-black relative group">
+                  <video
+                    ref={videoRef}
+                    className="w-full aspect-square object-cover"
+                    muted
+                    playsInline
+                  />
+                  <div className="absolute inset-0 border-2 border-emerald-400 rounded-2xl pointer-events-none" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-48 h-48 border-2 border-emerald-400 rounded-lg" />
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={stopScanner}
+                  className="w-full border-gray-200 text-gray-600 hover:bg-gray-50"
+                >
+                  Hủy quét
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <Button
+                  onClick={startScanner}
+                  className="w-full h-14 text-lg gap-2 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-700 hover:to-green-600 text-white shadow-lg shadow-emerald-200/50 transition-all hover:shadow-xl"
+                >
+                  <ScanLine className="h-5 w-5" />
+                  Quét mã QR
+                </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-muted-foreground">
+                      Hoặc nhập mã
+                    </span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Nhập mã tra cứu"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    className="flex-1 border-emerald-200 focus-visible:ring-emerald-300"
+                  />
+                  <Button type="submit" variant="search">
+                    <Search className="h-4 w-4" />
+                    <span className="sr-only">Tìm kiếm</span>
+                  </Button>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full py-6 text-center relative z-10">
+        <p className="text-sm text-muted-foreground">
+          © {new Date().getFullYear()} Nguồn gốc số – Thông tin minh bạch từ nông trại đến bàn ăn
+        </p>
+      </footer>
     </div>
   );
 }

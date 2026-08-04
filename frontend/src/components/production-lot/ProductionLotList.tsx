@@ -8,13 +8,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -23,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import type { ProductionLot } from "@/types/productionLot";
 import {
   ClipboardCheck,
@@ -33,6 +36,7 @@ import {
   Plus,
   Search,
   ShoppingCart,
+  Sprout,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -58,29 +62,42 @@ interface ProductionLotListProps {
   onRecordProcurement?: (lotId: string) => void;
 }
 
-const statusLabels: Record<ProductionLot["status"], string> = {
-  DRAFT: "Bản nháp",
-  PENDING: "Chờ duyệt",
-  APPROVED: "Đã duyệt",
-  REJECTED: "Bị từ chối",
-  HARVESTED: "Đã thu hoạch",
-  PACKAGED: "Đã đóng gói",
-  CLOSED: "Đã kết thúc",
-};
-
-const statusClasses: Record<ProductionLot["status"], string> = {
-  DRAFT: "bg-status-draft/10 text-status-draft",
-  PENDING: "bg-status-pending/10 text-status-pending",
-  APPROVED: "bg-status-approved/10 text-status-approved",
-  REJECTED: "bg-status-rejected/10 text-status-rejected",
-  HARVESTED: "bg-status-harvested/10 text-status-harvested",
-  PACKAGED: "bg-status-packaged/10 text-status-packaged",
-  CLOSED: "bg-status-completed/10 text-status-completed",
+const statusConfig: Record<
+  ProductionLot["status"],
+  { label: string; className: string }
+> = {
+  DRAFT: {
+    label: "Bản nháp",
+    className: "bg-gray-100 text-gray-700 border-gray-300",
+  },
+  PENDING: {
+    label: "Chờ duyệt",
+    className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+  },
+  APPROVED: {
+    label: "Đã duyệt",
+    className: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  },
+  REJECTED: {
+    label: "Bị từ chối",
+    className: "bg-red-100 text-red-800 border-red-300",
+  },
+  HARVESTED: {
+    label: "Đã thu hoạch",
+    className: "bg-lime-100 text-lime-800 border-lime-300",
+  },
+  PACKAGED: {
+    label: "Đã đóng gói",
+    className: "bg-sky-100 text-sky-800 border-sky-300",
+  },
+  CLOSED: {
+    label: "Đã kết thúc",
+    className: "bg-purple-100 text-purple-800 border-purple-300",
+  },
 };
 
 const formatDate = (value: string | null) => {
   if (!value) return "—";
-
   return new Intl.DateTimeFormat("vi-VN").format(
     new Date(`${value}T00:00:00`),
   );
@@ -112,7 +129,6 @@ export const ProductionLotList = ({
 
   const handleConfirmSubmit = async () => {
     if (!confirmingLot) return;
-
     setIsSubmitting(true);
     try {
       await onSubmitForApproval(confirmingLot.id);
@@ -124,7 +140,6 @@ export const ProductionLotList = ({
 
   const filteredLots = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-
     return lots.filter((lot) => {
       const matchesSearch =
         !keyword ||
@@ -135,25 +150,42 @@ export const ProductionLotList = ({
         ].some((value) => value.toLowerCase().includes(keyword));
       const matchesStatus =
         statusFilter === "ALL" || lot.status === statusFilter;
-
       return matchesSearch && matchesStatus;
     });
   }, [lots, search, statusFilter]);
 
+  const getStatusBadge = (status: ProductionLot["status"]) => {
+    const config = statusConfig[status];
+    return (
+      <Badge
+        variant="outline"
+        className={`${config.className} border text-xs font-semibold px-2.5 py-0.5`}
+      >
+        {config.label}
+      </Badge>
+    );
+  };
+
   return (
     <>
-      <Card className="overflow-hidden">
-        <CardHeader className="border-b">
+      <Card className="border-emerald-100 bg-white/80 backdrop-blur-sm shadow-sm">
+        <CardHeader className="border-b border-emerald-100">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <CardTitle>Danh sách lô sản xuất</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Theo dõi lô theo vùng trồng, nông sản và trạng thái xử lý.
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                <Sprout className="h-5 w-5 text-emerald-700" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-bold text-emerald-800">
+                  Danh sách lô sản xuất
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Theo dõi lô theo vùng trồng, nông sản và trạng thái
+                </p>
+              </div>
             </div>
-
             {canCreate && (
-              <Button type="button" onClick={onCreate}>
+              <Button type="button" variant="create" onClick={onCreate}>
                 <Plus className="size-4" />
                 Tạo lô sản xuất
               </Button>
@@ -161,38 +193,47 @@ export const ProductionLotList = ({
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
-          <div className="grid gap-3 border-b bg-table-header p-4 md:grid-cols-[1fr_220px]">
-            <label className="relative">
+        <CardContent className="p-4">
+          {/* Bộ lọc */}
+          <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_220px]">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="bg-white pl-9"
+                className="bg-white pl-9 border-emerald-200 focus-visible:ring-emerald-100"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Tìm tên lô, vùng trồng hoặc loại nông sản..."
                 aria-label="Tìm kiếm lô sản xuất"
               />
-            </label>
+            </div>
 
-            <select
-              className="h-11 rounded-lg border border-input bg-white px-4 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            <Select
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              aria-label="Lọc theo trạng thái"
+              onValueChange={(value) => setStatusFilter(value || "")}
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              {Object.entries(statusLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="border-emerald-200 focus:ring-emerald-100">
+                <SelectValue placeholder="Tất cả trạng thái">
+                  {statusFilter === "ALL"
+                    ? "Tất cả trạng thái"
+                    : statusConfig[statusFilter as ProductionLot["status"]]?.label || statusFilter}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
+                {Object.entries(statusConfig).map(([value, config]) => (
+                  <SelectItem key={value} value={value}>
+                    {config.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="overflow-x-auto">
-            <Table className="min-w-[1180px]">
+          {/* Bảng */}
+          <div className="overflow-x-auto rounded-lg border border-emerald-100">
+            <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-emerald-50/50">
                   {[
                     "Tên lô",
                     "Vùng trồng",
@@ -203,7 +244,9 @@ export const ProductionLotList = ({
                     "Thao tác",
                     "Chi tiết",
                   ].map((title) => (
-                    <TableHead key={title}>{title}</TableHead>
+                    <TableHead key={title} className="text-emerald-800 font-semibold">
+                      {title}
+                    </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
@@ -215,6 +258,7 @@ export const ProductionLotList = ({
                       colSpan={8}
                       className="py-12 text-center text-muted-foreground"
                     >
+                      <Sprout className="mx-auto mb-2 h-6 w-6 animate-spin text-emerald-500" />
                       Đang tải danh sách lô sản xuất...
                     </TableCell>
                   </TableRow>
@@ -240,8 +284,8 @@ export const ProductionLotList = ({
                       showRecordProcurement;
 
                     return (
-                      <TableRow key={lot.id}>
-                        <TableCell className="font-semibold text-foreground">
+                      <TableRow key={lot.id} className="hover:bg-emerald-50/30">
+                        <TableCell className="font-semibold text-emerald-800">
                           {lot.name}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
@@ -264,17 +308,13 @@ export const ProductionLotList = ({
                             <button
                               type="button"
                               onClick={() => setConfirmingLot(lot)}
-                              className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity hover:opacity-75 ${statusClasses[lot.status]}`}
+                              className="rounded-full px-2.5 py-1 text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-colors"
                               title="Nhấn để gửi duyệt"
                             >
-                              {statusLabels[lot.status]}
+                              {statusConfig[lot.status].label}
                             </button>
                           ) : (
-                            <span
-                              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[lot.status]}`}
-                            >
-                              {statusLabels[lot.status]}
-                            </span>
+                            getStatusBadge(lot.status)
                           )}
                         </TableCell>
 
@@ -283,53 +323,47 @@ export const ProductionLotList = ({
                             {showEdit && (
                               <Button
                                 size="sm"
-                                type="button"
-                                variant="outline"
+                                variant="edit"
                                 onClick={() => onEdit(lot.id)}
                               >
                                 <Pencil className="size-4" />
                                 Chỉnh sửa
                               </Button>
                             )}
-
                             {showApprove && (
                               <Button
                                 size="sm"
-                                type="button"
+                                variant="search"
                                 onClick={() => setApprovingLot(lot)}
                               >
                                 <ClipboardCheck className="size-4" />
                                 Duyệt lô
                               </Button>
                             )}
-
                             {showRecordFarmLog && (
                               <Button
                                 size="sm"
-                                type="button"
-                                variant="outline"
+                                variant="view"
                                 onClick={() => onRecordFarmLog(lot.id)}
                               >
                                 <NotebookPen className="size-4" />
                                 Ghi nhật ký
                               </Button>
                             )}
-
                             {showRecordProcurement && (
                               <Button
                                 size="sm"
-                                type="button"
+                                variant="create"
                                 onClick={() =>
                                   onRecordProcurement?.(lot.id)
                                 }
                               >
                                 <ShoppingCart className="size-4" />
-                                Ghi nhận thu mua
+                                Thu mua
                               </Button>
                             )}
-
                             {!hasAction && (
-                              <span className="text-muted-foreground">
+                              <span className="text-muted-foreground text-sm">
                                 —
                               </span>
                             )}
@@ -339,8 +373,8 @@ export const ProductionLotList = ({
                         <TableCell>
                           <Button
                             size="sm"
-                            type="button"
                             variant="outline"
+                            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                             onClick={() =>
                               navigate(`/production-lots/${lot.id}`)
                             }
@@ -356,8 +390,8 @@ export const ProductionLotList = ({
 
             {!isLoading && !filteredLots.length && (
               <div className="grid place-items-center px-4 py-16 text-center">
-                <PackageOpen className="mb-3 size-10 text-muted-foreground/40" />
-                <p className="font-semibold">
+                <PackageOpen className="mb-3 size-10 text-emerald-300" />
+                <p className="font-semibold text-emerald-800">
                   Không tìm thấy lô sản xuất
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -369,12 +403,11 @@ export const ProductionLotList = ({
         </CardContent>
       </Card>
 
+      {/* Dialog xác nhận gửi duyệt */}
       <AlertDialog
         open={confirmingLot !== null}
         onOpenChange={(open) => {
-          if (!open && !isSubmitting) {
-            setConfirmingLot(null);
-          }
+          if (!open && !isSubmitting) setConfirmingLot(null);
         }}
       >
         <AlertDialogPopup>
@@ -388,17 +421,12 @@ export const ProductionLotList = ({
               . Tiếp tục?
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>
-              Hủy
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={isSubmitting}>Hủy</AlertDialogCancel>
             <Button
               type="button"
               disabled={isSubmitting}
-              onClick={() => {
-                void handleConfirmSubmit();
-              }}
+              onClick={() => void handleConfirmSubmit()}
             >
               {isSubmitting && (
                 <LoaderCircle className="size-4 animate-spin" />
