@@ -493,11 +493,11 @@ const AppRoutes = () => (
             <Route
                 path="organizations/:id"
                 element={
-                <RoleRoute allowedRoles={ROLE_ACCESS.organizationList}>
-                <OrganizationDetailPage />
-            </RoleRoute>
-  }
-/>
+                    <RoleRoute allowedRoles={ROLE_ACCESS.organizationList}>
+                        <OrganizationDetailPage />
+                    </RoleRoute>
+                }
+            />
 
             {/* ===== Unauthorized ===== */}
             <Route path="unauthorized" element={<UnauthorizedPage />} />

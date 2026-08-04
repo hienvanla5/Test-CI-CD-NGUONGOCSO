@@ -83,3 +83,24 @@ export interface OrganizationDetailResponse {
   profile: OrganizationProfile;
   members: OrganizationUser[];
 }
+
+export interface AddMemberRequest {
+  username: string;
+  password: string;
+  fullName: string;
+  phone?: string;
+  email?: string;
+  roleId: number;
+}
+
+export interface CreateOrganizationMemberResponse {
+  id: string;
+  username: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  roleCode: string;
+  roleName: string;
+  status: string;
+  joinedAt: string;
+}

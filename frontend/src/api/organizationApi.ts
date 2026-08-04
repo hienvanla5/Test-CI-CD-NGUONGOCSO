@@ -9,6 +9,11 @@ import type {
   OrganizationDetailResponse,
 } from "@/types/organization";
 
+import type {
+  AddMemberRequest,
+  CreateOrganizationMemberResponse,
+} from "@/types/organization";
+
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
@@ -47,6 +52,20 @@ export const getOrganizationDetail = async (
   const response = await apiClient.get<{
     data: OrganizationDetailResponse;
   }>(`/admin/organizations/${id}`);
+
+  return response.data.data;
+};
+
+export const createOrganizationMember = async (
+  organizationId: string,
+  data: AddMemberRequest
+): Promise<CreateOrganizationMemberResponse> => {
+  const response = await apiClient.post<{
+    data: CreateOrganizationMemberResponse;
+  }>(
+    `/admin/organizations/${organizationId}/members`,
+    data
+  );
 
   return response.data.data;
 };

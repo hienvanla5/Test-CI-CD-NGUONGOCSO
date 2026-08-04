@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import vn.nguongocso.alert.event.ActivityLogEvent;
+import vn.nguongocso.auth.dto.request.AddMemberRequest;
 import vn.nguongocso.auth.dto.response.OrganizationUserResponse;
 import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
@@ -22,6 +23,7 @@ import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.organization.constant.RoleCode;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
 import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
+import vn.nguongocso.organization.dto.response.CreateOrganizationMemberResponse;
 import vn.nguongocso.organization.dto.response.OrganizationDetailResponse;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
@@ -603,6 +605,72 @@ public class OrganizationServiceImpl
                                 .roleCode(role.getCode())
                                 .roleName(role.getName())
                                 .status(organizationUser.getStatus())
+                                .joinedAt(organizationUser.getJoinedAt())
+                                .build();
+        }
+
+        /*
+        * Tạo tài khoản cho 1 tổ chức cụ thể
+         */
+        @Override
+        @Transactional
+        public CreateOrganizationMemberResponse addMember(
+                        UUID organizationId,
+                        AddMemberRequest request) {
+
+                log.info("Thêm thành viên vào tổ chức {}", organizationId);
+
+                Organization organization = organizationRepository
+                                .findById(organizationId)
+                                .orElseThrow(() -> new BusinessException("Tổ chức không tồn tại"));
+
+                if (userRepository.existsByUserName(request.getUsername())) {
+                        throw new BusinessException("Tên đăng nhập đã tồn tại");
+                }
+
+                if (request.getEmail() != null
+                                && !request.getEmail().isBlank()
+                                && userRepository.existsByEmail(request.getEmail())) {
+                        throw new BusinessException("Email đã tồn tại");
+                }
+
+                Role role = roleRepository.findById(request.getRoleId())
+                                .orElseThrow(() -> new BusinessException("Vai trò không tồn tại"));
+
+                User user = new User();
+                user.setUserName(request.getUsername());
+                user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+                user.setFullName(request.getFullName());
+                user.setPhone(request.getPhone());
+                user.setEmail(request.getEmail());
+                user.setStatus(UserStatus.ACTIVE);
+
+                user = userRepository.save(user);
+
+                OrganizationUser organizationUser = new OrganizationUser();
+                organizationUser.setOrganization(organization);
+                organizationUser.setUser(user);
+                organizationUser.setRole(role);
+                organizationUser.setStatus(OrganizationUserStatus.ACTIVE);
+
+                organizationUser = organizationUserRepository.save(organizationUser);
+
+                publishActivityLog(
+                                getCurrentUser(),
+                                "CREATE_MEMBER",
+                                "Thêm thành viên " + user.getUserName(),
+                                "ORGANIZATION_USER",
+                                organizationUser.getId().toString());
+
+                return CreateOrganizationMemberResponse.builder()
+                                .id(organizationUser.getId())
+                                .username(user.getUserName())
+                                .fullName(user.getFullName())
+                                .email(user.getEmail())
+                                .phone(user.getPhone())
+                                .roleCode(role.getCode())
+                                .roleName(role.getName())
+                                .status(user.getStatus())
                                 .joinedAt(organizationUser.getJoinedAt())
                                 .build();
         }

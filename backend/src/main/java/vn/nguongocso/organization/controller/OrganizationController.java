@@ -7,9 +7,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import vn.nguongocso.auth.dto.request.AddMemberRequest;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
 import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
+import vn.nguongocso.organization.dto.response.CreateOrganizationMemberResponse;
 import vn.nguongocso.organization.dto.response.OrganizationDetailResponse;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
@@ -129,6 +131,37 @@ public class OrganizationController {
                 return ResponseEntity.ok(
                                 ApiResult.success(
                                                 organizationService.getOrganizationDetail(id)));
+        }
+
+        /**
+         * Thêm tài khoản mới vào tổ chức.
+         *
+         * Chỉ Quản trị viên (VT-01) được phép thực hiện.
+         *
+         * @param id      ID tổ chức
+         * @param request thông tin tài khoản cần tạo
+         * @return thông tin thành viên sau khi tạo
+         */
+        @PostMapping("/{id}/members")
+        @PreAuthorize("hasRole('VT-01')")
+        public ResponseEntity<ApiResult<CreateOrganizationMemberResponse>> addMember(
+                        @PathVariable UUID id,
+                        @Valid @RequestBody AddMemberRequest request) {
+
+                log.info(
+                                "Nhận yêu cầu thêm thành viên vào organization={}, username={}",
+                                id,
+                                request.getUsername());
+
+                CreateOrganizationMemberResponse response = organizationService.addMember(id, request);
+
+                log.info(
+                                "Thêm thành viên thành công. organization={}, username={}",
+                                id,
+                                response.getUsername());
+
+                return ResponseEntity.ok(
+                                ApiResult.success(response));
         }
 
 }

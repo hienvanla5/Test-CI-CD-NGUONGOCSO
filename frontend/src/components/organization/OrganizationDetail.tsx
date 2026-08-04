@@ -5,135 +5,171 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { getOrganizationDetail } from "@/api/organizationApi";
 import type { OrganizationDetailResponse } from "@/types/organization";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import type { AddMemberRequest } from "@/types/organization";
+import { CreateOrganizationMemberForm } from "./CreateOrganizationMemberFrom";
+
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+
 
 export function OrganizationDetail() {
-  const { id } = useParams();
+    const { id } = useParams();
 
-  const [data, setData] = useState<OrganizationDetailResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const ROLE_LABELS: Record<string, string> = {
-  "VT-01": "Quản trị viên",
-  "VT-02": "Quản lý hợp tác xã",
-  "VT-03": "Người ghi sự kiện",
-  "VT-04": "Doanh nghiệp thu mua",
-  "VT-05": "Cán bộ ngành",
-  "VT-06": "Người dùng hệ thống",
-  };
-  const ORGANIZATION_TYPE_LABELS: Record<string, string> = {
-  COOPERATIVE: "Hợp tác xã",
-  ENTERPRISE: "Doanh nghiệp",
-  GOVERNMENT: "Cán bộ ngành",
-  SYSTEM: "Tổ chức hệ thống",
-  };
+    const [data, setData] = useState<OrganizationDetailResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [openCreate, setOpenCreate] = useState(false);
+    const handleCreateMember = async (values: AddMemberRequest) => {
+        console.log(values);
+    };
+    const ROLE_LABELS: Record<string, string> = {
+        "VT-01": "Quản trị viên",
+        "VT-02": "Quản lý hợp tác xã",
+        "VT-03": "Người ghi sự kiện",
+        "VT-04": "Doanh nghiệp thu mua",
+        "VT-05": "Cán bộ ngành",
+        "VT-06": "Người dùng hệ thống",
+    };
+    const ORGANIZATION_TYPE_LABELS: Record<string, string> = {
+        COOPERATIVE: "Hợp tác xã",
+        ENTERPRISE: "Doanh nghiệp",
+        GOVERNMENT: "Cán bộ ngành",
+        SYSTEM: "Tổ chức hệ thống",
+    };
 
-  useEffect(() => {
-    if (!id) return;
+    useEffect(() => {
+        if (!id) return;
 
-    getOrganizationDetail(id)
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, [id]);
+        getOrganizationDetail(id)
+            .then(setData)
+            .finally(() => setLoading(false));
+    }, [id]);
 
-  if (loading) return <div>Đang tải...</div>;
+    if (loading) return <div>Đang tải...</div>;
 
-  if (!data) return <div>Không tìm thấy tổ chức</div>;
+    if (!data) return <div>Không tìm thấy tổ chức</div>;
 
-  
 
-  return (
-    <div className="space-y-6">
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin tổ chức</CardTitle>
-        </CardHeader>
+    return (
+        <div className="space-y-6">
 
-        <CardContent className="grid grid-cols-2 gap-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Thông tin tổ chức</CardTitle>
+                </CardHeader>
 
-          <div>
-            <b>Mã:</b> {data.profile.code}
-          </div>
+                <CardContent className="grid grid-cols-2 gap-4">
 
-          <div>
-            <b>Tên:</b> {data.profile.name}
-          </div>
+                    <div>
+                        <b>Mã:</b> {data.profile.code}
+                    </div>
 
-          <div>
-            <b>Loại:</b> {ORGANIZATION_TYPE_LABELS[data.profile.type] ?? data.profile.type}
-          </div>
+                    <div>
+                        <b>Tên:</b> {data.profile.name}
+                    </div>
 
-          <div>
-            <b>Email:</b> {data.profile.email}
-          </div>
+                    <div>
+                        <b>Loại:</b> {ORGANIZATION_TYPE_LABELS[data.profile.type] ?? data.profile.type}
+                    </div>
 
-          <div>
-            <b>SĐT:</b> {data.profile.phone}
-          </div>
+                    <div>
+                        <b>Email:</b> {data.profile.email}
+                    </div>
 
-          <div>
-            <b>Địa chỉ:</b> {data.profile.address}
-          </div>
+                    <div>
+                        <b>SĐT:</b> {data.profile.phone}
+                    </div>
 
-          <div>
-            <b>Trạng thái:</b>
+                    <div>
+                        <b>Địa chỉ:</b> {data.profile.address}
+                    </div>
 
-            <Badge className="ml-2">
-              {data.profile.status}
-            </Badge>
-          </div>
+                    <div>
+                        <b>Trạng thái:</b>
 
-        </CardContent>
-      </Card>
+                        <Badge className="ml-2">
+                            {data.profile.status}
+                        </Badge>
+                    </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách tài khoản</CardTitle>
-        </CardHeader>
+                </CardContent>
+            </Card>
 
-        <CardContent>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Danh sách tài khoản</CardTitle>
 
-          <Table>
+                    <Button onClick={() => setOpenCreate(true)}>
+                        <Plus className="w-4 h-4 mr-1" />
+                        Thêm tài khoản
+                    </Button>
+                </CardHeader>
 
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tài khoản</TableHead>
-                <TableHead>Họ tên</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Vai trò</TableHead>
-                <TableHead>Trạng thái</TableHead>
-              </TableRow>
-            </TableHeader>
+                <CardContent>
 
-            <TableBody>
+                    <Table>
 
-              {data.members.map((m) => (
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Tài khoản</TableHead>
+                                <TableHead>Họ tên</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Vai trò</TableHead>
+                                <TableHead>Trạng thái</TableHead>
+                            </TableRow>
+                        </TableHeader>
 
-                <TableRow key={m.id}>
+                        <TableBody>
 
-                  <TableCell>{m.username}</TableCell>
+                            {data.members.map((m) => (
 
-                  <TableCell>{m.fullName}</TableCell>
+                                <TableRow key={m.id}>
 
-                  <TableCell>{m.email}</TableCell>
+                                    <TableCell>{m.username}</TableCell>
 
-                  <TableCell>
-                    {ROLE_LABELS[m.roleCode] ?? m.roleName}
-                  </TableCell>
+                                    <TableCell>{m.fullName}</TableCell>
 
-                  <TableCell>{m.status}</TableCell>
+                                    <TableCell>{m.email}</TableCell>
 
-                </TableRow>
+                                    <TableCell>
+                                        {ROLE_LABELS[m.roleCode] ?? m.roleName}
+                                    </TableCell>
 
-              ))}
+                                    <TableCell>{m.status}</TableCell>
 
-            </TableBody>
+                                </TableRow>
 
-          </Table>
+                            ))}
 
-        </CardContent>
+                        </TableBody>
 
-      </Card>
+                    </Table>
 
-    </div>
-  );
+                </CardContent>
+
+            </Card>
+
+            <Dialog
+                open={openCreate}
+                onOpenChange={setOpenCreate}
+            >
+                <DialogContent className="max-w-6xl w-full p-8 max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="border-b pb-4 mb-4">
+                        <DialogTitle className="text-2xl font-bold">Thêm tài khoản mới</DialogTitle>
+                    </DialogHeader>
+
+                    <CreateOrganizationMemberForm
+                        onSubmit={handleCreateMember}
+                    />
+                </DialogContent>
+            </Dialog>
+
+        </div>
+    );
 }
