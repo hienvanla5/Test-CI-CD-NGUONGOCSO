@@ -1,0 +1,1 @@
+ALTER TABLE farm_areas ADD COLUMN area_unit VARCHAR(10) NOT NULL DEFAULT 'HA';

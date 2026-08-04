@@ -3,6 +3,7 @@ package vn.nguongocso.farm.service.impl;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ import vn.nguongocso.farm.dto.request.CreateFarmAreaRequest;
 import vn.nguongocso.farm.dto.response.FarmAreaResponse;
 import vn.nguongocso.farm.entity.FarmArea;
 import vn.nguongocso.farm.entity.ProductCategory;
+import vn.nguongocso.farm.enums.AreaUnit;
 import vn.nguongocso.farm.repository.FarmAreaRepository;
 import vn.nguongocso.farm.repository.ProductCategoryRepository;
 import vn.nguongocso.farm.service.FarmAreaService;
@@ -71,6 +73,11 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 		return toResponse(saved);
 	}
 
+	@Override
+	public List<AreaUnit> getAreaUnits() {
+		return Arrays.asList(AreaUnit.values());
+	}
+
 	private CustomUserDetails getCurrentUser() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -95,12 +102,15 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 
 		Point location = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
 
+		AreaUnit areaUnit = request.getAreaUnit() != null ? request.getAreaUnit() : AreaUnit.HA;
+
 		FarmArea farmArea = new FarmArea();
 		farmArea.setOrganization(organization);
 		farmArea.setName(request.getName());
 		farmArea.setCropType(cropType);
 		farmArea.setLocation(location);
-		farmArea.setArea(request.getArea());
+		farmArea.setArea(areaUnit.toHectares(request.getArea()));
+		farmArea.setAreaUnit(areaUnit);
 
 		return farmArea;
 	}
@@ -118,7 +128,7 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 
 				.latitude(point.getY()).longitude(point.getX())
 
-				.area(farmArea.getArea())
+				.area(farmArea.getArea()).areaUnit(farmArea.getAreaUnit())
 
 				.createdAt(farmArea.getCreatedAt()).updatedAt(farmArea.getUpdatedAt()).build();
 	}

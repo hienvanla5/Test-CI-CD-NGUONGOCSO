@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.farm.dto.request.CreateFarmAreaRequest;
 import vn.nguongocso.farm.dto.response.FarmAreaResponse;
+import vn.nguongocso.farm.enums.AreaUnit;
 import vn.nguongocso.farm.service.FarmAreaService;
 import vn.nguongocso.permission.service.PermissionChecker;
 
@@ -23,6 +24,11 @@ public class FarmAreaController {
     @GetMapping
     public ResponseEntity<ApiResult<List<FarmAreaResponse>>> getFarmAreas() {
         return ResponseEntity.ok(ApiResult.success(farmAreaService.getFarmAreas()));
+    }
+
+    @GetMapping("/units")
+    public ResponseEntity<ApiResult<List<AreaUnit>>> getAreaUnits() {
+        return ResponseEntity.ok(ApiResult.success(farmAreaService.getAreaUnits()));
     }
 
     @PostMapping

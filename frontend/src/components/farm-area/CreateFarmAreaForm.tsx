@@ -14,7 +14,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { createFarmArea, getCropTypes } from '@/api/farmAreaApi';
-import type { CropType } from '@/types/farmArea';
+import type { AreaUnit, CropType } from '@/types/farmArea';
+import { AREA_UNIT_LABELS } from '@/types/farmArea';
 import { LocationPicker } from '@/pages/packaging-event/components/LocationPicker';
 
 const formSchema = z.object({
@@ -23,6 +24,7 @@ const formSchema = z.object({
   latitude: z.number({ required_error: 'Vui lòng chọn vị trí trên bản đồ' }),
   longitude: z.number({ required_error: 'Vui lòng chọn vị trí trên bản đồ' }),
   area: z.number().positive('Diện tích phải lớn hơn 0'),
+  areaUnit: z.enum(['HA', 'KM2'], { required_error: 'Vui lòng chọn đơn vị diện tích' }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -50,6 +52,7 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
       latitude: 0,
       longitude: 0,
       area: 0,
+      areaUnit: 'HA',
     },
   });
 
@@ -83,6 +86,7 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
         latitude: values.latitude,
         longitude: values.longitude,
         area: values.area,
+        areaUnit: values.areaUnit,
       });
       toast.success(`Vùng trồng "${result.name}" đã được tạo!`);
       onSuccess(result);
@@ -133,15 +137,34 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="area">Diện tích (ha) *</Label>
-        <Input
-          id="area"
-          type="number"
-          step="0.01"
-          {...register('area', { valueAsNumber: true })}
-          placeholder="VD: 5.5"
-        />
+        <Label htmlFor="area">Diện tích *</Label>
+        <div className="flex gap-2">
+          <Input
+            id="area"
+            type="number"
+            step="0.01"
+            className="flex-1"
+            {...register('area', { valueAsNumber: true })}
+            placeholder="VD: 5.5"
+          />
+          <Select
+            value={watch('areaUnit')}
+            onValueChange={(value) => setValue('areaUnit', value as AreaUnit)}
+          >
+            <SelectTrigger className="w-24">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(AREA_UNIT_LABELS).map(([unit, label]) => (
+                <SelectItem key={unit} value={unit}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         {errors.area && <p className="text-sm text-red-500">{errors.area.message}</p>}
+        {errors.areaUnit && <p className="text-sm text-red-500">{errors.areaUnit.message}</p>}
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
