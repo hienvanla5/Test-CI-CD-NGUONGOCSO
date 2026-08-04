@@ -259,7 +259,7 @@ export default function ScanAnomalyAlertPage() {
             </div>
           </div>
           <div className="mt-4 flex justify-end gap-2">
-            <Button variant="outline" onClick={resetFilters} disabled={loading}>
+            <Button variant="delete" onClick={resetFilters} disabled={loading}>
               <X className="h-4 w-4" />
               Xóa bộ lọc
             </Button>

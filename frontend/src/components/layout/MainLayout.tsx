@@ -28,11 +28,13 @@ export function MainLayout() {
   }, [mobileMenuOpen]);
 
   return (
-    <div className="min-h-screen bg-muted/20">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/50 via-white to-green-50/30">
+      {/* Desktop Sidebar */}
       <div className="fixed inset-y-0 left-0 z-30 hidden w-64 md:block">
         <Sidebar />
       </div>
 
+      {/* Mobile Sidebar Overlay */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true">
           <button
@@ -51,6 +53,7 @@ export function MainLayout() {
         </div>
       )}
 
+      {/* Main Content Area */}
       <div className="flex min-h-screen min-w-0 flex-col md:pl-64">
         <Header onMenuClick={() => setMobileMenuOpen(true)} />
         <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">

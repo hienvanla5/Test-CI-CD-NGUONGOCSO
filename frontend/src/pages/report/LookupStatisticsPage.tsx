@@ -69,6 +69,18 @@ export default function LookupStatisticsPage() {
   const [endDate, setEndDate] = useState(defaultEndDate);
   const [groupBy, setGroupBy] = useState<GroupByType>('DAY');
 
+  // === Xác định preset nào đang active ===
+  const activePreset = useMemo(() => {
+    const today = getToday();
+    const firstDay = getFirstDayOfMonth();
+    const sevenDaysAgo = getSevenDaysAgo();
+
+    if (startDate === today && endDate === today) return 'today';
+    if (startDate === sevenDaysAgo && endDate === today) return 'week';
+    if (startDate === firstDay && endDate === today) return 'month';
+    return null;
+  }, [startDate, endDate]);
+
   const fetchStats = async () => {
     try {
       setLoading(true);
@@ -217,7 +229,7 @@ export default function LookupStatisticsPage() {
             </span>
             <Button
               type="button"
-              variant="outline"
+              variant={activePreset === 'today' ? 'default' : 'outline'}
               size="sm"
               onClick={setToday}
               className="text-xs h-8"
@@ -226,7 +238,7 @@ export default function LookupStatisticsPage() {
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant={activePreset === 'week' ? 'default' : 'outline'}
               size="sm"
               onClick={setThisWeek}
               className="text-xs h-8"
@@ -235,7 +247,7 @@ export default function LookupStatisticsPage() {
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant={activePreset === 'month' ? 'default' : 'outline'}
               size="sm"
               onClick={setThisMonth}
               className="text-xs h-8"
@@ -262,23 +274,19 @@ export default function LookupStatisticsPage() {
       {/* Nội dung dữ liệu */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
       ) : stats ? (
         <>
-          {/* Thẻ tổng quan */}
           <StatisticsSummary stats={stats.summary} />
 
-          {/* Biểu đồ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <LocationChart data={stats.byLocation} />
             <TimeSeriesChart data={stats.timeSeries} />
           </div>
 
-          {/* Bảng thống kê theo lô */}
           <LotStatsTable data={stats.byProductionLot} />
 
-          {/* Bảng quét bất thường */}
           <AbnormalScansTable
             data={abnormalScans}
             totalPages={totalPages}

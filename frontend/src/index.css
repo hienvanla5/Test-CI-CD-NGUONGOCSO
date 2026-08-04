@@ -216,3 +216,27 @@
     @apply font-sans;
     }
 }
+
+/* ── Toast notification variants (Sonner [data-type]) ─────────────────────────
+   Per docs/AI_DESIGN_SYSTEM.md — each type has a distinct left border color
+   and light tinted background so the notification type is instantly recognizable. */
+
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] {
+  background-color: var(--success-bg);
+  border-left: 4px solid var(--success);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] {
+  background-color: var(--error-bg);
+  border-left: 4px solid var(--destructive);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="warning"] {
+  background-color: var(--warning-bg);
+  border-left: 4px solid var(--warning);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="info"] {
+  background-color: var(--info-bg);
+  border-left: 4px solid var(--info);
+}
