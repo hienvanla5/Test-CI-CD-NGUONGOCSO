@@ -21,7 +21,6 @@ public class OrganizationUserResponse {
     private Integer roleId;
     private String roleCode;
     private String roleName;
-    private String customPermissions;
     private OrganizationUserStatus status;
     private LocalDateTime joinedAt;
 }

@@ -231,7 +231,6 @@ public class OrganizationMemberService {
                 .roleId(role.getRoleId())
                 .roleCode(role.getCode())
                 .roleName(role.getName())
-                .customPermissions(orgUser.getCustomPermissions())
                 .status(orgUser.getStatus())
                 .joinedAt(orgUser.getJoinedAt())
                 .build();

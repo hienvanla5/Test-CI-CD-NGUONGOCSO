@@ -48,9 +48,6 @@ public class OrganizationUser {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    @Column(columnDefinition = "TEXT", name = "custom_permissions")
-    private String customPermissions;
-
     @Column(nullable = false, name = "joined_at")
     private LocalDateTime joinedAt;
 
