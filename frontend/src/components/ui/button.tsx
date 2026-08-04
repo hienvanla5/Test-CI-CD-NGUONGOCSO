@@ -18,6 +18,16 @@ const buttonVariants = cva(
         destructive:
           "border-destructive bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-destructive dark:hover:bg-destructive/90",
         link: "border-transparent bg-transparent text-primary underline-offset-4 hover:underline",
+        create:
+          "bg-green-600 text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600",
+        search:
+          "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600",
+        edit:
+          "bg-amber-500 text-white hover:bg-amber-600 dark:bg-amber-400 dark:hover:bg-amber-500",
+        view:
+          "bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-400 dark:hover:bg-violet-500", // 🆕 Thêm view
+        delete:
+          "bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600",
       },
       size: {
         default:

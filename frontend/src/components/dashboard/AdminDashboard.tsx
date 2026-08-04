@@ -1,23 +1,35 @@
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getProductionLotDashboard, type DashboardResponse } from '@/api/productionLotApi';
-import { getOrganizations } from '@/api/organizationApi';
-import type { Organization } from '@/types/organization';
-import { ProductionStatistics } from '@/components/dashboard/PoductionStatistics';
-import { OrganizationListPage } from '@/pages/organization/OrganizationListPage';
-import LookupStatisticsPage from '@/pages/report/LookupStatisticsPage';
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  getProductionLotDashboard,
+  type DashboardResponse,
+} from "@/api/productionLotApi";
+import { getOrganizations } from "@/api/organizationApi";
+import type { Organization } from "@/types/organization";
+import { ProductionStatistics } from "@/components/dashboard/PoductionStatistics";
+import { OrganizationListPage } from "@/pages/organization/OrganizationListPage";
+import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
 
 interface AdminDashboardProps {
   initialTab?: string | null;
 }
 
 export function AdminDashboard({ initialTab }: AdminDashboardProps) {
-  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [selectedOrgId, setSelectedOrgId] = useState<string>('');
+  const [selectedOrgId, setSelectedOrgId] = useState<string>("");
 
   useEffect(() => {
     getOrganizations()
@@ -34,7 +46,7 @@ export function AdminDashboard({ initialTab }: AdminDashboardProps) {
         setOrganizations(mapped);
       })
       .catch(() => {
-        toast.error('Không thể tải danh sách tổ chức để lọc.');
+        toast.error("Không thể tải danh sách tổ chức để lọc.");
       });
   }, []);
 
@@ -48,9 +60,9 @@ export function AdminDashboard({ initialTab }: AdminDashboardProps) {
         setDashboardData(data);
       } catch (error: any) {
         if (error.response?.status === 403) {
-          toast.error('Bạn không có quyền xem dữ liệu tổ chức này');
+          toast.error("Bạn không có quyền xem dữ liệu tổ chức này");
         } else {
-          toast.error('Không thể tải dữ liệu');
+          toast.error("Không thể tải dữ liệu");
         }
         setDashboardData(null);
       } finally {
@@ -60,7 +72,8 @@ export function AdminDashboard({ initialTab }: AdminDashboardProps) {
     void loadData();
   }, [selectedOrgId]);
 
-  const defaultTab = initialTab === 'lookup-stats' ? 'lookup-stats' : 'overview';
+  const defaultTab =
+    initialTab === "lookup-stats" ? "lookup-stats" : "overview";
 
   return (
     <div className="space-y-6">
@@ -83,25 +96,36 @@ export function AdminDashboard({ initialTab }: AdminDashboardProps) {
             <CardContent>
               {organizations.length > 0 && (
                 <div className="mb-4 flex items-center gap-3">
-                  <label className="text-sm font-medium" htmlFor="admin-dashboard-org">
+                  <label
+                    className="text-sm font-medium"
+                    htmlFor="admin-dashboard-org"
+                  >
                     Tổ chức:
                   </label>
-                  <select
-                    id="admin-dashboard-org"
-                    className="rounded-md border px-3 py-1.5 text-sm"
-                    value={selectedOrgId}
-                    onChange={(event) => setSelectedOrgId(event.target.value)}
-                  >
-                    <option value="">Mặc định (tổ chức của tôi)</option>
-                    {organizations.map((org) => (
-                      <option key={org.id} value={org.id}>
-                        {org.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+  value={selectedOrgId}
+  onValueChange={(value) => setSelectedOrgId(value ?? "")}
+>
+  <SelectTrigger className="w-[250px]">
+    <SelectValue placeholder="Chọn tổ chức">
+      {organizations.find((org) => org.id === selectedOrgId)?.name ||
+        "Chọn tổ chức"}
+    </SelectValue>
+  </SelectTrigger>
+  <SelectContent>
+    {organizations.map((org) => (
+      <SelectItem key={org.id} value={org.id}>
+        {org.name}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
                 </div>
               )}
-              <ProductionStatistics data={dashboardData} isLoading={isLoading} />
+              <ProductionStatistics
+                data={dashboardData}
+                isLoading={isLoading}
+              />
             </CardContent>
           </Card>
         </TabsContent>

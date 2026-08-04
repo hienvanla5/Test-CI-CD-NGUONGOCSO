@@ -96,12 +96,12 @@ export const ProductCategoryFilter = ({
               </Select>
             </div>
             <div className="flex items-end gap-2">
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" variant="search" disabled={loading}>
                 <Search className="h-4 w-4 mr-1" /> Tìm kiếm
               </Button>
               <Button
                 type="button"
-                variant="outline"
+                variant="delete"
                 onClick={handleReset}
                 disabled={loading}
               >

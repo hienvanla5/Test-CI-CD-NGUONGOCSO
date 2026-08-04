@@ -38,6 +38,7 @@ interface MenuItem {
   label: string;
   href: string;
   allowedRoles: readonly AuthenticatedRoleCode[];
+  activePaths?: string[];
 }
 
 interface SidebarProps {
@@ -60,12 +61,6 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ROLE_ACCESS.organizationList,
   },
   {
-    icon: <UserCheck className="h-5 w-5" />,
-    label: "Hồ sơ tổ chức",
-    href: "/organizations/profile",
-    allowedRoles: ROLE_ACCESS.organizationProfile,
-  },
-  {
     icon: <MapPinned className="h-5 w-5" />,
     label: "Vùng trồng",
     href: "/farm-areas",
@@ -76,6 +71,7 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Lô sản xuất",
     href: "/production-lots",
     allowedRoles: ROLE_ACCESS.productionLotList,
+    activePaths: ["/production-lots", "/packaging-events/create"],
   },
   {
     icon: <FileUp className="h-5 w-5" />,
@@ -150,12 +146,6 @@ const MENU_ITEMS: MenuItem[] = [
     allowedRoles: ["VT-05"] as const,
   },
   {
-    icon: <AlertTriangle className="h-5 w-5" />,
-    label: "Cảnh báo tem bất thường",
-    href: "/scan-anomaly-alerts",
-    allowedRoles: ["VT-01"] as const,
-  },
-  {
     icon: <BookOpen className="h-5 w-5" />,
     label: "Tiêu chuẩn chất lượng",
     href: "/admin/standards",
@@ -185,6 +175,12 @@ const MENU_ITEMS: MenuItem[] = [
     href: "/permissions/config",
     allowedRoles: ["VT-02"] as const,
   },
+  {
+    icon: <UserCheck className="h-5 w-5" />,
+    label: "Hồ sơ tổ chức",
+    href: "/organizations/profile",
+    allowedRoles: ROLE_ACCESS.organizationProfile,
+  },
 ];
 
 export function Sidebar({
@@ -208,15 +204,21 @@ export function Sidebar({
         )
       : visibleItems;
 
-  const isActive = (href: string) => {
-    const matchingItems = finalItems.filter((item) =>
-      location.pathname.startsWith(item.href)
-    );
-    if (matchingItems.length === 0) return false;
-    const longestMatch = matchingItems.reduce((a, b) =>
+  // ✅ Sửa hàm isActive
+  const isActive = (item: MenuItem) => {
+    // Lọc tất cả menu item có đường dẫn khớp với location hiện tại
+    const matchedItems = finalItems.filter((menuItem) => {
+      const paths = menuItem.activePaths
+        ? [menuItem.href, ...menuItem.activePaths]
+        : [menuItem.href];
+      return paths.some((path) => location.pathname.startsWith(path));
+    });
+    if (matchedItems.length === 0) return false;
+    // Chọn item có href dài nhất (ưu tiên đường dẫn chi tiết hơn)
+    const longestMatch = matchedItems.reduce((a, b) =>
       a.href.length > b.href.length ? a : b
     );
-    return longestMatch.href === href;
+    return longestMatch.href === item.href;
   };
 
   return (
@@ -250,7 +252,7 @@ export function Sidebar({
             onClick={onNavigate}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-              isActive(item.href)
+              isActive(item)
                 ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}

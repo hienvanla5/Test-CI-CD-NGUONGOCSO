@@ -56,7 +56,7 @@ export const CropAreaFilter = ({
               status: item.status,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt,
-            }))
+            })),
           )
         : Promise.resolve([]),
     ]).then(([cats, areas, orgs]) => {
@@ -84,7 +84,6 @@ export const CropAreaFilter = ({
     onReset();
   };
 
-  // Helper để lấy tên hiển thị
   const getFarmAreaName = (id: string) => {
     const area = farmAreas.find((a) => a.id === id);
     return area ? area.name : "Tất cả";
@@ -122,7 +121,7 @@ export const CropAreaFilter = ({
                 value={productCategoryId}
                 onValueChange={(value) => setProductCategoryId(value || "")}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Tất cả">
                     {productCategoryId
                       ? getCategoryName(productCategoryId)
@@ -146,7 +145,7 @@ export const CropAreaFilter = ({
                 value={farmAreaId}
                 onValueChange={(value) => setFarmAreaId(value || "")}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Tất cả">
                     {farmAreaId ? getFarmAreaName(farmAreaId) : "Tất cả"}
                   </SelectValue>
@@ -169,7 +168,7 @@ export const CropAreaFilter = ({
                   value={organizationId}
                   onValueChange={(value) => setOrganizationId(value || "")}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Tất cả">
                       {organizationId
                         ? getOrganizationName(organizationId)
@@ -189,12 +188,12 @@ export const CropAreaFilter = ({
             )}
 
             <div className="flex items-end gap-2">
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" variant="search" disabled={loading}>
                 <Search className="h-4 w-4 mr-1" /> Lọc
               </Button>
               <Button
                 type="button"
-                variant="outline"
+                variant="delete"
                 onClick={handleReset}
                 disabled={loading}
               >
