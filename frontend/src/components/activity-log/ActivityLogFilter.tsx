@@ -111,11 +111,18 @@ export const ActivityLogFilter = ({ onFilter, onReset, loading }: Props) => {
           </div>
 
           <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="delete" onClick={handleReset} disabled={loading}>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleReset}
+              disabled={loading}
+              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+            >
               <X className="h-4 w-4 mr-1" />
               Xóa bộ lọc
             </Button>
-            <Button type="submit" variant="view" disabled={loading}>
+            <Button type="submit" size="sm" variant="create" disabled={loading}>
               <Search className="h-4 w-4 mr-1" />
               Tìm kiếm
             </Button>
