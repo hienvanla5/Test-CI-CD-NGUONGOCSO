@@ -131,7 +131,8 @@ export const CreateShipmentModal = ({
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Hủy
             </Button>
-            <Button type="submit" disabled={loading}>
+            {/* CHANGED: thêm variant="create" */}
+            <Button type="submit" disabled={loading} variant="create">
               {loading ? 'Đang tạo...' : 'Tạo lô hàng'}
             </Button>
           </DialogFooter>

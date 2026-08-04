@@ -249,7 +249,7 @@ export function CreateOrganizationForm() {
           >
             Hủy
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant="create" disabled={isSubmitting}>
             {isSubmitting ? 'Đang tạo...' : 'Tạo tổ chức'}
           </Button>
         </CardFooter>

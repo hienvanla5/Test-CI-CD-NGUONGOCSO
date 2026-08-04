@@ -19,7 +19,7 @@ export function FarmLogTab({ logs, onCreateLog, onLogUpdated }: FarmLogTabProps)
         <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />
         <h3 className="mt-4 text-lg font-semibold">Chưa có nhật ký canh tác</h3>
         <p className="text-sm text-muted-foreground">Nhấn "Thêm nhật ký" để ghi lại hoạt động</p>
-        <Button onClick={onCreateLog} className="mt-4">
+        <Button onClick={onCreateLog} variant="create" className="mt-4">
           <Plus className="mr-2 h-4 w-4" /> Thêm nhật ký
         </Button>
       </div>
@@ -30,7 +30,7 @@ export function FarmLogTab({ logs, onCreateLog, onLogUpdated }: FarmLogTabProps)
     <div>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Nhật ký canh tác</h2>
-        <Button onClick={onCreateLog} size="sm">
+        <Button variant="create" onClick={onCreateLog} size="sm">
           <Plus className="mr-2 h-4 w-4" /> Thêm nhật ký
         </Button>
       </div>

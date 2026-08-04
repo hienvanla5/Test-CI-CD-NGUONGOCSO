@@ -301,7 +301,7 @@ export function TransportEventForm() {
             Hủy
           </Button>
 
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting} variant="create">
             {isSubmitting ? "Đang ghi..." : "Ghi sự kiện vận chuyển"}
           </Button>
         </CardFooter>
