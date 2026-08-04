@@ -10,7 +10,7 @@ import vn.nguongocso.auth.dto.request.AssignRoleRequest;
 import vn.nguongocso.auth.dto.response.OrganizationUserResponse;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.organization.service.OrganizationMemberService;
-
+import vn.nguongocso.permission.service.PermissionChecker;
 import java.util.List;
 
 @RestController
@@ -20,6 +20,7 @@ import java.util.List;
 public class OrganizationMemberController {
 
     private final OrganizationMemberService permissionService;
+    private final PermissionChecker permissionChecker;
 
     @GetMapping
     public ResponseEntity<ApiResult<List<OrganizationUserResponse>>> getMembers() {
