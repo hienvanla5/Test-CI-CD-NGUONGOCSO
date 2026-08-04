@@ -15,16 +15,16 @@ interface Props {
 }
 
 const ACTION_COLORS: Record<string, string> = {
-  CREATE: 'bg-green-100 text-green-800',
-  UPDATE: 'bg-blue-100 text-blue-800',
-  DELETE: 'bg-red-100 text-red-800',
-  APPROVE: 'bg-emerald-100 text-emerald-800',
-  REJECT: 'bg-rose-100 text-rose-800',
-  ACTIVATE: 'bg-purple-100 text-purple-800',
-  RECALL: 'bg-orange-100 text-orange-800',
-  EXPORT: 'bg-cyan-100 text-cyan-800',
-  LOGIN: 'bg-slate-100 text-slate-800',
-  LOGOUT: 'bg-slate-100 text-slate-800',
+  CREATE: 'bg-success-bg text-success',
+  UPDATE: 'bg-info-bg text-info',
+  DELETE: 'bg-error-bg text-destructive',
+  APPROVE: 'bg-success-bg text-success',
+  REJECT: 'bg-error-bg text-destructive',
+  ACTIVATE: 'bg-info-bg text-info',
+  RECALL: 'bg-warning-bg text-status-pending',
+  EXPORT: 'bg-info-bg text-info',
+  LOGIN: 'bg-muted text-muted-foreground',
+  LOGOUT: 'bg-muted text-muted-foreground',
 };
 
 const ACTION_LABELS: Record<string, string> = {
@@ -59,7 +59,7 @@ export const ActivityLogTable = ({ logs, loading }: Props) => {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
@@ -99,7 +99,7 @@ export const ActivityLogTable = ({ logs, loading }: Props) => {
                 </div>
               </TableCell>
               <TableCell>
-                <Badge className={ACTION_COLORS[log.action] || 'bg-gray-100 text-gray-800'}>
+                <Badge className={ACTION_COLORS[log.action] || 'bg-muted text-muted-foreground'}>
                   {ACTION_LABELS[log.action] || log.action}
                 </Badge>
               </TableCell>

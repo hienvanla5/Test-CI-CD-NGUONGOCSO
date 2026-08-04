@@ -72,4 +72,17 @@ public class ShipmentController {
 
 		return ApiResult.success(shipmentService.getEligibleShipments());
 	}
+
+	/**
+	 * Lấy chi tiết lô hàng theo ID.
+	 *
+	 * @param id ID của lô hàng
+	 * @return chi tiết lô hàng
+	 */
+	@GetMapping("/{id}")
+	@PreAuthorize("hasAnyRole('VT-01', 'VT-02', 'VT-03', 'VT-04', 'VT-05')")
+	public ApiResult<ShipmentResponse> getShipmentById(@PathVariable UUID id) {
+
+		return ApiResult.success(shipmentService.getShipmentById(id));
+	}
 }

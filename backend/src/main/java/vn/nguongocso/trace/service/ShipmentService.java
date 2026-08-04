@@ -41,4 +41,12 @@ public interface ShipmentService {
      * @return danh sách lô hàng sẵn sàng thu mua
      */
     List<ProcurementShipmentResponse> getEligibleShipments();
+
+    /**
+     * Lấy chi tiết lô hàng theo ID.
+     *
+     * @param id ID của lô hàng
+     * @return thông tin chi tiết lô hàng
+     */
+    ShipmentResponse getShipmentById(UUID id);
 }

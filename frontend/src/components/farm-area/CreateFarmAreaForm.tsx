@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,10 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
 import { createFarmArea, getCropTypes } from '@/api/farmAreaApi';
 import type { AreaUnit, CropType } from '@/types/farmArea';
 import { AREA_UNIT_LABELS } from '@/types/farmArea';
 import { LocationPicker } from '@/pages/packaging-event/components/LocationPicker';
+import { useAutoGeolocation } from '@/hooks/useAutoGeolocation';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Tên vùng trồng không được để trống').max(255),
@@ -34,7 +37,10 @@ interface Props {
   onCancel: () => void;
 }
 
-export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
+export const CreateFarmAreaForm = ({
+  onSuccess,
+  onCancel,
+}: Props) => {
   const [cropTypes, setCropTypes] = useState<CropType[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,8 +62,18 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
     },
   });
 
-  const lat = watch('latitude');
-  const lng = watch('longitude');
+  const latitude = watch('latitude');
+  const longitude = watch('longitude');
+
+  const currentPosition =
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    !(latitude === 0 && longitude === 0)
+      ? {
+          lat: latitude,
+          lng: longitude,
+        }
+      : undefined;
 
   useEffect(() => {
     const fetchCropTypes = async () => {
@@ -70,13 +86,35 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
         setLoading(false);
       }
     };
-    fetchCropTypes();
+
+    void fetchCropTypes();
   }, []);
 
-  const handleLocationSelect = (lat: number, lng: number) => {
-    setValue('latitude', lat);
-    setValue('longitude', lng);
+  const handleLocationSelect = (
+    selectedLatitude: number,
+    selectedLongitude: number,
+  ) => {
+    setValue('latitude', selectedLatitude, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    setValue('longitude', selectedLongitude, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
+
+  const { locationLoading, fetchLocation } = useAutoGeolocation({
+    onLocation: (selectedLatitude, selectedLongitude) => {
+      handleLocationSelect(selectedLatitude, selectedLongitude);
+      toast.success('Đã lấy vị trí hiện tại');
+    },
+
+    onError: (message) => {
+      toast.error(`Không thể lấy vị trí: ${message}`);
+    },
+  });
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -88,32 +126,57 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
         area: values.area,
         areaUnit: values.areaUnit,
       });
+
       toast.success(`Vùng trồng "${result.name}" đã được tạo!`);
       onSuccess(result);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
+      toast.error(
+        error.response?.data?.message || 'Có lỗi xảy ra',
+      );
     }
   };
 
-  if (loading) return <div className="p-4 text-center">Đang tải...</div>;
+  if (loading) {
+    return <div className="p-4 text-center">Đang tải...</div>;
+  }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-6"
+    >
       <div className="space-y-2">
         <Label htmlFor="name">Tên vùng trồng *</Label>
-        <Input id="name" {...register('name')} placeholder="VD: Vùng chè Tân Cương" />
-        {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+
+        <Input
+          id="name"
+          {...register('name')}
+          placeholder="VD: Vùng chè Tân Cương"
+        />
+
+        {errors.name && (
+          <p className="text-sm text-red-500">
+            {errors.name.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="cropType">Loại cây trồng *</Label>
+
         <Select
           value={watch('cropType')}
-          onValueChange={(value) => setValue('cropType', value || '')}
+          onValueChange={(value) => {
+            setValue('cropType', value || '', {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+          }}
         >
-          <SelectTrigger>
+          <SelectTrigger id="cropType">
             <SelectValue placeholder="Chọn loại cây trồng" />
           </SelectTrigger>
+
           <SelectContent>
             {cropTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
@@ -122,18 +185,62 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
             ))}
           </SelectContent>
         </Select>
-        {errors.cropType && <p className="text-sm text-red-500">{errors.cropType.message}</p>}
+
+        {errors.cropType && (
+          <p className="text-sm text-red-500">
+            {errors.cropType.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
-        <Label>Vị trí trên bản đồ *</Label>
-        <div className="flex gap-2">
-          <Input value={lat || ''} disabled placeholder="Vĩ độ" />
-          <Input value={lng || ''} disabled placeholder="Kinh độ" />
+        <div className="flex items-center justify-between gap-3">
+          <Label>Vị trí trên bản đồ *</Label>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={locationLoading}
+            onClick={() => fetchLocation()}
+          >
+            {locationLoading
+              ? 'Đang lấy vị trí...'
+              : 'Lấy vị trí hiện tại'}
+          </Button>
         </div>
-        <LocationPicker onLocationSelect={handleLocationSelect} height="300px" />
-        {errors.latitude && <p className="text-sm text-red-500">{errors.latitude.message}</p>}
-        {errors.longitude && <p className="text-sm text-red-500">{errors.longitude.message}</p>}
+
+        <div className="flex gap-2">
+          <Input
+            value={currentPosition?.lat ?? ''}
+            disabled
+            placeholder="Vĩ độ"
+          />
+
+          <Input
+            value={currentPosition?.lng ?? ''}
+            disabled
+            placeholder="Kinh độ"
+          />
+        </div>
+
+        <LocationPicker
+          onLocationSelect={handleLocationSelect}
+          initialPosition={currentPosition}
+          height="300px"
+        />
+
+        {errors.latitude && (
+          <p className="text-sm text-red-500">
+            {errors.latitude.message}
+          </p>
+        )}
+
+        {errors.longitude && (
+          <p className="text-sm text-red-500">
+            {errors.longitude.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -168,10 +275,19 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+        >
           Hủy
         </Button>
-        <Button type="submit" variant="create" disabled={isSubmitting}>
+
+        <Button
+          type="submit"
+          variant="create"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? 'Đang tạo...' : 'Tạo vùng trồng'}
         </Button>
       </div>
