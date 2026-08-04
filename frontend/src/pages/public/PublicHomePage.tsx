@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BrowserQRCodeReader } from "@zxing/browser";
-import { LogIn, ScanLine, Search, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
+import {
+  LogIn,
+  ScanLine,
+  Search,
+  ShieldCheck,
+  Truck,
+  BadgeCheck,
+} from "lucide-react";
 import { Logo } from "@/components/common/Logo";
 import { toast } from "sonner";
 

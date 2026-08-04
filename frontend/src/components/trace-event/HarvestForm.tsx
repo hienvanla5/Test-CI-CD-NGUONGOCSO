@@ -16,6 +16,7 @@ import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { addOfflineEvent } from '@/services/offlineQueue';
 import { ChainEventType } from '@/enums/chainEventType';
 import { getLocalDateString } from '@/utils/dateTime';
+import { useAutoGeolocation } from '@/hooks/useAutoGeolocation';
 
 const MAX_IMAGES = 5;
 
@@ -71,10 +72,41 @@ export const HarvestForm = ({
   const lat = watch('latitude');
   const lng = watch('longitude');
 
-  const handleLocationSelect = (lat: number, lng: number) => {
-    setValue('latitude', lat);
-    setValue('longitude', lng);
+  const currentPosition =
+    typeof lat === 'number' &&
+    Number.isFinite(lat) &&
+    typeof lng === 'number' &&
+    Number.isFinite(lng) &&
+    !(lat === 0 && lng === 0)
+      ? {
+          lat,
+          lng,
+        }
+      : undefined;
+
+  const handleLocationSelect = (
+    selectedLatitude: number,
+    selectedLongitude: number,
+  ) => {
+    setValue('latitude', selectedLatitude, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setValue('longitude', selectedLongitude, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
+
+  const { locationLoading, fetchLocation } = useAutoGeolocation({
+    onLocation: (selectedLatitude, selectedLongitude) => {
+      handleLocationSelect(selectedLatitude, selectedLongitude);
+      toast.success('Đã lấy vị trí hiện tại');
+    },
+    onError: (message) => {
+      toast.error(`Không thể lấy vị trí: ${message}`);
+    },
+  });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -242,12 +274,37 @@ export const HarvestForm = ({
 
           {/* LocationPicker */}
           <div className="space-y-2">
-            <Label>Vị trí thu hoạch (click trên bản đồ)</Label>
-            <div className="flex gap-2">
-              <Input value={lat || ''} disabled placeholder="Vĩ độ" />
-              <Input value={lng || ''} disabled placeholder="Kinh độ" />
+            <div className="flex items-center justify-between gap-3">
+              <Label>Vị trí thu hoạch (click trên bản đồ)</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={locationLoading || isSubmitting}
+                onClick={() => fetchLocation()}
+              >
+                {locationLoading
+                  ? 'Đang lấy vị trí...'
+                  : 'Lấy vị trí hiện tại'}
+              </Button>
             </div>
-            <LocationPicker onLocationSelect={handleLocationSelect} height="300px" />
+            <div className="flex gap-2">
+              <Input
+                value={currentPosition?.lat ?? ''}
+                disabled
+                placeholder="Vĩ độ"
+              />
+              <Input
+                value={currentPosition?.lng ?? ''}
+                disabled
+                placeholder="Kinh độ"
+              />
+            </div>
+            <LocationPicker
+              onLocationSelect={handleLocationSelect}
+              initialPosition={currentPosition}
+              height="300px"
+            />
           </div>
 
           {/* Image Upload */}
