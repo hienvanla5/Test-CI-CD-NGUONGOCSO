@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Card,
@@ -207,16 +206,24 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
             <div className="space-y-2">
               <Label htmlFor="file">Tệp dữ liệu *</Label>
               <div className="flex items-center gap-3">
-                <div className="flex-1">
-                  <Input
-                    id="file"
-                    type="file"
-                    accept=".csv,.xlsx"
-                    onChange={handleFileChange}
-                    disabled={submitting}
-                    className="cursor-pointer"
-                  />
-                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById('production-lot-import-file')?.click()}
+                  disabled={submitting}
+                >
+                  <FileSpreadsheet className="h-4 w-4 mr-1" />
+                  Chọn tệp
+                </Button>
+                <input
+                  id="production-lot-import-file"
+                  type="file"
+                  accept=".csv,.xlsx"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  disabled={submitting}
+                />
                 <Button
                   type="button"
                   variant="outline"
@@ -253,13 +260,14 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
           <CardFooter className="flex justify-end gap-2">
             <Button
               type="button"
+              size="sm"
               variant="outline"
               onClick={() => navigate('/production-lots')}
               disabled={submitting}
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" size="sm" disabled={submitting}>
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

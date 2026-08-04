@@ -256,14 +256,14 @@ export default function LookupStatisticsPage() {
             </Button>
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => {
                 setStartDate('');
                 setEndDate('');
                 setGroupBy('DAY');
               }}
-              className="text-xs h-8 text-muted-foreground"
+              className="text-xs h-8"
             >
               Xóa bộ lọc
             </Button>
