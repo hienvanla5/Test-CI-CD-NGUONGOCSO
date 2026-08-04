@@ -353,7 +353,7 @@ export function FarmLogList({
                         {log.createdByName}
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                        <span className="inline-flex rounded-full bg-info-bg px-2.5 py-0.5 text-xs font-medium text-info">
                           {ACTIVITY_TYPE_LABELS[log.activityType] ||
                             log.activityType}
                         </span>

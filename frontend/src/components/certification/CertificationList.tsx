@@ -55,7 +55,7 @@ export const CertificationList = ({ certifications, onDetach, canManage, loading
               <TableCell>{formatDate(cert.expiryDate)}</TableCell>
               <TableCell>
                 {cert.isValid ? (
-                  <Badge variant="default" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
+                  <Badge variant="success">
                     Còn hiệu lực
                   </Badge>
                 ) : (
