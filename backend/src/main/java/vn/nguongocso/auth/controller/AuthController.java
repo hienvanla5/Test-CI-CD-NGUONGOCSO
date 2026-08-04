@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.dto.request.LoginRequest;
 import vn.nguongocso.auth.dto.response.LoginResponse;
 import vn.nguongocso.auth.dto.response.UserProfileResponse;
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.auth.service.AuthService;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.ApiResult;
@@ -27,6 +28,7 @@ import vn.nguongocso.common.ApiResult;
 public class AuthController {
 
     private final AuthService authService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * Authenticates a user using the provided credentials.
@@ -58,6 +60,8 @@ public class AuthController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
 
+        java.util.List<String> permissions = permissionChecker.getPermissionsForCurrentUser();
+
         UserProfileResponse response = UserProfileResponse.builder()
                 .userId(userDetails.getUserId())
                 .username(userDetails.getUsername())
@@ -68,6 +72,7 @@ public class AuthController {
                 .organizationCode(userDetails.getOrganizationCode())
                 .organizationName(userDetails.getOrganizationName())
                 .organizationType(userDetails.getOrganizationType())
+                .permissions(permissions)
                 .build();
 
         return ResponseEntity.ok(ApiResult.success(response));
