@@ -15,8 +15,6 @@ interface LogoProps {
 export function Logo({
   height = 36,
   className,
-  showText = true,
-  textClassName,
 }: LogoProps) {
   return (
     <span className="inline-flex items-center gap-3">
