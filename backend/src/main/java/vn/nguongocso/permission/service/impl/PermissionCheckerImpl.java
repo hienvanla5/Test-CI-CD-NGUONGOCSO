@@ -18,6 +18,11 @@ import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.auth.repository.RoleRepository;
 
 import java.util.Optional;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -76,5 +81,57 @@ public class PermissionCheckerImpl implements PermissionChecker {
                     HttpStatus.FORBIDDEN,
                     "Bạn không có quyền thực hiện chức năng này.");
         }
+    }
+
+    @Override
+    public List<String> getPermissionsForCurrentUser() {
+        CustomUserDetails currentUser = SecurityUtils.getCurrentUserDetails();
+        if (currentUser == null) {
+            return Collections.emptyList();
+        }
+
+        Role role = roleRepository.findByCode(currentUser.getRoleCode())
+                .orElse(null);
+        if (role == null) {
+            return Collections.emptyList();
+        }
+
+        // Lấy tất cả permissions mặc định của vai trò
+        List<RolePermission> defaultPermissions =
+                rolePermissionRepository.findByRole_RoleId(role.getRoleId());
+        
+        Map<Integer, Boolean> permissionStatusMap = new HashMap<>();
+        for (RolePermission rp : defaultPermissions) {
+            if (rp.getPermission() != null) {
+                permissionStatusMap.put(rp.getPermission().getPermissionId(), Boolean.TRUE.equals(rp.getEnabled()));
+            }
+        }
+
+        // Lấy tất cả ghi đè của HTX cho vai trò đó (nếu user thuộc HTX)
+        if (currentUser.getOrganizationId() != null) {
+            List<OrganizationRolePermission> orgPermissions =
+                    organizationRolePermissionRepository.findByOrganization_OrganizationIdAndRole_RoleId(
+                            currentUser.getOrganizationId(),
+                            role.getRoleId()
+                    );
+            for (OrganizationRolePermission orp : orgPermissions) {
+                if (orp.getPermission() != null) {
+                    permissionStatusMap.put(orp.getPermission().getPermissionId(), Boolean.TRUE.equals(orp.getEnabled()));
+                }
+            }
+        }
+
+        // Lấy danh sách permission codes (resource:action) có trạng thái enabled = true
+        List<String> enabledPermissions = new ArrayList<>();
+        List<Permission> allPermissions = permissionRepository.findAll();
+        
+        for (Permission p : allPermissions) {
+            Boolean enabled = permissionStatusMap.get(p.getPermissionId());
+            if (Boolean.TRUE.equals(enabled)) {
+                enabledPermissions.add(p.getResource() + ":" + p.getAction());
+            }
+        }
+
+        return enabledPermissions;
     }
 }

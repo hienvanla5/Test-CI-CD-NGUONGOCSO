@@ -85,6 +85,9 @@ import RolePermissionConfigPage from "@/pages/permission/RolePermissionConfigPag
 
 // ===== Scan Quick Event (NCL-10-CN-004) =====
 import ScanQuickEventPage from "@/pages/scan-anomaly-alert/components/ScanQuickEventPage";
+import OrganizationDetailPage from "@/pages/organization/OrganizationDetailPage";
+
+
 
 // ===== Constants =====
 const COOPERATIVE_MANAGER_ROLES = [
@@ -486,6 +489,15 @@ const AppRoutes = () => (
                     </RoleRoute>
                 }
             />
+
+            <Route
+                path="organizations/:id"
+                element={
+                <RoleRoute allowedRoles={ROLE_ACCESS.organizationList}>
+                <OrganizationDetailPage />
+            </RoleRoute>
+  }
+/>
 
             {/* ===== Unauthorized ===== */}
             <Route path="unauthorized" element={<UnauthorizedPage />} />

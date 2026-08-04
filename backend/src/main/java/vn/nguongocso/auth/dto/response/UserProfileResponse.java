@@ -5,6 +5,7 @@ import lombok.Data;
 import vn.nguongocso.organization.enums.OrganizationType;
 
 import java.util.UUID;
+import java.util.List;
 
 @Data
 @Builder
@@ -21,4 +22,5 @@ public class UserProfileResponse {
     private String organizationCode;
     private String organizationName;
     private OrganizationType organizationType;
+    private List<String> permissions;
 }

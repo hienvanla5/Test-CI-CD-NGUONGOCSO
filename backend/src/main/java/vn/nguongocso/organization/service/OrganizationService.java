@@ -2,6 +2,7 @@ package vn.nguongocso.organization.service;
 
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
 import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
+import vn.nguongocso.organization.dto.response.OrganizationDetailResponse;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
 
@@ -19,4 +20,6 @@ public interface OrganizationService {
     OrganizationProfileResponse updateOrganizationById(UUID orgId, OrganizationUpdateRequest request);
 
     List<OrganizationResponse> getAllOrganizations();
+
+    OrganizationDetailResponse getOrganizationDetail(UUID organizationId);
 }
