@@ -295,13 +295,15 @@ export function TransportEventForm() {
         <CardFooter className="flex justify-end gap-3">
           <Button
             type="button"
+            size="sm"
             variant="outline"
             onClick={() => navigate(-1)}
+            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
           >
             Hủy
           </Button>
 
-          <Button type="submit" disabled={isSubmitting} variant="create">
+          <Button type="submit" size="sm" disabled={isSubmitting} variant="create">
             {isSubmitting ? "Đang ghi..." : "Ghi sự kiện vận chuyển"}
           </Button>
         </CardFooter>

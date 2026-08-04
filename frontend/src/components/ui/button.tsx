@@ -25,13 +25,13 @@ const buttonVariants = cva(
         edit:
           "bg-amber-500 text-white hover:bg-amber-600 dark:bg-amber-400 dark:hover:bg-amber-500",
         view:
-          "bg-violet-500 text-white hover:bg-violet-600 dark:bg-violet-400 dark:hover:bg-violet-500", // 🆕 Thêm view
+          "bg-sky-400 text-white hover:bg-sky-500 dark:bg-sky-300 dark:hover:bg-sky-400", // 🆕 Thêm view
         delete:
           "bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600",
       },
       size: {
         default:
-          "h-11 gap-2 px-6 py-2 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
+          "h-9 gap-1.5 rounded-[min(var(--radius-md),12px)] px-3 text-sm in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3.5",
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-9 gap-1.5 rounded-[min(var(--radius-md),12px)] px-3 text-sm in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-11 gap-2 px-8 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",

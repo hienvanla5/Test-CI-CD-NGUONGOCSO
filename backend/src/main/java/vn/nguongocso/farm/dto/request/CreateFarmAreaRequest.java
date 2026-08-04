@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.nguongocso.farm.enums.AreaUnit;
 
 /**
  * DTO yêu cầu tạo mới vùng trồng.
@@ -37,4 +38,6 @@ public class CreateFarmAreaRequest {
 	@NotNull(message = "Diện tích không được để trống")
 	@DecimalMin(value = "0.01", inclusive = true, message = "Diện tích phải lớn hơn 0")
 	private BigDecimal area;
+
+	private AreaUnit areaUnit;
 }
