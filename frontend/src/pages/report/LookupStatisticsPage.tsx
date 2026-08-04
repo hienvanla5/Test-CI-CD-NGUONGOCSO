@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   getLookupStatistics,
   getAbnormalScans,
@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Calendar } from 'lucide-react';
 
 type GroupByType = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
 
@@ -35,6 +35,24 @@ const groupByLabels: Record<GroupByType, string> = {
   YEAR: 'Năm',
 };
 
+// Helper: lấy ngày hôm nay (YYYY-MM-DD)
+const getToday = () => new Date().toISOString().split('T')[0];
+
+// Helper: lấy ngày đầu tháng hiện tại (YYYY-MM-DD)
+const getFirstDayOfMonth = () => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), 1)
+    .toISOString()
+    .split('T')[0];
+};
+
+// Helper: lấy ngày 7 ngày trước
+const getSevenDaysAgo = () => {
+  const now = new Date();
+  now.setDate(now.getDate() - 7);
+  return now.toISOString().split('T')[0];
+};
+
 export default function LookupStatisticsPage() {
   const [stats, setStats] = useState<LookupStatisticsResponse | null>(null);
   const [abnormalScans, setAbnormalScans] = useState<AbnormalScanResponse[]>([]);
@@ -43,10 +61,13 @@ export default function LookupStatisticsPage() {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Bộ lọc
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [groupBy, setGroupBy] = useState<GroupByType>('MONTH');
+  // === Bộ lọc ngày mặc định: từ ngày = đầu tháng, đến ngày = hôm nay ===
+  const defaultStartDate = useMemo(() => getFirstDayOfMonth(), []);
+  const defaultEndDate = useMemo(() => getToday(), []);
+
+  const [startDate, setStartDate] = useState(defaultStartDate);
+  const [endDate, setEndDate] = useState(defaultEndDate);
+  const [groupBy, setGroupBy] = useState<GroupByType>('DAY');
 
   const fetchStats = async () => {
     try {
@@ -84,6 +105,7 @@ export default function LookupStatisticsPage() {
     }
   };
 
+  // Tự động fetch khi thay đổi bộ lọc
   useEffect(() => {
     fetchStats();
   }, [startDate, endDate, groupBy]);
@@ -91,6 +113,27 @@ export default function LookupStatisticsPage() {
   useEffect(() => {
     fetchAbnormalScans();
   }, [page, startDate, endDate]);
+
+  // === Các action nhanh cho bộ lọc ngày ===
+  const setToday = () => {
+    const today = getToday();
+    setStartDate(today);
+    setEndDate(today);
+  };
+
+  const setThisWeek = () => {
+    const today = getToday();
+    const sevenDaysAgo = getSevenDaysAgo();
+    setStartDate(sevenDaysAgo);
+    setEndDate(today);
+  };
+
+  const setThisMonth = () => {
+    const today = getToday();
+    const firstDay = getFirstDayOfMonth();
+    setStartDate(firstDay);
+    setEndDate(today);
+  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -102,34 +145,47 @@ export default function LookupStatisticsPage() {
             Tổng hợp số lượt quét mã theo lô và thời gian
           </p>
         </div>
-        <Button variant="outline" onClick={() => fetchStats()}>
-          <RefreshCw className="h-4 w-4 mr-1" />
+        <Button variant="outline" onClick={fetchStats} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
           Làm mới
         </Button>
       </div>
 
-      {/* Bộ lọc */}
+      {/* Bộ lọc với các nút nhanh */}
       <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <CardContent className="p-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Từ ngày */}
             <div>
               <Label htmlFor="startDate">Từ ngày</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="pl-9"
+                />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              </div>
             </div>
+
+            {/* Đến ngày */}
             <div>
               <Label htmlFor="endDate">Đến ngày</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="pl-9"
+                />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              </div>
             </div>
+
+            {/* Nhóm theo */}
             <div>
               <Label htmlFor="groupBy">Nhóm theo</Label>
               <Select
@@ -152,35 +208,77 @@ export default function LookupStatisticsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setStartDate('');
-                  setEndDate('');
-                  setGroupBy('MONTH');
-                }}
-                className="w-full"
-              >
-                Xóa bộ lọc
-              </Button>
-            </div>
+          </div>
+
+          {/* Nút chọn nhanh */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+            <span className="text-sm font-medium text-muted-foreground mr-1">
+              Chọn nhanh:
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={setToday}
+              className="text-xs h-8"
+            >
+              Hôm nay
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={setThisWeek}
+              className="text-xs h-8"
+            >
+              7 ngày qua
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={setThisMonth}
+              className="text-xs h-8"
+            >
+              Tháng này
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setStartDate('');
+                setEndDate('');
+                setGroupBy('DAY');
+              }}
+              className="text-xs h-8 text-muted-foreground"
+            >
+              Xóa bộ lọc
+            </Button>
           </div>
         </CardContent>
       </Card>
 
+      {/* Nội dung dữ liệu */}
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
         </div>
       ) : stats ? (
         <>
+          {/* Thẻ tổng quan */}
           <StatisticsSummary stats={stats.summary} />
+
+          {/* Biểu đồ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <LocationChart data={stats.byLocation} />
             <TimeSeriesChart data={stats.timeSeries} />
           </div>
+
+          {/* Bảng thống kê theo lô */}
           <LotStatsTable data={stats.byProductionLot} />
+
+          {/* Bảng quét bất thường */}
           <AbnormalScansTable
             data={abnormalScans}
             totalPages={totalPages}
