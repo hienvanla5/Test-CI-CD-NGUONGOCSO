@@ -97,9 +97,8 @@ public class OrganizationMemberService {
             throw new BusinessException("Quản lý HTX không thể gán vai trò Quản trị viên nền tảng");
         }
 
-        // 🆕 Nếu role mới là VT-02, kiểm tra và chuyển quyền quản lý cũ
+        // Nếu role mới là VT-02, kiểm tra và chuyển quyền quản lý cũ
         if (RoleCode.ORG_MANAGER.equals(newRole.getCode())) {
-            // Tìm thành viên đang giữ VT-02 trong cùng tổ chức, ngoại trừ chính người được cập nhật
             OrganizationUser currentManager = orgUserRepository
                     .findByOrganization_OrganizationIdAndRole_Code(orgId, RoleCode.ORG_MANAGER)
                     .filter(m -> !m.getUser().getUserId().equals(request.getUserId()))
@@ -108,8 +107,6 @@ public class OrganizationMemberService {
             if (currentManager != null) {
                 Role vt03Role = roleRepository.findByCode(RoleCode.EVENT_RECORDER)
                         .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy role VT-03"));
-
-                // Hạ quản lý cũ xuống VT-03
                 currentManager.setRole(vt03Role);
                 orgUserRepository.save(currentManager);
                 log.info("Hạ quản lý cũ {} xuống VT-03", currentManager.getUser().getFullName());
@@ -126,7 +123,7 @@ public class OrganizationMemberService {
                 currentUser,
                 "ASSIGN_ROLE",
                 "Gán vai trò " + newRole.getName() + " cho " + targetUser.getFullName(),
-                "OrganizaitonUser",
+                "OrganizationUser",
                 orgUser.getId().toString()
         );
 
@@ -144,6 +141,16 @@ public class OrganizationMemberService {
 
         if (userRepository.findByUserName(request.getUsername()).isPresent()) {
             throw new BusinessException("Tên đăng nhập đã tồn tại");
+        }
+
+        // Kiểm tra trùng email
+        if (request.getEmail() != null && !request.getEmail().isBlank() && userRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException("Email đã tồn tại");
+        }
+
+        // Kiểm tra trùng số điện thoại
+        if (request.getPhone() != null && !request.getPhone().isBlank() && userRepository.existsByPhone(request.getPhone())) {
+            throw new BusinessException("Số điện thoại đã tồn tại");
         }
 
         Role role = roleRepository.findById(request.getRoleId())
@@ -185,12 +192,11 @@ public class OrganizationMemberService {
         );
 
         log.info("Thêm thành viên thành công: userId={}, orgId={}, role={}",
-            newUser.getUserId(), orgId, role.getCode());
+                newUser.getUserId(), orgId, role.getCode());
 
         return toResponse(orgUser);
     }
 
-    // Thêm helper method lấy current user
     private CustomUserDetails getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
@@ -215,7 +221,6 @@ public class OrganizationMemberService {
         );
     }
 
-    // mapping
     private OrganizationUserResponse toResponse(OrganizationUser orgUser) {
         User user = orgUser.getUser();
         Role role = orgUser.getRole();
