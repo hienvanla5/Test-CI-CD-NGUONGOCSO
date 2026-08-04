@@ -297,11 +297,10 @@ export const CreateFarmAreaForm = ({
 
         <Button
           type="submit"
+          variant="create"
           disabled={isSubmitting}
         >
-          {isSubmitting
-            ? 'Đang tạo...'
-            : 'Tạo vùng trồng'}
+          {isSubmitting ? 'Đang tạo...' : 'Tạo vùng trồng'}
         </Button>
       </div>
     </form>

@@ -219,7 +219,7 @@ export const CreateCertificationForm: React.FC = () => {
           >
             Hủy
           </Button>
-          <Button type="submit" disabled={submitting}>
+          <Button type="submit" variant="create" disabled={submitting}>
             {submitting ? 'Đang tạo...' : 'Tạo chứng nhận'}
           </Button>
         </CardFooter>

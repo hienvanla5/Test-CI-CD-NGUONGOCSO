@@ -1,6 +1,6 @@
 import { getOrganizationProfile, updateOrganizationProfile } from "@/api/organizationApi";
 import { useAuth } from "@/hooks/useAuth";
-import { type OrganizationProfile } from "../../types/organization.ts";
+import type { OrganizationProfile, UpdateOrganizationRequest } from "../../types/organization.ts";
 import { type OrganizationProfileFormValues, organizationProfileSchema } from "@/utils/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
@@ -50,7 +50,14 @@ export const OrganizationProfileForm: React.FC = () => {
 
   const onSubmit = async (data: OrganizationProfileFormValues) => {
     try {
-      const updated = await updateOrganizationProfile(data);
+      const payload: UpdateOrganizationRequest = {
+        name: data.name,
+        address: data.address,
+        phone: data.phone,
+        email: data.email,
+      };
+
+      const updated = await updateOrganizationProfile(payload);
       setProfile(updated);
       setIsEditing(false);
       toast.success('Cập nhật hồ sơ thành công');
@@ -122,7 +129,7 @@ export const OrganizationProfileForm: React.FC = () => {
         <CardFooter className="flex justify-end gap-2">
           {!isEditing ? (
             canEdit && (
-              <Button type="button" onClick={() => setIsEditing(true)}>
+              <Button type="button" variant="edit" onClick={() => setIsEditing(true)}>
                 Chỉnh sửa
               </Button>
             )

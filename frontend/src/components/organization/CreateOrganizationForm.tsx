@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ORGANIZATION_TYPES } from '@/utils/constants';
+import type { CreateOrganizationRequest } from '@/types/organization';
 
 export function CreateOrganizationForm() {
   const navigate = useNavigate();
@@ -36,8 +37,20 @@ export function CreateOrganizationForm() {
 
   const onSubmit = async (values: CreateOrganizationFormValues) => {
     try {
-      // Loại bỏ confirmPassword trước khi gửi (back-end không cần)
-      const { confirmPassword, ...submitData } = values;
+      const submitData: CreateOrganizationRequest = {
+        organizationName: values.organizationName,
+        organizationCode: values.organizationCode,
+        organizationType: values.organizationType,
+        address: values.address,
+        phone: values.phone,
+        email: values.email,
+        fullName: values.fullName,
+        userName: values.userName,
+        password: values.password,
+        managerPhone: values.managerPhone,
+        managerEmail: values.managerEmail,
+      };
+
       const result = await createOrganization(submitData);
       toast.success(`Tổ chức "${result.data.organizationName}" đã được tạo thành công!`);
       navigate('/organizations');
@@ -249,7 +262,7 @@ export function CreateOrganizationForm() {
           >
             Hủy
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant="create" disabled={isSubmitting}>
             {isSubmitting ? 'Đang tạo...' : 'Tạo tổ chức'}
           </Button>
         </CardFooter>

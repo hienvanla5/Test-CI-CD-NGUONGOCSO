@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { addMember, getRoles } from '@/api/memberApi';
-import type { RoleOption } from '@/types/member';
+import type { AddMemberRequest, RoleOption } from '@/types/member';
 import { getRoleLabel } from '@/config/roleAccess';
 
 const createMemberSchema = z
@@ -83,7 +83,15 @@ export function CreateMemberForm() {
   const onSubmit = async (values: CreateMemberFormValues) => {
     try {
       setIsSubmitting(true);
-      const { confirmPassword, ...submitData } = values;
+      const submitData: AddMemberRequest = {
+        username: values.username,
+        password: values.password,
+        fullName: values.fullName,
+        phone: values.phone ?? null,
+        email: values.email ?? null,
+        roleId: values.roleId,
+      };
+
       await addMember(submitData);
       toast.success('Thêm thành viên thành công');
       navigate('/members');
@@ -162,7 +170,7 @@ export function CreateMemberForm() {
           <Button type="button" variant="outline" onClick={() => navigate('/members')}>
             Hủy
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant="create" disabled={isSubmitting}>
             {isSubmitting ? 'Đang thêm...' : 'Thêm thành viên'}
           </Button>
         </CardFooter>

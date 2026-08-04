@@ -120,9 +120,10 @@ export const RecallShipmentDialog = ({
           <AlertDialogCancel disabled={isRecalling} onClick={handleClose}>
             Hủy
           </AlertDialogCancel>
+          {/* CHANGED: variant="destructive" → variant="delete" */}
           <Button
             type="button"
-            variant="destructive"
+            variant="delete"
             disabled={isRecalling}
             onClick={() => {
               void handleConfirm();

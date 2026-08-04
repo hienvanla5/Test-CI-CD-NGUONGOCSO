@@ -88,7 +88,7 @@ export function OrganizationListPage() {
               Làm mới
             </Button>
             {canCreate && (
-              <Button onClick={() => navigate('/organizations/create')}>
+              <Button variant="create" onClick={() => navigate('/organizations/create')}>
                 <PlusCircle className="h-4 w-4 mr-1" />
                 Tạo tổ chức
               </Button>
@@ -125,7 +125,7 @@ export function OrganizationListPage() {
                       <TableCell>{new Date(org.createdAt).toLocaleDateString('vi-VN')}</TableCell>
                       <TableCell className="text-right">
                         <Button
-                          variant="ghost"
+                          variant="view"
                           size="sm"
                           onClick={() => navigate(`/organizations/${org.id}`)}
                         >

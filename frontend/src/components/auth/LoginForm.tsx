@@ -25,7 +25,6 @@ const inputIconClass = "ml-[18px] size-[17px] shrink-0 text-[#647363]";
 export const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showOrganizationCode, setShowOrganizationCode] = useState(false);
   const { login: authLogin } = useAuth();
   const navigate = useNavigate();
 
@@ -165,26 +164,26 @@ export const LoginForm: React.FC = () => {
           )}
         </div>
 
-          <div id="organization-code-field" className="flex flex-col gap-1.5">
-            <Label className="sr-only" htmlFor="organizationCode">
-              Mã tổ chức
-            </Label>
-             <div className={inputShellClass(Boolean(errors.organizationCode))}>
-              <Building2 className={inputIconClass} aria-hidden="true" />
-              <Input
-                id="organizationCode"
-                autoComplete="organization"
-                className={inputClass}
-                placeholder="Mã tổ chức"
-                {...register("organizationCode")}
-              />
-            </div>
+        <div id="organization-code-field" className="flex flex-col gap-1.5">
+          <Label className="sr-only" htmlFor="organizationCode">
+            Mã tổ chức
+          </Label>
+          <div className={inputShellClass(Boolean(errors.organizationCode))}>
+            <Building2 className={inputIconClass} aria-hidden="true" />
+            <Input
+              id="organizationCode"
+              autoComplete="organization"
+              className={inputClass}
+              placeholder="Mã tổ chức"
+              {...register("organizationCode")}
+            />
+          </div>
           {errors.organizationCode && (
             <p className="mx-4 text-xs text-red-600" role="alert">
               {errors.organizationCode.message}
             </p>
           )}
-          </div>
+        </div>
 
         <Button
           type="submit"

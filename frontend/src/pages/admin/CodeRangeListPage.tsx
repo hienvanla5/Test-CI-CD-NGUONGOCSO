@@ -74,7 +74,8 @@ const CodeRangeListPage: React.FC = () => {
         </div>
         {canCreate && (
           <Link to="/admin/code-ranges/create">
-            <Button className="shrink-0">
+            {/* CHANGED: thêm variant="create" */}
+            <Button className="shrink-0" variant="create">
               <Plus className="h-4 w-4 mr-2" />
               Cấp dải mã mới
             </Button>

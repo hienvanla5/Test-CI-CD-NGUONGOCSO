@@ -99,7 +99,10 @@ export function CorrectPackagingForm() {
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>Hủy</Button>
-          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Đang xử lý...' : 'Đính chính'}</Button>
+          {/* CHANGED: thêm variant="edit" */}
+          <Button type="submit" disabled={isSubmitting} variant="edit">
+            {isSubmitting ? 'Đang xử lý...' : 'Đính chính'}
+          </Button>
         </CardFooter>
       </form>
     </Card>

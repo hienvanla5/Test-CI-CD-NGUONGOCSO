@@ -145,7 +145,8 @@ export const ProductionLotList = ({
             </div>
 
             {canCreate && (
-              <Button type="button" onClick={onCreate}>
+              // CHANGED: thêm variant="create"
+              <Button type="button" onClick={onCreate} variant="create">
                 <Plus className="size-4" />
                 Tạo lô sản xuất
               </Button>
@@ -278,10 +279,11 @@ export const ProductionLotList = ({
                         <td className="px-4 py-4">
                           <div className="flex flex-wrap gap-2">
                             {showEdit && (
+                              // CHANGED: variant="edit" thay vì outline
                               <Button
                                 size="sm"
                                 type="button"
-                                variant="outline"
+                                variant="edit"
                                 onClick={() => onEdit(lot.id)}
                               >
                                 <Pencil className="size-4" />
@@ -332,10 +334,11 @@ export const ProductionLotList = ({
                         </td>
 
                         <td className="px-4 py-4">
+                          {/* CHANGED: variant="view" thay vì outline */}
                           <Button
                             size="sm"
                             type="button"
-                            variant="outline"
+                            variant="view"
                             onClick={() =>
                               navigate(`/production-lots/${lot.id}`)
                             }
