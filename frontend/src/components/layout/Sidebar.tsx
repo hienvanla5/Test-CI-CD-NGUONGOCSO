@@ -3,11 +3,9 @@ import { Link, useLocation } from "react-router-dom";
 import {
   AlertTriangle,
   Award,
-  BarChart2,
   Bell,
   BookOpen,
   Building2,
-  Download,
   FileText,
   FileUp,
   Hash,
@@ -18,7 +16,6 @@ import {
   Package,
   ScanLine,
   Shield,
-  Sprout,
   Truck,
   UserCheck,
   Users,
@@ -28,6 +25,7 @@ import {
   GitCompare,       // mới: so sánh mùa vụ
   PieChart,         // mới: thống kê tra cứu
 } from "lucide-react";
+import { Logo } from "@/components/common/Logo";
 import { Button } from "@/components/ui/button";
 import {
   ROLE_ACCESS,
@@ -234,16 +232,13 @@ export function Sidebar({
   return (
     <aside className="flex h-full min-h-0 flex-col border-r border-emerald-100 bg-white/90 backdrop-blur-sm">
       {/* Logo area */}
-      <div className="flex h-16 items-center gap-2 border-b border-emerald-100 px-5">
+      <div className="flex h-16 items-center border-b border-emerald-100 px-5">
         <Link
           to="/dashboard"
           onClick={onNavigate}
-          className="flex min-w-0 flex-1 items-center gap-2 font-bold"
+          className="flex min-w-0 flex-1 items-center"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100">
-            <Sprout className="h-5 w-5 text-emerald-700" />
-          </div>
-          <span className="truncate text-lg text-emerald-800">Nguồn gốc số</span>
+          <Logo height={40} />
         </Link>
         {showCloseButton && (
           <Button

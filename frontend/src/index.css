@@ -77,111 +77,112 @@
 }
 
 :root {
-    /* Backgrounds (docs/AI_DESIGN_SYSTEM.md) */
-    --background: #F5F7FA; /* Application Background */
-    --foreground: #1F2937; /* Primary Text */
-    --card: #FFFFFF; /* Card Background */
-    --card-foreground: #1F2937; /* Primary Text */
-    --popover: #FFFFFF; /* Modal Background */
-    --popover-foreground: #1F2937; /* Primary Text */
-    --primary: #2E7D32; /* Primary */
-    --primary-foreground: #FFFFFF; /* White Text */
-    --primary-hover: #256B29; /* Primary Hover */
-    --primary-light: #E8F5E9; /* Primary Light */
-    --secondary: #F1F8E9; /* Secondary Light */
-    --secondary-foreground: #558B2F; /* Secondary */
-    --secondary-light: #F1F8E9; /* Secondary Light */
-    --muted: #F9FAFB; /* Table Alternate Row */
-    --muted-foreground: #6B7280; /* Description */
-    --accent: #E8F5E9; /* Primary Light */
-    --accent-foreground: #2E7D32; /* Primary */
-    --destructive: #D32F2F; /* Error */
-    --destructive-foreground: #FFFFFF; /* White Text */
-    --success: #2E7D32; /* Success */
-    --success-foreground: #FFFFFF; /* White Text */
-    --success-bg: #E8F5E9; /* Success Background */
-    --warning: #F9A825; /* Warning */
-    --warning-foreground: #FFFFFF; /* White Text */
-    --warning-bg: #FFF8E1; /* Warning Background */
-    --info: #1976D2; /* Info */
-    --info-foreground: #FFFFFF; /* White Text */
-    --info-bg: #E3F2FD; /* Info Background */
-    --error-bg: #FFEBEE; /* Error Background */
-    --border: #E5E7EB; /* Default Border */
-    --input: #D1D5DB; /* Text Field Border */
-    --ring: #2E7D32; /* Focus Border / Primary */
-    --label: #374151; /* Label / Body Text */
-    --description: #6B7280; /* Description */
-    --disabled: #9CA3AF; /* Disabled */
-    --table-header: #F8FAFC; /* Table Header Background */
-    --table-hover: #F3F4F6; /* Table Row Hover */
-    --table-alternate: #F9FAFB; /* Table Alternate Row */
-    /* Status colors (docs/AI_DESIGN_SYSTEM.md) */
-    --status-draft: #9CA3AF; /* Draft (Disabled) */
-    --status-pending: #F9A825; /* Pending (Warning) */
-    --status-approved: #2E7D32; /* Approved (Primary) */
-    --status-rejected: #D32F2F; /* Rejected (Error) */
-    --status-harvested: #7CB342; /* Harvested */
-    --status-packaged: #1565C0; /* Packaged */
-    --status-shipped: #00897B; /* Shipped */
-    --status-completed: #00695C; /* Completed */
-    --chart-1: #2E7D32; /* Primary */
-    --chart-2: #1976D2; /* Info */
-    --chart-3: #F9A825; /* Warning */
-    --chart-4: #D32F2F; /* Error */
-    --chart-5: #558B2F; /* Secondary */
-    --radius: 0.625rem; /* 10px - buttons, text fields, selects */
-    --sidebar: #FFFFFF; /* Sidebar Background */
-    --sidebar-foreground: #1F2937; /* Primary Text */
-    --sidebar-primary: #2E7D32; /* Primary */
-    --sidebar-primary-foreground: #FFFFFF; /* White Text */
-    --sidebar-accent: #E8F5E9; /* Primary Light */
-    --sidebar-accent-foreground: #2E7D32; /* Primary */
-    --sidebar-border: #E5E7EB; /* Default Border */
-    --sidebar-ring: #2E7D32; /* Primary */
-    --shadow-card-value: 0 2px 8px rgba(0, 0, 0, 0.04); /* Card Shadow */
+    /* Backgrounds */
+    --background: #F5F7FA;
+    --foreground: #1F2937;
+    --card: #FFFFFF;
+    --card-foreground: #1F2937;
+    --popover: #FFFFFF;
+    --popover-foreground: #1F2937;
+    --primary: #2E7D32;
+    --primary-foreground: #FFFFFF;
+    --primary-hover: #256B29;
+    --primary-light: #E8F5E9;
+    --secondary: #F1F8E9;
+    --secondary-foreground: #558B2F;
+    --secondary-light: #F1F8E9;
+    --muted: #F3F4F6;                     /* ← xám nhạt hơn để phân biệt với nền trắng */
+    --muted-foreground: #4B5563;          /* ← tối hơn #6B7280, dễ đọc hơn */
+    --accent: #E8F5E9;
+    --accent-foreground: #2E7D32;
+    --destructive: #D32F2F;
+    --destructive-foreground: #FFFFFF;
+    --success: #2E7D32;
+    --success-foreground: #FFFFFF;
+    --success-bg: #E8F5E9;
+    --warning: #F9A825;
+    --warning-foreground: #FFFFFF;
+    --warning-bg: #FFF8E1;
+    --info: #1976D2;
+    --info-foreground: #FFFFFF;
+    --info-bg: #E3F2FD;
+    --error-bg: #FFEBEE;
+    --border: #E5E7EB;
+    --input: #D1D5DB;
+    --ring: #2E7D32;
+    --label: #1F2937;                     /* ← tối hơn #374151, nhãn nổi bật hơn */
+    --description: #4B5563;               /* ← đồng bộ với muted-foreground */
+    --disabled: #9CA3AF;                  /* ← đủ tương phản để nhận biết */
+    --table-header: #F3F4F6;             /* ← hơi xám hơn nền card */
+    --table-hover: #EDEFF2;
+    --table-alternate: #F9FAFB;
+    /* Status colors */
+    --status-draft: #9CA3AF;
+    --status-pending: #F9A825;
+    --status-approved: #2E7D32;
+    --status-rejected: #D32F2F;
+    --status-harvested: #7CB342;
+    --status-packaged: #1565C0;
+    --status-shipped: #00897B;
+    --status-completed: #00695C;
+    /* Charts & radius */
+    --chart-1: #2E7D32;
+    --chart-2: #1976D2;
+    --chart-3: #F9A825;
+    --chart-4: #D32F2F;
+    --chart-5: #558B2F;
+    --radius: 0.625rem;
+    --sidebar: #FFFFFF;
+    --sidebar-foreground: #1F2937;
+    --sidebar-primary: #2E7D32;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #E8F5E9;
+    --sidebar-accent-foreground: #2E7D32;
+    --sidebar-border: #E5E7EB;
+    --sidebar-ring: #2E7D32;
+    --shadow-card-value: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .dark {
-    --background: #111827;
-    --foreground: #F9FAFB;
-    --card: #1F2937;
-    --card-foreground: #F9FAFB;
-    --popover: #1F2937;
-    --popover-foreground: #F9FAFB;
+    --background: #0F172A;               /* ← xanh đen đậm hơn, tăng tương phản */
+    --foreground: #F1F5F9;
+    --card: #1E293B;
+    --card-foreground: #F1F5F9;
+    --popover: #1E293B;
+    --popover-foreground: #F1F5F9;
     --primary: #4CAF50;
-    --primary-foreground: #FFFFFF;
+    --primary-foreground: #0F172A;
     --primary-hover: #43A047;
     --primary-light: #1B5E20;
-    --secondary: #37474F;
-    --secondary-foreground: #C5CAE9;
+    --secondary: #334155;
+    --secondary-foreground: #CBD5E1;
     --secondary-light: #1B5E20;
-    --muted: #37474F;
-    --muted-foreground: #9CA3AF;
-    --accent: #263238;
+    --muted: #334155;
+    --muted-foreground: #94A3B8;         /* ← sáng hơn để dễ đọc trong dark */
+    --accent: #1E293B;
     --accent-foreground: #81C784;
     --destructive: #E57373;
-    --destructive-foreground: #111827;
+    --destructive-foreground: #0F172A;
     --success: #81C784;
-    --success-foreground: #111827;
+    --success-foreground: #0F172A;
     --success-bg: #1B5E20;
     --warning: #FFB300;
-    --warning-foreground: #111827;
+    --warning-foreground: #0F172A;
     --warning-bg: #4E342E;
     --info: #64B5F6;
-    --info-foreground: #111827;
+    --info-foreground: #0F172A;
     --info-bg: #1A237E;
     --error-bg: #4E342E;
-    --border: #37474F;
-    --input: #455A64;
+    --border: #475569;
+    --input: #64748B;
     --ring: #4CAF50;
-    --label: #E0E0E0;
-    --description: #9CA3AF;
-    --disabled: #757575;
-    --table-header: #263238;
-    --table-hover: #2C3A41;
+    --label: #F1F5F9;                    /* ← sáng rõ hơn */
+    --description: #94A3B8;
+    --disabled: #64748B;                 /* ← dễ phân biệt hơn #757575 */
+    --table-header: #1E293B;
+    --table-hover: #2D3A4A;
     --table-alternate: #1B2329;
-    --status-draft: #757575;
+    --status-draft: #64748B;
     --status-pending: #FFB300;
     --status-approved: #81C784;
     --status-rejected: #E57373;
@@ -194,13 +195,13 @@
     --chart-3: #FFB300;
     --chart-4: #E57373;
     --chart-5: #AED581;
-    --sidebar: #111827;
-    --sidebar-foreground: #F9FAFB;
+    --sidebar: #0F172A;
+    --sidebar-foreground: #F1F5F9;
     --sidebar-primary: #4CAF50;
-    --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #1F2937;
+    --sidebar-primary-foreground: #0F172A;
+    --sidebar-accent: #1E293B;
     --sidebar-accent-foreground: #81C784;
-    --sidebar-border: #37474F;
+    --sidebar-border: #334155;
     --sidebar-ring: #4CAF50;
     --shadow-card-value: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
@@ -208,18 +209,14 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
     @apply bg-background text-foreground;
-    }
+  }
   html {
     @apply font-sans;
-    }
+  }
 }
-
-/* ── Toast notification variants (Sonner [data-type]) ─────────────────────────
-   Per docs/AI_DESIGN_SYSTEM.md — each type has a distinct left border color
-   and light tinted background so the notification type is instantly recognizable. */
 
 [data-sonner-toaster] [data-sonner-toast][data-type="success"] {
   background-color: var(--success-bg);

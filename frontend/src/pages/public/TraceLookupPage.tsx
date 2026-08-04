@@ -19,6 +19,7 @@ import {
   LoaderCircle,
   MapPin,
 } from 'lucide-react';
+import { Logo } from '@/components/common/Logo';
 import {
   Tabs,
   TabsContent,
@@ -150,9 +151,8 @@ export default function TraceLookupPage() {
       <div className="mx-auto max-w-2xl space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-emerald-700">
-            <span className="text-3xl">🌾</span>
-            Nguồn gốc số
+          <h1 className="flex items-center justify-center text-2xl font-bold text-emerald-700">
+            <Logo height={36} />
           </h1>
 
           <p className="mt-1 text-sm text-gray-500">
