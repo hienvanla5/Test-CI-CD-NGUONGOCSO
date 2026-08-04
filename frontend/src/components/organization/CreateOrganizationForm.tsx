@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createOrganizationSchema, type CreateOrganizationFormValues } from '@/utils/validators';
 import { createOrganization } from '@/api/organizationApi';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -13,6 +15,8 @@ import { ORGANIZATION_TYPES } from '@/utils/constants';
 
 export function CreateOrganizationForm() {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -188,12 +192,24 @@ export function CreateOrganizationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Mật khẩu *</Label>
-              <Input
-                id="password"
-                type="password"
-                {...register('password')}
-                placeholder="Nhập mật khẩu"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="pr-8 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                  {...register('password')}
+                  placeholder="Nhập mật khẩu"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  className="absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password.message}</p>
               )}
@@ -202,12 +218,24 @@ export function CreateOrganizationForm() {
             {/* Thêm trường xác nhận mật khẩu */}
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                {...register('confirmPassword')}
-                placeholder="Nhập lại mật khẩu"
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  className="pr-8 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                  {...register('confirmPassword')}
+                  placeholder="Nhập lại mật khẩu"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  className="absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
               {errors.confirmPassword && (
                 <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
               )}
