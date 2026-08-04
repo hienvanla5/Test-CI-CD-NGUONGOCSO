@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.nguongocso.farm.enums.AreaUnit;
 
 /**
  * DTO phản hồi sau khi tạo vùng trồng.
@@ -37,6 +38,8 @@ public class FarmAreaResponse {
 	private Double longitude;
 
 	private BigDecimal area;
+
+	private AreaUnit areaUnit;
 
 	private LocalDateTime createdAt;
 
