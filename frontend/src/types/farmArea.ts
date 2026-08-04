@@ -12,6 +12,13 @@ export const AREA_UNIT_LABELS: Record<AreaUnit, string> = {
   KM2: 'km²',
 };
 
+const HA_PER_KM2 = 100;
+
+// area luôn được lưu theo ha; hàm này quy đổi ngược về đơn vị người dùng đã chọn khi tạo để hiển thị.
+export function convertAreaFromHa(areaInHa: number, unit: AreaUnit): number {
+  return unit === 'KM2' ? areaInHa / HA_PER_KM2 : areaInHa;
+}
+
 export interface FarmArea {
   id: string;
   name: string;
