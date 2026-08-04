@@ -51,21 +51,20 @@ export const ActivityLogFilter = ({ onFilter, onReset, loading }: Props) => {
   };
 
   return (
-    <Card>
-      <CardContent className="p-4">
+    <Card className="border-emerald-100 bg-white/80 backdrop-blur-sm shadow-sm">
+      <CardContent className="p-5">
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="action">Loại thao tác</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Loại thao tác */}
+            <div className="space-y-1.5">
+              <Label htmlFor="action" className="text-sm font-medium text-emerald-800">
+                Loại thao tác
+              </Label>
               <Select
                 value={action}
-                onValueChange={(value: string | null) => {
-                  if (value !== null) {
-                    setAction(value);
-                  }
-                }}
+                onValueChange={(value) => setAction(value ?? '')}
               >
-                <SelectTrigger>
+                <SelectTrigger id="action" className="border-emerald-200 focus:ring-emerald-100">
                   <SelectValue placeholder="Tất cả" />
                 </SelectTrigger>
                 <SelectContent>
@@ -79,51 +78,63 @@ export const ActivityLogFilter = ({ onFilter, onReset, loading }: Props) => {
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="actorName">Người thực hiện</Label>
+            {/* Người thực hiện */}
+            <div className="space-y-1.5">
+              <Label htmlFor="actorName" className="text-sm font-medium text-emerald-800">
+                Người thực hiện
+              </Label>
               <Input
                 id="actorName"
                 value={actorName}
                 onChange={(e) => setActorName(e.target.value)}
                 placeholder="Tên hoặc username..."
+                className="border-emerald-200 focus-visible:ring-emerald-100"
               />
             </div>
 
-            <div>
-              <Label htmlFor="startDate">Từ ngày</Label>
+            {/* Từ ngày */}
+            <div className="space-y-1.5">
+              <Label htmlFor="startDate" className="text-sm font-medium text-emerald-800">
+                Từ ngày
+              </Label>
               <Input
                 id="startDate"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                className="border-emerald-200 focus-visible:ring-emerald-100"
               />
             </div>
 
-            <div>
-              <Label htmlFor="endDate">Đến ngày</Label>
+            {/* Đến ngày */}
+            <div className="space-y-1.5">
+              <Label htmlFor="endDate" className="text-sm font-medium text-emerald-800">
+                Đến ngày
+              </Label>
               <Input
                 id="endDate"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                className="border-emerald-200 focus-visible:ring-emerald-100"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="flex justify-end gap-2 mt-5 pt-4 border-t border-emerald-100">
             <Button
               type="button"
+              variant="delete"
               size="sm"
-              variant="outline"
               onClick={handleReset}
               disabled={loading}
-              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              className="gap-2"
             >
-              <X className="h-4 w-4 mr-1" />
+              <X className="h-4 w-4" />
               Xóa bộ lọc
             </Button>
-            <Button type="submit" size="sm" variant="create" disabled={loading}>
-              <Search className="h-4 w-4 mr-1" />
+            <Button type="submit" variant="search" size="sm" disabled={loading} className="gap-2">
+              <Search className="h-4 w-4" />
               Tìm kiếm
             </Button>
           </div>
