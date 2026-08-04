@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -36,7 +37,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import {
   importProductionLots,
   downloadImportTemplate,
@@ -49,6 +50,47 @@ import {
 import type { ProductionLotImportResultResponse } from '@/types/productionLotImport';
 import type { Organization } from '@/types/organization';
 import { useAuth } from '@/hooks/useAuth';
+
+/**
+ * Mapping HTTP status codes to user-friendly Vietnamese messages
+ */
+const ERROR_MESSAGES: Record<number, string> = {
+  400: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại tệp CSV.',
+  401: 'Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+  403: 'Bạn không có quyền thực hiện chức năng này.',
+  404: 'API không tồn tại. Vui lòng liên hệ quản trị viên.',
+  409: 'Dữ liệu đã tồn tại hoặc vi phạm ràng buộc.',
+  413: 'Tệp quá lớn. Vui lòng giảm kích thước tệp hoặc tách thành nhiều tệp nhỏ.',
+  422: 'Dữ liệu trong tệp không hợp lệ. Vui lòng kiểm tra lại.',
+  500: 'Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.',
+};
+
+/**
+ * Get user-friendly error message from Axios error
+ */
+const getErrorMessage = (error: unknown): string => {
+  if (!axios.isAxiosError(error)) {
+    if (error instanceof Error) return error.message;
+    return 'Đã xảy ra lỗi không xác định.';
+  }
+
+  const status = error.response?.status;
+  if (status && ERROR_MESSAGES[status]) {
+    return ERROR_MESSAGES[status];
+  }
+
+  // Try to extract backend message
+  const backendMessage = error.response?.data?.message;
+  if (backendMessage && typeof backendMessage === 'string') {
+    return backendMessage;
+  }
+
+  if (error.code === 'ERR_NETWORK') {
+    return 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.';
+  }
+
+  return 'Đã xảy ra lỗi khi nhập dữ liệu. Vui lòng thử lại.';
+};
 
 interface ImportProductionLotFormProps {
   onSuccess?: () => void;
@@ -64,6 +106,7 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
   const [loadingOrgs, setLoadingOrgs] = useState(false);
   const [result, setResult] = useState<ProductionLotImportResultResponse | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const isAdmin = user?.roleCode === 'VT-01';
 
@@ -102,17 +145,19 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
     const file = e.target.files?.[0];
     if (file) {
       setValue('file', file, { shouldValidate: true });
+      setUploadProgress(0);
+      setResult(null);
     }
   };
 
-  const handleDownloadTemplate = async () => {
+  const handleDownloadTemplate = useCallback(async () => {
     try {
       await downloadImportTemplate();
-      toast.success('Đã tải mẫu tệp thành công');
-    } catch (error) {
-      toast.error('Không thể tải mẫu tệp');
+      toast.success('Đã tải mẫu tệp CSV thành công');
+    } catch {
+      toast.error('Không thể tải mẫu tệp. Vui lòng thử lại.');
     }
-  };
+  }, []);
 
   const onSubmit = async (data: ImportProductionLotFormValues) => {
     if (!data.file) {
@@ -121,20 +166,37 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
     }
 
     setSubmitting(true);
+    setUploadProgress(10);
     try {
-      const result = await importProductionLots(
+      // Simulate incremental upload progress
+      const progressTimer = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 80) {
+            clearInterval(progressTimer);
+            return prev;
+          }
+          return prev + 10;
+        });
+      }, 300);
+
+      const importResult = await importProductionLots(
         data.file,
-        data.organizationId || undefined
+        data.organizationId || undefined,
       );
-      setResult(result);
+
+      clearInterval(progressTimer);
+      setUploadProgress(100);
+      setResult(importResult);
       setDialogOpen(true);
       reset();
       onSuccess?.();
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Nhập dữ liệu thất bại';
+      toast.success('Đã hoàn tất nhập dữ liệu');
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
       toast.error(message);
     } finally {
       setSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -145,18 +207,36 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'SUCCESS':
-        return <Badge className="bg-emerald-500 hover:bg-emerald-600">Thành công</Badge>;
+        return {
+          badge: <Badge className="bg-emerald-500 hover:bg-emerald-600">Thành công</Badge>,
+          icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
+          label: 'Thành công',
+        };
       case 'PARTIAL_SUCCESS':
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600">Một phần</Badge>;
+        return {
+          badge: <Badge className="bg-yellow-500 hover:bg-yellow-600">Một phần</Badge>,
+          icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />,
+          label: 'Thành công một phần',
+        };
       case 'FAILED':
-        return <Badge variant="destructive">Thất bại</Badge>;
+        return {
+          badge: <Badge variant="destructive">Thất bại</Badge>,
+          icon: <XCircle className="h-5 w-5 text-red-500" />,
+          label: 'Thất bại',
+        };
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return {
+          badge: <Badge variant="outline">{status}</Badge>,
+          icon: <AlertCircle className="h-5 w-5 text-gray-500" />,
+          label: status,
+        };
     }
   };
+
+  const statusConfig = result ? getStatusConfig(result.status) : null;
 
   return (
     <>
@@ -164,7 +244,7 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
         <CardHeader>
           <CardTitle>Nhập dữ liệu lô sản xuất hàng loạt</CardTitle>
           <CardDescription>
-            Tải lên tệp CSV hoặc Excel theo mẫu chuẩn để nhập danh sách lô sản xuất và nhật ký canh tác.
+            Tải lên tệp CSV (UTF-8) theo mẫu chuẩn để nhập danh sách lô sản xuất và nhật ký canh tác.
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -214,12 +294,12 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
                   disabled={submitting}
                 >
                   <FileSpreadsheet className="h-4 w-4 mr-1" />
-                  Chọn tệp
+                  Chọn tệp CSV
                 </Button>
                 <input
                   id="production-lot-import-file"
                   type="file"
-                  accept=".csv,.xlsx"
+                  accept=".csv"
                   className="hidden"
                   onChange={handleFileChange}
                   disabled={submitting}
@@ -231,13 +311,13 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
                   onClick={handleDownloadTemplate}
                 >
                   <Download className="h-4 w-4 mr-1" />
-                  Tải mẫu
+                  Tải mẫu CSV
                 </Button>
               </div>
               {selectedFile && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileSpreadsheet className="h-4 w-4" />
-                  <span>{selectedFile.name}</span>
+                  <span className="font-medium">{selectedFile.name}</span>
                   <span className="text-xs">({(selectedFile.size / 1024).toFixed(1)} KB)</span>
                 </div>
               )}
@@ -246,14 +326,32 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
               )}
             </div>
 
+            {/* Upload progress indicator */}
+            {submitting && uploadProgress > 0 && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Đang tải lên và xử lý...</span>
+                  <span className="font-medium">{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-emerald-500 h-2 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Hướng dẫn */}
             <div className="rounded-lg bg-muted p-4 text-sm">
-              <p className="font-medium">📌 Yêu cầu tệp dữ liệu:</p>
+              <p className="font-medium">📌 Yêu cầu tệp CSV:</p>
               <ul className="mt-2 list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Định dạng <strong>.csv</strong> hoặc <strong>.xlsx</strong></li>
-                <li>Các cột bắt buộc: <strong>ten_lo</strong>, <strong>ma_loai_nong_san</strong>, <strong>san_luong_du_kien</strong>, <strong>ngay_gieo_trong</strong></li>
+                <li>Định dạng <strong>.csv</strong> (UTF-8, dấu phẩy)</li>
+                <li>Các cột bắt buộc: <strong>ten_lo</strong>, <strong>ma_loai_nong_san</strong>, <strong>ma_vung_trong</strong>, <strong>san_luong_du_kien</strong>, <strong>san_luong_thuc_thu</strong>, <strong>ngay_gieo_trong</strong>, <strong>ngay_thu_hoach</strong>, <strong>hoat_dong_canh_tac</strong>, <strong>vat_tu</strong>, <strong>so_luong</strong>, <strong>don_vi</strong>, <strong>ngay_thuc_hien</strong>, <strong>ghi_chu</strong></li>
                 <li>Ngày tháng theo định dạng: <strong>dd/MM/yyyy</strong></li>
-                <li>Tải mẫu để xem cấu trúc đầy đủ</li>
+                <li>Mã loại nông sản và mã vùng trồng phải là <strong>UUID</strong> hợp lệ</li>
+                <li>Hoạt động canh tác phải là một trong: PLANTING, WATERING, FERTILIZING, PESTICIDE, WEEDING, HARVESTING, OTHER</li>
+                <li>Tải mẫu CSV để xem cấu trúc đầy đủ và dữ liệu mẫu</li>
               </ul>
             </div>
           </CardContent>
@@ -267,7 +365,7 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
             >
               Hủy
             </Button>
-            <Button type="submit" size="sm" disabled={submitting}>
+            <Button type="submit" size="sm" disabled={submitting || !selectedFile}>
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -286,18 +384,23 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
 
       {/* Dialog kết quả */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {result?.status === 'SUCCESS' && <CheckCircle className="h-5 w-5 text-emerald-500" />}
-              {result?.status === 'PARTIAL_SUCCESS' && <AlertCircle className="h-5 w-5 text-yellow-500" />}
-              {result?.status === 'FAILED' && <XCircle className="h-5 w-5 text-red-500" />}
+              {statusConfig?.icon}
               Kết quả nhập dữ liệu
             </DialogTitle>
           </DialogHeader>
 
           {result && (
             <div className="space-y-4">
+              {/* File info */}
+              {result.fileName && (
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium">Tệp:</span> {result.fileName}
+                </div>
+              )}
+
               {/* Thông tin tổng quan */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="rounded-lg bg-muted p-3 text-center">
@@ -312,9 +415,9 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
                   <p className="text-2xl font-bold text-red-600">{result.failedCount}</p>
                   <p className="text-xs text-muted-foreground">Thất bại</p>
                 </div>
-                <div className="rounded-lg bg-blue-50 p-3 text-center">
-                  <p className="text-lg font-bold">{getStatusBadge(result.status)}</p>
-                  <p className="text-xs text-muted-foreground">Trạng thái</p>
+                <div className="rounded-lg bg-blue-50 p-3 text-center flex flex-col items-center justify-center">
+                  {statusConfig?.badge}
+                  <p className="text-xs text-muted-foreground mt-1">Trạng thái</p>
                 </div>
               </div>
 
@@ -345,7 +448,7 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
 
               {result.failedCount === 0 && (
                 <div className="text-center py-4 text-emerald-600">
-                  <CheckCircle className="h-12 w-12 mx-auto mb-2" />
+                  <CheckCircle2 className="h-12 w-12 mx-auto mb-2" />
                   <p className="font-medium">Tất cả {result.successCount} dòng đều được nhập thành công!</p>
                 </div>
               )}
@@ -355,6 +458,23 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
                   <XCircle className="h-12 w-12 mx-auto mb-2" />
                   <p className="font-medium">Không có dòng nào được nhập thành công.</p>
                   <p className="text-sm">Vui lòng sửa lỗi và thử lại.</p>
+                </div>
+              )}
+
+              {result.successCount > 0 && result.failedCount > 0 && (
+                <div className="text-center py-4 text-yellow-600">
+                  <AlertTriangle className="h-12 w-12 mx-auto mb-2" />
+                  <p className="font-medium">
+                    {result.successCount} dòng thành công, {result.failedCount} dòng thất bại.
+                  </p>
+                  <p className="text-sm">Các dòng thành công đã được lưu. Vui lòng sửa các dòng lỗi và nhập lại.</p>
+                </div>
+              )}
+
+              {/* Thời gian import */}
+              {result.importedAt && (
+                <div className="text-xs text-muted-foreground text-right">
+                  Hoàn tất: {new Date(result.importedAt).toLocaleString('vi-VN')}
                 </div>
               )}
 

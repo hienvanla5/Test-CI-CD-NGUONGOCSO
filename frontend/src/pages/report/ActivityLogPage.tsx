@@ -1,25 +1,27 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { getActivityLogs } from '@/api/activityLogApi';
-import type { ActivityLog, ActivityLogParams } from '@/types/activityLog';
-import { ActivityLogFilter } from '@/components/activity-log/ActivityLogFilter';
-import { ActivityLogTable } from '@/components/activity-log/ActivityLogTable';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { getActivityLogs } from "@/api/activityLogApi";
+import type { ActivityLog, ActivityLogParams } from "@/types/activityLog";
+import { ActivityLogFilter } from "@/components/activity-log/ActivityLogFilter";
+import { ActivityLogTable } from "@/components/activity-log/ActivityLogTable";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
-import type { PageResponse } from '@/types/common';
+} from "@/components/ui/select";
+import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import type { PageResponse } from "@/types/common";
 
 export default function ActivityLogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [logs, setLogs] = useState<ActivityLog[]>([]);
-  const [pageInfo, setPageInfo] = useState<Omit<PageResponse<ActivityLog>, 'items'>>({
+  const [pageInfo, setPageInfo] = useState<
+    Omit<PageResponse<ActivityLog>, "items">
+  >({
     page: 0,
     size: 10,
     totalElements: 0,
@@ -52,7 +54,8 @@ export default function ActivityLogPage() {
         last: data.last,
       });
     } catch (error: any) {
-      const msg = error.response?.data?.message || 'Không thể tải lịch sử hoạt động';
+      const msg =
+        error.response?.data?.message || "Không thể tải lịch sử hoạt động";
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -65,19 +68,22 @@ export default function ActivityLogPage() {
       size,
     };
     // Đọc từ searchParams nếu có
-    if (searchParams.get('action')) params.action = searchParams.get('action')!;
-    if (searchParams.get('actorName')) params.actorName = searchParams.get('actorName')!;
-    if (searchParams.get('startDate')) params.startDate = searchParams.get('startDate')!;
-    if (searchParams.get('endDate')) params.endDate = searchParams.get('endDate')!;
+    if (searchParams.get("action")) params.action = searchParams.get("action")!;
+    if (searchParams.get("actorName"))
+      params.actorName = searchParams.get("actorName")!;
+    if (searchParams.get("startDate"))
+      params.startDate = searchParams.get("startDate")!;
+    if (searchParams.get("endDate"))
+      params.endDate = searchParams.get("endDate")!;
     fetchLogs(params);
   }, [page, size, searchParams]);
 
   const handleFilter = (filters: any) => {
     const params = new URLSearchParams();
-    if (filters.action) params.set('action', filters.action);
-    if (filters.actorName) params.set('actorName', filters.actorName);
-    if (filters.startDate) params.set('startDate', filters.startDate);
-    if (filters.endDate) params.set('endDate', filters.endDate);
+    if (filters.action) params.set("action", filters.action);
+    if (filters.actorName) params.set("actorName", filters.actorName);
+    if (filters.startDate) params.set("startDate", filters.startDate);
+    if (filters.endDate) params.set("endDate", filters.endDate);
     setPage(0);
     setSearchParams(params);
   };
@@ -103,8 +109,14 @@ export default function ActivityLogPage() {
             Theo dõi các thao tác đã thực hiện trong tổ chức
           </p>
         </div>
-        <Button variant="outline" onClick={() => fetchLogs({ page, size })} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+        <Button
+          variant="outline"
+          onClick={() => fetchLogs({ page, size })}
+          disabled={loading}
+        >
+          <RefreshCw
+            className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`}
+          />
           Làm mới
         </Button>
       </div>
@@ -131,8 +143,8 @@ export default function ActivityLogPage() {
                 setPage(0);
               }}
             >
-              <SelectTrigger className="w-[70px] h-8">
-                <SelectValue />
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="Chọn size" />
               </SelectTrigger>
               <SelectContent>
                 {[5, 10, 20, 50].map((s) => (

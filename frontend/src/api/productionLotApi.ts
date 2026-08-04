@@ -128,9 +128,11 @@ export const getProductionLotDashboard = async (params?: {
 // ===== Import Production Lots (NCL-10-CN-006) =====
 
 /**
- * Nhập dữ liệu lô sản xuất từ tệp
+ * Nhập dữ liệu lô sản xuất từ tệp CSV
  * POST /api/v1/production-lots/import
  * Content-Type: multipart/form-data
+ * @param file - Tệp CSV
+ * @param organizationId - (Tùy chọn) Chỉ dành cho VT-01 nhập hộ tổ chức khác
  */
 export const importProductionLots = async (
   file: File,
@@ -166,14 +168,18 @@ export const getImportHistory = async (): Promise<ProductionLotImportHistory[]> 
 };
 
 /**
- * Tải mẫu file nhập
+ * Tải mẫu tệp CSV nhập lô sản xuất
  * GET /api/v1/production-lots/import-template
+ * Trả về tệp CSV với encoding UTF-8
  */
 export const downloadImportTemplate = async (): Promise<void> => {
   const response = await apiClient.get('/production-lots/import-template', {
     responseType: 'blob',
   });
-  const url = window.URL.createObjectURL(new Blob([response.data]));
+
+  // Tạo Blob với charset UTF-8 để giữ nguyên tiếng Việt
+  const blob = new Blob([response.data], { type: 'text/csv; charset=UTF-8' });
+  const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
   link.download = 'mau_nhap_lo_san_xuat.csv';

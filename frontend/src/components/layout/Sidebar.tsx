@@ -7,7 +7,6 @@ import {
   BookOpen,
   Building2,
   FileText,
-  FileUp,
   Hash,
   History,
   Layers,
@@ -51,13 +50,9 @@ interface MenuItem {
 }
 
 interface SidebarProps {
-  /** Called when any navigation link is clicked. Used in mobile drawer. */
   onNavigate?: () => void;
-  /** Called when the close button is clicked. Used in mobile drawer. */
   onClose?: () => void;
-  /** Show close button (X) at top right. Used in mobile drawer. */
   showCloseButton?: boolean;
-  /** Sidebar collapsed (icons only). Used on tablet breakpoint. */
   collapsed?: boolean;
 }
 
@@ -121,14 +116,9 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Lô sản xuất",
     href: "/production-lots",
     allowedRoles: ROLE_ACCESS.productionLotList,
-    activePaths: ["/production-lots", "/packaging-events/create"],
+    activePaths: ["/production-lots", "/packaging-events/create", "/production-lots/import"],
   },
-  {
-    icon: <FileUp className="h-5 w-5" />,
-    label: "Nhập lô hàng loạt",
-    href: "/production-lots/import",
-    allowedRoles: ["VT-02"],
-  },
+  // Đã xoá menu "Nhập lô hàng loạt" vì đã chuyển vào trang ProductionLotList
   {
     icon: <Truck className="h-5 w-5" />,
     label: "Ghi sự kiện vận chuyển",
@@ -269,7 +259,6 @@ export function Sidebar({
         sidebarWidth,
       )}
     >
-      {/* Logo area */}
       <div
         className={cn(
           "flex h-16 items-center border-b border-emerald-100 transition-all duration-300",
@@ -297,7 +286,6 @@ export function Sidebar({
         )}
       </div>
 
-      {/* User info - only shown in expanded mode (mobile drawer or desktop) */}
       {!collapsed && user && (
         <div className="border-b border-emerald-50 px-4 py-3">
           <div className="flex items-center gap-3">
@@ -316,7 +304,6 @@ export function Sidebar({
         </div>
       )}
 
-      {/* Navigation items */}
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {finalItems.map((item) => {
           const active = isActive(item);
@@ -347,7 +334,6 @@ export function Sidebar({
             </Link>
           );
 
-          // Wrap in tooltip when collapsed (tablet mode)
           if (collapsed) {
             return (
               <Tooltip key={item.href}>
@@ -368,7 +354,6 @@ export function Sidebar({
         )}
       </nav>
 
-      {/* Logout button at bottom - only in expanded mode */}
       {!collapsed && onNavigate && (
         <div className="border-t border-emerald-50 px-3 py-3">
           <button

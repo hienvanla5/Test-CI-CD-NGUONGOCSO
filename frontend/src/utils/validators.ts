@@ -275,9 +275,9 @@ export const importProductionLotSchema = z.object({
         .refine(
             (file) => {
                 const name = file.name.toLowerCase();
-                return name.endsWith('.csv') || name.endsWith('.xlsx');
+                return name.endsWith('.csv');
             },
-            'Chỉ hỗ trợ định dạng .csv hoặc .xlsx'
+            'Chỉ hỗ trợ định dạng .csv (UTF-8)'
         )
         .refine(
             (file) => file.size <= 10 * 1024 * 1024,

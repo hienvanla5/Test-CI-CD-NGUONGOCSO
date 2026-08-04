@@ -1,29 +1,22 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { Search, X } from 'lucide-react';
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Search, X } from "lucide-react";
+import { ACTION_LABELS } from "@/config/actionMappings";
 
-const ACTION_OPTIONS = [
-  { value: 'CREATE', label: 'Tạo mới' },
-  { value: 'UPDATE', label: 'Cập nhật' },
-  { value: 'DELETE', label: 'Xóa' },
-  { value: 'APPROVE', label: 'Phê duyệt' },
-  { value: 'REJECT', label: 'Từ chối' },
-  { value: 'ACTIVATE', label: 'Kích hoạt' },
-  { value: 'RECALL', label: 'Thu hồi' },
-  { value: 'EXPORT', label: 'Xuất hồ sơ' },
-  { value: 'LOGIN', label: 'Đăng nhập' },
-  { value: 'LOGOUT', label: 'Đăng xuất' },
-];
+const ACTION_OPTIONS = Object.entries(ACTION_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 interface Props {
   onFilter: (params: any) => void;
@@ -32,10 +25,10 @@ interface Props {
 }
 
 export const ActivityLogFilter = ({ onFilter, onReset, loading }: Props) => {
-  const [action, setAction] = useState('');
-  const [actorName, setActorName] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [action, setAction] = useState("");
+  const [actorName, setActorName] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,11 +36,18 @@ export const ActivityLogFilter = ({ onFilter, onReset, loading }: Props) => {
   };
 
   const handleReset = () => {
-    setAction('');
-    setActorName('');
-    setStartDate('');
-    setEndDate('');
+    setAction("");
+    setActorName("");
+    setStartDate("");
+    setEndDate("");
     onReset();
+  };
+
+  // Helper để lấy label hiển thị
+  const getActionLabel = (value: string) => {
+    if (!value) return "Tất cả";
+    const option = ACTION_OPTIONS.find((opt) => opt.value === value);
+    return option ? option.label : value;
   };
 
   return (
@@ -57,15 +57,23 @@ export const ActivityLogFilter = ({ onFilter, onReset, loading }: Props) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Loại thao tác */}
             <div className="space-y-1.5">
-              <Label htmlFor="action" className="text-sm font-medium text-emerald-800">
+              <Label
+                htmlFor="action"
+                className="text-sm font-medium text-emerald-800"
+              >
                 Loại thao tác
               </Label>
               <Select
                 value={action}
-                onValueChange={(value) => setAction(value ?? '')}
+                onValueChange={(value) => setAction(value ?? "")}
               >
-                <SelectTrigger id="action" className="border-emerald-200 focus:ring-emerald-100">
-                  <SelectValue placeholder="Tất cả" />
+                <SelectTrigger
+                  id="action"
+                  className="border-emerald-200 focus:ring-emerald-100"
+                >
+                  <SelectValue placeholder="Tất cả">
+                    {getActionLabel(action)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Tất cả</SelectItem>
@@ -80,7 +88,10 @@ export const ActivityLogFilter = ({ onFilter, onReset, loading }: Props) => {
 
             {/* Người thực hiện */}
             <div className="space-y-1.5">
-              <Label htmlFor="actorName" className="text-sm font-medium text-emerald-800">
+              <Label
+                htmlFor="actorName"
+                className="text-sm font-medium text-emerald-800"
+              >
                 Người thực hiện
               </Label>
               <Input
@@ -94,7 +105,10 @@ export const ActivityLogFilter = ({ onFilter, onReset, loading }: Props) => {
 
             {/* Từ ngày */}
             <div className="space-y-1.5">
-              <Label htmlFor="startDate" className="text-sm font-medium text-emerald-800">
+              <Label
+                htmlFor="startDate"
+                className="text-sm font-medium text-emerald-800"
+              >
                 Từ ngày
               </Label>
               <Input
@@ -108,7 +122,10 @@ export const ActivityLogFilter = ({ onFilter, onReset, loading }: Props) => {
 
             {/* Đến ngày */}
             <div className="space-y-1.5">
-              <Label htmlFor="endDate" className="text-sm font-medium text-emerald-800">
+              <Label
+                htmlFor="endDate"
+                className="text-sm font-medium text-emerald-800"
+              >
                 Đến ngày
               </Label>
               <Input
@@ -133,7 +150,13 @@ export const ActivityLogFilter = ({ onFilter, onReset, loading }: Props) => {
               <X className="h-4 w-4" />
               Xóa bộ lọc
             </Button>
-            <Button type="submit" variant="search" size="sm" disabled={loading} className="gap-2">
+            <Button
+              type="submit"
+              variant="search"
+              size="sm"
+              disabled={loading}
+              className="gap-2"
+            >
               <Search className="h-4 w-4" />
               Tìm kiếm
             </Button>
