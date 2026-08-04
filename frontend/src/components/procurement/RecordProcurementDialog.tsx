@@ -12,6 +12,8 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { useAutoGeolocation } from "@/hooks/useAutoGeolocation";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -231,32 +233,27 @@ export function RecordProcurementDialog({
   };
 
   // ── Tự động lấy vị trí GPS từ trình duyệt ───────────────────────────────
-  const handleGetCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Trình duyệt không hỗ trợ lấy vị trí.");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setValue("latitude", position.coords.latitude, {
-          shouldValidate: true,
-        });
-        setValue("longitude", position.coords.longitude, {
-          shouldValidate: true,
-        });
+  // Tự động lấy vị trí ngay khi mở dialog (nếu đã/được cấp quyền), và tự động
+  // lấy lại ngay khi người dùng cấp quyền GPS trong lúc dialog đang mở.
+  // `handleGetCurrentLocation` vẫn dùng cho nút "Lấy vị trí hiện tại" để người
+  // dùng chủ động lấy lại vị trí mới nhất.
+  const { locationLoading: isLocating, fetchLocation: handleGetCurrentLocation } =
+    useAutoGeolocation({
+      enabled: open,
+      onLocation: (latitude, longitude) => {
+        setValue("latitude", latitude, { shouldValidate: true });
+        setValue("longitude", longitude, { shouldValidate: true });
         toast.success("Đã lấy vị trí hiện tại.");
       },
-      (geoError) => {
-        const message =
-          geoError.code === geoError.PERMISSION_DENIED
+      onError: (message) => {
+        const isPermissionDenied = message.toLowerCase().includes("denied");
+        toast.error(
+          isPermissionDenied
             ? "Bạn chưa cấp quyền truy cập vị trí. Vui lòng bật quyền vị trí rồi thử lại."
-            : "Không thể lấy vị trí hiện tại. Vui lòng thử lại.";
-        toast.error(message);
+            : "Không thể lấy vị trí hiện tại. Vui lòng thử lại.",
+        );
       },
-      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 },
-    );
-  };
+    });
 
   // ── Xử lý submit: chuyển dữ liệu hợp lệ sang hook useProcurementEvent ──
   const onSubmit = (values: ProcurementEventFormValues) => {
@@ -429,11 +426,11 @@ export function RecordProcurementDialog({
                       type="button"
                       variant="outline"
                       size="sm"
-                      disabled={isLoading}
-                      onClick={handleGetCurrentLocation}
+                      disabled={isLoading || isLocating}
+                      onClick={() => handleGetCurrentLocation()}
                     >
                       <MapPin className="mr-1.5 size-4" />
-                      Lấy vị trí hiện tại
+                      {isLocating ? "Đang lấy vị trí..." : "Lấy vị trí hiện tại"}
                     </Button>
                   </div>
 
