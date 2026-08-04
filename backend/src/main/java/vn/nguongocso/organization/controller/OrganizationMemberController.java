@@ -1,4 +1,4 @@
-package vn.nguongocso.auth.controller;
+package vn.nguongocso.organization.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.auth.dto.request.AddMemberRequest;
 import vn.nguongocso.auth.dto.request.AssignRoleRequest;
 import vn.nguongocso.auth.dto.response.OrganizationUserResponse;
-import vn.nguongocso.auth.service.PermissionService;
 import vn.nguongocso.common.ApiResult;
+import vn.nguongocso.organization.service.OrganizationMemberService;
 
 import java.util.List;
 
@@ -17,9 +17,9 @@ import java.util.List;
 @RequestMapping("/api/v1/organization/members")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
-public class PermissionController {
+public class OrganizationMemberController {
 
-    private final PermissionService permissionService;
+    private final OrganizationMemberService permissionService;
 
     @GetMapping
     public ResponseEntity<ApiResult<List<OrganizationUserResponse>>> getMembers() {
