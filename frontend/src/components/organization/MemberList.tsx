@@ -238,7 +238,7 @@ const assignableRoles = useMemo(
                   {filteredMembers.length} kết quả
                 </span>
                 {canCreate && (
-                  <Button size="sm" onClick={() => navigate("/members/create")}>
+                  <Button size="sm" variant="create" onClick={() => navigate("/members/create")}>
                     Thêm thành viên
                   </Button>
                 )}
@@ -452,7 +452,7 @@ const assignableRoles = useMemo(
               >
                 Hủy
               </Button>
-              <Button type="submit" disabled={isSaving || !selectedRoleId}>
+              <Button type="submit" variant="create" disabled={isSaving || !selectedRoleId}>
                 {isSaving ? "Đang lưu..." : "Lưu vai trò"}
               </Button>
             </div>

@@ -21,7 +21,7 @@ export const NotificationBell = () => {
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
-    if (nextOpen) {
+    if (nextOpen) {     
       void load(0);
       void refreshUnreadCount();
     }

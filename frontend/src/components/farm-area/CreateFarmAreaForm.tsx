@@ -148,7 +148,7 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
         <Button type="button" variant="outline" onClick={onCancel}>
           Hủy
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" variant="create" disabled={isSubmitting}>
           {isSubmitting ? 'Đang tạo...' : 'Tạo vùng trồng'}
         </Button>
       </div>

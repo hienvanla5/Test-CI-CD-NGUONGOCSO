@@ -117,7 +117,7 @@ export const ProductionLotEditForm: React.FC = () => {
         farmAreaId: data.farmAreaId || null,
         productCategoryId: data.productCategoryId,
         expectedQuantity: data.expectedQuantity,
-        expectedQuantityUnit: data.expectedQuantityUnit, // ✅ Sửa: dùng đúng trường
+        expectedQuantityUnit: data.expectedQuantityUnit, 
         plantingDate: data.plantingDate,
       });
       toast.success("Cập nhật lô sản xuất thành công");
@@ -306,7 +306,7 @@ export const ProductionLotEditForm: React.FC = () => {
             Hủy
           </Button>
           {editable && (
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" variant="edit" disabled={submitting}>
               {submitting ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           )}

@@ -105,7 +105,8 @@ export function ProductFeedbackForm({
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
+          {/* CHANGED: thêm variant="create" */}
+          <Button type="submit" disabled={isSubmitting} variant="create">
             <Send className="h-4 w-4" />
             {isSubmitting ? "Đang gửi..." : "Gửi phản ánh"}
           </Button>

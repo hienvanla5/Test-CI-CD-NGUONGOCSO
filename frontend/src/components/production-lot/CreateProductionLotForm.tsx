@@ -330,6 +330,7 @@ const CreateProductionLotForm = ({
             size="lg"
             className="bg-emerald-700 text-white hover:bg-emerald-800"
             disabled={isSubmitting}
+            variant="create"
           >
             {isSubmitting ? 'Đang tạo...' : 'Tạo lô sản xuất'}
           </Button>
