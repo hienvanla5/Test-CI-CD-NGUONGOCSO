@@ -15,6 +15,7 @@ import { LocationPicker } from '@/pages/packaging-event/components/LocationPicke
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { addOfflineEvent } from '@/services/offlineQueue';
 import { ChainEventType } from '@/enums/chainEventType';
+import { getLocalDateString } from '@/utils/dateTime';
 
 const MAX_IMAGES = 5;
 
@@ -36,14 +37,6 @@ interface HarvestFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
 }
-
-const fileToBase64 = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
 
 export const HarvestForm = ({
   productionLotId,
@@ -68,7 +61,7 @@ export const HarvestForm = ({
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      harvestDate: new Date().toISOString().split('T')[0],
+      harvestDate: getLocalDateString(),
       quantity: 0,
       latitude: 0,
       longitude: 0,
@@ -318,7 +311,7 @@ export const HarvestForm = ({
               Hủy
             </Button>
           )}
-          <Button type="submit" variant= "create" disabled={isSubmitting}>
+          <Button type="submit" variant="create" disabled={isSubmitting}>
             {isSubmitting && <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />}
             {isSubmitting ? 'Đang ghi nhận...' : 'Ghi nhận thu hoạch'}
           </Button>

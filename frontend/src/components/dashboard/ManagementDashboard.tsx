@@ -36,19 +36,19 @@ export function ManagementDashboard() {
   }, [productionLots]);
 
   const cards = [
-    { title: 'Tổng số lô', value: statistics.total, icon: PackageOpen, iconClass: 'bg-blue-100 text-blue-700' },
-    { title: 'Lô đã duyệt', value: statistics.approved, icon: CheckCircle2, iconClass: 'bg-emerald-100 text-emerald-700' },
-    { title: 'Lô đã thu hoạch', value: statistics.harvested, icon: Sprout, iconClass: 'bg-lime-100 text-lime-700' },
-    { title: 'Lô đã đóng gói', value: statistics.packaged, icon: PackageCheck, iconClass: 'bg-amber-100 text-amber-700' },
+    { title: 'Tổng số lô', value: statistics.total, icon: PackageOpen, iconClass: 'bg-info-bg text-info' },
+    { title: 'Lô đã duyệt', value: statistics.approved, icon: CheckCircle2, iconClass: 'bg-success-bg text-success' },
+    { title: 'Lô đã thu hoạch', value: statistics.harvested, icon: Sprout, iconClass: 'bg-success-bg text-success' },
+    { title: 'Lô đã đóng gói', value: statistics.packaged, icon: PackageCheck, iconClass: 'bg-warning-bg text-warning' },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">
+        <h1 className="text-2xl font-bold text-foreground">
           Quản lý ngành – Báo cáo tổng hợp
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           Thống kê tình hình sản xuất và truy xuất nguồn gốc.
         </p>
       </div>
@@ -67,8 +67,8 @@ export function ManagementDashboard() {
                 <Card key={card.title}>
                   <CardContent className="flex items-center justify-between p-5">
                     <div>
-                      <p className="text-sm text-slate-500">{card.title}</p>
-                      <p className="mt-2 text-3xl font-bold text-slate-900">
+                      <p className="text-sm text-muted-foreground">{card.title}</p>
+                      <p className="mt-2 text-3xl font-bold text-foreground">
                         {isLoading ? '...' : card.value}
                       </p>
                     </div>

@@ -4,12 +4,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { addMember, getRoles } from '@/api/memberApi';
-import type { RoleOption } from '@/types/member';
+import type { AddMemberRequest, RoleOption } from '@/types/member';
 import { getRoleLabel } from '@/config/roleAccess';
 
 const createMemberSchema = z
@@ -34,6 +35,8 @@ export function CreateMemberForm() {
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -83,7 +86,15 @@ export function CreateMemberForm() {
   const onSubmit = async (values: CreateMemberFormValues) => {
     try {
       setIsSubmitting(true);
-      const { confirmPassword, ...submitData } = values;
+      const submitData: AddMemberRequest = {
+        username: values.username,
+        password: values.password,
+        fullName: values.fullName,
+        phone: values.phone ?? null,
+        email: values.email ?? null,
+        roleId: values.roleId,
+      };
+
       await addMember(submitData);
       toast.success('Thêm thành viên thành công');
       navigate('/members');
@@ -115,14 +126,48 @@ export function CreateMemberForm() {
           {/* Mật khẩu */}
           <div className="space-y-2">
             <Label htmlFor="password">Mật khẩu *</Label>
-            <Input id="password" type="password" {...register('password')} placeholder="Mật khẩu (tối thiểu 6 ký tự)" />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                className="pr-8 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                {...register('password')}
+                placeholder="Mật khẩu (tối thiểu 6 ký tự)"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                className="absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
             {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
           </div>
 
           {/* Xác nhận mật khẩu */}
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
-            <Input id="confirmPassword" type="password" {...register('confirmPassword')} placeholder="Nhập lại mật khẩu" />
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                className="pr-8 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                {...register('confirmPassword')}
+                placeholder="Nhập lại mật khẩu"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                className="absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground hover:text-foreground"
+              >
+                {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
             {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
           </div>
 
@@ -162,7 +207,7 @@ export function CreateMemberForm() {
           <Button type="button" variant="outline" onClick={() => navigate('/members')}>
             Hủy
           </Button>
-          <Button type="submit" variant= "create" disabled={isSubmitting}>
+          <Button type="submit" variant="create" disabled={isSubmitting}>
             {isSubmitting ? 'Đang thêm...' : 'Thêm thành viên'}
           </Button>
         </CardFooter>

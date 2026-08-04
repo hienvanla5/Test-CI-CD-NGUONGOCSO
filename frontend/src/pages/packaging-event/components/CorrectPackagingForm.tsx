@@ -11,6 +11,7 @@ import { Label } from '../../../components/ui/label';
 import { Input } from '../../../components/ui/input';
 import { LocationPicker } from '@/pages/packaging-event/components/LocationPicker';
 import { Button } from '../../../components/ui/button';
+import { getLocalDateString } from '@/utils/dateTime';
 
 export function CorrectPackagingForm() {
   const { id } = useParams<{ id: string }>();
@@ -26,7 +27,7 @@ export function CorrectPackagingForm() {
     resolver: zodResolver(correctPackagingSchema),
     defaultValues: {
       packagingSpecification: '',
-      packagingDate: new Date().toISOString().split('T')[0],
+      packagingDate: getLocalDateString(),
       correctionReason: '',
       latitude: 0,
       longitude: 0,
@@ -77,7 +78,7 @@ export function CorrectPackagingForm() {
 
           <div className="space-y-2">
             <Label htmlFor="packagingDate">Ngày đóng gói mới *</Label>
-            <Input id="packagingDate" type="date" {...register('packagingDate')} max={new Date().toISOString().split('T')[0]} />
+            <Input id="packagingDate" type="date" {...register('packagingDate')} max={getLocalDateString()} />
             {errors.packagingDate && <p className="text-sm text-red-500">{errors.packagingDate.message}</p>}
           </div>
 

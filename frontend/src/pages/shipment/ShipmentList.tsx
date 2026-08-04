@@ -44,10 +44,10 @@ const statusLabelMap: Record<string, string> = {
 };
 
 const statusColorMap: Record<string, string> = {
-  DRAFT: "bg-slate-100 text-slate-700",
-  CODE_PRINTED: "bg-blue-100 text-blue-700",
-  ACTIVATED: "bg-emerald-100 text-emerald-700",
-  RECALLED: "bg-red-100 text-red-700",
+  DRAFT: "bg-status-draft/10 text-status-draft",
+  CODE_PRINTED: "bg-status-packaged/10 text-status-packaged",
+  ACTIVATED: "bg-status-approved/10 text-status-approved",
+  RECALLED: "bg-status-rejected/10 text-status-rejected",
 };
 
 interface ShipmentListProps {
@@ -233,8 +233,8 @@ export const ShipmentList = ({
                       <TableCell>
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                            statusColorMap[shipment.status] ||
-                            "bg-gray-100 text-gray-700"
+                             statusColorMap[shipment.status] ||
+                            "bg-status-draft/10 text-status-draft"
                           }`}
                         >
                           {statusLabelMap[shipment.status] || shipment.status}
@@ -360,7 +360,7 @@ export const ShipmentList = ({
             <span>Tổng số mã: {selectedShipment?.traceCodes?.length || 0}</span>
             <span className="text-xs text-muted-foreground">
               Trạng thái:{" "}
-              <span className="font-medium text-emerald-600">INACTIVE</span>
+              <span className="font-medium text-primary">INACTIVE</span>
             </span>
           </div>
           <div className="flex-1 overflow-y-auto py-4 pr-1">
