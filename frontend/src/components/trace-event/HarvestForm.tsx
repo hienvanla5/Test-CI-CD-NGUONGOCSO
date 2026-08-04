@@ -15,6 +15,7 @@ import { LocationPicker } from '@/pages/packaging-event/components/LocationPicke
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { addOfflineEvent } from '@/services/offlineQueue';
 import { ChainEventType } from '@/enums/chainEventType';
+import { getLocalDateString } from '@/utils/dateTime';
 
 const MAX_IMAGES = 5;
 
@@ -68,7 +69,7 @@ export const HarvestForm = ({
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      harvestDate: new Date().toISOString().split('T')[0],
+      harvestDate: getLocalDateString(),
       quantity: 0,
       latitude: 0,
       longitude: 0,

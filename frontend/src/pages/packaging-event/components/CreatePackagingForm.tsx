@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getAllFarmLogsByProductionLot } from "@/api/farmLogApi";
+import { getLocalDateString } from "@/utils/dateTime";
 import {
   Card,
   CardContent,
@@ -118,7 +119,7 @@ export function CreatePackagingForm() {
     defaultValues: {
       productionLotId: "",
       packagingSpecification: "",
-      packagingDate: new Date().toISOString().split("T")[0],
+      packagingDate: getLocalDateString(),
       latitude: 0,
       longitude: 0,
     },
@@ -372,7 +373,7 @@ export function CreatePackagingForm() {
               id="packagingDate"
               type="date"
               {...register("packagingDate")}
-              max={new Date().toISOString().split("T")[0]}
+              max={getLocalDateString()}
             />
             {errors.packagingDate && (
               <p className="text-sm text-red-500">

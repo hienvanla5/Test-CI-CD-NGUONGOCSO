@@ -28,7 +28,13 @@ import { recordMobileEvent } from "@/api/chainEventApi";
 import type { ProductionLot } from "@/types/productionLot";
 import { ChainEventType, ChainEventTypeLabel } from "@/enums/chainEventType";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { useAutoGeolocation } from "@/hooks/useAutoGeolocation";
 import { addOfflineEvent } from "@/services/offlineQueue";
+import {
+  getLocalDateString,
+  getLocalDateTimeString,
+  isoToLocalDateTimeInputValue,
+} from "@/utils/dateTime";
 
 interface Props {
   lots: ProductionLot[];
@@ -42,7 +48,6 @@ export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [locationLoading, setLocationLoading] = useState(false);
 
   const {
     control,
@@ -56,12 +61,14 @@ export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
     defaultValues: {
       productionLotId: "",
       eventType: ChainEventType.HARVEST,
-      recordedAt: new Date().toISOString(),
+      // ✅ Dùng giờ local thay vì toISOString() thô để tránh lệch sang "hôm qua"
+      // đối với người dùng ở múi giờ UTC+7 vào khoảng 00:00–06:59.
+      recordedAt: new Date(getLocalDateTimeString()).toISOString(),
       latitude: 0,
       longitude: 0,
       images: [],
-      harvestDate: new Date().toISOString().split("T")[0],
-      packagingDate: new Date().toISOString().split("T")[0],
+      harvestDate: getLocalDateString(),
+      packagingDate: getLocalDateString(),
       quantity: 0, // ✅ thêm
       packagingSpecification: "", // ✅ thêm
     },
@@ -69,27 +76,18 @@ export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
 
   const eventType = watch("eventType");
 
-  // Lấy vị trí GPS
-  const getLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Trình duyệt không hỗ trợ định vị");
-      return;
-    }
-    setLocationLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setValue("latitude", pos.coords.latitude);
-        setValue("longitude", pos.coords.longitude);
-        setLocationLoading(false);
-        toast.success("Đã lấy vị trí GPS");
-      },
-      (err) => {
-        toast.error("Không thể lấy vị trí: " + err.message);
-        setLocationLoading(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
-  };
+  // ✅ Tự động lấy vị trí GPS: ngay khi mở form (nếu đã/được cấp quyền),
+  // và tự động lấy lại ngay khi người dùng cấp quyền GPS trong lúc đang mở form.
+  const { locationLoading, fetchLocation: getLocation } = useAutoGeolocation({
+    onLocation: (latitude, longitude) => {
+      setValue("latitude", latitude);
+      setValue("longitude", longitude);
+      toast.success("Đã lấy vị trí GPS");
+    },
+    onError: (message) => {
+      toast.error("Không thể lấy vị trí: " + message);
+    },
+  });
 
   // Xử lý chọn ảnh
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -308,7 +306,7 @@ try {
               render={({ field }) => (
                 <Input
                   type="datetime-local"
-                  value={field.value.slice(0, 16)}
+                  value={isoToLocalDateTimeInputValue(field.value)}
                   onChange={(e) => {
                     const val = e.target.value;
                     if (val) field.onChange(new Date(val).toISOString());
@@ -332,7 +330,7 @@ try {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={getLocation}
+                onClick={() => getLocation()}
                 disabled={locationLoading || isSubmitting}
               >
                 {locationLoading ? (
