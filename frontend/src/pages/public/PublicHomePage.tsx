@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { BrowserQRCodeReader } from "@zxing/browser";
 import { LogIn, ScanLine, Search, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { Logo } from "@/components/common/Logo";
-import logoImg from "@/assets/logo.png";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -155,19 +154,20 @@ export default function PublicHomePage() {
       </div>
 
       {/* Header */}
-      <header className="w-full py-4 px-6 flex justify-between items-center relative z-10">
-        <Logo height={36} />
-        {!isAuthLoading && !user && (
-          <Button
-            variant="outline"
-            className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-            onClick={() => navigate("/login")}
-          >
-            <LogIn className="h-4 w-4" />
-            Đăng nhập
-          </Button>
-        )}
-      </header>
+<header className="w-full h-25 px-6 flex justify-between items-center relative z-10">
+  <Logo height={100} />
+
+  {!isAuthLoading && !user && (
+    <Button
+      variant="outline"
+      className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+      onClick={() => navigate("/login")}
+    >
+      <LogIn className="h-4 w-4" />
+      Đăng nhập
+    </Button>
+  )}
+</header>
 
       {/* Hero Section */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8 md:py-16 relative z-10 flex flex-col lg:flex-row items-center gap-12">
@@ -175,7 +175,6 @@ export default function PublicHomePage() {
         <div className="flex-1 text-center lg:text-left space-y-6">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
-              <img src={logoImg} alt="" className="h-4 w-4 object-contain" />
               Truy xuất nguồn gốc thực phẩm
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight">

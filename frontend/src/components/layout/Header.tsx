@@ -72,7 +72,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
           {/* Mobile title */}
           <div className="min-w-0 md:hidden">
-            <Logo height={32} />
+            <Logo height={50} />
           </div>
 
           {/* Right side: account, notifications, sync, logout */}
