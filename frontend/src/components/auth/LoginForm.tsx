@@ -10,22 +10,26 @@ import {
   UserRound,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import type { LoginRequest } from "@/types/auth";
+
 import { loginSchema, type LoginFormValues } from "../../utils/validators";
 import { login } from "../../api/authApi";
 import { useAuth } from "../../hooks/useAuth";
-import { toast } from "sonner";
-import type { LoginRequest } from "@/types/auth";
 
-const inputIconClass = "ml-[18px] size-[17px] shrink-0 text-muted-foreground";
+const inputIconClass =
+  "ml-[18px] size-[17px] shrink-0 text-muted-foreground";
 
 export const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showOrganizationCode, setShowOrganizationCode] = useState(false);
+
   const { login: authLogin } = useAuth();
   const navigate = useNavigate();
 
@@ -74,7 +78,9 @@ export const LoginForm: React.FC = () => {
   const inputClass =
     "h-[50px] rounded-full border-0 bg-transparent px-[14px] py-0 pl-[11px] text-[0.9rem] text-foreground shadow-none " +
     "placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-0 " +
-    "[&:-webkit-autofill]:[-webkit-text-fill-color:var(--foreground)] [&:-webkit-autofill]:[box-shadow:0_0_0px_1000px_#eff0ed_inset] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s]";
+    "[&:-webkit-autofill]:[-webkit-text-fill-color:var(--foreground)] " +
+    "[&:-webkit-autofill]:[box-shadow:0_0_0px_1000px_#eff0ed_inset] " +
+    "[&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s]";
 
   return (
     <section
@@ -89,12 +95,14 @@ export const LoginForm: React.FC = () => {
         <p className="mb-1 text-[0.7rem] font-bold tracking-[0.11em] text-primary uppercase">
           Chào mừng trở lại
         </p>
+
         <h2
           id="login-title"
           className="text-[1.55rem] font-bold tracking-[-0.02em] text-foreground"
         >
           Đăng nhập
         </h2>
+
         <p className="mt-1.5 text-[0.82rem] text-muted-foreground">
           Nhập thông tin tài khoản để truy cập hệ thống
         </p>
@@ -109,8 +117,13 @@ export const LoginForm: React.FC = () => {
           <Label className="sr-only" htmlFor="username">
             Tên đăng nhập
           </Label>
+
           <div className={inputShellClass(Boolean(errors.username))}>
-            <UserRound className={inputIconClass} aria-hidden="true" />
+            <UserRound
+              className={inputIconClass}
+              aria-hidden="true"
+            />
+
             <Input
               id="username"
               autoComplete="username"
@@ -121,8 +134,12 @@ export const LoginForm: React.FC = () => {
               {...register("username")}
             />
           </div>
+
           {errors.username && (
-            <p className="mx-4 text-xs text-destructive" role="alert">
+            <p
+              className="mx-4 text-xs text-destructive"
+              role="alert"
+            >
               {errors.username.message}
             </p>
           )}
@@ -132,8 +149,13 @@ export const LoginForm: React.FC = () => {
           <Label className="sr-only" htmlFor="password">
             Mật khẩu
           </Label>
+
           <div className={inputShellClass(Boolean(errors.password))}>
-            <LockKeyhole className={inputIconClass} aria-hidden="true" />
+            <LockKeyhole
+              className={inputIconClass}
+              aria-hidden="true"
+            />
+
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
@@ -143,25 +165,43 @@ export const LoginForm: React.FC = () => {
               placeholder="Mật khẩu"
               {...register("password")}
             />
+
             <button
               type="button"
               className={cn(
-                "mr-[5px] grid size-[42px] shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-muted-foreground",
+                "mr-[5px] grid size-[42px] shrink-0 cursor-pointer place-items-center rounded-full",
+                "border-0 bg-transparent text-muted-foreground",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
               )}
-              onClick={() => setShowPassword((current) => !current)}
-              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
-              title={showPassword ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
+              onClick={() => {
+                setShowPassword((current) => !current);
+              }}
+              aria-label={
+                showPassword ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"
+              }
+              title={
+                showPassword ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"
+              }
             >
               {showPassword ? (
-                <EyeOff className="size-[17px]" />
+                <EyeOff
+                  className="size-[17px]"
+                  aria-hidden="true"
+                />
               ) : (
-                <Eye className="size-[17px]" />
+                <Eye
+                  className="size-[17px]"
+                  aria-hidden="true"
+                />
               )}
             </button>
           </div>
+
           {errors.password && (
-            <p className="mx-4 text-xs text-destructive" role="alert">
+            <p
+              className="mx-4 text-xs text-destructive"
+              role="alert"
+            >
               {errors.password.message}
             </p>
           )}
@@ -170,32 +210,63 @@ export const LoginForm: React.FC = () => {
         <button
           type="button"
           className={cn(
-            "-mt-0.5 cursor-pointer self-center border-0 bg-transparent text-xs font-medium text-primary",
+            "-mt-0.5 cursor-pointer self-center border-0 bg-transparent",
+            "text-xs font-medium text-primary",
             "hover:text-primary-hover hover:underline hover:underline-offset-3",
-            "focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            "focus-visible:rounded focus-visible:outline-2",
+            "focus-visible:outline-offset-2 focus-visible:outline-ring",
           )}
-          onClick={() => setShowOrganizationCode((current) => !current)}
+          onClick={() => {
+            setShowOrganizationCode((current) => !current);
+          }}
           aria-expanded={showOrganizationCode}
           aria-controls="organization-code-field"
         >
-          {showOrganizationCode ? "Ẩn mã tổ chức" : "Đăng nhập bằng mã tổ chức"}
+          {showOrganizationCode
+            ? "Ẩn mã tổ chức"
+            : "Đăng nhập bằng mã tổ chức"}
         </button>
 
         {showOrganizationCode && (
-          <div id="organization-code-field" className="flex flex-col gap-1.5">
-            <Label className="sr-only" htmlFor="organizationCode">
+          <div
+            id="organization-code-field"
+            className="flex flex-col gap-1.5"
+          >
+            <Label
+              className="sr-only"
+              htmlFor="organizationCode"
+            >
               Mã tổ chức
             </Label>
-            <div className={inputShellClass(false)}>
-              <Building2 className={inputIconClass} aria-hidden="true" />
+
+            <div
+              className={inputShellClass(
+                Boolean(errors.organizationCode),
+              )}
+            >
+              <Building2
+                className={inputIconClass}
+                aria-hidden="true"
+              />
+
               <Input
                 id="organizationCode"
                 autoComplete="organization"
+                aria-invalid={Boolean(errors.organizationCode)}
                 className={inputClass}
-                placeholder="Mã tổ chức (không bắt buộc)"
+                placeholder="Mã tổ chức"
                 {...register("organizationCode")}
               />
             </div>
+
+            {errors.organizationCode && (
+              <p
+                className="mx-4 text-xs text-destructive"
+                role="alert"
+              >
+                {errors.organizationCode.message}
+              </p>
+            )}
           </div>
         )}
 
@@ -210,8 +281,12 @@ export const LoginForm: React.FC = () => {
           disabled={isLoading}
         >
           {isLoading && (
-            <LoaderCircle className="animate-spin" aria-hidden="true" />
+            <LoaderCircle
+              className="animate-spin"
+              aria-hidden="true"
+            />
           )}
+
           {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
         </Button>
       </form>
