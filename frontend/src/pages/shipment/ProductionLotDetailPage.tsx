@@ -123,7 +123,7 @@ export const ProductionLotDetailPage = () => {
             !showHarvestForm && (
               <Button
                 onClick={() => setShowHarvestForm(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                variant="create"
               >
                 <Sprout className="h-4 w-4 mr-1" />
                 Ghi nhận thu hoạch
@@ -134,7 +134,7 @@ export const ProductionLotDetailPage = () => {
               onClick={() =>
                 navigate(`/packaging-events/create?productionLotId=${lot.id}`)
               }
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              variant="create"
             >
               <Package className="h-4 w-4 mr-1" />
               Ghi đóng gói
@@ -289,7 +289,7 @@ export const ProductionLotDetailPage = () => {
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">Chứng nhận của lô</h2>
               {canManageCert && (
-                <Button onClick={() => setAttachDialogOpen(true)}>
+                <Button onClick={() => setAttachDialogOpen(true)} variant="create">
                   <Plus className="h-4 w-4 mr-1" /> Gắn chứng nhận
                 </Button>
               )}

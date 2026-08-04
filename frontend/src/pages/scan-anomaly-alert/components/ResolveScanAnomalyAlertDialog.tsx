@@ -104,7 +104,7 @@ export function ResolveScanAnomalyAlertDialog({
               <Button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="bg-emerald-600 hover:bg-emerald-700"
+                variant="edit"
               >
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 {submitting ? 'Đang xử lý...' : 'Xác nhận xử lý'}
