@@ -128,8 +128,19 @@ export const mobileEventSchema = z
             required_error: 'Vui lòng chọn loại sự kiện',
         }),
         recordedAt: z.string().datetime({ message: 'Thời gian không hợp lệ' }),
-        latitude: z.number().min(-90).max(90, 'Vĩ độ không hợp lệ'),
-        longitude: z.number().min(-180).max(180, 'Kinh độ không hợp lệ'),
+        latitude: z
+        .number({
+          required_error: "Vui lòng lấy vị trí GPS",
+        })
+        .min(-90, "Vĩ độ không hợp lệ")
+        .max(90, "Vĩ độ không hợp lệ"),
+
+      longitude: z
+        .number({
+          required_error: "Vui lòng lấy vị trí GPS",
+        })
+        .min(-180, "Kinh độ không hợp lệ")
+        .max(180, "Kinh độ không hợp lệ"),
         images: z.array(z.string()).min(1, 'Cần ít nhất 1 ảnh'),
         quantity: z.number().positive('Sản lượng > 0').optional(),
         harvestDate: z.string().date('Ngày thu hoạch không hợp lệ').optional(),
@@ -140,6 +151,13 @@ export const mobileEventSchema = z
         packagingDate: z.string().date('Ngày đóng gói không hợp lệ').optional(),
     })
     .superRefine((data, ctx) => {
+        if (data.latitude === 0 && data.longitude === 0) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["latitude"],
+            message: "Vui lòng lấy vị trí GPS",
+          });
+        }
         if (data.eventType === ChainEventType.HARVEST) {
             if (!data.quantity) {
                 ctx.addIssue({ code: 'custom', path: ['quantity'], message: 'Sản lượng bắt buộc' });

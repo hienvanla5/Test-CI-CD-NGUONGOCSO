@@ -1,8 +1,17 @@
-import React, { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import React, { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Camera, Loader2, MapPin } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,29 +21,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Camera, MapPin, Loader2 } from "lucide-react";
-import {
-  mobileEventSchema,
-  type MobileEventFormValues,
-} from "@/utils/validators";
+
 import { recordMobileEvent } from "@/api/chainEventApi";
-import type { ProductionLot } from "@/types/productionLot";
-import { ChainEventType, ChainEventTypeLabel } from "@/enums/chainEventType";
-import { useOfflineSync } from "@/hooks/useOfflineSync";
+import {
+  ChainEventType,
+  ChainEventTypeLabel,
+} from "@/enums/chainEventType";
 import { useAutoGeolocation } from "@/hooks/useAutoGeolocation";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { addOfflineEvent } from "@/services/offlineQueue";
+import type { ProductionLot } from "@/types/productionLot";
 import {
   getLocalDateString,
   getLocalDateTimeString,
   isoToLocalDateTimeInputValue,
 } from "@/utils/dateTime";
+import {
+  mobileEventSchema,
+  type MobileEventFormValues,
+} from "@/utils/validators";
 
 interface Props {
   lots: ProductionLot[];
@@ -43,8 +48,49 @@ interface Props {
 
 const MAX_IMAGES = 5;
 
-export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
+type MobileEventPayload =
+  Parameters<typeof recordMobileEvent>[0] &
+  Parameters<typeof addOfflineEvent>[0];
+
+const getInitialFormValues = (): MobileEventFormValues => ({
+  productionLotId: "",
+  eventType: ChainEventType.HARVEST,
+  recordedAt: new Date(getLocalDateTimeString()).toISOString(),
+  latitude: 0,
+  longitude: 0,
+  images: [],
+  harvestDate: getLocalDateString(),
+  packagingDate: getLocalDateString(),
+  quantity: 0,
+  packagingSpecification: "",
+});
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("Không thể đọc dữ liệu ảnh"));
+    };
+
+    reader.onerror = () => {
+      reject(reader.error ?? new Error("Không thể đọc tệp ảnh"));
+    };
+
+    reader.readAsDataURL(file);
+  });
+
+export const RecordMobileEventForm: React.FC<Props> = ({
+  lots,
+  onSuccess,
+}) => {
   const { isOnline } = useOfflineSync();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -54,102 +100,154 @@ export const RecordMobileEventForm: React.FC<Props> = ({ lots, onSuccess }) => {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors },
     reset,
+    formState: { errors },
   } = useForm<MobileEventFormValues>({
     resolver: zodResolver(mobileEventSchema),
-    defaultValues: {
-      productionLotId: "",
-      eventType: ChainEventType.HARVEST,
-      // ✅ Dùng giờ local thay vì toISOString() thô để tránh lệch sang "hôm qua"
-      // đối với người dùng ở múi giờ UTC+7 vào khoảng 00:00–06:59.
-      recordedAt: new Date(getLocalDateTimeString()).toISOString(),
-      latitude: 0,
-      longitude: 0,
-      images: [],
-      harvestDate: getLocalDateString(),
-      packagingDate: getLocalDateString(),
-      quantity: 0, // ✅ thêm
-      packagingSpecification: "", // ✅ thêm
-    },
+    defaultValues: getInitialFormValues(),
   });
 
   const eventType = watch("eventType");
 
-  // ✅ Tự động lấy vị trí GPS: ngay khi mở form (nếu đã/được cấp quyền),
-  // và tự động lấy lại ngay khi người dùng cấp quyền GPS trong lúc đang mở form.
-  const { locationLoading, fetchLocation: getLocation } = useAutoGeolocation({
-    onLocation: (latitude, longitude) => {
-      setValue("latitude", latitude);
-      setValue("longitude", longitude);
-      toast.success("Đã lấy vị trí GPS");
-    },
-    onError: (message) => {
-      toast.error("Không thể lấy vị trí: " + message);
-    },
-  });
+  const { locationLoading, fetchLocation: getLocation } =
+    useAutoGeolocation({
+      onLocation: (latitude, longitude) => {
+        setValue("latitude", latitude, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
 
-  // Xử lý chọn ảnh
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    const fileArray = Array.from(files);
-    if (imageFiles.length + fileArray.length > MAX_IMAGES) {
-      toast.error(`Chỉ được chọn tối đa ${MAX_IMAGES} ảnh`);
+        setValue("longitude", longitude, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+
+        toast.success("Đã lấy vị trí GPS");
+      },
+
+      onError: (message) => {
+        toast.error(`Không thể lấy vị trí: ${message}`);
+      },
+    });
+
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((preview) => {
+        URL.revokeObjectURL(preview);
+      });
+    };
+  }, [imagePreviews]);
+
+  const clearImages = () => {
+    imagePreviews.forEach((preview) => {
+      URL.revokeObjectURL(preview);
+    });
+
+    setImageFiles([]);
+    setImagePreviews([]);
+
+    setValue("images", [], {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  };
+
+  const resetForm = () => {
+    clearImages();
+    reset(getInitialFormValues());
+  };
+
+  const handleImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const selectedFiles = event.target.files;
+
+    if (!selectedFiles) {
       return;
     }
-    setImageFiles((prev) => [...prev, ...fileArray]);
-    const newPreviews = fileArray.map((f) => URL.createObjectURL(f));
+
+    const newFiles = Array.from(selectedFiles);
+
+    if (imageFiles.length + newFiles.length > MAX_IMAGES) {
+      toast.error(`Chỉ được chọn tối đa ${MAX_IMAGES} ảnh`);
+      event.target.value = "";
+      return;
+    }
+
+    const newPreviews = newFiles.map((file) =>
+      URL.createObjectURL(file),
+    );
+
+    const updatedFiles = [...imageFiles, ...newFiles];
     const updatedPreviews = [...imagePreviews, ...newPreviews];
+
+    setImageFiles(updatedFiles);
     setImagePreviews(updatedPreviews);
-    // ✅ Cập nhật vào react-hook-form để validation biết có ảnh
-    setValue("images", updatedPreviews, { shouldValidate: true });
+
+    setValue("images", updatedPreviews, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    event.target.value = "";
   };
 
   const removeImage = (index: number) => {
-    const newFiles = imageFiles.filter((_, i) => i !== index);
-    setImageFiles(newFiles);
-    const newPreviews = imagePreviews.filter((_, i) => i !== index);
-    setImagePreviews(newPreviews);
-    // ✅ Cập nhật lại danh sách ảnh trong form
-    setValue("images", newPreviews, { shouldValidate: true });
+    const previewToRemove = imagePreviews[index];
+
+    if (previewToRemove) {
+      URL.revokeObjectURL(previewToRemove);
+    }
+
+    const updatedFiles = imageFiles.filter(
+      (_, fileIndex) => fileIndex !== index,
+    );
+
+    const updatedPreviews = imagePreviews.filter(
+      (_, previewIndex) => previewIndex !== index,
+    );
+
+    setImageFiles(updatedFiles);
+    setImagePreviews(updatedPreviews);
+
+    setValue("images", updatedPreviews, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
 
-  // Chuyển File sang base64
-  const fileToBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-
   const onSubmit = async (data: MobileEventFormValues) => {
-    console.log("🚀 onSubmit called, isOnline:", isOnline);
     setIsSubmitting(true);
-    let payload: any = null; // khai báo bên ngoài để dùng trong catch
+
+    let payload: MobileEventPayload | null = null;
 
     try {
-      let base64Images: string[] = [];
-try {
-  base64Images = await Promise.all(imageFiles.map(fileToBase64));
-} catch (err) {
-  console.error("❌ Error converting images to base64:", err);
-  toast.error("Không thể xử lý ảnh. Vui lòng thử lại.");
-  setIsSubmitting(false);
-  return;
-}
+      let base64Images: string[];
 
-      // Xây dựng eventData dựa trên loại sự kiện
-      let eventData: Record<string, any> = {};
+      try {
+        base64Images = await Promise.all(
+          imageFiles.map(fileToBase64),
+        );
+      } catch {
+        toast.error(
+          "Không thể xử lý ảnh. Vui lòng chọn lại ảnh và thử lại.",
+        );
+        return;
+      }
+
+      let eventData: Record<string, unknown> = {};
+
       if (data.eventType === ChainEventType.HARVEST) {
         eventData = {
           quantity: data.quantity,
           harvestDate: data.harvestDate,
         };
-      } else if (data.eventType === ChainEventType.PACKAGING) {
+      }
+
+      if (data.eventType === ChainEventType.PACKAGING) {
         eventData = {
-          packagingSpecification: data.packagingSpecification,
+          packagingSpecification:
+            data.packagingSpecification,
           packagingDate: data.packagingDate,
         };
       }
@@ -166,68 +264,87 @@ try {
       };
 
       if (!isOnline) {
-        // 🔴 Lưu tạm khi mất mạng
         const validationError = addOfflineEvent(payload);
+
         if (validationError) {
-          toast.error(`Không thể lưu tạm: ${validationError}`);
-        } else {
-          toast.info(
-            "Không có kết nối. Sự kiện đã được lưu tạm và sẽ đồng bộ sau.",
+          toast.error(
+            `Không thể lưu tạm: ${validationError}`,
           );
-          reset();
-          setImageFiles([]);
-          setImagePreviews([]);
-          onSuccess?.();
+          return;
         }
-      } else {
-        // 🟢 Gửi trực tiếp
-        await recordMobileEvent(payload);
-        toast.success("Ghi sự kiện thành công!");
-        reset();
-        setImageFiles([]);
-        setImagePreviews([]);
+
+        toast.info(
+          "Không có kết nối. Sự kiện đã được lưu tạm và sẽ đồng bộ sau.",
+        );
+
+        resetForm();
         onSuccess?.();
+        return;
       }
+
+      await recordMobileEvent(payload);
+
+      toast.success("Ghi sự kiện thành công!");
+      resetForm();
+      onSuccess?.();
     } catch (error: any) {
-      // Nếu lỗi network khi online, vẫn lưu tạm (chỉ khi payload đã được tạo)
-      if (
-        payload &&
-        (error.code === "ERR_NETWORK" || error.message?.includes("Network"))
-      ) {
+      const isNetworkError =
+        error?.code === "ERR_NETWORK" ||
+        error?.message?.includes("Network");
+
+      if (payload && isNetworkError) {
         const validationError = addOfflineEvent(payload);
+
         if (validationError) {
-          toast.error(`Không thể lưu tạm: ${validationError}`);
-        } else {
-          toast.info("Lỗi mạng. Sự kiện đã được lưu tạm.");
+          toast.error(
+            `Không thể lưu tạm: ${validationError}`,
+          );
+          return;
         }
-      } else {
-        toast.error(error.response?.data?.message || "Ghi sự kiện thất bại");
+
+        toast.info(
+          "Lỗi mạng. Sự kiện đã được lưu tạm và sẽ đồng bộ sau.",
+        );
+
+        resetForm();
+        onSuccess?.();
+        return;
       }
+
+      toast.error(
+        error?.response?.data?.message ||
+          "Ghi sự kiện thất bại",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Lọc lô theo trạng thái phù hợp (tuỳ backend, có thể lọc sẵn từ API)
   const filteredLots = lots.filter(
-    (lot) => lot.status === "APPROVED" || lot.status === "HARVESTED",
+    (lot) =>
+      lot.status === "APPROVED" ||
+      lot.status === "HARVESTED",
   );
 
-  console.log("isOnline:", isOnline);
-
   return (
-    <Card className="max-w-md mx-auto">
+    <Card className="mx-auto max-w-md">
       <CardHeader>
-        <CardTitle>📱 Ghi sự kiện ngoài đồng</CardTitle>
+        <CardTitle>Ghi sự kiện ngoài đồng</CardTitle>
+
         <CardDescription>
-          Nhập thông tin thu hoạch hoặc đóng gói kèm ảnh thực địa
+          Nhập thông tin thu hoạch hoặc đóng gói kèm ảnh
+          thực địa
         </CardDescription>
       </CardHeader>
+
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Chọn lô */}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <Label>Lô sản xuất *</Label>
+
             <Controller
               name="productionLotId"
               control={control}
@@ -239,13 +356,21 @@ try {
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn lô sản xuất">
-                      {field.value &&
-                        lots.find((l) => l.id === field.value)?.name}
+                      {field.value
+                        ? lots.find(
+                            (lot) =>
+                              lot.id === field.value,
+                          )?.name
+                        : null}
                     </SelectValue>
                   </SelectTrigger>
+
                   <SelectContent>
                     {filteredLots.map((lot) => (
-                      <SelectItem key={lot.id} value={lot.id}>
+                      <SelectItem
+                        key={lot.id}
+                        value={lot.id}
+                      >
                         {lot.name} ({lot.status})
                       </SelectItem>
                     ))}
@@ -253,6 +378,7 @@ try {
                 </Select>
               )}
             />
+
             {errors.productionLotId && (
               <p className="text-sm text-red-500">
                 {errors.productionLotId.message}
@@ -260,61 +386,115 @@ try {
             )}
           </div>
 
-          {/* Loại sự kiện */}
           <div className="space-y-2">
             <Label>Loại sự kiện *</Label>
+
             <Controller
               name="eventType"
               control={control}
               render={({ field }) => (
                 <Select
                   value={field.value}
-                  onValueChange={(val) => {
-                    field.onChange(val);
-                    // Reset dynamic fields...
+                  onValueChange={(value) => {
+                    field.onChange(value);
+
+                    if (
+                      value === ChainEventType.HARVEST
+                    ) {
+                      setValue(
+                        "harvestDate",
+                        getLocalDateString(),
+                      );
+
+                      setValue("quantity", 0);
+                    }
+
+                    if (
+                      value === ChainEventType.PACKAGING
+                    ) {
+                      setValue(
+                        "packagingDate",
+                        getLocalDateString(),
+                      );
+
+                      setValue(
+                        "packagingSpecification",
+                        "",
+                      );
+                    }
                   }}
                   disabled={isSubmitting}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn loại">
-                      {field.value &&
-                        ChainEventTypeLabel[field.value as ChainEventType]}
+                      {field.value
+                        ? ChainEventTypeLabel[
+                            field.value as ChainEventType
+                          ]
+                        : null}
                     </SelectValue>
                   </SelectTrigger>
+
                   <SelectContent>
-                    <SelectItem value={ChainEventType.HARVEST}>
-                      {ChainEventTypeLabel[ChainEventType.HARVEST]}
+                    <SelectItem
+                      value={ChainEventType.HARVEST}
+                    >
+                      {
+                        ChainEventTypeLabel[
+                          ChainEventType.HARVEST
+                        ]
+                      }
                     </SelectItem>
-                    <SelectItem value={ChainEventType.PACKAGING}>
-                      {ChainEventTypeLabel[ChainEventType.PACKAGING]}
+
+                    <SelectItem
+                      value={ChainEventType.PACKAGING}
+                    >
+                      {
+                        ChainEventTypeLabel[
+                          ChainEventType.PACKAGING
+                        ]
+                      }
                     </SelectItem>
                   </SelectContent>
                 </Select>
               )}
             />
+
             {errors.eventType && (
-              <p className="text-sm text-red-500">{errors.eventType.message}</p>
+              <p className="text-sm text-red-500">
+                {errors.eventType.message}
+              </p>
             )}
           </div>
 
-          {/* Thời gian ghi nhận */}
           <div className="space-y-2">
             <Label>Thời điểm *</Label>
+
             <Controller
               name="recordedAt"
               control={control}
               render={({ field }) => (
                 <Input
                   type="datetime-local"
-                  value={isoToLocalDateTimeInputValue(field.value)}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val) field.onChange(new Date(val).toISOString());
+                  value={isoToLocalDateTimeInputValue(
+                    field.value,
+                  )}
+                  onChange={(event) => {
+                    const value = event.target.value;
+
+                    if (!value) {
+                      return;
+                    }
+
+                    field.onChange(
+                      new Date(value).toISOString(),
+                    );
                   }}
                   disabled={isSubmitting}
                 />
               )}
             />
+
             {errors.recordedAt && (
               <p className="text-sm text-red-500">
                 {errors.recordedAt.message}
@@ -322,25 +502,31 @@ try {
             )}
           </div>
 
-          {/* Vị trí GPS */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <Label>Vị trí GPS *</Label>
+
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => getLocation()}
-                disabled={locationLoading || isSubmitting}
+                disabled={
+                  locationLoading || isSubmitting
+                }
               >
                 {locationLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  <Loader2 className="mr-1 size-4 animate-spin" />
                 ) : (
-                  <MapPin className="h-4 w-4 mr-1" />
+                  <MapPin className="mr-1 size-4" />
                 )}
-                Lấy vị trí
+
+                {locationLoading
+                  ? "Đang lấy vị trí"
+                  : "Lấy vị trí"}
               </Button>
             </div>
+
             <div className="grid grid-cols-2 gap-2">
               <Controller
                 name="latitude"
@@ -350,11 +536,27 @@ try {
                     type="number"
                     step="any"
                     placeholder="Vĩ độ"
-                    {...field}
-                    disabled={isSubmitting}
+                    value={field.value ?? ""}
+                    onChange={(event) => {
+                      const value =
+                        event.target.value;
+
+                      field.onChange(
+                        value === ""
+                          ? 0
+                          : Number(value),
+                      );
+                    }}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                    disabled={
+                      isSubmitting || locationLoading
+                    }
                   />
                 )}
               />
+
               <Controller
                 name="longitude"
                 control={control}
@@ -363,55 +565,92 @@ try {
                     type="number"
                     step="any"
                     placeholder="Kinh độ"
-                    {...field}
-                    disabled={isSubmitting}
+                    value={field.value ?? ""}
+                    onChange={(event) => {
+                      const value =
+                        event.target.value;
+
+                      field.onChange(
+                        value === ""
+                          ? 0
+                          : Number(value),
+                      );
+                    }}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                    disabled={
+                      isSubmitting || locationLoading
+                    }
                   />
                 )}
               />
             </div>
-            {(errors.latitude || errors.longitude) && (
+
+            {(errors.latitude ||
+              errors.longitude) && (
               <p className="text-sm text-red-500">
-                {errors.latitude?.message || errors.longitude?.message}
+                {errors.latitude?.message ||
+                  errors.longitude?.message}
               </p>
             )}
           </div>
 
-          {/* Dynamic fields theo loại */}
           {eventType === ChainEventType.HARVEST && (
             <>
               <div className="space-y-2">
                 <Label>Sản lượng (kg) *</Label>
+
                 <Controller
                   name="quantity"
                   control={control}
                   render={({ field }) => (
                     <Input
                       type="number"
+                      min="0"
                       step="0.01"
                       placeholder="Nhập sản lượng"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseFloat(e.target.value))
-                      }
+                      value={field.value ?? ""}
+                      onChange={(event) => {
+                        const value =
+                          event.target.value;
+
+                        field.onChange(
+                          value === ""
+                            ? 0
+                            : Number(value),
+                        );
+                      }}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
                       disabled={isSubmitting}
                     />
                   )}
                 />
+
                 {errors.quantity && (
                   <p className="text-sm text-red-500">
                     {errors.quantity.message}
                   </p>
                 )}
               </div>
+
               <div className="space-y-2">
                 <Label>Ngày thu hoạch *</Label>
+
                 <Controller
                   name="harvestDate"
                   control={control}
                   render={({ field }) => (
-                    <Input type="date" {...field} disabled={isSubmitting} />
+                    <Input
+                      type="date"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   )}
                 />
+
                 {errors.harvestDate && (
                   <p className="text-sm text-red-500">
                     {errors.harvestDate.message}
@@ -421,10 +660,12 @@ try {
             </>
           )}
 
-          {eventType === ChainEventType.PACKAGING && (
+          {eventType ===
+            ChainEventType.PACKAGING && (
             <>
               <div className="space-y-2">
                 <Label>Quy cách đóng gói *</Label>
+
                 <Controller
                   name="packagingSpecification"
                   control={control}
@@ -436,21 +677,32 @@ try {
                     />
                   )}
                 />
+
                 {errors.packagingSpecification && (
                   <p className="text-sm text-red-500">
-                    {errors.packagingSpecification.message}
+                    {
+                      errors.packagingSpecification
+                        .message
+                    }
                   </p>
                 )}
               </div>
+
               <div className="space-y-2">
                 <Label>Ngày đóng gói *</Label>
+
                 <Controller
                   name="packagingDate"
                   control={control}
                   render={({ field }) => (
-                    <Input type="date" {...field} disabled={isSubmitting} />
+                    <Input
+                      type="date"
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   )}
                 />
+
                 {errors.packagingDate && (
                   <p className="text-sm text-red-500">
                     {errors.packagingDate.message}
@@ -460,25 +712,38 @@ try {
             </>
           )}
 
-          {/* Upload ảnh */}
           <div className="space-y-2">
-            <Label>Hình ảnh thực địa * (tối thiểu 1)</Label>
-            <div className="flex items-center gap-2 flex-wrap">
+            <Label>
+              Hình ảnh thực địa * (tối thiểu 1)
+            </Label>
+
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => document.getElementById("imageInput")?.click()}
-                disabled={isSubmitting || imageFiles.length >= MAX_IMAGES}
+                onClick={() => {
+                  document
+                    .getElementById(
+                      "mobile-event-image-input",
+                    )
+                    ?.click();
+                }}
+                disabled={
+                  isSubmitting ||
+                  imageFiles.length >= MAX_IMAGES
+                }
               >
-                <Camera className="h-4 w-4 mr-1" />
+                <Camera className="mr-1 size-4" />
                 Chọn ảnh
               </Button>
+
               <span className="text-sm text-muted-foreground">
                 {imageFiles.length}/{MAX_IMAGES}
               </span>
+
               <input
-                id="imageInput"
+                id="mobile-event-image-input"
                 type="file"
                 accept="image/*"
                 multiple
@@ -487,38 +752,54 @@ try {
                 disabled={isSubmitting}
               />
             </div>
+
             {imagePreviews.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {imagePreviews.map((src, idx) => (
-                  <div
-                    key={idx}
-                    className="relative w-16 h-16 rounded border overflow-hidden"
-                  >
-                    <img
-                      src={src}
-                      alt={`preview-${idx}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                      onClick={() => removeImage(idx)}
+              <div className="mt-2 flex flex-wrap gap-2">
+                {imagePreviews.map(
+                  (preview, index) => (
+                    <div
+                      key={preview}
+                      className="relative size-16 overflow-hidden rounded border"
                     >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                      <img
+                        src={preview}
+                        alt={`Ảnh thực địa ${index + 1}`}
+                        className="size-full object-cover"
+                      />
+
+                      <button
+                        type="button"
+                        className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-red-500 text-xs text-white hover:bg-red-600"
+                        onClick={() =>
+                          removeImage(index)
+                        }
+                        aria-label={`Xóa ảnh ${index + 1}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ),
+                )}
               </div>
             )}
+
             {errors.images && (
-              <p className="text-sm text-red-500">{errors.images.message}</p>
+              <p className="text-sm text-red-500">
+                {errors.images.message}
+              </p>
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={
+              isSubmitting || locationLoading
+            }
+          >
             {isSubmitting ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
                 Đang ghi...
               </>
             ) : (

@@ -46,7 +46,7 @@ export function SyncBadge() {
       {isSyncing ? (
         <RefreshCw className="h-5 w-5 animate-spin" />
       ) : !isOnline ? (
-        <CloudOff className="h-5 w-5 text-amber-500" />
+        <CloudOff className="h-5 w-5 text-warning" />
       ) : (
         <RefreshCw className="h-5 w-5" />
       )}
@@ -55,7 +55,7 @@ export function SyncBadge() {
         <span
           className={cn(
             "absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center",
-            "rounded-full bg-amber-500 px-0.5 text-[10px] font-bold leading-none text-white",
+            "rounded-full bg-warning px-0.5 text-[10px] font-bold leading-none text-white",
           )}
         >
           {eventCount > 99 ? "99+" : eventCount}

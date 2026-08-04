@@ -1,86 +1,271 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface UseAutoGeolocationOptions {
-  /** Gọi khi lấy được vị trí (dù là tự động hay do người dùng bấm nút). */
-  onLocation: (latitude: number, longitude: number) => void;
-  /** Gọi khi lấy vị trí thất bại. Không gọi cho các lần thử tự động (silent) để tránh làm phiền người dùng. */
+  /**
+   * Được gọi khi lấy vị trí thành công.
+   */
+  onLocation: (
+    latitude: number,
+    longitude: number,
+  ) => void;
+
+  /**
+   * Được gọi khi lấy vị trí thủ công thất bại.
+   * Những lần tự động lấy vị trí sẽ không hiển thị lỗi.
+   */
   onError?: (message: string) => void;
-  /** Chỉ bật cơ chế tự động lấy vị trí khi true (ví dụ: chỉ khi dialog/form đang mở). Mặc định true. */
+
+  /**
+   * Chỉ kích hoạt tự động lấy vị trí khi true.
+   * Hữu ích với dialog chỉ cần lấy GPS khi đang mở.
+   */
   enabled?: boolean;
 }
 
-/**
- * Hook tự động lấy vị trí GPS của người dùng:
- * 1. Khi form được mở, nếu trình duyệt đã có sẵn quyền vị trí (hoặc chưa từng hỏi) thì tự động lấy vị trí ngay,
- *    không cần người dùng phải bấm nút "Lấy vị trí".
- * 2. Nếu người dùng CHƯA cấp quyền lúc mở form, hook sẽ lắng nghe sự kiện thay đổi quyền (Permissions API) —
- *    ngay khi người dùng cấp quyền GPS (ví dụ bật lại trong cài đặt trình duyệt), vị trí sẽ được tự động lấy lại.
- *
- * Vẫn trả về `fetchLocation` để dùng cho nút "Lấy vị trí hiện tại" (lấy lại thủ công, có thông báo lỗi rõ ràng).
- */
-export function useAutoGeolocation({ onLocation, onError, enabled = true }: UseAutoGeolocationOptions) {
-  const [locationLoading, setLocationLoading] = useState(false);
+const getGeolocationErrorMessage = (
+  error: GeolocationPositionError,
+): string => {
+  switch (error.code) {
+    case error.PERMISSION_DENIED:
+      return "Bạn chưa cấp quyền truy cập vị trí";
+
+    case error.POSITION_UNAVAILABLE:
+      return "Không thể xác định vị trí hiện tại";
+
+    case error.TIMEOUT:
+      return "Quá thời gian chờ lấy vị trí";
+
+    default:
+      return error.message || "Không thể lấy vị trí hiện tại";
+  }
+};
+
+export function useAutoGeolocation({
+  onLocation,
+  onError,
+  enabled = true,
+}: UseAutoGeolocationOptions) {
+  const [locationLoading, setLocationLoading] =
+    useState(false);
+
   const onLocationRef = useRef(onLocation);
   const onErrorRef = useRef(onError);
+
+  const mountedRef = useRef(true);
+  const enabledRef = useRef(enabled);
+  const requestInProgressRef = useRef(false);
+  const requestIdRef = useRef(0);
+
   onLocationRef.current = onLocation;
   onErrorRef.current = onError;
+  enabledRef.current = enabled;
 
-  const fetchLocation = useCallback((silent = false) => {
-    if (!navigator.geolocation) {
-      if (!silent) onErrorRef.current?.("Trình duyệt không hỗ trợ định vị");
-      return;
-    }
-    setLocationLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocationLoading(false);
-        onLocationRef.current(position.coords.latitude, position.coords.longitude);
-      },
-      (err) => {
-        setLocationLoading(false);
-        if (!silent) onErrorRef.current?.(err.message);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-    );
+  const fetchLocation = useCallback(
+    (silent = false) => {
+      if (!enabledRef.current) {
+        return;
+      }
+
+      if (!navigator.geolocation) {
+        if (!silent) {
+          onErrorRef.current?.(
+            "Trình duyệt không hỗ trợ định vị",
+          );
+        }
+
+        return;
+      }
+
+      /*
+       * Không chạy nhiều yêu cầu GPS đồng thời.
+       * Tránh trường hợp useEffect và sự kiện đổi quyền
+       * cùng gọi getCurrentPosition.
+       */
+      if (requestInProgressRef.current) {
+        return;
+      }
+
+      requestInProgressRef.current = true;
+
+      const currentRequestId =
+        ++requestIdRef.current;
+
+      if (mountedRef.current) {
+        setLocationLoading(true);
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          /*
+           * Bỏ qua callback nếu component đã unmount,
+           * hook đã disabled hoặc đây là request cũ.
+           */
+          if (
+            !mountedRef.current ||
+            !enabledRef.current ||
+            currentRequestId !== requestIdRef.current
+          ) {
+            requestInProgressRef.current = false;
+            return;
+          }
+
+          requestInProgressRef.current = false;
+          setLocationLoading(false);
+
+          onLocationRef.current(
+            position.coords.latitude,
+            position.coords.longitude,
+          );
+        },
+
+        (error) => {
+          if (
+            !mountedRef.current ||
+            currentRequestId !== requestIdRef.current
+          ) {
+            requestInProgressRef.current = false;
+            return;
+          }
+
+          requestInProgressRef.current = false;
+          setLocationLoading(false);
+
+          if (!silent) {
+            onErrorRef.current?.(
+              getGeolocationErrorMessage(error),
+            );
+          }
+        },
+
+        {
+          enableHighAccuracy: true,
+          timeout: 10_000,
+          maximumAge: 0,
+        },
+      );
+    },
+    [],
+  );
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      requestIdRef.current += 1;
+      requestInProgressRef.current = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!enabled) return;
+    enabledRef.current = enabled;
 
-    let permissionStatus: PermissionStatus | null = null;
+    if (!enabled) {
+      /*
+       * Vô hiệu hóa callback của request đang chạy.
+       */
+      requestIdRef.current += 1;
+      requestInProgressRef.current = false;
 
-    const handleChange = () => {
-      if (permissionStatus?.state === "granted") {
-        // Người dùng vừa cấp quyền GPS -> tự động lấy vị trí ngay
-        fetchLocation(false);
+      if (mountedRef.current) {
+        setLocationLoading(false);
+      }
+
+      return;
+    }
+
+    let permissionStatus: PermissionStatus | null =
+      null;
+
+    let effectCancelled = false;
+
+    const handlePermissionChange = () => {
+      if (
+        effectCancelled ||
+        permissionStatus?.state !== "granted"
+      ) {
+        return;
+      }
+
+      /*
+       * Người dùng vừa cấp lại quyền trong trình duyệt.
+       * Lấy vị trí tự động và không hiện lỗi nếu thất bại.
+       */
+      fetchLocation(true);
+    };
+
+    const initializeGeolocation = async () => {
+      if (!navigator.geolocation) {
+        return;
+      }
+
+      if (!navigator.permissions?.query) {
+        fetchLocation(true);
+        return;
+      }
+
+      try {
+        const status =
+          await navigator.permissions.query({
+            name: "geolocation" as PermissionName,
+          });
+
+        if (effectCancelled) {
+          return;
+        }
+
+        permissionStatus = status;
+
+        status.addEventListener(
+          "change",
+          handlePermissionChange,
+        );
+
+        /*
+         * granted:
+         * Quyền đã được cấp, lấy vị trí ngay.
+         *
+         * prompt:
+         * Trình duyệt chưa hỏi hoặc người dùng chưa quyết định.
+         * Chủ động gọi GPS để trình duyệt hiện hộp cấp quyền.
+         *
+         * denied:
+         * Không tự gọi lại, tránh làm phiền người dùng.
+         * Người dùng vẫn có thể bấm nút lấy vị trí thủ công
+         * sau khi thay đổi quyền trong cài đặt trình duyệt.
+         */
+        if (
+          status.state === "granted" ||
+          status.state === "prompt"
+        ) {
+          fetchLocation(true);
+        }
+      } catch {
+        if (!effectCancelled) {
+          fetchLocation(true);
+        }
       }
     };
 
-    if (navigator.permissions?.query) {
-      navigator.permissions
-        .query({ name: "geolocation" as PermissionName })
-        .then((status) => {
-          permissionStatus = status;
-          if (status.state !== "denied") {
-            // "granted": đã từng cho phép -> tự lấy vị trí ngay khi vào form
-            // "prompt": chưa quyết định -> chủ động hỏi quyền khi tạo sự kiện (im lặng nếu người dùng từ chối)
-            fetchLocation(true);
-          }
-          status.addEventListener("change", handleChange);
-        })
-        .catch(() => {
-          fetchLocation(true);
-        });
-    } else {
-      // Trình duyệt không hỗ trợ Permissions API -> vẫn thử lấy vị trí ngay
-      fetchLocation(true);
-    }
+    void initializeGeolocation();
 
     return () => {
-      permissionStatus?.removeEventListener("change", handleChange);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled]);
+      effectCancelled = true;
 
-  return { locationLoading, fetchLocation };
+      permissionStatus?.removeEventListener(
+        "change",
+        handlePermissionChange,
+      );
+    };
+  }, [enabled, fetchLocation]);
+
+  return {
+    locationLoading,
+    fetchLocation,
+  };
 }

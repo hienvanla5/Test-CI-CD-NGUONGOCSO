@@ -16,9 +16,9 @@ const TYPE_ICON: Record<NotificationType, typeof Bell> = {
 };
 
 const TYPE_STYLE: Record<NotificationType, string> = {
-  ALERT: 'bg-red-50 text-red-600',
-  TASK: 'bg-amber-50 text-amber-600',
-  INFO: 'bg-blue-50 text-blue-600',
+  ALERT: 'bg-error-bg text-destructive',
+  TASK: 'bg-warning-bg text-status-pending',
+  INFO: 'bg-info-bg text-info',
 };
 
 const formatRelativeTime = (iso: string) => {
@@ -50,7 +50,7 @@ export const NotificationPanel = ({
       <div className="max-h-96 overflow-y-auto">
         {isLoading ? (
           <div className="flex justify-center py-8">
-            <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-emerald-600" />
+            <div className="h-5 w-5 animate-spin rounded-full border-b-2 border-primary" />
           </div>
         ) : items.length === 0 ? (
           <div className="px-4 py-10 text-center text-muted-foreground">
@@ -68,7 +68,7 @@ export const NotificationPanel = ({
                     onClick={() => onItemClick(item)}
                     className={cn(
                       'flex w-full items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-muted',
-                      !item.isRead && 'bg-emerald-50/50',
+                      !item.isRead && 'bg-success-bg/50',
                     )}
                   >
                     <span
@@ -85,7 +85,7 @@ export const NotificationPanel = ({
                           {item.title}
                         </span>
                         {!item.isRead && (
-                          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600" />
+                          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                         )}
                       </span>
                       <span className="mt-0.5 block line-clamp-2 text-xs text-muted-foreground">
@@ -106,7 +106,7 @@ export const NotificationPanel = ({
       <div className="border-t px-3 py-2">
         <Link
           to="/notifications"
-          className="block text-center text-sm font-medium text-emerald-700 hover:text-emerald-800"
+          className="block text-center text-sm font-medium text-primary hover:text-primary-hover"
         >
           Xem tất cả
         </Link>
