@@ -30,6 +30,8 @@ export function AppToaster() {
   return (
     <Toaster
       position="top-right"
+      offset={{ top: "4.5rem", right: "1rem" }}
+      mobileOffset={{ top: "4.5rem", right: "1rem" }}
       gap={12}
       duration={5000}
       icons={variantIcons}
