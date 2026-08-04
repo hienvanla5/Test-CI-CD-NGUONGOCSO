@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -18,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.auth.service.CustomUserDetailsService;
 import vn.nguongocso.config.JwtTokenProvider;
 import vn.nguongocso.config.SecurityConfig;
@@ -53,6 +55,9 @@ class ShipmentControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private PermissionChecker permissionChecker;
 
     private final UUID productionLotId = UUID.randomUUID();
     private final UUID shipmentId = UUID.randomUUID();
@@ -203,6 +208,34 @@ class ShipmentControllerTest {
                         .with(csrf()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Tem đã được kích hoạt trước đó."));
+    }
+
+    @Test
+    @WithMockUser(roles = "VT-02")
+    void getShipmentById_ShouldReturnOk_WhenShipmentExists() throws Exception {
+        ShipmentResponse response = buildSuccessResponse();
+        when(shipmentService.getShipmentById(shipmentId)).thenReturn(response);
+
+        mockMvc.perform(get("/api/v1/shipments/{id}", shipmentId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.id").value(shipmentId.toString()))
+                .andExpect(jsonPath("$.data.name").value("Lô hàng cà chua số 1"));
+    }
+
+    @Test
+    @WithMockUser(roles = "VT-02")
+    void getShipmentById_ShouldReturnNotFound_WhenShipmentDoesNotExist() throws Exception {
+        UUID randomId = UUID.randomUUID();
+        when(shipmentService.getShipmentById(randomId))
+                .thenThrow(new BusinessException("Không tìm thấy lô hàng với ID: " + randomId));
+
+        mockMvc.perform(get("/api/v1/shipments/{id}", randomId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Không tìm thấy lô hàng với ID: " + randomId));
     }
 
     // ==================== HELPER ====================
