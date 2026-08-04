@@ -66,7 +66,12 @@ export const IndustryReportFilter = ({ onSearch, onReset, loading }: Props) => {
               />
             </div>
             <div className="flex items-end gap-2">
-              <Button type="submit" disabled={loading || !region || !fromDate || !toDate}>
+              {/* CHANGED: thêm variant="view" */}
+              <Button
+                type="submit"
+                disabled={loading || !region || !fromDate || !toDate}
+                variant="view"
+              >
                 <Search className="h-4 w-4 mr-1" /> Xem báo cáo
               </Button>
               <Button type="button" variant="outline" onClick={handleReset} disabled={loading}>

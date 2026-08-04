@@ -103,7 +103,8 @@ export function IndustryReportPanel() {
               />
             </div>
             <div className="flex items-end">
-              <Button onClick={handleView} disabled={isLoading} className="w-full">
+              {/* CHANGED: thêm variant="view" cho nút Xem báo cáo */}
+              <Button onClick={handleView} disabled={isLoading} className="w-full" variant="view">
                 {isLoading ? (
                   <LoaderCircle className="size-4 animate-spin" />
                 ) : (

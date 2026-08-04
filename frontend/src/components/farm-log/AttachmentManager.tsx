@@ -112,7 +112,7 @@ export function AttachmentManager({ logId, onUpdate }: AttachmentManagerProps) {
     <div className="space-y-3">
       <div className="flex justify-between items-center">
         <span className="text-sm font-medium">Chứng từ đính kèm ({attachments.length})</span>
-        <Button variant="outline" size="sm" onClick={() => setUploadDialogOpen(true)}>
+        <Button variant="create" size="sm" onClick={() => setUploadDialogOpen(true)}>
           <Upload className="mr-2 h-3 w-3" /> Tải lên
         </Button>
       </div>
@@ -146,14 +146,14 @@ export function AttachmentManager({ logId, onUpdate }: AttachmentManagerProps) {
                   <TableCell>{att.uploadedBy}</TableCell>
                   <TableCell>{formatDate(att.uploadedAt)}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => window.open(att.fileUrl, '_blank')}>
+                    <Button variant="view" size="icon" onClick={() => window.open(att.fileUrl, '_blank')}>
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => window.open(att.fileUrl, '_blank')}>
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(att.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                    <Button variant="delete" size="icon" onClick={() => handleDelete(att.id)}>
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -191,7 +191,7 @@ export function AttachmentManager({ logId, onUpdate }: AttachmentManagerProps) {
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>Hủy</Button>
-            <Button onClick={handleUpload} disabled={isUploading}>
+            <Button variant="create" onClick={handleUpload} disabled={isUploading}>
               {isUploading ? 'Đang tải...' : 'Tải lên'}
             </Button>
           </div>

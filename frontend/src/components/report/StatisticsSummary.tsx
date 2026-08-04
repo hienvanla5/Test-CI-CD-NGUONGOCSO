@@ -12,22 +12,22 @@ export const StatisticsSummary = ({ stats }: Props) => {
       label: 'Tổng lượt quét',
       value: stats.totalScans.toLocaleString('vi-VN'),
       icon: Eye,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      color: 'text-info',
+      bg: 'bg-info-bg',
     },
     {
       label: 'Mã quét duy nhất',
       value: stats.totalUniqueCodes.toLocaleString('vi-VN'),
       icon: QrCode,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-50',
+      color: 'text-success',
+      bg: 'bg-success-bg',
     },
     {
       label: 'Quét bất thường',
       value: stats.abnormalScansCount.toLocaleString('vi-VN'),
       icon: AlertTriangle,
-      color: 'text-amber-600',
-      bg: 'bg-amber-50',
+      color: 'text-warning',
+      bg: 'bg-warning-bg',
     },
   ];
 

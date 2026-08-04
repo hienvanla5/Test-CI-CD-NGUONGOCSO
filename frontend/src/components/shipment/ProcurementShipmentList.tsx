@@ -6,6 +6,14 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { ProcurementShipment } from "@/types/shipment";
 import { getEligibleShipments } from "@/api/shipmentApi";
 import {
@@ -30,10 +38,10 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusClasses: Record<string, string> = {
-  ACTIVATED: "bg-emerald-100 text-emerald-700",
-  CODE_PRINTED: "bg-blue-100 text-blue-700",
-  DRAFT: "bg-slate-100 text-slate-700",
-  RECALLED: "bg-red-100 text-red-700",
+  ACTIVATED: "bg-status-approved/10 text-status-approved",
+  CODE_PRINTED: "bg-status-packaged/10 text-status-packaged",
+  DRAFT: "bg-status-draft/10 text-status-draft",
+  RECALLED: "bg-status-rejected/10 text-status-rejected",
 };
 
 export function ProcurementShipmentList({
@@ -72,12 +80,12 @@ export function ProcurementShipmentList({
   }, [shipments, search]);
 
   return (
-    <Card className="overflow-hidden border-slate-200 shadow-sm">
-      <CardHeader className="border-b border-slate-100">
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <CardTitle>Danh sách lô hàng sẵn sàng thu mua</CardTitle>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-muted-foreground">
               Chỉ hiển thị các lô hàng đã kích hoạt tem, sẵn sàng ghi nhận thu
               mua.
             </p>
@@ -87,9 +95,9 @@ export function ProcurementShipmentList({
 
       <CardContent className="p-0">
         {/* Search bar */}
-        <div className="border-b bg-slate-50/70 p-4">
+        <div className="border-b bg-table-header p-4">
           <label className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               className="bg-white pl-9"
               value={search}
@@ -101,9 +109,9 @@ export function ProcurementShipmentList({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] border-collapse text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-              <tr>
+          <Table className="min-w-[900px]">
+            <TableHeader>
+              <TableRow>
                 {[
                   "Tên lô hàng",
                   "Lô sản xuất",
@@ -112,57 +120,52 @@ export function ProcurementShipmentList({
                   "Trạng thái",
                   "Thao tác",
                 ].map((title) => (
-                  <th className="px-4 py-3 font-semibold" key={title}>
-                    {title}
-                  </th>
+                  <TableHead key={title}>{title}</TableHead>
                 ))}
-              </tr>
-            </thead>
+              </TableRow>
+            </TableHeader>
 
-            <tbody>
+            <TableBody>
               {isLoading && (
-                <tr>
-                  <td
-                    className="px-4 py-12 text-center text-slate-500"
+                <TableRow>
+                  <TableCell
                     colSpan={6}
+                    className="py-12 text-center text-muted-foreground"
                   >
                     <LoaderCircle className="mx-auto mb-2 size-5 animate-spin" />
                     Đang tải danh sách lô hàng...
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
 
               {!isLoading &&
                 filtered.map((shipment) => (
-                  <tr
-                    className="border-t hover:bg-emerald-50/30"
-                    key={shipment.id}
-                  >
-                    <td className="px-4 py-4 font-semibold text-slate-900">
+                  <TableRow key={shipment.id}>
+                    <TableCell className="font-semibold text-foreground">
                       {shipment.name}
-                    </td>
-                    <td className="px-4 py-4 text-slate-600">
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
                       {shipment.productionLotName ?? "—"}
-                    </td>
-                    <td className="px-4 py-4 text-slate-600">
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
                       {shipment.productCategoryName ?? "—"}
-                    </td>
-                    <td className="px-4 py-4 text-slate-600">
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
                       {shipment.totalQuantity != null
                         ? shipment.totalQuantity.toLocaleString("vi-VN")
                         : "—"}
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell>
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                           statusClasses[shipment.status] ??
-                          "bg-slate-100 text-slate-700"
+                          "bg-status-draft/10 text-status-draft"
                         }`}
                       >
                         {statusLabels[shipment.status] ?? shipment.status}
                       </span>
-                    </td>
-                    <td className="px-4 py-4">
+                    </TableCell>
+                    <TableCell>
                       <Button
                         size="sm"
                         type="button"
@@ -171,32 +174,32 @@ export function ProcurementShipmentList({
                         <ShoppingCart className="size-4" />
                         Ghi nhận thu mua
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
 
               {!isLoading && filtered.length === 0 && (
-                <tr>
-                  <td
-                    className="px-4 py-12 text-center text-slate-500"
+                <TableRow>
+                  <TableCell
                     colSpan={6}
+                    className="py-12 text-center text-muted-foreground"
                   >
-                    <Package className="mx-auto mb-3 size-10 text-slate-300" />
+                    <Package className="mx-auto mb-3 size-10 text-muted-foreground/40" />
                     <p className="font-semibold">
                       {search.trim()
                         ? "Không tìm thấy lô hàng phù hợp"
                         : "Chưa có lô hàng nào sẵn sàng thu mua"}
                     </p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       {search.trim()
                         ? "Hãy thử thay đổi từ khóa tìm kiếm."
                         : "Các lô hàng đã kích hoạt tem sẽ xuất hiện tại đây."}
                     </p>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>

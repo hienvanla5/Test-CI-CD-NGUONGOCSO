@@ -185,7 +185,7 @@ export const RolePermissionConfig: React.FC = () => {
 
       {/* Nút lưu */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving || loadingPermissions}>
+        <Button variant="create" onClick={handleSave} disabled={saving || loadingPermissions}>
           {saving ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />

@@ -15,6 +15,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { ProductionLot } from "@/types/productionLot";
 import {
   ClipboardCheck,
@@ -61,13 +69,13 @@ const statusLabels: Record<ProductionLot["status"], string> = {
 };
 
 const statusClasses: Record<ProductionLot["status"], string> = {
-  DRAFT: "bg-slate-100 text-slate-700",
-  PENDING: "bg-amber-100 text-amber-700",
-  APPROVED: "bg-emerald-100 text-emerald-700",
-  REJECTED: "bg-red-100 text-red-700",
-  HARVESTED: "bg-lime-100 text-lime-700",
-  PACKAGED: "bg-blue-100 text-blue-700",
-  CLOSED: "bg-zinc-200 text-zinc-700",
+  DRAFT: "bg-status-draft/10 text-status-draft",
+  PENDING: "bg-status-pending/10 text-status-pending",
+  APPROVED: "bg-status-approved/10 text-status-approved",
+  REJECTED: "bg-status-rejected/10 text-status-rejected",
+  HARVESTED: "bg-status-harvested/10 text-status-harvested",
+  PACKAGED: "bg-status-packaged/10 text-status-packaged",
+  CLOSED: "bg-status-completed/10 text-status-completed",
 };
 
 const formatDate = (value: string | null) => {
@@ -134,12 +142,12 @@ export const ProductionLotList = ({
 
   return (
     <>
-      <Card className="overflow-hidden border-slate-200 shadow-sm">
-        <CardHeader className="border-b border-slate-100">
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <CardTitle>Danh sách lô sản xuất</CardTitle>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Theo dõi lô theo vùng trồng, nông sản và trạng thái xử lý.
               </p>
             </div>
@@ -154,9 +162,9 @@ export const ProductionLotList = ({
         </CardHeader>
 
         <CardContent className="p-0">
-          <div className="grid gap-3 border-b bg-slate-50/70 p-4 md:grid-cols-[1fr_220px]">
+          <div className="grid gap-3 border-b bg-table-header p-4 md:grid-cols-[1fr_220px]">
             <label className="relative">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 className="bg-white pl-9"
                 value={search}
@@ -167,7 +175,7 @@ export const ProductionLotList = ({
             </label>
 
             <select
-              className="h-9 rounded-md border border-input bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              className="h-11 rounded-lg border border-input bg-white px-4 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
               aria-label="Lọc theo trạng thái"
@@ -182,9 +190,9 @@ export const ProductionLotList = ({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1180px] border-collapse text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                <tr>
+            <Table className="min-w-[1180px]">
+              <TableHeader>
+                <TableRow>
                   {[
                     "Tên lô",
                     "Vùng trồng",
@@ -195,23 +203,21 @@ export const ProductionLotList = ({
                     "Thao tác",
                     "Chi tiết",
                   ].map((title) => (
-                    <th className="px-4 py-3 font-semibold" key={title}>
-                      {title}
-                    </th>
+                    <TableHead key={title}>{title}</TableHead>
                   ))}
-                </tr>
-              </thead>
+                </TableRow>
+              </TableHeader>
 
-              <tbody>
+              <TableBody>
                 {isLoading && (
-                  <tr>
-                    <td
-                      className="px-4 py-12 text-center text-slate-500"
+                  <TableRow>
+                    <TableCell
                       colSpan={8}
+                      className="py-12 text-center text-muted-foreground"
                     >
                       Đang tải danh sách lô sản xuất...
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
 
                 {!isLoading &&
@@ -234,28 +240,25 @@ export const ProductionLotList = ({
                       showRecordProcurement;
 
                     return (
-                      <tr
-                        className="border-t hover:bg-emerald-50/30"
-                        key={lot.id}
-                      >
-                        <td className="px-4 py-4 font-semibold text-slate-900">
+                      <TableRow key={lot.id}>
+                        <TableCell className="font-semibold text-foreground">
                           {lot.name}
-                        </td>
-                        <td className="px-4 py-4 text-slate-600">
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {lot.farmAreaName ?? "—"}
-                        </td>
-                        <td className="px-4 py-4 text-slate-600">
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {lot.productCategoryName ?? "—"}
-                        </td>
-                        <td className="px-4 py-4 text-slate-600">
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {lot.expectedQuantity.toLocaleString("vi-VN")}{" "}
                           {lot.expectedQuantityUnit || ""}
-                        </td>
-                        <td className="px-4 py-4 text-slate-600">
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {formatDate(lot.plantingDate)}
-                        </td>
+                        </TableCell>
 
-                        <td className="px-4 py-4">
+                        <TableCell>
                           {canSubmitForApproval &&
                           lot.status === "DRAFT" ? (
                             <button
@@ -273,9 +276,9 @@ export const ProductionLotList = ({
                               {statusLabels[lot.status]}
                             </span>
                           )}
-                        </td>
+                        </TableCell>
 
-                        <td className="px-4 py-4">
+                        <TableCell>
                           <div className="flex flex-wrap gap-2">
                             {showEdit && (
                               <Button
@@ -326,12 +329,14 @@ export const ProductionLotList = ({
                             )}
 
                             {!hasAction && (
-                              <span className="text-slate-400">—</span>
+                              <span className="text-muted-foreground">
+                                —
+                              </span>
                             )}
                           </div>
-                        </td>
+                        </TableCell>
 
-                        <td className="px-4 py-4">
+                        <TableCell>
                           <Button
                             size="sm"
                             type="button"
@@ -342,20 +347,20 @@ export const ProductionLotList = ({
                           >
                             Chi tiết
                           </Button>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
 
             {!isLoading && !filteredLots.length && (
               <div className="grid place-items-center px-4 py-16 text-center">
-                <PackageOpen className="mb-3 size-10 text-slate-300" />
+                <PackageOpen className="mb-3 size-10 text-muted-foreground/40" />
                 <p className="font-semibold">
                   Không tìm thấy lô sản xuất
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Hãy thử thay đổi từ khóa hoặc bộ lọc trạng thái.
                 </p>
               </div>
@@ -377,7 +382,7 @@ export const ProductionLotList = ({
             <AlertDialogTitle>Gửi duyệt lô sản xuất</AlertDialogTitle>
             <AlertDialogDescription>
               Bạn sắp gửi duyệt lô{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-foreground">
                 {confirmingLot?.name}
               </span>
               . Tiếp tục?
