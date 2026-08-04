@@ -13,6 +13,7 @@ import { Plus, MapPin, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { getFarmAreas } from '@/api/farmAreaApi';
 import type { FarmArea } from '@/types/farmArea';
+import { AREA_UNIT_LABELS, convertAreaFromHa } from '@/types/farmArea';
 import { useNavigate } from 'react-router-dom';
 import { usePermission } from '@/hooks/usePermission';
 import { ROLE_ACCESS } from '@/config/roleAccess';
@@ -83,7 +84,7 @@ export default function FarmAreaListPage() {
                   <TableRow>
                     <TableHead>Tên vùng</TableHead>
                     <TableHead>Loại cây trồng</TableHead>
-                    <TableHead>Diện tích (ha)</TableHead>
+                    <TableHead>Diện tích</TableHead>
                     <TableHead>Vị trí</TableHead>
                     <TableHead>Ngày tạo</TableHead>
                   </TableRow>
@@ -93,7 +94,12 @@ export default function FarmAreaListPage() {
                     <TableRow key={area.id}>
                       <TableCell className="font-medium">{area.name}</TableCell>
                       <TableCell>{area.cropTypeName}</TableCell>
-                      <TableCell>{area.area}</TableCell>
+                      <TableCell>
+                        {convertAreaFromHa(area.area, area.areaUnit).toLocaleString('vi-VN', {
+                          maximumFractionDigits: 2,
+                        })}{' '}
+                        {AREA_UNIT_LABELS[area.areaUnit]}
+                      </TableCell>
                       <TableCell>
                         <span className="text-xs font-mono">
                           {area.latitude.toFixed(6)}, {area.longitude.toFixed(6)}
