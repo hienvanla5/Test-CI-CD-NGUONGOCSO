@@ -364,9 +364,3 @@ CREATE TABLE IF NOT EXISTS standards (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT NULL
 );
-
-CREATE INDEX idx_certification_org
-ON certifications(organization_id);
-
-CREATE INDEX idx_certification_standard
-ON certifications(standard_id);
