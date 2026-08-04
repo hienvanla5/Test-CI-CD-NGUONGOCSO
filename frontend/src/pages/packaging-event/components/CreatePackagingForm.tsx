@@ -397,11 +397,13 @@ export function CreatePackagingForm() {
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>
             Hủy
           </Button>
+          {/* CHANGED: thêm variant="create" */}
           <Button
             type="submit"
             disabled={
               isSubmitting || !selectedLotId || eligibilityStatus !== "eligible" || !validation?.valid
             }
+            variant="create"
           >
             {isSubmitting ? "Đang ghi..." : "Ghi sự kiện"}
           </Button>

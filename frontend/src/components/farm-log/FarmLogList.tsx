@@ -227,7 +227,7 @@ export function FarmLogList({
               Quay lại
             </Button>
           )}
-          <Button onClick={goToCreateLog}>
+          <Button variant="create" onClick={goToCreateLog}>
             <Plus className="h-4 w-4 mr-1" />
             Tạo nhật ký
           </Button>
@@ -372,7 +372,7 @@ export function FarmLogList({
                       </TableCell>
                       <TableCell className="text-center">
                         <Button
-                          variant="ghost"
+                          variant="view"
                           size="sm"
                           onClick={() => openAttachmentModal(log.id)}
                           className="flex items-center gap-1"

@@ -162,7 +162,7 @@ export function CreateMemberForm() {
           <Button type="button" variant="outline" onClick={() => navigate('/members')}>
             Hủy
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant= "create" disabled={isSubmitting}>
             {isSubmitting ? 'Đang thêm...' : 'Thêm thành viên'}
           </Button>
         </CardFooter>

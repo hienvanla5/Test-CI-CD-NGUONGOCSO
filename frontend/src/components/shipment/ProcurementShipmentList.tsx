@@ -163,9 +163,11 @@ export function ProcurementShipmentList({
                       </span>
                     </td>
                     <td className="px-4 py-4">
+                      {/* CHANGED: thêm variant="create" */}
                       <Button
                         size="sm"
                         type="button"
+                        variant="create"
                         onClick={() => onRecordProcurement(shipment.id)}
                       >
                         <ShoppingCart className="size-4" />

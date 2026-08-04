@@ -351,7 +351,7 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
               )}
 
               <DialogFooter>
-                <Button onClick={handleCloseDialog}>
+                <Button variant="view" onClick={handleCloseDialog}>
                   {result.status === 'SUCCESS' ? 'Xem danh sách lô' : 'Đóng'}
                 </Button>
               </DialogFooter>

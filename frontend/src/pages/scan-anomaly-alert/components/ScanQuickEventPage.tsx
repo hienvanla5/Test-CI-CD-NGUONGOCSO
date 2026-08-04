@@ -335,7 +335,7 @@ export default function ScanQuickEventPage() {
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     render={
-                      <Button size="sm">
+                      <Button size="sm" variant="create">
                         <ClipboardPlus className="mr-2 h-4 w-4" />
                         Ghi sự kiện
                         <ChevronDown className="ml-2 h-3 w-3" />

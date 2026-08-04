@@ -84,9 +84,11 @@ export const ActivateShipmentDialog = ({
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isActivating}>Hủy</AlertDialogCancel>
+          {/* CHANGED: thêm variant="edit" */}
           <Button
             type="button"
             disabled={isActivating}
+            variant="edit"
             onClick={() => {
               void handleConfirm();
             }}
