@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
 import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
+import vn.nguongocso.organization.dto.response.OrganizationDetailResponse;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.dto.response.OrganizationResponse;
 import vn.nguongocso.organization.service.OrganizationService;
@@ -24,131 +25,110 @@ import java.util.UUID;
 @RequestMapping("/api/v1/admin/organizations")
 public class OrganizationController {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(
-                    OrganizationController.class
-            );
+        private static final Logger log = LoggerFactory.getLogger(
+                        OrganizationController.class);
 
-    private final OrganizationService
-            organizationService;
+        private final OrganizationService organizationService;
 
-    /**
-     * Khởi tạo controller quản lý tổ chức.
-     *
-     * @param organizationService service xử lý nghiệp vụ tổ chức
-     */
-    public OrganizationController(
-            OrganizationService organizationService
-    ) {
-        this.organizationService =
-                organizationService;
-    }
+        /**
+         * Khởi tạo controller quản lý tổ chức.
+         *
+         * @param organizationService service xử lý nghiệp vụ tổ chức
+         */
+        public OrganizationController(
+                        OrganizationService organizationService) {
+                this.organizationService = organizationService;
+        }
 
-    /**
-     * Lấy toàn bộ danh sách tổ chức.
-     *
-     * Chỉ tài khoản VT-01 được phép truy cập.
-     *
-     * @return danh sách tổ chức
-     */
-    @GetMapping
-    @PreAuthorize("hasAnyRole('VT-01')")
-    public ResponseEntity<
-            ApiResult<List<OrganizationResponse>>
-            > getAllOrganizations() {
+        /**
+         * Lấy toàn bộ danh sách tổ chức.
+         *
+         * Chỉ tài khoản VT-01 được phép truy cập.
+         *
+         * @return danh sách tổ chức
+         */
+        @GetMapping
+        @PreAuthorize("hasAnyRole('VT-01')")
+        public ResponseEntity<ApiResult<List<OrganizationResponse>>> getAllOrganizations() {
 
-        log.info(
-                "Nhận yêu cầu lấy danh sách organization"
-        );
+                log.info(
+                                "Nhận yêu cầu lấy danh sách organization");
 
-        List<OrganizationResponse> organizations =
-                organizationService
-                        .getAllOrganizations();
+                List<OrganizationResponse> organizations = organizationService
+                                .getAllOrganizations();
 
-        log.info(
-                "Lấy danh sách organization thành công, số lượng={}",
-                organizations.size()
-        );
+                log.info(
+                                "Lấy danh sách organization thành công, số lượng={}",
+                                organizations.size());
 
-        return ResponseEntity.ok(
-                ApiResult.success(
-                        organizations
-                )
-        );
-    }
+                return ResponseEntity.ok(
+                                ApiResult.success(
+                                                organizations));
+        }
 
-    /**
-     * Tạo mới một tổ chức cùng tài khoản quản lý mặc định.
-     *
-     * @param request thông tin tổ chức và tài khoản quản lý
-     * @return thông tin tổ chức sau khi tạo thành công
-     */
-    @PostMapping
-    @PreAuthorize("hasAnyRole('VT-01')")
-    public ResponseEntity<
-            ApiResult<OrganizationResponse>
-            > create(
-            @Valid
-            @RequestBody
-            CreateOrganizationRequest request
-    ) {
-        log.info(
-                "Nhận yêu cầu tạo organization với code={}",
-                request.getOrganizationCode()
-        );
+        /**
+         * Tạo mới một tổ chức cùng tài khoản quản lý mặc định.
+         *
+         * @param request thông tin tổ chức và tài khoản quản lý
+         * @return thông tin tổ chức sau khi tạo thành công
+         */
+        @PostMapping
+        @PreAuthorize("hasAnyRole('VT-01')")
+        public ResponseEntity<ApiResult<OrganizationResponse>> create(
+                        @Valid @RequestBody CreateOrganizationRequest request) {
 
-        OrganizationResponse response =
-                organizationService
-                        .createOrganization(
-                                request
-                        );
+                log.info(
+                                "Nhận yêu cầu tạo organization với code={}",
+                                request.getOrganizationCode());
 
-        log.info(
-                "Tạo organization thành công với id={}",
-                response.getOrganizationID()
-        );
+                OrganizationResponse response = organizationService
+                                .createOrganization(
+                                                request);
 
-        return ResponseEntity.ok(
-                ApiResult.success(
-                        response
-                )
-        );
-    }
+                log.info(
+                                "Tạo organization thành công với id={}",
+                                response.getOrganizationID());
 
-    /**
-     * Admin cập nhật hồ sơ một tổ chức theo ID.
-     *
-     * @param id ID tổ chức
-     * @param request dữ liệu cập nhật
-     * @return hồ sơ tổ chức sau khi cập nhật
-     */
-    @PutMapping("/profile/{id}")
-    @PreAuthorize("hasAnyRole('VT-01')")
-    public ResponseEntity<
-            ApiResult<OrganizationProfileResponse>
-            > updateProfileByAdmin(
-            @PathVariable UUID id,
-            @Valid
-            @RequestBody
-            OrganizationUpdateRequest request
-    ) {
-        log.info(
-                "Admin cập nhật hồ sơ organization id={}",
-                id
-        );
+                return ResponseEntity.ok(
+                                ApiResult.success(
+                                                response));
+        }
 
-        OrganizationProfileResponse response =
-                organizationService
-                        .updateOrganizationById(
-                                id,
-                                request
-                        );
+        /**
+         * Admin cập nhật hồ sơ một tổ chức theo ID.
+         *
+         * @param id      ID tổ chức
+         * @param request dữ liệu cập nhật
+         * @return hồ sơ tổ chức sau khi cập nhật
+         */
+        @PutMapping("/profile/{id}")
+        @PreAuthorize("hasAnyRole('VT-01')")
+        public ResponseEntity<ApiResult<OrganizationProfileResponse>> updateProfileByAdmin(
+                        @PathVariable UUID id,
+                        @Valid @RequestBody OrganizationUpdateRequest request) {
 
-        return ResponseEntity.ok(
-                ApiResult.success(
-                        response
-                )
-        );
-    }
+                log.info(
+                                "Admin cập nhật hồ sơ organization id={}",
+                                id);
+
+                OrganizationProfileResponse response = organizationService
+                                .updateOrganizationById(
+                                                id,
+                                                request);
+
+                return ResponseEntity.ok(
+                                ApiResult.success(
+                                                response));
+        }
+
+        @GetMapping("/{id}")
+        @PreAuthorize("hasRole('VT-01')")
+        public ResponseEntity<ApiResult<OrganizationDetailResponse>> getOrganizationDetail(
+                        @PathVariable UUID id) {
+
+                return ResponseEntity.ok(
+                                ApiResult.success(
+                                                organizationService.getOrganizationDetail(id)));
+        }
 
 }

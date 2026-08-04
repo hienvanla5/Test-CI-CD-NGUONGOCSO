@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.service.ChainEventService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class ShipmentTimelineController {
 
     private final ChainEventService chainEventService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * Xem dòng sự kiện truy xuất của một lô hàng.
@@ -33,6 +35,7 @@ public class ShipmentTimelineController {
     public ResponseEntity<ApiResult<List<ChainEventResponse>>> getShipmentTimeline(
             @PathVariable UUID shipmentId) {
 
+        permissionChecker.check("SHIPMENT", "READ");
         List<ChainEventResponse> events = chainEventService.getShipmentTimeline(shipmentId);
         return ResponseEntity.ok(ApiResult.success(events));
     }

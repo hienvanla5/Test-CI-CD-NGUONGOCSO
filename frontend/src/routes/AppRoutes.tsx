@@ -10,7 +10,7 @@ import {
 } from "@/config/roleAccess";
 import { useAuth } from "@/hooks/useAuth";
 
-// Pages – chung
+// ===== Pages – chung =====
 import LoginPage from "@/pages/auth/LoginPage";
 import { DashboardPage } from "@/pages/daskboard/DashboardPase";
 import { CreateFarmAreaPage } from "@/pages/farm-area/CreateFarmAreaPage";
@@ -23,65 +23,80 @@ import CreateProductionLotPage from "@/pages/production-lot/CreateProductionLotP
 import ProductionLotListPage from "@/pages/production-lot/ProductionLotListPage";
 import RecordTransportEventPage from "@/pages/transport-event/RecordTransportEventPage";
 
-// Admin
+// ===== Admin =====
 import CreateCodeRangePage from "@/pages/admin/CreateCodeRangePage";
 import CodeRangeListPage from "@/pages/admin/CodeRangeListPage";
 import ProductCategoryManagementPage from "@/pages/admin/ProductCategoryManagementPage";
 import StandardManagementPage from "@/pages/admin/StandardManagementPage";
 
-// Packaging
+// ===== Packaging =====
 import CreatePackagingEventPage from "@/pages/packaging-event/CreatePackagingEventPage";
 import CorrectPackagingEventPage from "@/pages/packaging-event/CorrectPackagingEventPage";
 
-// Organization
+// ===== Organization =====
 import { OrganizationListPage } from "@/pages/organization/OrganizationListPage";
 import CreateMemberPage from "@/pages/organization/CreateMemberPage";
 
-// Farm logs
+// ===== Farm logs =====
 import FarmLogHistoryPage from "@/pages/farm-log/FarmLogHistoryPage";
 
-// Shipment
+// ===== Shipment =====
 import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPage";
 
-// Public
+// ===== Public =====
+import PublicHomePage from "@/pages/public/PublicHomePage";
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
+import JoinOrganizationPage from "@/pages/public/JoinOrganizationPage"; // 🆕 từ file 2
 
-// Reports
+// ===== Reports =====
 import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
 import ActivityLogPage from "@/pages/report/ActivityLogPage";
 import FailedEventLogsPage from "@/pages/report/FailedEventLogsPage";
 import CropAreaAnalysisPage from "@/pages/report/CropAreaAnalysisPage";
 import IndustryReportPage from "@/pages/report/IndustryReportPage";
+import SeasonYieldComparisonPage from "@/pages/report/SeasonYieldComparisonPage";
 
-// Alerts
+// ===== Alerts =====
 import ScanAnomalyAlertPage from "@/pages/scan-anomaly-alert/ScanAnomalyAlertPage";
 
-// Farm area
+// ===== Farm area =====
 import FarmAreaListPage from "@/pages/farm-area/FarmAreaListPage";
 
-// Mobile
-import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
-
-// Certification
+// ===== Certification =====
 import CreateCertificationPage from "@/pages/certification/CreateCertificationPage";
 import CertificationListPage from "@/pages/certification/CertificationListPage";
 
-// Offline events (NCL-10-CN-005)
+// ===== Offline events (NCL-10-CN-005) =====
 import OfflineEventPage from "@/pages/offline/OfflineEventPage";
 
-// Procurement
+// ===== Procurement =====
 import ProcurementEventPage from "@/pages/procurement-event/procurement-event";
 
-// Notifications (NCL-08-CN-005)
+// ===== Notifications =====
 import NotificationsPage from "@/pages/notification/NotificationsPage";
 
-// Export Open Data (NCL-10-CN-007)
+// ===== Export Open Data (NCL-10-CN-007) =====
 import ExportOpenDataPage from "@/pages/export/ExportOpenDataPage";
 
-// Invitation (NCL-09-CN-007)
-import CreateInvitationPage from "@/pages/invitation/CreateInvitationPage";
-import JoinOrganizationPage from "@/pages/public/JoinOrganizationPage";
+// ===== Import Production Lot (NCL-10-CN-006) =====
+import ImportProductionLotPage from "@/pages/production-lot/ImportProductionLotPage";
 
+// ===== Permission Config (NCL-09-CN-008) =====
+import RolePermissionConfigPage from "@/pages/permission/RolePermissionConfigPage";
+
+// ===== Scan Quick Event (NCL-10-CN-004) =====
+import ScanQuickEventPage from "@/pages/scan-anomaly-alert/components/ScanQuickEventPage";
+
+// ===== Organization Detail =====
+import OrganizationDetailPage from "@/pages/organization/OrganizationDetailPage";
+
+// 🆕 Các import mới từ file 2
+import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
+import CreateInvitationPage from "@/pages/invitation/CreateInvitationPage";
+
+
+
+// ===== Constants =====
 const COOPERATIVE_MANAGER_ROLES = [
     "VT-02",
 ] as const satisfies readonly AuthenticatedRoleCode[];
@@ -101,6 +116,7 @@ function PrivateRoute({ children }: { children: ReactNode }) {
     if (isLoading) return <PageLoader />;
     if (!user) return <Navigate to="/login" replace />;
 
+    // VT-06 chỉ tra cứu công khai, không sử dụng khu vực quản trị nội bộ.
     if (!hasAnyRole(user.roleCode, AUTHENTICATED_ROLE_CODES)) {
         return <Navigate to="/login" replace />;
     }
@@ -142,10 +158,13 @@ function UnauthorizedPage() {
 // ---------- Routes ----------
 const AppRoutes = () => (
     <Routes>
-        {/* Route công khai */}
+        {/* ===== Public routes ===== */}
+        <Route path="/" element={<PublicHomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
+        <Route path="/join" element={<JoinOrganizationPage />} /> {/* 🆕 */}
 
-        {/* Toàn bộ route nội bộ dùng chung Header + Sidebar + Outlet */}
+        {/* ===== Protected routes with layout ===== */}
         <Route
             element={
                 <PrivateRoute>
@@ -154,7 +173,7 @@ const AppRoutes = () => (
             }
         >
             {/* Dashboard */}
-            <Route index element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
 
             {/* ===== Organization ===== */}
             <Route
@@ -251,6 +270,15 @@ const AppRoutes = () => (
                     </RoleRoute>
                 }
             />
+            {/* ===== Import Production Lots (NCL-10-CN-006) ===== */}
+            <Route
+                path="production-lots/import"
+                element={
+                    <RoleRoute allowedRoles={["VT-02"]}>
+                        <ImportProductionLotPage />
+                    </RoleRoute>
+                }
+            />
 
             {/* ===== Farm Logs ===== */}
             <Route
@@ -298,7 +326,17 @@ const AppRoutes = () => (
                 }
             />
 
-            {/* ===== Admin: Code Ranges ===== */}
+            {/* ===== Scan Quick Event (NCL-10-CN-004) ===== */}
+            <Route
+                path="chain-events/scan"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.scanQuickEvent}>
+                        <ScanQuickEventPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* ===== Admin ===== */}
             <Route
                 path="admin/code-ranges"
                 element={
@@ -315,8 +353,6 @@ const AppRoutes = () => (
                     </RoleRoute>
                 }
             />
-
-            {/* ===== Admin: Product Categories ===== */}
             <Route
                 path="admin/product-categories"
                 element={
@@ -325,23 +361,11 @@ const AppRoutes = () => (
                     </RoleRoute>
                 }
             />
-
-            {/* ===== Admin: Standards (NCL-09-CN-002) ===== */}
             <Route
                 path="admin/standards"
                 element={
                     <RoleRoute allowedRoles={ROLE_ACCESS.standardManagement}>
                         <StandardManagementPage />
-                    </RoleRoute>
-                }
-            />
-
-            {/* ===== Mobile: Record Event (NCL-10-CN-003) ===== */}
-            <Route
-                path="mobile/record-event"
-                element={
-                    <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
-                        <RecordMobileEventPage />
                     </RoleRoute>
                 }
             />
@@ -380,6 +404,14 @@ const AppRoutes = () => (
                 }
             />
             <Route
+                path="reports/season-yield-comparison"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.seasonYieldComparison}>
+                        <SeasonYieldComparisonPage />
+                    </RoleRoute>
+                }
+            />
+            <Route
                 path="reports/industry"
                 element={
                     <RoleRoute allowedRoles={["VT-05"]}>
@@ -388,7 +420,7 @@ const AppRoutes = () => (
                 }
             />
 
-            {/* ===== Notifications (NCL-08-CN-005) ===== */}
+            {/* ===== Notifications ===== */}
             <Route
                 path="notifications"
                 element={
@@ -436,6 +468,16 @@ const AppRoutes = () => (
                 }
             />
 
+            {/* ===== Permission Config (NCL-09-CN-008) ===== */}
+            <Route
+                path="permissions/config"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.rolePermissionConfig}>
+                        <RolePermissionConfigPage />
+                    </RoleRoute>
+                }
+            />
+
             {/* ===== Procurement (NCL-05-CN-004) ===== */}
             <Route
                 path="procurement-event"
@@ -456,7 +498,27 @@ const AppRoutes = () => (
                 }
             />
 
-            {/* ===== Invitation (NCL-09-CN-007) ===== */}
+            {/* ===== Organization Detail ===== */}
+            <Route
+                path="organizations/:id"
+                element={
+                    <RoleRoute allowedRoles={ROLE_ACCESS.organizationList}>
+                        <OrganizationDetailPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* 🆕 Mobile: Record Event (NCL-10-CN-003) */}
+            <Route
+                path="mobile/record-event"
+                element={
+                    <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+                        <RecordMobileEventPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* 🆕 Invitation (NCL-09-CN-007) */}
             <Route
                 path="invitations/create"
                 element={
@@ -470,11 +532,7 @@ const AppRoutes = () => (
             <Route path="unauthorized" element={<UnauthorizedPage />} />
         </Route>
 
-        {/* ===== Public Routes ===== */}
-        <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
-        <Route path="/join" element={<JoinOrganizationPage />} />
-
-        {/* Fallback */}
+        {/* ===== Fallback ===== */}
         <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
 );

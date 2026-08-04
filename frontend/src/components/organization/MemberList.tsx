@@ -8,16 +8,32 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   assignMemberRole,
   getOrganizationMembers,
   getRoles,
 } from "@/api/memberApi";
 import type { OrganizationMember, RoleOption } from "@/types/member";
-import { Search, ShieldCheck, UserRoundCog, X } from "lucide-react";
+import { Search, ShieldCheck, UserRoundCog, X, MailPlus } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermission } from "@/hooks/usePermission";
+import { ROLE_ACCESS } from "@/config/roleAccess";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,13 +42,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogPopup
+  AlertDialogPopup,
 } from "@/components/ui/alert-dialog";
 import { getRoleLabel } from "@/config/roleAccess";
 
 const roleBadgeClasses: Record<string, string> = {
   "VT-02": "bg-blue-100 text-blue-700",
   "VT-03": "bg-purple-100 text-purple-700",
+  "VT-04": "bg-orange-100 text-orange-700",
 };
 
 const getRoleBadgeClass = (roleCode: string | null) => {
@@ -43,6 +60,8 @@ const getRoleBadgeClass = (roleCode: string | null) => {
 export const MemberList = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const canCreate = usePermission(ROLE_ACCESS.memberManagement);
+  const canInvite = user?.roleCode === "VT-02"; // quyền mời thành viên
 
   const [members, setMembers] = useState<OrganizationMember[]>([]);
   const [roles, setRoles] = useState<RoleOption[]>([]);
@@ -57,11 +76,13 @@ export const MemberList = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [pendingMember, setPendingMember] = useState<OrganizationMember | null>(null);
   const [pendingRoleId, setPendingRoleId] = useState<number | null>(null);
-  const [oldManager, setOldManager] = useState<OrganizationMember | null>(null); // 🆕 state quản lý cũ
+  const [oldManager, setOldManager] = useState<OrganizationMember | null>(null);
 
-  // Chỉ lấy VT-02, VT-03 để gán
   const assignableRoles = useMemo(
-    () => roles.filter((role) => role.code === "VT-02" || role.code === "VT-03"),
+    () =>
+      roles.filter((role) =>
+        ["VT-02", "VT-03", "VT-04"].includes(role.code),
+      ),
     [roles],
   );
 
@@ -88,7 +109,6 @@ export const MemberList = () => {
     void loadData();
   }, []);
 
-  // Tìm người đang giữ VT-02 (khác với userId được chỉ định)
   const findCurrentManager = (excludeUserId?: string) => {
     return members.find(
       (m) => m.roleCode === "VT-02" && m.userId !== excludeUserId,
@@ -122,7 +142,7 @@ export const MemberList = () => {
   const openRoleDialog = (member: OrganizationMember) => {
     setEditingMember(member);
     setSelectedRoleId(String(member.roleId));
-    setOldManager(null); // reset khi mở dialog mới
+    setOldManager(null);
   };
 
   const handleConfirmAssign = async () => {
@@ -159,7 +179,6 @@ export const MemberList = () => {
     const role = roles.find((r) => r.roleId === roleId);
 
     if (role?.code === "VT-02") {
-      // Tìm quản lý hiện tại (trừ người được chọn)
       const currentManager = findCurrentManager(editingMember.userId);
       setOldManager(currentManager || null);
       setPendingMember(editingMember);
@@ -168,7 +187,6 @@ export const MemberList = () => {
       return;
     }
 
-    // Gán trực tiếp cho VT-03
     try {
       setIsSaving(true);
       const updatedMember = await assignMemberRole({
@@ -189,90 +207,142 @@ export const MemberList = () => {
     }
   };
 
+  const getRoleFilterLabel = () => {
+    if (roleFilter === "ALL") return "Tất cả vai trò";
+    if (roleFilter === "NONE") return "Chưa cấp quyền";
+    return getRoleLabel(roleFilter);
+  };
+
+  const getStatusFilterLabel = () => {
+    if (statusFilter === "ALL") return "Tất cả trạng thái";
+    if (statusFilter === "ACTIVE") return "Đang hoạt động";
+    return "Đã vô hiệu hóa";
+  };
+
+  const getSelectedRoleLabel = () => {
+    if (!selectedRoleId) return "Chọn vai trò";
+    const role = assignableRoles.find(r => r.roleId === Number(selectedRoleId));
+    return role ? `${getRoleLabel(role.code)} (${role.code})` : "Chọn vai trò";
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 md:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/50 via-white to-green-50/30 px-4 py-8 md:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
+        {/* Header */}
         <header className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
               Quản lý truy cập
             </p>
-            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-emerald-800 md:text-3xl">
               Cấp quyền cho thành viên
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               Gán hoặc thu vai trò của thành viên trong tổ chức.
             </p>
           </div>
-          <div className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
-            <ShieldCheck className="size-5 text-emerald-700" />
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm">
+            <ShieldCheck className="size-5 text-emerald-600" />
             <div>
-              <p className="text-xs font-semibold text-emerald-900">
+              <p className="text-xs font-semibold text-emerald-800">
                 Phạm vi tổ chức
               </p>
-              <p className="text-xs text-emerald-700">
+              <p className="text-xs text-emerald-600">
                 Đang thao tác với quyền {user?.roleCode}
               </p>
             </div>
           </div>
         </header>
 
-        <Card className="overflow-hidden border-slate-200 shadow-sm">
-          <CardHeader className="border-b border-slate-100">
+        {/* Card chính */}
+        <Card className="border-emerald-100 bg-white/80 backdrop-blur-sm shadow-sm">
+          <CardHeader className="border-b border-emerald-100">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <CardTitle>Thành viên tổ chức</CardTitle>
+                <CardTitle className="text-lg font-bold text-emerald-800">
+                  Thành viên tổ chức
+                </CardTitle>
                 <CardDescription>
                   Danh sách thành viên hiện tại cùng vai trò và trạng thái.
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
                   {filteredMembers.length} kết quả
                 </span>
-                <Button size="sm" onClick={() => navigate("/members/create")}>
-                  Thêm thành viên
-                </Button>
+                {canCreate && (
+                  <Button
+                    size="sm"
+                    variant="create"
+                    onClick={() => navigate("/members/create")}
+                  >
+                    Thêm thành viên
+                  </Button>
+                )}
+                {canInvite && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                    onClick={() => navigate("/invitations/create")}
+                  >
+                    <MailPlus className="h-4 w-4 mr-1" />
+                    Mời thành viên
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
 
+          {/* ... phần còn lại của MemberList giữ nguyên ... */}
           <CardContent className="p-0">
-            <div className="grid gap-3 border-b border-slate-100 bg-slate-50/70 p-4 md:grid-cols-[1fr_220px_200px]">
-              <label className="relative">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            {/* Bộ lọc */}
+            <div className="grid gap-3 border-b border-emerald-100 bg-emerald-50/50 p-4 md:grid-cols-[1fr_220px_200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  className="bg-white pl-9"
+                  className="bg-white pl-9 border-emerald-200 focus-visible:ring-emerald-100"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Tìm kiếm thành viên..."
                 />
-              </label>
-              <select
-                className="h-9 rounded-md border border-input bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              </div>
+
+              <Select
                 value={roleFilter}
-                onChange={(event) => setRoleFilter(event.target.value)}
+                onValueChange={(value) => setRoleFilter(value ?? '')}
               >
-                <option value="ALL">Tất cả vai trò</option>
-                <option value="VT-02">Quản lý hợp tác xã</option>
-                <option value="VT-03">Người ghi sự kiện</option>
-                <option value="NONE">Chưa cấp quyền</option>
-              </select>
-              <select
-                className="h-9 rounded-md border border-input bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                <SelectTrigger className="border-emerald-200 focus:ring-emerald-100">
+                  {getRoleFilterLabel()}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tất cả vai trò</SelectItem>
+                  <SelectItem value="VT-02">Quản lý hợp tác xã</SelectItem>
+                  <SelectItem value="VT-03">Người ghi sự kiện</SelectItem>
+                  <SelectItem value="NONE">Chưa cấp quyền</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
                 value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
+                onValueChange={(value) => setStatusFilter(value ?? '')}
               >
-                <option value="ALL">Tất cả trạng thái</option>
-                <option value="ACTIVE">Đang hoạt động</option>
-                <option value="INACTIVE">Đã vô hiệu hóa</option>
-              </select>
+                <SelectTrigger className="border-emerald-200 focus:ring-emerald-100">
+                  {getStatusFilterLabel()}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
+                  <SelectItem value="INACTIVE">Đã vô hiệu hóa</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
+            {/* Bảng */}
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1060px] border-collapse text-sm">
-                <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <tr>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-emerald-50/50">
                     {[
                       "Tài khoản",
                       "Họ và tên",
@@ -282,55 +352,58 @@ export const MemberList = () => {
                       "Trạng thái",
                       "Thao tác",
                     ].map((title) => (
-                      <th className="px-4 py-3 font-semibold" key={title}>
+                      <TableHead
+                        key={title}
+                        className="text-emerald-800 font-semibold"
+                      >
                         {title}
-                      </th>
+                      </TableHead>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {isLoading && (
-                    <tr>
-                      <td
-                        className="px-4 py-10 text-center text-slate-500"
+                    <TableRow>
+                      <TableCell
                         colSpan={7}
+                        className="py-12 text-center text-muted-foreground"
                       >
                         Đang tải danh sách thành viên...
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   )}
                   {!isLoading &&
                     filteredMembers.map((member) => {
                       const inactive = member.status === "INACTIVE";
                       return (
-                        <tr
+                        <TableRow
+                          key={member.id}
                           className={
                             inactive
-                              ? "border-t bg-slate-50 opacity-70"
-                              : "border-t hover:bg-emerald-50/30"
+                              ? "bg-slate-50 opacity-70"
+                              : "hover:bg-emerald-50/30"
                           }
-                          key={member.id}
                         >
-                          <td className="px-4 py-4 font-semibold text-emerald-700">
+                          <TableCell className="font-semibold text-emerald-700">
                             @{member.username}
-                          </td>
-                          <td className="px-4 py-4 font-medium">
+                          </TableCell>
+                          <TableCell className="font-medium">
                             {member.fullName}
-                          </td>
-                          <td className="px-4 py-4 text-slate-600">
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
                             {member.email ?? "—"}
-                          </td>
-                          <td className="px-4 py-4 text-slate-600">
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
                             {member.phone ?? "—"}
-                          </td>
-                          <td className="px-4 py-4">
+                          </TableCell>
+                          <TableCell>
                             <span
                               className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getRoleBadgeClass(member.roleCode)}`}
                             >
                               {getRoleLabel(member.roleCode || '') ?? "Chưa cấp quyền"}
                             </span>
-                          </td>
-                          <td className="px-4 py-4">
+                          </TableCell>
+                          <TableCell>
                             <span
                               className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold ${
                                 inactive
@@ -345,27 +418,30 @@ export const MemberList = () => {
                               />
                               {inactive ? "Đã vô hiệu hóa" : "Đang hoạt động"}
                             </span>
-                          </td>
-                          <td className="px-4 py-4">
+                          </TableCell>
+                          <TableCell>
                             <Button
                               size="sm"
                               variant="outline"
                               disabled={inactive}
                               onClick={() => openRoleDialog(member)}
+                              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                             >
                               {member.roleCode ? "Đổi vai trò" : "Cấp quyền"}
                             </Button>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
               {!isLoading && !filteredMembers.length && (
                 <div className="grid place-items-center px-4 py-16 text-center">
-                  <UserRoundCog className="mb-3 size-9 text-slate-300" />
-                  <p className="font-semibold">Không tìm thấy thành viên</p>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <UserRoundCog className="mb-3 size-9 text-emerald-300" />
+                  <p className="font-semibold text-emerald-800">
+                    Không tìm thấy thành viên
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     Hãy thử thay đổi từ khóa hoặc bộ lọc.
                   </p>
                 </div>
@@ -375,16 +451,19 @@ export const MemberList = () => {
         </Card>
       </div>
 
+      {/* Dialog cấp vai trò */}
       {editingMember && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-sm">
           <form
-            className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl"
+            className="w-full max-w-lg overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-2xl"
             onSubmit={saveRole}
           >
-            <div className="flex justify-between border-b p-5">
+            <div className="flex justify-between border-b border-emerald-100 p-5">
               <div>
-                <h2 className="text-lg font-bold">Cấp/đổi vai trò</h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <h2 className="text-lg font-bold text-emerald-800">
+                  Cấp/đổi vai trò
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
                   Chọn vai trò phù hợp với phần việc được giao.
                 </p>
               </div>
@@ -392,50 +471,62 @@ export const MemberList = () => {
                 type="button"
                 onClick={() => setEditingMember(null)}
                 aria-label="Đóng"
+                className="text-muted-foreground hover:text-emerald-700"
               >
                 <X className="size-5" />
               </button>
             </div>
             <div className="space-y-5 p-5">
               <div>
-                <p className="mb-2 text-sm font-semibold">Thành viên</p>
-                <div className="rounded-lg border bg-slate-50 px-3 py-2">
+                <p className="mb-2 text-sm font-semibold text-emerald-800">
+                  Thành viên
+                </p>
+                <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2">
                   <p className="font-semibold">{editingMember.fullName}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     @{editingMember.username}
                     {editingMember.email ? ` · ${editingMember.email}` : ""}
                   </p>
                 </div>
               </div>
               <div>
-                <p className="mb-2 text-sm font-semibold">Vai trò hiện tại</p>
-                <div className="rounded-lg border bg-slate-50 px-3 py-3 text-sm">
+                <p className="mb-2 text-sm font-semibold text-emerald-800">
+                  Vai trò hiện tại
+                </p>
+                <div className="rounded-lg border border-emerald-100 bg-white px-3 py-3 text-sm">
                   {getRoleLabel(editingMember.roleCode || '') ?? "Chưa cấp quyền"}
                 </div>
               </div>
-              <label className="block text-sm font-semibold">
-                Vai trò mới <span className="text-red-600">*</span>
-                <select
-                  className="mt-2 h-10 w-full rounded-md border border-input bg-white px-3 font-normal outline-none focus:ring-2 focus:ring-ring"
+              <div>
+                <label className="block text-sm font-semibold text-emerald-800 mb-2">
+                  Vai trò mới <span className="text-red-500">*</span>
+                </label>
+                <Select
                   value={selectedRoleId}
-                  onChange={(event) => setSelectedRoleId(event.target.value)}
-                  required
+                  onValueChange={(value) => setSelectedRoleId(value ?? '')}
                 >
-                  <option value="">Chọn vai trò</option>
-                  {assignableRoles.map((role) => (
-                    <option key={role.roleId} value={role.roleId}>
-                      {getRoleLabel(role.code)} ({role.code})
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <SelectTrigger className="border-emerald-200">
+                    {getSelectedRoleLabel()}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {assignableRoles.map((role) => (
+                      <SelectItem
+                        key={role.roleId}
+                        value={String(role.roleId)}
+                      >
+                        {getRoleLabel(role.code)} ({role.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <p className="rounded-lg bg-emerald-50 p-3 text-xs leading-5 text-emerald-800">
                 {selectedRole?.code === "VT-02"
                   ? "Quản lý dữ liệu và thành viên trong đúng phạm vi tổ chức."
                   : "Ghi nhật ký và sự kiện; không thể tự cấp quyền cho người khác."}
               </p>
             </div>
-            <div className="flex justify-end gap-2 border-t p-5">
+            <div className="flex justify-end gap-2 border-t border-emerald-100 p-5">
               <Button
                 type="button"
                 variant="outline"
@@ -443,7 +534,11 @@ export const MemberList = () => {
               >
                 Hủy
               </Button>
-              <Button type="submit" disabled={isSaving || !selectedRoleId}>
+              <Button
+                type="submit"
+                variant="create"
+                disabled={isSaving || !selectedRoleId}
+              >
                 {isSaving ? "Đang lưu..." : "Lưu vai trò"}
               </Button>
             </div>
@@ -451,6 +546,7 @@ export const MemberList = () => {
         </div>
       )}
 
+      {/* Alert xác nhận */}
       <AlertDialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <AlertDialogPopup>
           <AlertDialogHeader>
@@ -463,7 +559,9 @@ export const MemberList = () => {
               </p>
               {oldManager && (
                 <p className="text-amber-700">
-                  <strong>Lưu ý:</strong> Quản lý hiện tại <strong>{oldManager.fullName}</strong> sẽ tự động bị hạ xuống <strong>Người ghi sự kiện (VT-03)</strong>.
+                  <strong>Lưu ý:</strong> Quản lý hiện tại{" "}
+                  <strong>{oldManager.fullName}</strong> sẽ tự động bị hạ xuống{" "}
+                  <strong>Người ghi sự kiện (VT-03)</strong>.
                 </p>
               )}
               <p className="text-slate-600">

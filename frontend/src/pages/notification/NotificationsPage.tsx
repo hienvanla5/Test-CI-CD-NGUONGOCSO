@@ -16,9 +16,9 @@ const TYPE_ICON: Record<NotificationType, typeof Bell> = {
 };
 
 const TYPE_STYLE: Record<NotificationType, string> = {
-  ALERT: 'bg-red-50 text-red-600',
-  TASK: 'bg-amber-50 text-amber-600',
-  INFO: 'bg-blue-50 text-blue-600',
+  ALERT: 'bg-error-bg text-destructive',
+  TASK: 'bg-warning-bg text-warning',
+  INFO: 'bg-info-bg text-info',
 };
 
 const formatDateTime = (iso: string) => {
@@ -87,7 +87,7 @@ const NotificationsPage = () => {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-emerald-600" />
+              <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-primary" />
             </div>
           ) : items.length === 0 ? (
             <div className="px-4 py-16 text-center text-muted-foreground">
@@ -105,7 +105,7 @@ const NotificationsPage = () => {
                       onClick={() => handleItemClick(item)}
                       className={cn(
                         'flex w-full items-start gap-3 px-4 py-4 text-left transition-colors hover:bg-muted',
-                        !item.isRead && 'bg-emerald-50/50',
+                        !item.isRead && 'bg-success-bg/50',
                       )}
                     >
                       <span
@@ -120,7 +120,7 @@ const NotificationsPage = () => {
                         <span className="flex items-center gap-1.5">
                           <span className="font-medium text-foreground">{item.title}</span>
                           {!item.isRead && (
-                            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600" />
+                            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                           )}
                         </span>
                         <span className="mt-1 block text-sm text-muted-foreground">

@@ -30,6 +30,12 @@ import type { Standard } from "@/types/standard";
 
 const PAGE_SIZE = 10;
 
+const statusFilterOptions = [
+  { value: "all", label: "Tất cả" },
+  { value: "true", label: "Đang hoạt động" },
+  { value: "false", label: "Không hoạt động" },
+];
+
 export const StandardList: React.FC = () => {
   const [standards, setStandards] = useState<Standard[]>([]);
   const [totalElements, setTotalElements] = useState(0);
@@ -39,7 +45,6 @@ export const StandardList: React.FC = () => {
   );
   const [loading, setLoading] = useState(true);
 
-  // Dialog state
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [editingStandard, setEditingStandard] = useState<Standard | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -72,7 +77,7 @@ export const StandardList: React.FC = () => {
     try {
       await createStandard({
         name: data.name,
-        description: data.description || undefined, // nếu rỗng thì gửi undefined
+        description: data.description || undefined,
         issuingBody: data.issuingBody || undefined,
       });
       toast.success("Thêm tiêu chuẩn thành công");
@@ -126,6 +131,14 @@ export const StandardList: React.FC = () => {
 
   const totalPages = Math.ceil(totalElements / PAGE_SIZE);
 
+  const getStatusFilterLabel = (value: string) => {
+    const option = statusFilterOptions.find((opt) => opt.value === value);
+    return option ? option.label : "Trạng thái";
+  };
+
+  const currentFilterValue =
+    isActiveFilter === undefined ? "all" : String(isActiveFilter);
+
   return (
     <>
       <Card>
@@ -134,21 +147,23 @@ export const StandardList: React.FC = () => {
             <CardTitle>Danh mục tiêu chuẩn chất lượng</CardTitle>
             <div className="flex flex-wrap items-center gap-2">
               <Select
-                value={
-                  isActiveFilter === undefined ? "all" : String(isActiveFilter)
-                }
+                value={currentFilterValue}
                 onValueChange={(val) => {
                   if (val === "all") setIsActiveFilter(undefined);
                   else setIsActiveFilter(val === "true");
                 }}
               >
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Trạng thái" />
+                  <SelectValue placeholder="Trạng thái">
+                    {getStatusFilterLabel(currentFilterValue)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  <SelectItem value="true">Đang hoạt động</SelectItem>
-                  <SelectItem value="false">Không hoạt động</SelectItem>
+                  {statusFilterOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Button
@@ -191,41 +206,53 @@ export const StandardList: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {standards.map((std) => (
-                      <TableRow key={std.id}>
-                        <TableCell className="font-medium">
-                          {std.name}
-                        </TableCell>
-                        <TableCell>{std.issuingBody || "---"}</TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {std.description || "---"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={std.isActive ? "default" : "secondary"}
-                          >
-                            {std.isActive ? "Hoạt động" : "Không hoạt động"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(std.createdAt).toLocaleDateString("vi-VN")}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditDialog(std)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {standards.map((std) => {
+                      const isActive = std.isActive;
+                      return (
+                        <TableRow
+                          key={std.id}
+                          className={!isActive ? "opacity-60" : ""}
+                        >
+                          <TableCell className="font-medium">
+                            {std.name}
+                          </TableCell>
+                          <TableCell>{std.issuingBody || "---"}</TableCell>
+                          <TableCell className="max-w-xs truncate">
+                            {std.description || "---"}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={isActive ? "default" : "outline"}
+                              className={
+                                !isActive
+                                  ? "text-muted-foreground bg-muted/50 border-muted-foreground/20"
+                                  : ""
+                              }
+                            >
+                              {isActive ? "Hoạt động" : "Không hoạt động"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(std.createdAt).toLocaleDateString("vi-VN")}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditDialog(std)}
+                              disabled={!isActive}
+                              className={!isActive ? "text-muted-foreground" : ""}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
 
-              {/* Phân trang */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-muted-foreground">
@@ -258,7 +285,6 @@ export const StandardList: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Dialog Form */}
       <StandardForm
         open={formDialogOpen}
         onClose={closeDialog}

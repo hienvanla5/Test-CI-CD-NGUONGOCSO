@@ -1,12 +1,12 @@
 import AppRoutes from './routes/AppRoutes';
 import { AuthProvider } from './contexts/AuthContext';
-import { Toaster } from 'sonner'; // hoặc react-hot-toast
+import { AppToaster } from '@/components/ui/toast';
 
 function App() {
   return (
     <AuthProvider>
       <AppRoutes />
-      <Toaster position="top-right" />
+      <AppToaster />
     </AuthProvider>
   );
 }

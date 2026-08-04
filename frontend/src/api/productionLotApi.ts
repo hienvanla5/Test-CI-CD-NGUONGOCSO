@@ -10,6 +10,7 @@ import type {
   UpdateProductionLotRequest,
   UpdateProductionLotResponse,
 } from '@/types/productionLot';
+import type { ProductionLotImportResultResponse, ProductionLotImportHistory } from '@/types/productionLotImport';
 
 interface ApiDataResponse<T> {
   data: T;
@@ -122,4 +123,62 @@ export const getProductionLotDashboard = async (params?: {
 }): Promise<DashboardResponse> => {
   const response = await apiClient.get<{ data: DashboardResponse }>('/production-lots/dashboard', { params });
   return response.data.data;
+};
+
+// ===== Import Production Lots (NCL-10-CN-006) =====
+
+/**
+ * Nhập dữ liệu lô sản xuất từ tệp
+ * POST /api/v1/production-lots/import
+ * Content-Type: multipart/form-data
+ */
+export const importProductionLots = async (
+  file: File,
+  organizationId?: string
+): Promise<ProductionLotImportResultResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (organizationId) {
+    formData.append('organizationId', organizationId);
+  }
+
+  const response = await apiClient.post<{ data: ProductionLotImportResultResponse }>(
+    '/production-lots/import',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+  return response.data.data;
+};
+
+/**
+ * Lấy lịch sử nhập dữ liệu
+ * GET /api/v1/production-lots/import-history
+ */
+export const getImportHistory = async (): Promise<ProductionLotImportHistory[]> => {
+  const response = await apiClient.get<{ data: ProductionLotImportHistory[] }>(
+    '/production-lots/import-history'
+  );
+  return response.data.data;
+};
+
+/**
+ * Tải mẫu file nhập
+ * GET /api/v1/production-lots/import-template
+ */
+export const downloadImportTemplate = async (): Promise<void> => {
+  const response = await apiClient.get('/production-lots/import-template', {
+    responseType: 'blob',
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'mau_nhap_lo_san_xuat.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
 };

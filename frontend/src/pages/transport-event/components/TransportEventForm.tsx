@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { isAxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { recordTransportEvent } from "@/api/transportEventApi";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { addOfflineEvent } from "@/services/offlineQueue";
+import { ChainEventType } from "@/enums/chainEventType";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,18 +26,32 @@ import {
 } from "@/utils/validators/transportEventSchema";
 
 import { ScanCodeField } from "./ScanCodeField";
+import { Camera } from "lucide-react";
+
+const MAX_IMAGES = 5;
 
 function getCurrentDateTimeLocal() {
   const now = new Date();
   const timezoneOffset = now.getTimezoneOffset() * 60_000;
-
-  return new Date(now.getTime() - timezoneOffset)
-    .toISOString()
-    .slice(0, 16);
+  return new Date(now.getTime() - timezoneOffset).toISOString().slice(0, 16);
 }
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
 
 export function TransportEventForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefilledCode =
+    (location.state as { codeValue?: string } | null)?.codeValue ?? "";
+
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const {
     register,
@@ -45,7 +63,7 @@ export function TransportEventForm() {
   } = useForm<TransportEventFormValues>({
     resolver: zodResolver(transportEventSchema),
     defaultValues: {
-      codeValue: "",
+      codeValue: prefilledCode,
       fromLocation: "",
       toLocation: "",
       transportTime: getCurrentDateTimeLocal(),
@@ -53,10 +71,81 @@ export function TransportEventForm() {
   });
 
   const codeValue = watch("codeValue");
+  const { isOnline } = useOfflineSync();
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const fileArray = Array.from(files);
+    if (imageFiles.length + fileArray.length > MAX_IMAGES) {
+      toast.error(`Chỉ được chọn tối đa ${MAX_IMAGES} ảnh`);
+      return;
+    }
+    setImageFiles((prev) => [...prev, ...fileArray]);
+    const newPreviews = fileArray.map((f) => URL.createObjectURL(f));
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const saveOffline = (values: TransportEventFormValues) => {
+    const validationError = addOfflineEvent({
+      eventType: ChainEventType.TRANSPORT,
+      recordedAt: values.transportTime,
+      latitude: 0,
+      longitude: 0,
+      images: imagePreviews,
+      deviceSource: "WEB",
+      codeValue: values.codeValue,
+      eventData: {
+        codeValue: values.codeValue,
+        fromLocation: values.fromLocation,
+        toLocation: values.toLocation,
+        transportTime: values.transportTime,
+      },
+    });
+
+    if (validationError) {
+      toast.error(`Không thể lưu tạm: ${validationError}`);
+      return false;
+    }
+
+    toast.info("Không có kết nối mạng. Sự kiện đã được lưu tạm và sẽ đồng bộ khi có mạng.");
+    reset({
+      codeValue: "",
+      fromLocation: "",
+      toLocation: "",
+      transportTime: getCurrentDateTimeLocal(),
+    });
+    setImageFiles([]);
+    setImagePreviews([]);
+    return true;
+  };
 
   const onSubmit = async (values: TransportEventFormValues) => {
     try {
-      await recordTransportEvent(values);
+      if (!isOnline) {
+        saveOffline(values);
+        return;
+      }
+
+      // Convert images to base64
+      let base64Images: string[] = [];
+      try {
+        base64Images = await Promise.all(imageFiles.map(fileToBase64));
+      } catch {
+        toast.error("Không thể xử lý ảnh. Vui lòng thử lại.");
+        return;
+      }
+
+      // Send to backend with images
+      await recordTransportEvent({
+        ...values,
+        images: base64Images.length > 0 ? base64Images : undefined,
+      } as any);
 
       toast.success("Ghi sự kiện vận chuyển thành công.");
 
@@ -66,7 +155,20 @@ export function TransportEventForm() {
         toLocation: "",
         transportTime: getCurrentDateTimeLocal(),
       });
+      setImageFiles([]);
+      setImagePreviews([]);
     } catch (error: unknown) {
+      const isNetworkError =
+        !isAxiosError(error) ||
+        (error as { code?: string }).code === "ERR_NETWORK" ||
+        (error as { message?: string })?.message?.includes("Network") ||
+        !(error as { response?: unknown }).response;
+
+      if (isNetworkError) {
+        saveOffline(values);
+        return;
+      }
+
       const message = isAxiosError<{ message?: string }>(error)
         ? error.response?.data?.message ??
           (error.response
@@ -143,18 +245,65 @@ export function TransportEventForm() {
               </p>
             )}
           </div>
+
+          {/* Image Upload */}
+          <div className="space-y-2">
+            <Label>Hình ảnh thực địa (tối đa {MAX_IMAGES})</Label>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById('transport-image-input')?.click()}
+                disabled={isSubmitting || imageFiles.length >= MAX_IMAGES}
+              >
+                <Camera className="h-4 w-4 mr-1" />
+                Chọn ảnh
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {imageFiles.length}/{MAX_IMAGES}
+              </span>
+              <input
+                id="transport-image-input"
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageChange}
+                disabled={isSubmitting}
+              />
+            </div>
+            {imagePreviews.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {imagePreviews.map((src, idx) => (
+                  <div key={idx} className="relative w-16 h-16 rounded border overflow-hidden">
+                    <img src={src} alt={`preview-${idx}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                      onClick={() => removeImage(idx)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
 
         <CardFooter className="flex justify-end gap-3">
           <Button
             type="button"
+            size="sm"
             variant="outline"
             onClick={() => navigate(-1)}
+            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
           >
             Hủy
           </Button>
 
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" size="sm" disabled={isSubmitting} variant="create">
             {isSubmitting ? "Đang ghi..." : "Ghi sự kiện vận chuyển"}
           </Button>
         </CardFooter>

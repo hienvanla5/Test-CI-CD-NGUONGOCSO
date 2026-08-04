@@ -149,7 +149,7 @@ export function ScanAnomalyAlertDetailsDialog({
               {alert.status === 'PENDING' && (
                 <Button
                   onClick={() => onResolve(alert)}
-                  className="bg-emerald-600 hover:bg-emerald-700"
+                  variant="edit"
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   Xử lý cảnh báo

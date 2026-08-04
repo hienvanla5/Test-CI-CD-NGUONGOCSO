@@ -8,13 +8,24 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import type { ProductionLot } from "@/types/productionLot";
 import {
   ClipboardCheck,
@@ -25,6 +36,7 @@ import {
   Plus,
   Search,
   ShoppingCart,
+  Sprout,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -50,29 +62,42 @@ interface ProductionLotListProps {
   onRecordProcurement?: (lotId: string) => void;
 }
 
-const statusLabels: Record<ProductionLot["status"], string> = {
-  DRAFT: "Bản nháp",
-  PENDING: "Chờ duyệt",
-  APPROVED: "Đã duyệt",
-  REJECTED: "Bị từ chối",
-  HARVESTED: "Đã thu hoạch",
-  PACKAGED: "Đã đóng gói",
-  CLOSED: "Đã kết thúc",
-};
-
-const statusClasses: Record<ProductionLot["status"], string> = {
-  DRAFT: "bg-slate-100 text-slate-700",
-  PENDING: "bg-amber-100 text-amber-700",
-  APPROVED: "bg-emerald-100 text-emerald-700",
-  REJECTED: "bg-red-100 text-red-700",
-  HARVESTED: "bg-lime-100 text-lime-700",
-  PACKAGED: "bg-blue-100 text-blue-700",
-  CLOSED: "bg-zinc-200 text-zinc-700",
+const statusConfig: Record<
+  ProductionLot["status"],
+  { label: string; className: string }
+> = {
+  DRAFT: {
+    label: "Bản nháp",
+    className: "bg-gray-100 text-gray-700 border-gray-300",
+  },
+  PENDING: {
+    label: "Chờ duyệt",
+    className: "bg-yellow-100 text-yellow-800 border-yellow-300",
+  },
+  APPROVED: {
+    label: "Đã duyệt",
+    className: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  },
+  REJECTED: {
+    label: "Bị từ chối",
+    className: "bg-red-100 text-red-800 border-red-300",
+  },
+  HARVESTED: {
+    label: "Đã thu hoạch",
+    className: "bg-lime-100 text-lime-800 border-lime-300",
+  },
+  PACKAGED: {
+    label: "Đã đóng gói",
+    className: "bg-sky-100 text-sky-800 border-sky-300",
+  },
+  CLOSED: {
+    label: "Đã kết thúc",
+    className: "bg-purple-100 text-purple-800 border-purple-300",
+  },
 };
 
 const formatDate = (value: string | null) => {
   if (!value) return "—";
-
   return new Intl.DateTimeFormat("vi-VN").format(
     new Date(`${value}T00:00:00`),
   );
@@ -104,7 +129,6 @@ export const ProductionLotList = ({
 
   const handleConfirmSubmit = async () => {
     if (!confirmingLot) return;
-
     setIsSubmitting(true);
     try {
       await onSubmitForApproval(confirmingLot.id);
@@ -116,7 +140,6 @@ export const ProductionLotList = ({
 
   const filteredLots = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-
     return lots.filter((lot) => {
       const matchesSearch =
         !keyword ||
@@ -127,25 +150,42 @@ export const ProductionLotList = ({
         ].some((value) => value.toLowerCase().includes(keyword));
       const matchesStatus =
         statusFilter === "ALL" || lot.status === statusFilter;
-
       return matchesSearch && matchesStatus;
     });
   }, [lots, search, statusFilter]);
 
+  const getStatusBadge = (status: ProductionLot["status"]) => {
+    const config = statusConfig[status];
+    return (
+      <Badge
+        variant="outline"
+        className={`${config.className} border text-xs font-semibold px-2.5 py-0.5`}
+      >
+        {config.label}
+      </Badge>
+    );
+  };
+
   return (
     <>
-      <Card className="overflow-hidden border-slate-200 shadow-sm">
-        <CardHeader className="border-b border-slate-100">
+      <Card className="border-emerald-100 bg-white/80 backdrop-blur-sm shadow-sm">
+        <CardHeader className="border-b border-emerald-100">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <CardTitle>Danh sách lô sản xuất</CardTitle>
-              <p className="mt-1 text-sm text-slate-500">
-                Theo dõi lô theo vùng trồng, nông sản và trạng thái xử lý.
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
+                <Sprout className="h-5 w-5 text-emerald-700" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-bold text-emerald-800">
+                  Danh sách lô sản xuất
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Theo dõi lô theo vùng trồng, nông sản và trạng thái
+                </p>
+              </div>
             </div>
-
             {canCreate && (
-              <Button type="button" onClick={onCreate}>
+              <Button type="button" variant="create" onClick={onCreate}>
                 <Plus className="size-4" />
                 Tạo lô sản xuất
               </Button>
@@ -153,38 +193,47 @@ export const ProductionLotList = ({
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
-          <div className="grid gap-3 border-b bg-slate-50/70 p-4 md:grid-cols-[1fr_220px]">
-            <label className="relative">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+        <CardContent className="p-4">
+          {/* Bộ lọc */}
+          <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_220px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="bg-white pl-9"
+                className="bg-white pl-9 border-emerald-200 focus-visible:ring-emerald-100"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Tìm tên lô, vùng trồng hoặc loại nông sản..."
                 aria-label="Tìm kiếm lô sản xuất"
               />
-            </label>
+            </div>
 
-            <select
-              className="h-9 rounded-md border border-input bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            <Select
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              aria-label="Lọc theo trạng thái"
+              onValueChange={(value) => setStatusFilter(value || "")}
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              {Object.entries(statusLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="border-emerald-200 focus:ring-emerald-100">
+                <SelectValue placeholder="Tất cả trạng thái">
+                  {statusFilter === "ALL"
+                    ? "Tất cả trạng thái"
+                    : statusConfig[statusFilter as ProductionLot["status"]]?.label || statusFilter}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
+                {Object.entries(statusConfig).map(([value, config]) => (
+                  <SelectItem key={value} value={value}>
+                    {config.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1180px] border-collapse text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                <tr>
+          {/* Bảng */}
+          <div className="overflow-x-auto rounded-lg border border-emerald-100">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-emerald-50/50">
                   {[
                     "Tên lô",
                     "Vùng trồng",
@@ -195,23 +244,24 @@ export const ProductionLotList = ({
                     "Thao tác",
                     "Chi tiết",
                   ].map((title) => (
-                    <th className="px-4 py-3 font-semibold" key={title}>
+                    <TableHead key={title} className="text-emerald-800 font-semibold">
                       {title}
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
+                </TableRow>
+              </TableHeader>
 
-              <tbody>
+              <TableBody>
                 {isLoading && (
-                  <tr>
-                    <td
-                      className="px-4 py-12 text-center text-slate-500"
+                  <TableRow>
+                    <TableCell
                       colSpan={8}
+                      className="py-12 text-center text-muted-foreground"
                     >
+                      <Sprout className="mx-auto mb-2 h-6 w-6 animate-spin text-emerald-500" />
                       Đang tải danh sách lô sản xuất...
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
 
                 {!isLoading &&
@@ -234,128 +284,117 @@ export const ProductionLotList = ({
                       showRecordProcurement;
 
                     return (
-                      <tr
-                        className="border-t hover:bg-emerald-50/30"
-                        key={lot.id}
-                      >
-                        <td className="px-4 py-4 font-semibold text-slate-900">
+                      <TableRow key={lot.id} className="hover:bg-emerald-50/30">
+                        <TableCell className="font-semibold text-emerald-800">
                           {lot.name}
-                        </td>
-                        <td className="px-4 py-4 text-slate-600">
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {lot.farmAreaName ?? "—"}
-                        </td>
-                        <td className="px-4 py-4 text-slate-600">
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {lot.productCategoryName ?? "—"}
-                        </td>
-                        <td className="px-4 py-4 text-slate-600">
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {lot.expectedQuantity.toLocaleString("vi-VN")}{" "}
                           {lot.expectedQuantityUnit || ""}
-                        </td>
-                        <td className="px-4 py-4 text-slate-600">
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
                           {formatDate(lot.plantingDate)}
-                        </td>
+                        </TableCell>
 
-                        <td className="px-4 py-4">
+                        <TableCell>
                           {canSubmitForApproval &&
                           lot.status === "DRAFT" ? (
                             <button
                               type="button"
                               onClick={() => setConfirmingLot(lot)}
-                              className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity hover:opacity-75 ${statusClasses[lot.status]}`}
+                              className="rounded-full px-2.5 py-1 text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-colors"
                               title="Nhấn để gửi duyệt"
                             >
-                              {statusLabels[lot.status]}
+                              {statusConfig[lot.status].label}
                             </button>
                           ) : (
-                            <span
-                              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[lot.status]}`}
-                            >
-                              {statusLabels[lot.status]}
-                            </span>
+                            getStatusBadge(lot.status)
                           )}
-                        </td>
+                        </TableCell>
 
-                        <td className="px-4 py-4">
+                        <TableCell>
                           <div className="flex flex-wrap gap-2">
                             {showEdit && (
                               <Button
                                 size="sm"
-                                type="button"
-                                variant="outline"
+                                variant="edit"
                                 onClick={() => onEdit(lot.id)}
                               >
                                 <Pencil className="size-4" />
                                 Chỉnh sửa
                               </Button>
                             )}
-
                             {showApprove && (
                               <Button
                                 size="sm"
-                                type="button"
+                                variant="search"
                                 onClick={() => setApprovingLot(lot)}
                               >
                                 <ClipboardCheck className="size-4" />
                                 Duyệt lô
                               </Button>
                             )}
-
                             {showRecordFarmLog && (
                               <Button
                                 size="sm"
-                                type="button"
-                                variant="outline"
+                                variant="view"
                                 onClick={() => onRecordFarmLog(lot.id)}
                               >
                                 <NotebookPen className="size-4" />
                                 Ghi nhật ký
                               </Button>
                             )}
-
                             {showRecordProcurement && (
                               <Button
                                 size="sm"
-                                type="button"
+                                variant="create"
                                 onClick={() =>
                                   onRecordProcurement?.(lot.id)
                                 }
                               >
                                 <ShoppingCart className="size-4" />
-                                Ghi nhận thu mua
+                                Thu mua
                               </Button>
                             )}
-
                             {!hasAction && (
-                              <span className="text-slate-400">—</span>
+                              <span className="text-muted-foreground text-sm">
+                                —
+                              </span>
                             )}
                           </div>
-                        </td>
+                        </TableCell>
 
-                        <td className="px-4 py-4">
+                        <TableCell>
                           <Button
                             size="sm"
-                            type="button"
                             variant="outline"
+                            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                             onClick={() =>
                               navigate(`/production-lots/${lot.id}`)
                             }
                           >
                             Chi tiết
                           </Button>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
 
             {!isLoading && !filteredLots.length && (
               <div className="grid place-items-center px-4 py-16 text-center">
-                <PackageOpen className="mb-3 size-10 text-slate-300" />
-                <p className="font-semibold">
+                <PackageOpen className="mb-3 size-10 text-emerald-300" />
+                <p className="font-semibold text-emerald-800">
                   Không tìm thấy lô sản xuất
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Hãy thử thay đổi từ khóa hoặc bộ lọc trạng thái.
                 </p>
               </div>
@@ -364,12 +403,11 @@ export const ProductionLotList = ({
         </CardContent>
       </Card>
 
+      {/* Dialog xác nhận gửi duyệt */}
       <AlertDialog
         open={confirmingLot !== null}
         onOpenChange={(open) => {
-          if (!open && !isSubmitting) {
-            setConfirmingLot(null);
-          }
+          if (!open && !isSubmitting) setConfirmingLot(null);
         }}
       >
         <AlertDialogPopup>
@@ -377,23 +415,18 @@ export const ProductionLotList = ({
             <AlertDialogTitle>Gửi duyệt lô sản xuất</AlertDialogTitle>
             <AlertDialogDescription>
               Bạn sắp gửi duyệt lô{" "}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-foreground">
                 {confirmingLot?.name}
               </span>
               . Tiếp tục?
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>
-              Hủy
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={isSubmitting}>Hủy</AlertDialogCancel>
             <Button
               type="button"
               disabled={isSubmitting}
-              onClick={() => {
-                void handleConfirmSubmit();
-              }}
+              onClick={() => void handleConfirmSubmit()}
             >
               {isSubmitting && (
                 <LoaderCircle className="size-4 animate-spin" />

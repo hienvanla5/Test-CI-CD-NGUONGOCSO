@@ -11,6 +11,7 @@ import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.farm.dto.response.AttachmentResponse;
 import vn.nguongocso.farm.service.AttachmentService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class FarmLogAttachmentController {
 
     private final AttachmentService attachmentService;
+    private final PermissionChecker permissionChecker;
 
     @PostMapping("/{logId}/attachments")
     public ResponseEntity<ApiResult<AttachmentResponse>> uploadAttachment(
@@ -30,6 +32,7 @@ public class FarmLogAttachmentController {
             @RequestParam(value = "description", required = false) String description,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
+        permissionChecker.check("FARM_LOG", "UPDATE");
         AttachmentResponse response = attachmentService.uploadAttachment(logId, file, description, userDetails);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(response));
     }
@@ -38,6 +41,7 @@ public class FarmLogAttachmentController {
     public ResponseEntity<ApiResult<List<AttachmentResponse>>> getAttachments(
             @PathVariable UUID logId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
+        permissionChecker.check("FARM_LOG", "READ");
         return ResponseEntity.ok(ApiResult.success(attachmentService.getAttachments(logId, userDetails)));
     }
 
@@ -45,6 +49,7 @@ public class FarmLogAttachmentController {
     public ResponseEntity<ApiResult<Void>> deleteAttachment(
             @PathVariable UUID attachmentId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
+        permissionChecker.check("FARM_LOG", "DELETE");
         attachmentService.deleteAttachment(attachmentId, userDetails);
         return ResponseEntity.noContent().build();
     }

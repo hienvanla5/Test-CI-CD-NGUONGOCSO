@@ -55,7 +55,7 @@ export const CertificationList = ({ certifications, onDetach, canManage, loading
               <TableCell>{formatDate(cert.expiryDate)}</TableCell>
               <TableCell>
                 {cert.isValid ? (
-                  <Badge variant="default" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">
+                  <Badge variant="success">
                     Còn hiệu lực
                   </Badge>
                 ) : (
@@ -66,7 +66,7 @@ export const CertificationList = ({ certifications, onDetach, canManage, loading
               {canManage && (
                 <TableCell className="text-right">
                   <Button
-                    variant="ghost"
+                    variant="delete"
                     size="sm"
                     onClick={() => onDetach(cert.certificationId)}
                     title="Gỡ chứng nhận"

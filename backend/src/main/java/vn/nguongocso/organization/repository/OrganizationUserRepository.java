@@ -34,4 +34,6 @@ public interface OrganizationUserRepository extends JpaRepository<OrganizationUs
 			String roleCode);
 
 	List<OrganizationUser> findAllByUser_UserId(UUID userId);
+
+	List<OrganizationUser> findByUser_UserIdAndStatus(UUID userId, OrganizationUserStatus status);
 }

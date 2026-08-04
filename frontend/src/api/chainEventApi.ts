@@ -2,6 +2,7 @@ import type { RecordMobileEventRequest } from '@/types/chainEvent';
 import apiClient from './axiosConfig';
 import type { ChainEventResponse } from '@/types/packaging';
 import type { OfflineSyncRequest, OfflineSyncResponse } from '@/types/offlineEvent';
+import type { ScanLookupResponse } from '@/types/scan';
 
 export const getShipmentTimeline = async (shipmentId: string): Promise<ChainEventResponse[]> => {
   const response = await apiClient.get<{ data: ChainEventResponse[] }>(
@@ -31,5 +32,15 @@ export const syncOfflineEvents = async (
     '/chain-events/sync',
     payload
   );
+  return response.data.data;
+};
+export const scanLookupTraceCode = async (
+  code: string,
+): Promise<ScanLookupResponse> => {
+  const response = await apiClient.get<{ data: ScanLookupResponse }>(
+    "/chain-events/scan-lookup",
+    { params: { codeValue: code } },
+  );
+
   return response.data.data;
 };

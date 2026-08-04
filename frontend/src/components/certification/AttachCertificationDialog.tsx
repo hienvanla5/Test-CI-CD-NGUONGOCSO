@@ -131,7 +131,7 @@ export const AttachCertificationDialog = ({ open, onClose, lotId, onSuccess }: P
             <Button type="button" variant="outline" onClick={onClose}>
               Hủy
             </Button>
-            <Button type="submit" disabled={isSubmitting || !selectedId || loading}>
+            <Button type="submit" variant="create" disabled={isSubmitting || !selectedId || loading}>
               {isSubmitting ? 'Đang gắn...' : 'Gắn chứng nhận'}
             </Button>
           </DialogFooter>

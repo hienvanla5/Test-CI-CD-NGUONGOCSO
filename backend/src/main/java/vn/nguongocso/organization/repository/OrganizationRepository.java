@@ -23,5 +23,8 @@ public interface OrganizationRepository extends JpaRepository<Organization, UUID
      * Tìm các tổ chức theo địa bàn.
      */
     List<Organization> findByAddressContainingIgnoreCase(String region);
+
+    Optional<Organization> findByEmail(String email);
+    Optional<Organization> findByPhone(String phone);
 }
 

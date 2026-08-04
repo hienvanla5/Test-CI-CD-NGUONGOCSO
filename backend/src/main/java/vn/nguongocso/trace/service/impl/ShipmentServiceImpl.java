@@ -38,6 +38,7 @@ import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 import vn.nguongocso.trace.service.QRCodeService;
 import vn.nguongocso.trace.service.ShipmentService;
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.trace.dto.response.TraceCodeResponse;
 
 /**
@@ -56,6 +57,7 @@ public class ShipmentServiceImpl implements ShipmentService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final NotificationService notificationService;
+    private final PermissionChecker permissionChecker;
 
     private static final String ORG_MANAGER_ROLE = "VT-02";
 
@@ -534,5 +536,42 @@ public class ShipmentServiceImpl implements ShipmentService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Lấy thông tin chi tiết lô hàng theo ID.
+     *
+     * @param id ID của lô hàng
+     * @return thông tin chi tiết lô hàng
+     * @throws BusinessException nếu không tìm thấy hoặc bị chặn quyền
+     */
+    @Override
+    public ShipmentResponse getShipmentById(UUID id) {
+        Shipment shipment = shipmentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng với ID: " + id));
+
+        // Kiểm tra quyền hạn chi tiết động qua PermissionChecker
+        permissionChecker.check("shipment", "READ");
+
+        CustomUserDetails currentUser = getCurrentUser();
+        if (currentUser == null) {
+            throw new BusinessException("Chưa đăng nhập");
+        }
+
+        // Kiểm tra ranh giới dữ liệu (Data Boundary): VT-02 và VT-03 chỉ được xem lô hàng thuộc tổ chức của mình
+        String roleCode = currentUser.getRoleCode();
+        if ("VT-02".equals(roleCode) || "VT-03".equals(roleCode)) {
+            UUID userOrgId = currentUser.getOrganizationId();
+            if (userOrgId == null || !userOrgId.equals(shipment.getOrganization().getOrganizationId())) {
+                throw new BusinessException("Bạn không có quyền truy cập lô hàng của tổ chức khác.");
+            }
+        }
+
+        // Lấy danh sách TraceCode liên kết với lô hàng
+        List<TraceCode> traceCodes = traceCodeRepository.findByShipmentId(id);
+
+        String createdByName = shipment.getCreatedBy() != null ? shipment.getCreatedBy().getFullName() : null;
+
+        return buildShipmentResponse(shipment, traceCodes, createdByName);
     }
 }

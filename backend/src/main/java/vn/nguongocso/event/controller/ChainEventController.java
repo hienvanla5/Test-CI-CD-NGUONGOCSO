@@ -15,6 +15,7 @@ import vn.nguongocso.event.dto.response.OfflineEventSyncResponse;
 import vn.nguongocso.event.dto.response.ScanLookupResponse;
 import vn.nguongocso.event.service.ChainEventService;
 import vn.nguongocso.event.service.OfflineSyncService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 import java.util.UUID;
 
@@ -23,17 +24,15 @@ import java.util.UUID;
  * <p>
  * Cung cấp các API để ghi nhận và quản lý các sự kiện như:
  * <ul>
- * <li>Thu hoạch (HARVEST)</li>
- * <li>Đóng gói (PACKAGING)</li>
- * <li>Sửa lỗi đóng gói (CORRECTION)</li>
+ *   <li>Thu hoạch (HARVEST)</li>
+ *   <li>Đóng gói (PACKAGING)</li>
+ *   <li>Sửa lỗi đóng gói (CORRECTION)</li>
  * </ul>
  * </p>
  *
- * <p>
- * Tất cả các API đều yêu cầu xác thực và phân quyền.
+ * <p>Tất cả các API đều yêu cầu xác thực và phân quyền.
  * Chỉ người dùng có vai trò VT-02 (Quản lý HTX) hoặc VT-03 (Người ghi sự kiện)
- * mới được phép thực hiện các thao tác này.
- * </p>
+ * mới được phép thực hiện các thao tác này.</p>
  *
  * @author Team WEB !
  */
@@ -44,6 +43,7 @@ import java.util.UUID;
 public class ChainEventController {
     private final OfflineSyncService offlineSyncService;
     private final ChainEventService chainEventService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * API ghi nhận sự kiện thu hoạch cho lô sản xuất.
@@ -83,7 +83,6 @@ public class ChainEventController {
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         ChainEventResponse response = chainEventService.recordTransportEvent(request, currentUser);
-
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
@@ -117,11 +116,15 @@ public class ChainEventController {
                 .body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
 
+    /**
+     * API đồng bộ sự kiện ngoại tuyến.
+     */
     @PostMapping("/sync")
     @PreAuthorize("hasAnyRole('VT-02', 'VT-03')")
     public ResponseEntity<ApiResult<OfflineEventSyncResponse>> syncOfflineEvents(
             @Valid @RequestBody OfflineEventSyncRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
+
         OfflineEventSyncResponse response = offlineSyncService.syncOfflineEvents(request, currentUser);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResult.success(HttpStatus.OK.value(), response));
@@ -144,10 +147,8 @@ public class ChainEventController {
             @RequestParam String codeValue,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
+        // Có thể kiểm tra quyền READ nếu cần
         ScanLookupResponse response = chainEventService.scanLookup(codeValue, currentUser);
-
-        return ResponseEntity.ok(
-                ApiResult.success(HttpStatus.OK.value(), response));
+        return ResponseEntity.ok(ApiResult.success(HttpStatus.OK.value(), response));
     }
-
 }

@@ -3,8 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getAllFarmLogsByProductionLot } from "@/api/farmLogApi";
+import { getLocalDateString } from "@/utils/dateTime";
 import {
   Card,
   CardContent,
@@ -39,6 +40,7 @@ import {
   type FarmLogEligibilityStatus,
 } from "@/pages/packaging-event/components/FarmLogEligibilityAlert";
 import { useLotValidation } from "@/hooks/useLotValidation";
+import { useAutoGeolocation } from "@/hooks/useAutoGeolocation";
 import { LotValidationStatus } from "@/components/event-validation/LotValidationStatus";
 
 const farmActivityTypes: FarmActivityType[] = [
@@ -92,6 +94,7 @@ const getPackagingError = (error: unknown) => {
 
 export function CreatePackagingForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [productionLots, setProductionLots] = useState<ProductionLot[]>([]);
   const [loadingLots, setLoadingLots] = useState(true);
@@ -117,7 +120,7 @@ export function CreatePackagingForm() {
     defaultValues: {
       productionLotId: "",
       packagingSpecification: "",
-      packagingDate: new Date().toISOString().split("T")[0],
+      packagingDate: getLocalDateString(),
       latitude: 0,
       longitude: 0,
     },
@@ -125,6 +128,19 @@ export function CreatePackagingForm() {
 
   const lat = watch("latitude");
   const lng = watch("longitude");
+
+  const currentPosition =
+    typeof lat === "number" &&
+    Number.isFinite(lat) &&
+    typeof lng === "number" &&
+    Number.isFinite(lng) &&
+    !(lat === 0 && lng === 0)
+      ? {
+          lat,
+          lng,
+        }
+      : undefined;
+
   const selectedLot = productionLots.find((lot) => lot.id === selectedLotId);
 
   useEffect(() => {
@@ -141,10 +157,56 @@ export function CreatePackagingForm() {
     fetchLots();
   }, []);
 
-  const handleLocationSelect = (lat: number, lng: number) => {
-    setValue("latitude", lat);
-    setValue("longitude", lng);
+  // Điền sẵn lô sản xuất khi được điều hướng từ trang "Quét mã ghi sự kiện
+  // nhanh" (state.productionLotId lấy từ ScanLookupResponse). Chỉ áp dụng
+  // khi lô đó thực sự có trong danh sách lô đã thu hoạch tải được ở trên;
+  // nếu không, báo rõ lý do thay vì set một giá trị không khớp dropdown.
+  useEffect(() => {
+    if (loadingLots || selectedLotId) return;
+
+    const prefilledLotId = (
+      location.state as { productionLotId?: string } | null
+    )?.productionLotId;
+    if (!prefilledLotId) return;
+
+    const matchedLot = productionLots.find((lot) => lot.id === prefilledLotId);
+    if (!matchedLot) {
+      toast.error(
+        "Lô sản xuất từ mã vừa quét chưa ở trạng thái đã thu hoạch, không thể chọn sẵn.",
+      );
+      return;
+    }
+
+    eligibilityRequestRef.current += 1;
+    setSelectedLotId(prefilledLotId);
+    setValue("productionLotId", prefilledLotId, { shouldValidate: true });
+    void checkFarmLogEligibility(prefilledLotId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingLots, productionLots]);
+
+  const handleLocationSelect = (
+    selectedLatitude: number,
+    selectedLongitude: number,
+  ) => {
+    setValue("latitude", selectedLatitude, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setValue("longitude", selectedLongitude, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
+
+  const { locationLoading, fetchLocation } = useAutoGeolocation({
+    onLocation: (selectedLatitude, selectedLongitude) => {
+      handleLocationSelect(selectedLatitude, selectedLongitude);
+      toast.success("Đã lấy vị trí hiện tại");
+    },
+    onError: (message) => {
+      toast.error(`Không thể lấy vị trí: ${message}`);
+    },
+  });
 
   const checkFarmLogEligibility = async (productionLotId: string) => {
     const requestId = ++eligibilityRequestRef.current;
@@ -344,7 +406,7 @@ export function CreatePackagingForm() {
               id="packagingDate"
               type="date"
               {...register("packagingDate")}
-              max={new Date().toISOString().split("T")[0]}
+              max={getLocalDateString()}
             />
             {errors.packagingDate && (
               <p className="text-sm text-red-500">
@@ -354,13 +416,37 @@ export function CreatePackagingForm() {
           </div>
 
           <div className="space-y-2">
-            <Label>Vị trí (click trên bản đồ)</Label>
-            <div className="flex gap-2">
-              <Input value={lat || ""} disabled placeholder="Vĩ độ" />
-              <Input value={lng || ""} disabled placeholder="Kinh độ" />
+            <div className="flex items-center justify-between gap-3">
+              <Label>Vị trí đóng gói (click trên bản đồ)</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={locationLoading || isSubmitting}
+                onClick={() => fetchLocation()}
+              >
+                {locationLoading
+                  ? "Đang lấy vị trí..."
+                  : "Lấy vị trí hiện tại"}
+              </Button>
             </div>
+
+            <div className="flex gap-2">
+              <Input
+                value={currentPosition?.lat ?? ""}
+                disabled
+                placeholder="Vĩ độ"
+              />
+              <Input
+                value={currentPosition?.lng ?? ""}
+                disabled
+                placeholder="Kinh độ"
+              />
+            </div>
+
             <LocationPicker
               onLocationSelect={handleLocationSelect}
+              initialPosition={currentPosition}
               height="300px"
             />
           </div>
@@ -369,11 +455,13 @@ export function CreatePackagingForm() {
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>
             Hủy
           </Button>
+          {/* CHANGED: thêm variant="create" */}
           <Button
             type="submit"
             disabled={
               isSubmitting || !selectedLotId || eligibilityStatus !== "eligible" || !validation?.valid
             }
+            variant="create"
           >
             {isSubmitting ? "Đang ghi..." : "Ghi sự kiện"}
           </Button>

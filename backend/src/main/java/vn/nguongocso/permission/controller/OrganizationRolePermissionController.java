@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import vn.nguongocso.auth.entity.Role;
+import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.permission.dto.request.UpdateRolePermissionRequest;
 import vn.nguongocso.permission.dto.response.RolePermissionGroupResponse;
@@ -19,6 +21,7 @@ import java.util.UUID;
 public class OrganizationRolePermissionController {
 
     private final OrganizationRolePermissionService organizationRolePermissionService;
+    private final RoleRepository roleRepository;
 
     /**
      * Danh sách toàn bộ permission của hệ thống.
@@ -29,6 +32,22 @@ public class OrganizationRolePermissionController {
         return ApiResult.success(
                 organizationRolePermissionService.getSystemPermissions()
         );
+    }
+
+    /**
+     * Lấy danh sách vai trò khả dụng trong tổ chức.
+     * Chỉ VT-02 của tổ chức đó mới được gọi.
+     * Trả về tất cả các vai trò hệ thống (trừ VT-01 được frontend tự lọc).
+     */
+    @GetMapping("/organizations/{organizationId}/roles")
+    public ApiResult<List<Role>> getOrganizationRoles(
+            @PathVariable UUID organizationId) {
+
+        // Xác thực quyền VT-02
+        organizationRolePermissionService.validateOrganizationManager(organizationId);
+
+        List<Role> roles = roleRepository.findAll();
+        return ApiResult.success(roles);
     }
 
     /**

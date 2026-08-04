@@ -33,3 +33,5 @@ build/
 .vscode/
 /uploads
 /files/
+.env
+/resources/application.properties

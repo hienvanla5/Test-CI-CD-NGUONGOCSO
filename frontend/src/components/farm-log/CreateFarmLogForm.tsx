@@ -547,6 +547,7 @@ export function CreateFarmLogForm({
               size="lg"
               className="w-full bg-emerald-700 text-white hover:bg-emerald-800 sm:w-auto"
               disabled={isSubmitting}
+              variant="create"
             >
               {isSubmitting
                 ? 'Đang lưu...'

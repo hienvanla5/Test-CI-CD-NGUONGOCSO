@@ -60,7 +60,8 @@ public class OrganizationRolePermissionServiceImpl
      * Kiểm tra người dùng có quyền Quản lý HTX
      * và thuộc đúng tổ chức hay không.
      */
-    private CustomUserDetails validateManager(UUID organizationId) {
+    @Override
+    public CustomUserDetails validateOrganizationManager(UUID organizationId) {
 
         CustomUserDetails currentUser = getCurrentUser();
 
@@ -178,7 +179,7 @@ public class OrganizationRolePermissionServiceImpl
 
         // Chỉ VT-02 của đúng tổ chức mới được xem
 
-        validateManager(organizationId);
+        validateOrganizationManager(organizationId);
 
         Role role = getRole(roleId);
 
@@ -290,7 +291,7 @@ public class OrganizationRolePermissionServiceImpl
             UpdateRolePermissionRequest request) {
 
         // Kiểm tra quyền
-        validateManager(organizationId);
+        validateOrganizationManager(organizationId);
 
         // Không cho phép sửa quyền Admin hệ thống
         validateTargetRole(roleId);

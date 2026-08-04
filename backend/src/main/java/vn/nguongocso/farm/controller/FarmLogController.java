@@ -17,6 +17,7 @@ import vn.nguongocso.common.PageResponse;
 import vn.nguongocso.farm.dto.request.CreateFarmLogRequest;
 import vn.nguongocso.farm.dto.response.FarmLogResponse;
 import vn.nguongocso.farm.service.FarmLogService;
+import vn.nguongocso.permission.service.PermissionChecker;
 
 @RestController
 @RequestMapping("/api/v1/farm-logs")
@@ -24,6 +25,7 @@ import vn.nguongocso.farm.service.FarmLogService;
 public class FarmLogController {
 
     private final FarmLogService farmLogService;
+    private final PermissionChecker permissionChecker;
 
     /**
      * Ghi nhật ký canh tác.
@@ -35,6 +37,7 @@ public class FarmLogController {
     public ApiResult<FarmLogResponse> create(
             @Valid @RequestBody CreateFarmLogRequest request) {
 
+        permissionChecker.check("FARM_LOG", "CREATE");
         return ApiResult.success(farmLogService.create(request));
     }
 
@@ -53,6 +56,7 @@ public class FarmLogController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
+        permissionChecker.check("FARM_LOG", "READ");
         return ApiResult.success(
                 farmLogService.getFarmLogsByProductionLot(
                         productionLotId,

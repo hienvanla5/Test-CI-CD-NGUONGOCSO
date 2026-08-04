@@ -6,7 +6,7 @@ import { ChainEventType } from '@/enums/chainEventType';
 export const loginSchema = z.object({
     username: z.string().min(1, 'Tên đăng nhập không được để trống'),
     password: z.string().min(1, 'Mật khẩu không được để trống'),
-    organizationCode: z.string().optional(),
+    organizationCode: z.string().min(1, 'Mã tổ chức không được để trống'),
 });
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -128,8 +128,19 @@ export const mobileEventSchema = z
             required_error: 'Vui lòng chọn loại sự kiện',
         }),
         recordedAt: z.string().datetime({ message: 'Thời gian không hợp lệ' }),
-        latitude: z.number().min(-90).max(90, 'Vĩ độ không hợp lệ'),
-        longitude: z.number().min(-180).max(180, 'Kinh độ không hợp lệ'),
+        latitude: z
+            .number({
+                required_error: "Vui lòng lấy vị trí GPS",
+            })
+            .min(-90, "Vĩ độ không hợp lệ")
+            .max(90, "Vĩ độ không hợp lệ"),
+
+        longitude: z
+            .number({
+                required_error: "Vui lòng lấy vị trí GPS",
+            })
+            .min(-180, "Kinh độ không hợp lệ")
+            .max(180, "Kinh độ không hợp lệ"),
         images: z.array(z.string()).min(1, 'Cần ít nhất 1 ảnh'),
         quantity: z.number().positive('Sản lượng > 0').optional(),
         harvestDate: z.string().date('Ngày thu hoạch không hợp lệ').optional(),
@@ -140,6 +151,13 @@ export const mobileEventSchema = z
         packagingDate: z.string().date('Ngày đóng gói không hợp lệ').optional(),
     })
     .superRefine((data, ctx) => {
+        if (data.latitude === 0 && data.longitude === 0) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["latitude"],
+                message: "Vui lòng lấy vị trí GPS",
+            });
+        }
         if (data.eventType === ChainEventType.HARVEST) {
             if (!data.quantity) {
                 ctx.addIssue({ code: 'custom', path: ['quantity'], message: 'Sản lượng bắt buộc' });
@@ -212,6 +230,7 @@ export const createCertificationSchema = z
             }
         }
     });
+
 export type CreateCertificationFormValues = z.infer<typeof createCertificationSchema>;
 
 // ---------- Export Open Data (NCL-10-CN-007) ----------
@@ -245,7 +264,34 @@ export const exportOpenDataSchema = z
             }
         }
     });
+
 export type ExportOpenDataFormValues = z.infer<typeof exportOpenDataSchema>;
+
+// ===== Import Production Lot (NCL-10-CN-006) =====
+export const importProductionLotSchema = z.object({
+    file: z
+        .instanceof(File)
+        .refine((file) => file.size > 0, 'Vui lòng chọn tệp dữ liệu')
+        .refine(
+            (file) => {
+                const name = file.name.toLowerCase();
+                return name.endsWith('.csv') || name.endsWith('.xlsx');
+            },
+            'Chỉ hỗ trợ định dạng .csv hoặc .xlsx'
+        )
+        .refine(
+            (file) => file.size <= 10 * 1024 * 1024,
+            'Dung lượng tệp không được vượt quá 10MB'
+        ),
+    organizationId: z
+        .union([z.string().uuid('Vui lòng chọn tổ chức hợp lệ'), z.literal('')])
+        .optional()
+        .transform((val) => (val === '' ? undefined : val)),
+});
+
+export type ImportProductionLotFormValues = z.infer<typeof importProductionLotSchema>;
+
+// ===== 🆕 Các schema từ file thứ hai (chưa có ở file thứ nhất) =====
 
 // ---------- Invitation (NCL-09-CN-007) ----------
 export const createInvitationSchema = z.object({

@@ -4,13 +4,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { addMember, getRoles } from '@/api/memberApi';
-import type { RoleOption } from '@/types/member';
+import type { AddMemberRequest, RoleOption } from '@/types/member';
 import { getRoleLabel } from '@/config/roleAccess';
 
 const createMemberSchema = z
@@ -21,7 +21,7 @@ const createMemberSchema = z
     fullName: z.string().min(1, 'Họ tên không được để trống'),
     phone: z.string().optional().nullable(),
     email: z.string().email('Email không hợp lệ').optional().nullable(),
-    roleId: z.number({ required_error: 'Vui lòng chọn vai trò' }),
+    roleId: z.number({ required_error: 'Vai trò là bắt buộc' }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Mật khẩu xác nhận không khớp',
@@ -35,12 +35,13 @@ export function CreateMemberForm() {
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<CreateMemberFormValues>({
     resolver: zodResolver(createMemberSchema),
@@ -51,19 +52,28 @@ export function CreateMemberForm() {
       fullName: '',
       phone: '',
       email: '',
-      roleId: undefined,
+      roleId: 0, // placeholder, sẽ được cập nhật sau
     },
   });
 
-  const selectedRoleId = watch('roleId');
-
+  // Load roles và tự động gán VT-03
   useEffect(() => {
     const loadRoles = async () => {
       try {
         setIsLoading(true);
-        const data = await getRoles();
-        // Chỉ hiển thị VT-03 (Người ghi sự kiện) khi tạo mới
-        setRoles(data.filter((role) => role.code === 'VT-03'));
+        const allRoles = await getRoles();
+        // Chỉ lấy VT-03 (Người ghi sự kiện)
+        const vt03Roles = allRoles.filter((role) => role.code === 'VT-03');
+
+        if (vt03Roles.length === 0) {
+          toast.error('Không tìm thấy vai trò VT-03. Vui lòng kiểm tra dữ liệu.');
+          return;
+        }
+
+        setRoles(vt03Roles);
+        // Tự động gán roleId của VT-03
+        const vt03Role = vt03Roles[0];
+        setValue('roleId', vt03Role.roleId);
       } catch {
         toast.error('Không thể tải danh sách vai trò');
       } finally {
@@ -71,12 +81,20 @@ export function CreateMemberForm() {
       }
     };
     loadRoles();
-  }, []);
+  }, [setValue]);
 
   const onSubmit = async (values: CreateMemberFormValues) => {
     try {
       setIsSubmitting(true);
-      const { confirmPassword, ...submitData } = values;
+      const submitData: AddMemberRequest = {
+        username: values.username,
+        password: values.password,
+        fullName: values.fullName,
+        phone: values.phone ?? null,
+        email: values.email ?? null,
+        roleId: values.roleId,
+      };
+
       await addMember(submitData);
       toast.success('Thêm thành viên thành công');
       navigate('/members');
@@ -108,14 +126,48 @@ export function CreateMemberForm() {
           {/* Mật khẩu */}
           <div className="space-y-2">
             <Label htmlFor="password">Mật khẩu *</Label>
-            <Input id="password" type="password" {...register('password')} placeholder="Mật khẩu (tối thiểu 6 ký tự)" />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                className="pr-8 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                {...register('password')}
+                placeholder="Mật khẩu (tối thiểu 6 ký tự)"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                className="absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
             {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
           </div>
 
           {/* Xác nhận mật khẩu */}
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
-            <Input id="confirmPassword" type="password" {...register('confirmPassword')} placeholder="Nhập lại mật khẩu" />
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                className="pr-8 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
+                {...register('confirmPassword')}
+                placeholder="Nhập lại mật khẩu"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                className="absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground hover:text-foreground"
+              >
+                {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
             {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
           </div>
 
@@ -140,24 +192,13 @@ export function CreateMemberForm() {
             </div>
           </div>
 
-          {/* Chọn vai trò – chỉ VT-03 */}
+          {/* Hiển thị vai trò dưới dạng text (đã mặc định VT-03) */}
           <div className="space-y-2">
-            <Label htmlFor="roleId">Vai trò *</Label>
-            <Select
-              value={selectedRoleId ? String(selectedRoleId) : ''}
-              onValueChange={(val) => setValue('roleId', Number(val))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn vai trò" />
-              </SelectTrigger>
-              <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role.roleId} value={String(role.roleId)}>
-                    {getRoleLabel(role.code)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Vai trò *</Label>
+            <div className="text-sm font-medium text-muted-foreground">
+              {roles.length > 0 ? getRoleLabel('VT-03') : 'Đang tải...'}
+            </div>
+            <input type="hidden" {...register('roleId')} />
             {errors.roleId && <p className="text-sm text-red-500">{errors.roleId.message}</p>}
           </div>
         </CardContent>
@@ -166,7 +207,7 @@ export function CreateMemberForm() {
           <Button type="button" variant="outline" onClick={() => navigate('/members')}>
             Hủy
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant="create" disabled={isSubmitting}>
             {isSubmitting ? 'Đang thêm...' : 'Thêm thành viên'}
           </Button>
         </CardFooter>

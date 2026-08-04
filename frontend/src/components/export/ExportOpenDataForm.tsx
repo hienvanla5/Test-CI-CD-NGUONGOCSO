@@ -311,7 +311,7 @@ export const ExportOpenDataForm = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
-          <Button type="submit" disabled={submitting}>
+          <Button type="submit" variant="view" disabled={submitting}>
             {submitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

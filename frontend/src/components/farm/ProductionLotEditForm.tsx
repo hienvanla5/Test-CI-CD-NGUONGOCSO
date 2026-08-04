@@ -93,7 +93,7 @@ export const ProductionLotEditForm: React.FC = () => {
         });
       } catch (error) {
         toast.error("Không thể tải thông tin lô sản xuất");
-        navigate("/");
+        navigate("/dashboard");
       } finally {
         setLoading(false);
       }
@@ -117,11 +117,11 @@ export const ProductionLotEditForm: React.FC = () => {
         farmAreaId: data.farmAreaId || null,
         productCategoryId: data.productCategoryId,
         expectedQuantity: data.expectedQuantity,
-        expectedQuantityUnit: data.expectedQuantityUnit, // ✅ Sửa: dùng đúng trường
+        expectedQuantityUnit: data.expectedQuantityUnit, 
         plantingDate: data.plantingDate,
       });
       toast.success("Cập nhật lô sản xuất thành công");
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
       const message =
         error.response?.data?.message || "Cập nhật thất bại. Vui lòng thử lại.";
@@ -298,11 +298,15 @@ export const ProductionLotEditForm: React.FC = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={() => navigate("/")}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/dashboard")}
+          >
             Hủy
           </Button>
           {editable && (
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" variant="edit" disabled={submitting}>
               {submitting ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           )}

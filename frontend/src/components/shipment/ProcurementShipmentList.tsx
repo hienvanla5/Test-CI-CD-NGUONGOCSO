@@ -6,9 +6,19 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { ProcurementShipment } from "@/types/shipment";
 import { getEligibleShipments } from "@/api/shipmentApi";
+import { ShipmentDetailDialog } from "@/components/shipment/ShipmentDetailDialog";
 import {
+  Eye,
   LoaderCircle,
   Package,
   Search,
@@ -30,10 +40,10 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusClasses: Record<string, string> = {
-  ACTIVATED: "bg-emerald-100 text-emerald-700",
-  CODE_PRINTED: "bg-blue-100 text-blue-700",
-  DRAFT: "bg-slate-100 text-slate-700",
-  RECALLED: "bg-red-100 text-red-700",
+  ACTIVATED: "bg-status-approved/10 text-status-approved",
+  CODE_PRINTED: "bg-status-packaged/10 text-status-packaged",
+  DRAFT: "bg-status-draft/10 text-status-draft",
+  RECALLED: "bg-status-rejected/10 text-status-rejected",
 };
 
 export function ProcurementShipmentList({
@@ -42,9 +52,11 @@ export function ProcurementShipmentList({
   const [shipments, setShipments] = useState<ProcurementShipment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [detailShipmentId, setDetailShipmentId] = useState<string | null>(null);
 
   const loadShipments = useCallback(async () => {
     setIsLoading(true);
+
     try {
       const data = await getEligibleShipments();
       setShipments(data);
@@ -61,144 +73,178 @@ export function ProcurementShipmentList({
 
   const filtered = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return shipments;
+
+    if (!keyword) {
+      return shipments;
+    }
 
     return shipments.filter(
-      (s) =>
-        s.name.toLowerCase().includes(keyword) ||
-        (s.productionLotName ?? "").toLowerCase().includes(keyword) ||
-        (s.productCategoryName ?? "").toLowerCase().includes(keyword),
+      (shipment) =>
+        shipment.name.toLowerCase().includes(keyword) ||
+        (shipment.productionLotName ?? "")
+          .toLowerCase()
+          .includes(keyword) ||
+        (shipment.productCategoryName ?? "")
+          .toLowerCase()
+          .includes(keyword),
     );
   }, [shipments, search]);
 
   return (
-    <Card className="overflow-hidden border-slate-200 shadow-sm">
-      <CardHeader className="border-b border-slate-100">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <CardTitle>Danh sách lô hàng sẵn sàng thu mua</CardTitle>
-            <p className="mt-1 text-sm text-slate-500">
-              Chỉ hiển thị các lô hàng đã kích hoạt tem, sẵn sàng ghi nhận thu
-              mua.
-            </p>
+    <>
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+              <CardTitle>Danh sách lô hàng sẵn sàng thu mua</CardTitle>
+
+              <p className="mt-1 text-sm text-muted-foreground">
+                Chỉ hiển thị các lô hàng đã kích hoạt tem, sẵn sàng ghi nhận thu
+                mua.
+              </p>
+            </div>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="p-0">
-        {/* Search bar */}
-        <div className="border-b bg-slate-50/70 p-4">
-          <label className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-            <Input
-              className="bg-white pl-9"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm tên lô hàng, lô sản xuất hoặc loại nông sản..."
-              aria-label="Tìm kiếm lô hàng thu mua"
-            />
-          </label>
-        </div>
+        <CardContent className="p-0">
+          <div className="border-b bg-table-header p-4">
+            <label className="relative">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] border-collapse text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                {[
-                  "Tên lô hàng",
-                  "Lô sản xuất",
-                  "Nông sản",
-                  "Sản lượng",
-                  "Trạng thái",
-                  "Thao tác",
-                ].map((title) => (
-                  <th className="px-4 py-3 font-semibold" key={title}>
-                    {title}
-                  </th>
-                ))}
-              </tr>
-            </thead>
+              <Input
+                className="bg-white pl-9"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Tìm tên lô hàng, lô sản xuất hoặc loại nông sản..."
+                aria-label="Tìm kiếm lô hàng thu mua"
+              />
+            </label>
+          </div>
 
-            <tbody>
-              {isLoading && (
-                <tr>
-                  <td
-                    className="px-4 py-12 text-center text-slate-500"
-                    colSpan={6}
-                  >
-                    <LoaderCircle className="mx-auto mb-2 size-5 animate-spin" />
-                    Đang tải danh sách lô hàng...
-                  </td>
-                </tr>
-              )}
+          <div className="overflow-x-auto">
+            <Table className="min-w-[900px]">
+              <TableHeader>
+                <TableRow>
+                  {[
+                    "Tên lô hàng",
+                    "Lô sản xuất",
+                    "Nông sản",
+                    "Sản lượng",
+                    "Trạng thái",
+                    "Thao tác",
+                  ].map((title) => (
+                    <TableHead key={title}>{title}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
 
-              {!isLoading &&
-                filtered.map((shipment) => (
-                  <tr
-                    className="border-t hover:bg-emerald-50/30"
-                    key={shipment.id}
-                  >
-                    <td className="px-4 py-4 font-semibold text-slate-900">
-                      {shipment.name}
-                    </td>
-                    <td className="px-4 py-4 text-slate-600">
-                      {shipment.productionLotName ?? "—"}
-                    </td>
-                    <td className="px-4 py-4 text-slate-600">
-                      {shipment.productCategoryName ?? "—"}
-                    </td>
-                    <td className="px-4 py-4 text-slate-600">
-                      {shipment.totalQuantity != null
-                        ? shipment.totalQuantity.toLocaleString("vi-VN")
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          statusClasses[shipment.status] ??
-                          "bg-slate-100 text-slate-700"
-                        }`}
-                      >
-                        {statusLabels[shipment.status] ?? shipment.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <Button
-                        size="sm"
-                        type="button"
-                        onClick={() => onRecordProcurement(shipment.id)}
-                      >
-                        <ShoppingCart className="size-4" />
-                        Ghi nhận thu mua
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+              <TableBody>
+                {isLoading && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="py-12 text-center text-muted-foreground"
+                    >
+                      <LoaderCircle className="mx-auto mb-2 size-5 animate-spin" />
+                      Đang tải danh sách lô hàng...
+                    </TableCell>
+                  </TableRow>
+                )}
 
-              {!isLoading && filtered.length === 0 && (
-                <tr>
-                  <td
-                    className="px-4 py-12 text-center text-slate-500"
-                    colSpan={6}
-                  >
-                    <Package className="mx-auto mb-3 size-10 text-slate-300" />
-                    <p className="font-semibold">
-                      {search.trim()
-                        ? "Không tìm thấy lô hàng phù hợp"
-                        : "Chưa có lô hàng nào sẵn sàng thu mua"}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-500">
-                      {search.trim()
-                        ? "Hãy thử thay đổi từ khóa tìm kiếm."
-                        : "Các lô hàng đã kích hoạt tem sẽ xuất hiện tại đây."}
-                    </p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+                {!isLoading &&
+                  filtered.map((shipment) => (
+                    <TableRow key={shipment.id}>
+                      <TableCell className="font-semibold text-foreground">
+                        {shipment.name}
+                      </TableCell>
+
+                      <TableCell className="text-muted-foreground">
+                        {shipment.productionLotName ?? "—"}
+                      </TableCell>
+
+                      <TableCell className="text-muted-foreground">
+                        {shipment.productCategoryName ?? "—"}
+                      </TableCell>
+
+                      <TableCell className="text-muted-foreground">
+                        {shipment.totalQuantity != null
+                          ? shipment.totalQuantity.toLocaleString("vi-VN")
+                          : "—"}
+                      </TableCell>
+
+                      <TableCell>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            statusClasses[shipment.status] ??
+                            "bg-status-draft/10 text-status-draft"
+                          }`}
+                        >
+                          {statusLabels[shipment.status] ?? shipment.status}
+                        </span>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Button
+                            size="sm"
+                            type="button"
+                            variant="outline"
+                            onClick={() =>
+                              setDetailShipmentId(shipment.id)
+                            }
+                          >
+                            <Eye className="size-4" />
+                            Chi tiết
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            type="button"
+                            onClick={() =>
+                              onRecordProcurement(shipment.id)
+                            }
+                          >
+                            <ShoppingCart className="size-4" />
+                            Ghi nhận thu mua
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                {!isLoading && filtered.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="py-12 text-center text-muted-foreground"
+                    >
+                      <Package className="mx-auto mb-3 size-10 text-muted-foreground/40" />
+
+                      <p className="font-semibold">
+                        {search.trim()
+                          ? "Không tìm thấy lô hàng phù hợp"
+                          : "Chưa có lô hàng nào sẵn sàng thu mua"}
+                      </p>
+
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {search.trim()
+                          ? "Hãy thử thay đổi từ khóa tìm kiếm."
+                          : "Các lô hàng đã kích hoạt tem sẽ xuất hiện tại đây."}
+                      </p>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <ShipmentDetailDialog
+        open={detailShipmentId !== null}
+        shipmentId={detailShipmentId}
+        onClose={() => setDetailShipmentId(null)}
+      />
+    </>
   );
 }

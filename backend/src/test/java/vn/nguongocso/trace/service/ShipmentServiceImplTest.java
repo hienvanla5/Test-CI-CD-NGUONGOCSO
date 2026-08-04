@@ -21,6 +21,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import org.springframework.context.ApplicationEventPublisher;
+import vn.nguongocso.notification.service.NotificationService;
+import vn.nguongocso.permission.service.PermissionChecker;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
@@ -62,6 +65,15 @@ class ShipmentServiceImplTest {
 
     @Mock
     private QRCodeService qrCodeService;
+
+    @Mock
+    private PermissionChecker permissionChecker;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private ShipmentServiceImpl shipmentService;
@@ -122,6 +134,8 @@ class ShipmentServiceImplTest {
         request.setName("Lô hàng cà chua số 1");
         request.setTotalQuantity(50L);
         request.setPackagingInfo("Đóng thùng 10kg");
+
+        lenient().when(traceCodeRepository.findMaxCodeValueByOrganization(any(), anyString())).thenReturn(null);
     }
 
     @AfterEach
@@ -277,6 +291,8 @@ class ShipmentServiceImplTest {
         codeRange.setUsedCount(980L);
         when(codeRangeRepository.findByOrganizationOrganizationId(organizationId))
                 .thenReturn(Optional.of(codeRange));
+        when(traceCodeRepository.findMaxCodeValueByOrganization(eq(organizationId), anyString()))
+                .thenReturn("NCL00000980");
 
         // Act & Assert
         assertThatThrownBy(() -> shipmentService.createShipment(request))
@@ -300,6 +316,9 @@ class ShipmentServiceImplTest {
 
         when(codeRangeRepository.findByOrganizationOrganizationId(organizationId))
                 .thenReturn(Optional.of(codeRange));
+
+        when(traceCodeRepository.findMaxCodeValueByOrganization(eq(organizationId), anyString()))
+                .thenReturn("NCL00000005");
 
         when(shipmentRepository.save(any(Shipment.class)))
                 .thenAnswer(invocation -> {
@@ -483,5 +502,87 @@ class ShipmentServiceImplTest {
         assertThatThrownBy(() -> shipmentService.activateShipmentStamps(shipmentId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("Người dùng không tồn tại.");
+    }
+
+    @Test
+    void getShipmentById_ShouldSuccess_WhenUserHasPermissionAndSameOrg() {
+        // Arrange
+        Shipment shipment = new Shipment();
+        shipment.setId(shipmentId);
+        shipment.setOrganization(organization);
+        shipment.setProductionLot(productionLot);
+        shipment.setName("Lô hàng cà chua");
+        shipment.setTotalQuantity(100L);
+        shipment.setStatus(ShipmentStatus.ACTIVATED);
+        shipment.setCreatedAt(LocalDateTime.now());
+
+        when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
+        when(traceCodeRepository.findByShipmentId(shipmentId)).thenReturn(List.of());
+
+        // Act
+        ShipmentResponse response = shipmentService.getShipmentById(shipmentId);
+
+        // Assert
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(shipmentId);
+        verify(permissionChecker, times(1)).check("shipment", "READ");
+    }
+
+    @Test
+    void getShipmentById_ShouldThrowException_WhenShipmentNotFound() {
+        // Arrange
+        when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> shipmentService.getShipmentById(shipmentId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("Không tìm thấy lô hàng với ID: " + shipmentId);
+    }
+
+    @Test
+    void getShipmentById_ShouldThrowException_WhenDifferentOrg() {
+        // Arrange
+        Organization otherOrganization = new Organization();
+        otherOrganization.setOrganizationId(UUID.randomUUID());
+
+        Shipment shipment = new Shipment();
+        shipment.setId(shipmentId);
+        shipment.setOrganization(otherOrganization);
+        shipment.setProductionLot(productionLot);
+
+        when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
+
+        // Act & Assert
+        assertThatThrownBy(() -> shipmentService.getShipmentById(shipmentId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("Bạn không có quyền truy cập lô hàng của tổ chức khác.");
+    }
+
+    @Test
+    void getShipmentById_ShouldSuccess_WhenDifferentOrgButAdminOrAuditor() {
+        // Arrange
+        lenient().when(currentUser.getRoleCode()).thenReturn("VT-01"); // Admin
+
+        Organization otherOrganization = new Organization();
+        otherOrganization.setOrganizationId(UUID.randomUUID());
+
+        Shipment shipment = new Shipment();
+        shipment.setId(shipmentId);
+        shipment.setOrganization(otherOrganization);
+        shipment.setProductionLot(productionLot);
+        shipment.setName("Lô hàng chè");
+        shipment.setTotalQuantity(50L);
+        shipment.setStatus(ShipmentStatus.ACTIVATED);
+        shipment.setCreatedAt(LocalDateTime.now());
+
+        when(shipmentRepository.findById(shipmentId)).thenReturn(Optional.of(shipment));
+        when(traceCodeRepository.findByShipmentId(shipmentId)).thenReturn(List.of());
+
+        // Act
+        ShipmentResponse response = shipmentService.getShipmentById(shipmentId);
+
+        // Assert
+        assertThat(response).isNotNull();
+        verify(permissionChecker, times(1)).check("shipment", "READ");
     }
 }

@@ -2,7 +2,12 @@ import { ChainEventType } from '@/enums/chainEventType';
 
 export interface OfflineEvent {
   offlineEventId: string;
-  productionLotId: string;
+  /** ID của lô sản xuất (dùng cho HARVEST, PACKAGING) */
+  productionLotId?: string;
+  /** ID của lô hàng (dùng cho TRANSPORT, PROCUREMENT) */
+  shipmentId?: string;
+  /** Mã truy xuất (dùng cho TRANSPORT để lookup shipment) */
+  codeValue?: string;
   eventType: ChainEventType;
   recordedAt: string;
   latitude: number;
@@ -10,10 +15,10 @@ export interface OfflineEvent {
   images: string[];
   deviceSource?: string;
   eventData: Record<string, any>;
-  // --- thêm mới ---
-  status?: 'pending' | 'syncing' | 'failed' | 'success';
+  status?: 'pending' | 'syncing' | 'failed' | 'success' | 'invalid';
   errorMessage?: string;
   retryCount?: number;
+  lastSyncAttempt?: number;
 }
 
 export interface OfflineSyncRequest {

@@ -15,9 +15,10 @@ export const ROLE_ACCESS = {
   packagingEventCreate: ['VT-02', 'VT-03'] as const,
   packagingEventCorrect: ['VT-02', 'VT-03'] as const,
   transportEventRecord: ["VT-03"] as const,
+  scanQuickEvent: ["VT-03"] as const,
 
   codeRangeList: ['VT-01'] as const,
-
+  
   memberManagement: ['VT-02'] as const,
 
   scanAnomalyAlerts: ['VT-01', 'VT-02'] as const,
@@ -32,11 +33,17 @@ export const ROLE_ACCESS = {
   // ✅ Từ file 2
   exportOpenData: ['VT-05'] as const,
 
+  // ✅ Từ file 1
+  seasonYieldComparison: ['VT-01', 'VT-05'] as const,
+
+  // ✅ Từ file 2
+  rolePermissionConfig: ['VT-02'] as const,
+
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
 export function hasAnyRole(
-    userRole: string | undefined,
-    allowedRoles: readonly AuthenticatedRoleCode[],
+  userRole: string | undefined,
+  allowedRoles: readonly AuthenticatedRoleCode[],
 ): boolean {
   if (!userRole) return false;
   return allowedRoles.includes(userRole as AuthenticatedRoleCode);
