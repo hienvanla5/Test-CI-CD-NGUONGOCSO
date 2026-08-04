@@ -142,22 +142,12 @@ export const HarvestForm = ({
     }
 
     try {
-      let base64Images: string[] = [];
-      try {
-        base64Images = await Promise.all(imageFiles.map(fileToBase64));
-      } catch {
-        toast.error('Không thể xử lý ảnh. Vui lòng thử lại.');
-        setIsSubmitting(false);
-        return;
-      }
-
       await recordHarvestEvent({
         productionLotId,
         harvestDate: data.harvestDate,
         quantity: data.quantity,
         latitude: data.latitude || undefined,
         longitude: data.longitude || undefined,
-        images: base64Images.length > 0 ? base64Images : undefined,
       });
       toast.success(`Đã ghi nhận thu hoạch cho lô "${productionLotName}"`);
       reset();
@@ -328,7 +318,7 @@ export const HarvestForm = ({
               Hủy
             </Button>
           )}
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" variant= "create" disabled={isSubmitting}>
             {isSubmitting && <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />}
             {isSubmitting ? 'Đang ghi nhận...' : 'Ghi nhận thu hoạch'}
           </Button>

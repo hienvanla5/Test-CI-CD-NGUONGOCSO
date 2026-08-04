@@ -12,4 +12,4 @@ VALUES
 INSERT INTO role_permissions
 (id, role_id, permission_id, is_enabled, created_at)
 VALUES
-(UUID(), 2, 7, b'1', NOW());   -- VT-02
+(UUID(), 2, 7, b'1', NOW());   

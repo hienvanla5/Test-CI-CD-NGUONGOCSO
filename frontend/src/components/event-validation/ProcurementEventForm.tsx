@@ -144,7 +144,7 @@ export function ProcurementEventForm() {
       )}
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={isLoading} className="flex-1">
+        <Button type="submit" variant="view" disabled={isLoading} className="flex-1">
           {isLoading ? (
             <LoaderCircle className="size-4 animate-spin" />
           ) : (

@@ -66,7 +66,7 @@ export const CertificationList = ({ certifications, onDetach, canManage, loading
               {canManage && (
                 <TableCell className="text-right">
                   <Button
-                    variant="ghost"
+                    variant="delete"
                     size="sm"
                     onClick={() => onDetach(cert.certificationId)}
                     title="Gỡ chứng nhận"

@@ -1,4 +1,4 @@
-package vn.nguongocso.auth.service;
+package vn.nguongocso.organization.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +17,7 @@ import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.enums.UserStatus;
 import vn.nguongocso.auth.repository.RoleRepository;
 import vn.nguongocso.auth.repository.UserRepository;
+import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.exception.ResourceNotFoundException;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PermissionService {
+public class OrganizationMemberService {
 
     private final OrganizationUserRepository orgUserRepository;
     private final UserRepository userRepository;

@@ -122,7 +122,7 @@ export const OrganizationProfileForm: React.FC = () => {
         <CardFooter className="flex justify-end gap-2">
           {!isEditing ? (
             canEdit && (
-              <Button type="button" onClick={() => setIsEditing(true)}>
+              <Button type="button" variant="edit" onClick={() => setIsEditing(true)}>
                 Chỉnh sửa
               </Button>
             )

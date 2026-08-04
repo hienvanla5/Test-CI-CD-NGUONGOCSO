@@ -55,7 +55,7 @@ export default function FarmAreaListPage() {
             Làm mới
           </Button>
           {canCreate && (
-            <Button onClick={() => navigate('/farm-areas/create')}>
+            <Button onClick={() => navigate('/farm-areas/create')} variant="create">
               <Plus className="h-4 w-4 mr-1" />
               Tạo vùng trồng
             </Button>
