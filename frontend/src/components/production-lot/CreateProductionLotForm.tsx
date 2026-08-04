@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,17 +6,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type {
   CreateProductionLotRequest,
   FarmAreaOption,
   ProductCategoryOption,
-} from '@/types/productionLot';
-import axios from 'axios';
-import {CheckCircle2, PackageOpen, Sprout } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+} from "@/types/productionLot";
+import axios from "axios";
+import { CheckCircle2, PackageOpen, Sprout } from "lucide-react";
+import { useState, type FormEvent } from "react";
 
 interface CreateProductionLotFormProps {
   farmAreas: FarmAreaOption[];
@@ -39,16 +39,16 @@ interface ApiErrorResponse {
 }
 
 const initialForm: CreateProductionLotRequest = {
-  name: '',
+  name: "",
   farmAreaId: null,
-  productCategoryId: '',
+  productCategoryId: "",
   expectedQuantity: 0,
-  expectedQuantityUnit: 'kg',
+  expectedQuantityUnit: "kg",
   plantingDate: null,
 };
 
 const selectClassName =
-  'h-10 w-full rounded-lg border border-input bg-white px-3 text-sm outline-none transition focus:border-emerald-600 focus:ring-3 focus:ring-emerald-100';
+  "h-10 w-full rounded-lg border border-input bg-white px-3 text-sm outline-none transition focus:border-emerald-600 focus:ring-3 focus:ring-emerald-100";
 
 const CreateProductionLotForm = ({
   farmAreas,
@@ -60,21 +60,21 @@ const CreateProductionLotForm = ({
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCreated, setIsCreated] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+  const [submitError, setSubmitError] = useState("");
 
   const validate = () => {
     const nextErrors: FormErrors = {};
 
     if (!form.name.trim()) {
-      nextErrors.name = 'Tên lô không được để trống.';
+      nextErrors.name = "Tên lô không được để trống.";
     }
 
     if (!form.productCategoryId) {
-      nextErrors.productCategoryId = 'Vui lòng chọn loại nông sản.';
+      nextErrors.productCategoryId = "Vui lòng chọn loại nông sản.";
     }
 
     if (!Number.isFinite(form.expectedQuantity) || form.expectedQuantity <= 0) {
-      nextErrors.expectedQuantity = 'Sản lượng dự kiến phải lớn hơn 0.';
+      nextErrors.expectedQuantity = "Sản lượng dự kiến phải lớn hơn 0.";
     }
 
     setErrors(nextErrors);
@@ -84,7 +84,7 @@ const CreateProductionLotForm = ({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsCreated(false);
-    setSubmitError('');
+    setSubmitError("");
 
     if (!validate()) return;
 
@@ -112,11 +112,11 @@ const CreateProductionLotForm = ({
         }
 
         setSubmitError(
-          responseData?.message
-            || 'Không thể tạo lô sản xuất. Vui lòng kiểm tra lại dữ liệu.',
+          responseData?.message ||
+            "Không thể tạo lô sản xuất. Vui lòng kiểm tra lại dữ liệu.",
         );
       } else {
-        setSubmitError('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+        setSubmitError("Không thể kết nối đến máy chủ. Vui lòng thử lại.");
       }
     } finally {
       setIsSubmitting(false);
@@ -145,43 +145,49 @@ const CreateProductionLotForm = ({
               id="productionLotName"
               value={form.name}
               onChange={(event) => {
-                setForm((current) => ({ ...current, name: event.target.value }));
+                setForm((current) => ({
+                  ...current,
+                  name: event.target.value,
+                }));
                 setErrors((current) => ({ ...current, name: undefined }));
               }}
               aria-invalid={Boolean(errors.name)}
               placeholder="Ví dụ: Lô xoài Cát Chu xuất khẩu đợt 1 - 2026"
             />
-            {errors.name && <p className="text-xs text-red-600">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-xs text-red-600">{errors.name}</p>
+            )}
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="farmAreaId">
                 Vùng trồng
-                <span className="font-normal text-slate-400">(không bắt buộc)</span>
+                <span className="font-normal text-slate-400">
+                  (không bắt buộc)
+                </span>
               </Label>
               <select
                 id="farmAreaId"
                 className={selectClassName}
-                value={form.farmAreaId ?? ''}
-                onChange={(event) =>
-                  {
-                    setForm((current) => ({
-                      ...current,
-                      farmAreaId: event.target.value || null,
-                    }));
-                    setErrors((current) => ({
-                      ...current,
-                      farmAreaId: undefined,
-                    }));
-                  }
-                }
+                value={form.farmAreaId ?? ""}
+                onChange={(event) => {
+                  setForm((current) => ({
+                    ...current,
+                    farmAreaId: event.target.value || null,
+                  }));
+                  setErrors((current) => ({
+                    ...current,
+                    farmAreaId: undefined,
+                  }));
+                }}
                 aria-invalid={Boolean(errors.farmAreaId)}
               >
                 <option value="">Không chọn vùng trồng</option>
                 {farmAreas.map((area) => (
                   <option key={area.id} value={area.id}>
-                    {area.name}{area.area ? ` · ${area.area} ha` : ''}
+                    {area.name}
+                    {area.area ? ` · ${area.area} ha` : ""}
                   </option>
                 ))}
               </select>
@@ -221,7 +227,9 @@ const CreateProductionLotForm = ({
                 ))}
               </select>
               {errors.productCategoryId && (
-                <p className="text-xs text-red-600">{errors.productCategoryId}</p>
+                <p className="text-xs text-red-600">
+                  {errors.productCategoryId}
+                </p>
               )}
             </div>
           </div>
@@ -244,7 +252,7 @@ const CreateProductionLotForm = ({
                     min="0.01"
                     step="0.01"
                     className="pr-14"
-                    value={form.expectedQuantity || ''}
+                    value={form.expectedQuantity || ""}
                     onChange={(event) => {
                       setForm((current) => ({
                         ...current,
@@ -263,21 +271,25 @@ const CreateProductionLotForm = ({
                   </span>
                 </div>
                 {errors.expectedQuantity && (
-                  <p className="text-xs text-red-600">{errors.expectedQuantity}</p>
+                  <p className="text-xs text-red-600">
+                    {errors.expectedQuantity}
+                  </p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="plantingDate">
                   Ngày gieo trồng
-                  <span className="font-normal text-slate-400">(không bắt buộc)</span>
+                  <span className="font-normal text-slate-400">
+                    (không bắt buộc)
+                  </span>
                 </Label>
-                <div className="relative">
+                <div className="flex gap-2">
                   <Input
                     id="plantingDate"
                     type="date"
-                    className="[&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                    value={form.plantingDate ?? ''}
+                    className="flex-1 [&::-webkit-calendar-picker-indicator]:ml-auto [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    value={form.plantingDate ?? ""}
                     onChange={(event) => {
                       setForm((current) => ({
                         ...current,
@@ -290,6 +302,24 @@ const CreateProductionLotForm = ({
                     }}
                     aria-invalid={Boolean(errors.plantingDate)}
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const today = new Date().toISOString().split("T")[0];
+                      setForm((current) => ({
+                        ...current,
+                        plantingDate: today,
+                      }));
+                      setErrors((current) => ({
+                        ...current,
+                        plantingDate: undefined,
+                      }));
+                    }}
+                  >
+                    Hôm nay
+                  </Button>
                 </div>
                 {errors.plantingDate && (
                   <p className="text-xs text-red-600">{errors.plantingDate}</p>
@@ -331,7 +361,7 @@ const CreateProductionLotForm = ({
             className="bg-emerald-700 text-white hover:bg-emerald-800"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Đang tạo...' : 'Tạo lô sản xuất'}
+            {isSubmitting ? "Đang tạo..." : "Tạo lô sản xuất"}
           </Button>
         </CardFooter>
       </form>
