@@ -62,3 +62,24 @@ export interface Organization {
   createdAt: string;
   updatedAt?: string;
 }
+
+export interface OrganizationUser {
+  id: string;
+  organizationId: string;
+  userId: string;
+  username: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  roleId: number;
+  roleCode: string;
+  roleName: string;
+  customPermissions: string | null;
+  status: "ACTIVE" | "INACTIVE";
+  joinedAt: string;
+}
+
+export interface OrganizationDetailResponse {
+  profile: OrganizationProfile;
+  members: OrganizationUser[];
+}
