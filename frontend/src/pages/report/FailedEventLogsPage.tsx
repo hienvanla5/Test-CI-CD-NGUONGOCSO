@@ -4,20 +4,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw, AlertTriangle, Maximize2, Minimize2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getFailedLogs } from '@/api/eventValidationApi';
 import type { FailedEventLog } from '@/types/eventValidation';
 import type { PageResponse } from '@/types/common';
 
-// 👇 Thêm mapping loại sự kiện
-const EVENT_TYPE_LABELS: Record<string, string> = {
-  HARVEST: 'Thu hoạch',
-  PACKAGING: 'Đóng gói',
-  TRANSPORT: 'Vận chuyển',
-  PROCUREMENT: 'Thu mua',
-  MOBILE: 'Ngoài đồng',
-  // Có thể thêm các loại khác nếu cần
+// Ánh xạ loại sự kiện sang tiếng Việt và màu badge
+const EVENT_TYPE_CONFIG: Record<string, { label: string; className: string }> = {
+  HARVEST: { label: 'Thu hoạch', className: 'bg-lime-100 text-lime-700 border-lime-300' },
+  PACKAGING: { label: 'Đóng gói', className: 'bg-sky-100 text-sky-700 border-sky-300' },
+  TRANSPORT: { label: 'Vận chuyển', className: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+  PROCUREMENT: { label: 'Thu mua', className: 'bg-amber-100 text-amber-700 border-amber-300' },
+  MOBILE: { label: 'Ngoài đồng', className: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
 };
 
 const formatDate = (iso: string) => {
@@ -48,6 +47,7 @@ export default function FailedEventLogsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
+  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
   const fetchLogs = async () => {
     try {
@@ -73,119 +73,172 @@ export default function FailedEventLogsPage() {
     fetchLogs();
   }, [page, size]);
 
+  const toggleExpand = (logId: string) => {
+    setExpandedLogId(expandedLogId === logId ? null : logId);
+  };
+
+  const getEventTypeBadge = (type: string) => {
+    const config = EVENT_TYPE_CONFIG[type] || { label: type, className: 'bg-gray-100 text-gray-700 border-gray-300' };
+    return (
+      <Badge variant="outline" className={`${config.className} border text-xs font-semibold`}>
+        {config.label}
+      </Badge>
+    );
+  };
+
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Nhật ký sự kiện bị chặn</h1>
-          <p className="text-sm text-muted-foreground">
-            Danh sách các lần ghi sự kiện bị từ chối do sai lô
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/50 via-white to-green-50/30 px-4 py-8 md:px-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-emerald-800">
+                Nhật ký sự kiện bị chặn
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Các lần ghi sự kiện bị từ chối do sai lô hoặc vi phạm quy tắc
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" onClick={fetchLogs} disabled={loading} className="border-emerald-200 hover:bg-emerald-50">
+            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            Làm mới
+          </Button>
         </div>
-        <Button variant="outline" onClick={fetchLogs} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-          Làm mới
-        </Button>
+
+        {/* Card chứa bảng */}
+        <Card className="border-emerald-100 bg-white/80 backdrop-blur-sm shadow-sm">
+          <CardHeader className="border-b border-emerald-100 flex flex-row items-center justify-between pb-3">
+            <div>
+              <CardTitle className="text-lg font-bold text-emerald-800">
+                Danh sách lỗi
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Tổng số: {pageInfo.totalElements} bản ghi
+              </p>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="flex justify-center items-center py-16 text-muted-foreground">
+                <RefreshCw className="h-5 w-5 animate-spin mr-2 text-emerald-500" />
+                Đang tải dữ liệu...
+              </div>
+            ) : logs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <AlertTriangle className="h-10 w-10 text-emerald-300 mb-3" />
+                <p className="font-semibold text-emerald-800">Chưa có bản ghi lỗi nào</p>
+                <p className="text-sm">Hệ thống đang hoạt động ổn định.</p>
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-emerald-50/50">
+                        <TableHead className="text-emerald-800 font-semibold">Thời gian</TableHead>
+                        <TableHead className="text-emerald-800 font-semibold">Người thực hiện</TableHead>
+                        <TableHead className="text-emerald-800 font-semibold">Loại sự kiện</TableHead>
+                        <TableHead className="text-emerald-800 font-semibold">Mã lô</TableHead>
+                        <TableHead className="text-emerald-800 font-semibold w-[40%]">Lý do</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {logs.map((log) => (
+                        <TableRow key={log.id} className="hover:bg-emerald-50/20 transition-colors">
+                          <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                            {formatDate(log.attemptedAt)}
+                          </TableCell>
+                          <TableCell className="font-medium">{log.userFullName}</TableCell>
+                          <TableCell>{getEventTypeBadge(log.eventType)}</TableCell>
+                          <TableCell className="font-mono text-sm text-emerald-700">
+                            {log.lotCode}
+                          </TableCell>
+                          <TableCell className="py-3">
+                            <div
+                              className={`relative group cursor-pointer rounded-md p-2 transition-colors ${
+                                expandedLogId === log.id
+                                  ? 'bg-amber-50 border border-amber-200'
+                                  : 'hover:bg-amber-50/50 border border-transparent'
+                              }`}
+                              onClick={() => toggleExpand(log.id)}
+                              title="Bấm để xem đầy đủ"
+                            >
+                              <div className={`${expandedLogId === log.id ? '' : 'line-clamp-2'} text-sm text-amber-800`}>
+                                {log.failureReason}
+                              </div>
+                              <div className="flex justify-end mt-1">
+                                {expandedLogId === log.id ? (
+                                  <Minimize2 className="h-3 w-3 text-amber-500" />
+                                ) : (
+                                  <Maximize2 className="h-3 w-3 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Phân trang */}
+                <div className="flex items-center justify-between border-t border-emerald-100 px-4 py-3">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>Hiển thị</span>
+                    <Select
+                      value={String(size)}
+                      onValueChange={(val) => {
+                        setSize(Number(val));
+                        setPage(0);
+                      }}
+                    >
+                      <SelectTrigger className="w-[70px] h-8 border-emerald-200">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[5, 10, 20, 50].map((s) => (
+                          <SelectItem key={s} value={String(s)}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <span>bản ghi</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page - 1)}
+                      disabled={pageInfo.first}
+                      className="border-emerald-200 hover:bg-emerald-50"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm text-emerald-800 font-medium">
+                      Trang {pageInfo.page + 1} / {pageInfo.totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(page + 1)}
+                      disabled={pageInfo.last}
+                      className="border-emerald-200 hover:bg-emerald-50"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-medium">Danh sách</CardTitle>
-          <span className="text-sm text-muted-foreground">
-            Tổng số: {pageInfo.totalElements} bản ghi
-          </span>
-        </CardHeader>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex justify-center py-12">Đang tải...</div>
-          ) : logs.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Chưa có lần ghi sự kiện bị chặn nào.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Thời gian</TableHead>
-                    <TableHead>Người thực hiện</TableHead>
-                    <TableHead>Loại sự kiện</TableHead>
-                    <TableHead>Mã lô</TableHead>
-                    <TableHead>Lý do</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {logs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="whitespace-nowrap text-sm">
-                        {formatDate(log.attemptedAt)}
-                      </TableCell>
-                      <TableCell>{log.userFullName}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {EVENT_TYPE_LABELS[log.eventType] || log.eventType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">{log.lotCode}</TableCell>
-                      <TableCell className="max-w-[300px] text-amber-700">
-                        {log.failureReason}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-
-          {!loading && pageInfo.totalPages > 1 && (
-            <div className="flex items-center justify-between border-t px-4 py-3">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Hiển thị</span>
-                <Select
-                  value={String(size)}
-                  onValueChange={(val) => {
-                    setSize(Number(val));
-                    setPage(0);
-                  }}
-                >
-                  <SelectTrigger className="w-[70px] h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[5, 10, 20, 50].map((s) => (
-                      <SelectItem key={s} value={String(s)}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <span>bản ghi</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(page - 1)}
-                  disabled={pageInfo.first}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm">
-                  Trang {pageInfo.page + 1} / {pageInfo.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(page + 1)}
-                  disabled={pageInfo.last}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

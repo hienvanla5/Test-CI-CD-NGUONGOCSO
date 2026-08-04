@@ -100,28 +100,33 @@ export const CropAreaFilter = ({
   };
 
   return (
-    <Card>
-      <CardContent className="p-4">
+    <Card className="border-emerald-100 bg-white/80 backdrop-blur-sm shadow-sm">
+      <CardContent className="p-5">
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div>
-              <Label htmlFor="year">Năm</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="year" className="text-sm font-medium text-emerald-800">
+                Năm
+              </Label>
               <Input
                 id="year"
                 type="number"
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
                 placeholder="VD: 2026"
+                className="border-emerald-200 focus-visible:ring-emerald-100"
               />
             </div>
 
-            <div>
-              <Label htmlFor="productCategory">Loại nông sản</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="productCategory" className="text-sm font-medium text-emerald-800">
+                Loại nông sản
+              </Label>
               <Select
                 value={productCategoryId}
                 onValueChange={(value) => setProductCategoryId(value || "")}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full border-emerald-200 focus:ring-emerald-100">
                   <SelectValue placeholder="Tất cả">
                     {productCategoryId
                       ? getCategoryName(productCategoryId)
@@ -139,13 +144,15 @@ export const CropAreaFilter = ({
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="farmArea">Vùng trồng</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="farmArea" className="text-sm font-medium text-emerald-800">
+                Vùng trồng
+              </Label>
               <Select
                 value={farmAreaId}
                 onValueChange={(value) => setFarmAreaId(value || "")}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full border-emerald-200 focus:ring-emerald-100">
                   <SelectValue placeholder="Tất cả">
                     {farmAreaId ? getFarmAreaName(farmAreaId) : "Tất cả"}
                   </SelectValue>
@@ -162,13 +169,15 @@ export const CropAreaFilter = ({
             </div>
 
             {currentUserRole === "VT-01" && (
-              <div>
-                <Label htmlFor="organization">Tổ chức</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="organization" className="text-sm font-medium text-emerald-800">
+                  Tổ chức
+                </Label>
                 <Select
                   value={organizationId}
                   onValueChange={(value) => setOrganizationId(value || "")}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full border-emerald-200 focus:ring-emerald-100">
                     <SelectValue placeholder="Tất cả">
                       {organizationId
                         ? getOrganizationName(organizationId)

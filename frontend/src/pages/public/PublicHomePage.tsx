@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BrowserQRCodeReader } from "@zxing/browser";
-import { LogIn, QrCode, ScanLine, Sprout, Leaf, Search, ArrowRight, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
+import {
+  LogIn,
+  ScanLine,
+  Search,
+  ShieldCheck,
+  Truck,
+  BadgeCheck,
+} from "lucide-react";
+import { Logo } from "@/components/common/Logo";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -153,22 +161,20 @@ export default function PublicHomePage() {
       </div>
 
       {/* Header */}
-      <header className="w-full py-4 px-6 flex justify-between items-center relative z-10">
-        <div className="flex items-center gap-2">
-          <Sprout className="h-6 w-6 text-emerald-700" />
-          <span className="font-bold text-lg text-emerald-800">Nguồn gốc số</span>
-        </div>
-        {!isAuthLoading && !user && (
-          <Button
-            variant="outline"
-            className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
-            onClick={() => navigate("/login")}
-          >
-            <LogIn className="h-4 w-4" />
-            Đăng nhập
-          </Button>
-        )}
-      </header>
+<header className="w-full h-25 px-6 flex justify-between items-center relative z-10">
+  <Logo height={100} />
+
+  {!isAuthLoading && !user && (
+    <Button
+      variant="outline"
+      className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+      onClick={() => navigate("/login")}
+    >
+      <LogIn className="h-4 w-4" />
+      Đăng nhập
+    </Button>
+  )}
+</header>
 
       {/* Hero Section */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8 md:py-16 relative z-10 flex flex-col lg:flex-row items-center gap-12">
@@ -176,7 +182,6 @@ export default function PublicHomePage() {
         <div className="flex-1 text-center lg:text-left space-y-6">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
-              <Leaf className="h-4 w-4" />
               Truy xuất nguồn gốc thực phẩm
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight">

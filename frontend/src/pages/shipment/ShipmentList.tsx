@@ -15,7 +15,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BadgeCheck, FileText, Plus, QrCode, Ban, MoreHorizontal, History } from "lucide-react";
+import {
+  BadgeCheck,
+  FileText,
+  Plus,
+  QrCode,
+  Ban,
+  MoreHorizontal,
+  History,
+  Eye,
+} from "lucide-react";
 import { useShipments } from "@/hooks/useShipments";
 import { useRecallShipment } from "@/hooks/useRecallShipment";
 import type { Shipment, CreateShipmentPayload } from "@/types/shipment";
@@ -24,6 +33,7 @@ import { QrCodeGrid } from "@/components/shipment/QrCodeGrid";
 import { ShipmentTimelineDialog } from "@/components/shipment/ShipmentTimelineDialog";
 import { ActivateShipmentDialog } from "@/components/shipment/ActivateShipmentDialog";
 import { RecallShipmentDialog } from "@/components/shipment/RecallShipmentDialog";
+import { ShipmentDetailDialog } from "@/components/shipment/ShipmentDetailDialog";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -67,15 +77,21 @@ export const ShipmentList = ({
 }: ShipmentListProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(
     null,
   );
+
+  const [detailShipmentId, setDetailShipmentId] = useState<string | null>(null);
+
   const [activatingShipment, setActivatingShipment] = useState<Shipment | null>(
     null,
   );
+
   const [recallingShipment, setRecallingShipment] = useState<Shipment | null>(
     null,
   );
+
   const [timelineDialog, setTimelineDialog] = useState<{
     open: boolean;
     shipmentId: string;
@@ -149,39 +165,54 @@ export const ShipmentList = ({
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
+
       // Lấy tên file từ Content-Disposition hoặc tự tạo
       const contentDisposition = (blob as any).headers?.get?.(
         "content-disposition",
       );
-      let fileName = `Ho_so_truy_xuat_${shipment.name}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+      let fileName = `Ho_so_truy_xuat_${shipment.name}_${new Date()
+        .toISOString()
+        .slice(0, 10)}.pdf`;
+
       if (contentDisposition) {
         const match = contentDisposition.match(
           /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
         );
-        if (match && match[1]) fileName = match[1].replace(/['"]/g, "");
+
+        if (match && match[1]) {
+          fileName = match[1].replace(/['"]/g, "");
+        }
       }
+
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+
       toast.success("Tải hồ sơ thành công");
     } catch (error: any) {
       const msg =
         error.response?.data?.message || "Có lỗi xảy ra khi xuất hồ sơ.";
+
       toast.error(msg);
     }
   };
 
   const handleDeleteDraft = async (shipment: Shipment) => {
-    if (!confirm(`Bạn có chắc chắn muốn hủy bản nháp "${shipment.name}"?`))
+    if (!confirm(`Bạn có chắc chắn muốn hủy bản nháp "${shipment.name}"?`)) {
       return;
+    }
+
     try {
       await deleteDraft(shipment.id);
       toast.success("Hủy bản nháp thành công");
-      reload(); // 👈 gọi reload để refresh danh sách
+      reload();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Không thể hủy bản nháp");
+      toast.error(
+        error.response?.data?.message || "Không thể hủy bản nháp",
+      );
     }
   };
 
@@ -191,19 +222,21 @@ export const ShipmentList = ({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Danh sách lô hàng</CardTitle>
+
             {canCreate && productionLotStatus === "PACKAGED" && (
               <Button onClick={() => setModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-1" />
+                <Plus className="mr-1 h-4 w-4" />
                 Tạo lô hàng
               </Button>
             )}
           </div>
         </CardHeader>
+
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Đang tải...</div>
+            <div className="py-8 text-center">Đang tải...</div>
           ) : shipments.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="py-8 text-center text-muted-foreground">
               Chưa có lô hàng nào cho lô sản xuất này.
             </div>
           ) : (
@@ -220,36 +253,47 @@ export const ShipmentList = ({
                     <TableHead className="text-center">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {shipments.map((shipment) => (
                     <TableRow key={shipment.id}>
                       <TableCell className="font-medium">
                         {shipment.name}
                       </TableCell>
+
                       <TableCell className="text-center">
                         {shipment.totalQuantity}
                       </TableCell>
-                      <TableCell>{shipment.packagingInfo || "—"}</TableCell>
+
+                      <TableCell>
+                        {shipment.packagingInfo || "—"}
+                      </TableCell>
+
                       <TableCell>
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                             statusColorMap[shipment.status] ||
+                            statusColorMap[shipment.status] ||
                             "bg-status-draft/10 text-status-draft"
                           }`}
                         >
                           {statusLabelMap[shipment.status] || shipment.status}
                         </span>
                       </TableCell>
-                      <TableCell>{formatDate(shipment.createdAt)}</TableCell>
+
+                      <TableCell>
+                        {formatDate(shipment.createdAt)}
+                      </TableCell>
+
                       <TableCell className="text-center">
                         {shipment.traceCodes?.length || 0}
                       </TableCell>
+
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <Button
                             size="sm"
                             variant="outline"
-                            className="px-2.5 py-1 text-xs h-auto"
+                            className="h-auto px-2.5 py-1 text-xs"
                             onClick={() => openQrDialog(shipment)}
                           >
                             <QrCode className="mr-1 h-3 w-3" />
@@ -263,7 +307,17 @@ export const ShipmentList = ({
                             >
                               <MoreHorizontal className="size-4" />
                             </DropdownMenuTrigger>
+
                             <DropdownMenuContent>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setDetailShipmentId(shipment.id)
+                                }
+                              >
+                                <Eye className="size-4" />
+                                Chi tiết
+                              </DropdownMenuItem>
+
                               {canActivate &&
                                 shipment.status === "CODE_PRINTED" && (
                                   <DropdownMenuItem
@@ -275,6 +329,7 @@ export const ShipmentList = ({
                                     Kích hoạt
                                   </DropdownMenuItem>
                                 )}
+
                               <DropdownMenuItem
                                 onClick={() =>
                                   setTimelineDialog({
@@ -287,6 +342,7 @@ export const ShipmentList = ({
                                 <History className="size-4" />
                                 Sự kiện
                               </DropdownMenuItem>
+
                               <DropdownMenuItem
                                 onClick={() => handleExportDossier(shipment)}
                               >
@@ -294,26 +350,33 @@ export const ShipmentList = ({
                                 Xuất hồ sơ
                               </DropdownMenuItem>
 
-                              {((canRecall && shipment.status !== "RECALLED") ||
+                              {((canRecall &&
+                                shipment.status !== "RECALLED") ||
                                 shipment.status === "DRAFT" ||
                                 shipment.status === "CODE_PRINTED") && (
                                 <DropdownMenuSeparator />
                               )}
 
-                              {canRecall && shipment.status !== "RECALLED" && (
-                                <DropdownMenuItem
-                                  variant="destructive"
-                                  onClick={() => setRecallingShipment(shipment)}
-                                >
-                                  <Ban className="size-4" />
-                                  Thu hồi
-                                </DropdownMenuItem>
-                              )}
+                              {canRecall &&
+                                shipment.status !== "RECALLED" && (
+                                  <DropdownMenuItem
+                                    variant="destructive"
+                                    onClick={() =>
+                                      setRecallingShipment(shipment)
+                                    }
+                                  >
+                                    <Ban className="size-4" />
+                                    Thu hồi
+                                  </DropdownMenuItem>
+                                )}
+
                               {(shipment.status === "DRAFT" ||
                                 shipment.status === "CODE_PRINTED") && (
                                 <DropdownMenuItem
                                   variant="destructive"
-                                  onClick={() => handleDeleteDraft(shipment)}
+                                  onClick={() =>
+                                    handleDeleteDraft(shipment)
+                                  }
                                 >
                                   Hủy nháp
                                 </DropdownMenuItem>
@@ -345,35 +408,52 @@ export const ShipmentList = ({
       >
         <DialogContent
           className="
+            flex
+            max-h-[90vh]
             w-[95vw]
             max-w-7xl
-            max-h-[90vh]
-            flex
             flex-col
             overflow-hidden
           "
         >
           <DialogHeader>
-            <DialogTitle>Mã QR - {selectedShipment?.name || ""}</DialogTitle>
+            <DialogTitle>
+              Mã QR - {selectedShipment?.name || ""}
+            </DialogTitle>
           </DialogHeader>
-          <div className="flex items-center justify-between text-sm text-muted-foreground pb-2 border-b">
-            <span>Tổng số mã: {selectedShipment?.traceCodes?.length || 0}</span>
+
+          <div className="flex items-center justify-between border-b pb-2 text-sm text-muted-foreground">
+            <span>
+              Tổng số mã: {selectedShipment?.traceCodes?.length || 0}
+            </span>
+
             <span className="text-xs text-muted-foreground">
               Trạng thái:{" "}
-              <span className="font-medium text-primary">INACTIVE</span>
+              <span className="font-medium text-primary">
+                INACTIVE
+              </span>
             </span>
           </div>
+
           <div className="flex-1 overflow-y-auto py-4 pr-1">
             {selectedShipment && (
               <div className="overflow-x-auto">
                 <div className="min-w-max">
-                  <QrCodeGrid traceCodes={selectedShipment.traceCodes || []} />
+                  <QrCodeGrid
+                    traceCodes={selectedShipment.traceCodes || []}
+                  />
                 </div>
               </div>
             )}
           </div>
         </DialogContent>
       </Dialog>
+
+      <ShipmentDetailDialog
+        open={detailShipmentId !== null}
+        shipmentId={detailShipmentId}
+        onClose={() => setDetailShipmentId(null)}
+      />
 
       <ShipmentTimelineDialog
         open={timelineDialog.open}
@@ -390,7 +470,9 @@ export const ShipmentList = ({
 
       <ActivateShipmentDialog
         shipment={activatingShipment}
-        isActivating={activatingShipmentId === activatingShipment?.id}
+        isActivating={
+          activatingShipmentId === activatingShipment?.id
+        }
         onClose={() => setActivatingShipment(null)}
         onConfirm={async (shipmentId) => {
           await activateShipment(shipmentId);

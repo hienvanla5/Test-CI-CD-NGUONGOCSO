@@ -163,50 +163,56 @@ export default function LookupStatisticsPage() {
         </Button>
       </div>
 
-      {/* Bộ lọc với các nút nhanh */}
-      <Card>
+      {/* Bộ lọc */}
+      <Card className="border-emerald-100 bg-white/80 backdrop-blur-sm shadow-sm">
         <CardContent className="p-4 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Từ ngày */}
-            <div>
-              <Label htmlFor="startDate">Từ ngày</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="startDate" className="text-sm font-medium text-emerald-800">
+                Từ ngày
+              </Label>
               <div className="relative">
                 <Input
                   id="startDate"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 border-emerald-200 focus-visible:ring-emerald-100"
                 />
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               </div>
             </div>
 
             {/* Đến ngày */}
-            <div>
-              <Label htmlFor="endDate">Đến ngày</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="endDate" className="text-sm font-medium text-emerald-800">
+                Đến ngày
+              </Label>
               <div className="relative">
                 <Input
                   id="endDate"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 border-emerald-200 focus-visible:ring-emerald-100"
                 />
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               </div>
             </div>
 
             {/* Nhóm theo */}
-            <div>
-              <Label htmlFor="groupBy">Nhóm theo</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="groupBy" className="text-sm font-medium text-emerald-800">
+                Nhóm theo
+              </Label>
               <Select
                 value={groupBy}
                 onValueChange={(value: string | null) => {
                   if (value) setGroupBy(value as GroupByType);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="border-emerald-200 focus:ring-emerald-100">
                   <SelectValue placeholder="Chọn nhóm">
                     {groupByLabels[groupBy]}
                   </SelectValue>
@@ -223,7 +229,7 @@ export default function LookupStatisticsPage() {
           </div>
 
           {/* Nút chọn nhanh */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-emerald-100">
             <span className="text-sm font-medium text-muted-foreground mr-1">
               Chọn nhanh:
             </span>
@@ -256,14 +262,14 @@ export default function LookupStatisticsPage() {
             </Button>
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => {
                 setStartDate('');
                 setEndDate('');
                 setGroupBy('DAY');
               }}
-              className="text-xs h-8 text-muted-foreground"
+              className="text-xs h-8"
             >
               Xóa bộ lọc
             </Button>

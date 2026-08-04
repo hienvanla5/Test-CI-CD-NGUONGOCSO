@@ -40,6 +40,7 @@ import {
   type FarmLogEligibilityStatus,
 } from "@/pages/packaging-event/components/FarmLogEligibilityAlert";
 import { useLotValidation } from "@/hooks/useLotValidation";
+import { useAutoGeolocation } from "@/hooks/useAutoGeolocation";
 import { LotValidationStatus } from "@/components/event-validation/LotValidationStatus";
 
 const farmActivityTypes: FarmActivityType[] = [
@@ -127,6 +128,19 @@ export function CreatePackagingForm() {
 
   const lat = watch("latitude");
   const lng = watch("longitude");
+
+  const currentPosition =
+    typeof lat === "number" &&
+    Number.isFinite(lat) &&
+    typeof lng === "number" &&
+    Number.isFinite(lng) &&
+    !(lat === 0 && lng === 0)
+      ? {
+          lat,
+          lng,
+        }
+      : undefined;
+
   const selectedLot = productionLots.find((lot) => lot.id === selectedLotId);
 
   useEffect(() => {
@@ -170,10 +184,29 @@ export function CreatePackagingForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingLots, productionLots]);
 
-  const handleLocationSelect = (lat: number, lng: number) => {
-    setValue("latitude", lat);
-    setValue("longitude", lng);
+  const handleLocationSelect = (
+    selectedLatitude: number,
+    selectedLongitude: number,
+  ) => {
+    setValue("latitude", selectedLatitude, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setValue("longitude", selectedLongitude, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
+
+  const { locationLoading, fetchLocation } = useAutoGeolocation({
+    onLocation: (selectedLatitude, selectedLongitude) => {
+      handleLocationSelect(selectedLatitude, selectedLongitude);
+      toast.success("Đã lấy vị trí hiện tại");
+    },
+    onError: (message) => {
+      toast.error(`Không thể lấy vị trí: ${message}`);
+    },
+  });
 
   const checkFarmLogEligibility = async (productionLotId: string) => {
     const requestId = ++eligibilityRequestRef.current;
@@ -383,13 +416,37 @@ export function CreatePackagingForm() {
           </div>
 
           <div className="space-y-2">
-            <Label>Vị trí (click trên bản đồ)</Label>
-            <div className="flex gap-2">
-              <Input value={lat || ""} disabled placeholder="Vĩ độ" />
-              <Input value={lng || ""} disabled placeholder="Kinh độ" />
+            <div className="flex items-center justify-between gap-3">
+              <Label>Vị trí đóng gói (click trên bản đồ)</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={locationLoading || isSubmitting}
+                onClick={() => fetchLocation()}
+              >
+                {locationLoading
+                  ? "Đang lấy vị trí..."
+                  : "Lấy vị trí hiện tại"}
+              </Button>
             </div>
+
+            <div className="flex gap-2">
+              <Input
+                value={currentPosition?.lat ?? ""}
+                disabled
+                placeholder="Vĩ độ"
+              />
+              <Input
+                value={currentPosition?.lng ?? ""}
+                disabled
+                placeholder="Kinh độ"
+              />
+            </div>
+
             <LocationPicker
               onLocationSelect={handleLocationSelect}
+              initialPosition={currentPosition}
               height="300px"
             />
           </div>

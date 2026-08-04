@@ -11,6 +11,8 @@ import org.locationtech.jts.geom.Point;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -18,6 +20,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import vn.nguongocso.farm.enums.AreaUnit;
 import vn.nguongocso.organization.entity.Organization;
 
 /**
@@ -49,6 +52,10 @@ public class FarmArea {
 
 	@Column(name = "area", nullable = false)
 	private BigDecimal area;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "area_unit", nullable = false)
+	private AreaUnit areaUnit;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "crop_type", nullable = false)

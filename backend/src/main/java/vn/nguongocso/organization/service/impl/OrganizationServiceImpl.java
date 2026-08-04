@@ -444,6 +444,26 @@ public class OrganizationServiceImpl
         }
 
         /**
+         * Kiểm tra email/phone không trùng với tổ chức khác (khác orgId)
+         */
+        private void validateUniqueFieldsForUpdate(UUID orgId, String email, String phone) {
+                if (email != null && !email.isBlank()) {
+                        organizationRepository.findByEmail(email).ifPresent(existing -> {
+                                if (!existing.getOrganizationId().equals(orgId)) {
+                                        throw new BusinessException("Email đã được sử dụng bởi tổ chức khác");
+                                }
+                        });
+                }
+                if (phone != null && !phone.isBlank()) {
+                        organizationRepository.findByPhone(phone).ifPresent(existing -> {
+                                if (!existing.getOrganizationId().equals(orgId)) {
+                                        throw new BusinessException("Số điện thoại đã được sử dụng bởi tổ chức khác");
+                                }
+                        });
+                }
+        }
+
+        /**
          * Cập nhật hồ sơ tổ chức hiện tại.
          *
          * @param request dữ liệu cập nhật
@@ -461,6 +481,9 @@ public class OrganizationServiceImpl
                                 .orElseThrow(
                                                 () -> new BusinessException(
                                                                 "Tổ chức không tồn tại"));
+
+                // Kiểm tra trùng email/phone với tổ chức khác
+                validateUniqueFieldsForUpdate(organizationId, request.getEmail(), request.getPhone());
 
                 organization.setName(
                                 request.getName());
@@ -506,6 +529,9 @@ public class OrganizationServiceImpl
                                 .orElseThrow(
                                                 () -> new BusinessException(
                                                                 "Tổ chức không tồn tại"));
+
+                // Kiểm tra trùng email/phone với tổ chức khác
+                validateUniqueFieldsForUpdate(orgId, request.getEmail(), request.getPhone());
 
                 organization.setName(
                                 request.getName());
