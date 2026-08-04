@@ -115,7 +115,6 @@ export const LoginForm: React.FC = () => {
               id="username"
               autoComplete="username"
               autoFocus
-              aria-invalid={Boolean(errors.username)}
               className={inputClass}
               placeholder="Tên đăng nhập"
               {...register("username")}
@@ -138,7 +137,6 @@ export const LoginForm: React.FC = () => {
               id="password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
-              aria-invalid={Boolean(errors.password)}
               className={inputClass}
               placeholder="Mật khẩu"
               {...register("password")}
@@ -167,37 +165,26 @@ export const LoginForm: React.FC = () => {
           )}
         </div>
 
-        <button
-          type="button"
-          className={cn(
-            "-mt-0.5 cursor-pointer self-center border-0 bg-transparent text-xs font-medium text-[#56804f]",
-            "hover:text-[#306f34] hover:underline hover:underline-offset-3",
-            "focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#65a855]",
-          )}
-          onClick={() => setShowOrganizationCode((current) => !current)}
-          aria-expanded={showOrganizationCode}
-          aria-controls="organization-code-field"
-        >
-          {showOrganizationCode ? "Ẩn mã tổ chức" : "Đăng nhập bằng mã tổ chức"}
-        </button>
-
-        {showOrganizationCode && (
           <div id="organization-code-field" className="flex flex-col gap-1.5">
             <Label className="sr-only" htmlFor="organizationCode">
               Mã tổ chức
             </Label>
-            <div className={inputShellClass(false)}>
+             <div className={inputShellClass(Boolean(errors.organizationCode))}>
               <Building2 className={inputIconClass} aria-hidden="true" />
               <Input
                 id="organizationCode"
                 autoComplete="organization"
                 className={inputClass}
-                placeholder="Mã tổ chức (không bắt buộc)"
+                placeholder="Mã tổ chức"
                 {...register("organizationCode")}
               />
             </div>
+          {errors.organizationCode && (
+            <p className="mx-4 text-xs text-red-600" role="alert">
+              {errors.organizationCode.message}
+            </p>
+          )}
           </div>
-        )}
 
         <Button
           type="submit"
