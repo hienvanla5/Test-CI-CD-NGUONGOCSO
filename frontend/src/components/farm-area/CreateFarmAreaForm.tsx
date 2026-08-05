@@ -171,7 +171,7 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
                   })
                 }
               >
-                <SelectTrigger id="cropType" className="border-emerald-200 focus:ring-emerald-100">
+                <SelectTrigger id="cropType" className="w-full border-emerald-200 focus:ring-emerald-100">
                   <SelectValue placeholder="Chọn loại cây trồng">
                     {selectedCropType
                       ? cropTypes.find((c) => c.id === selectedCropType)?.name
@@ -266,12 +266,12 @@ export const CreateFarmAreaForm = ({ onSuccess, onCancel }: Props) => {
                   setValue("areaUnit", value as AreaUnit, { shouldValidate: true })
                 }
               >
-                <SelectTrigger className="flex-1 border-emerald-200 focus:ring-emerald-100">
+                <SelectTrigger className="w-full flex-1 border-emerald-200 focus:ring-emerald-100">
                   <SelectValue>
                     {selectedAreaUnit ? AREA_UNIT_LABELS[selectedAreaUnit] : ""}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="min-w-[220px] w-auto">
+                <SelectContent side="bottom" align="start" className="min-w-[220px] w-(--anchor-width)">
                   {(Object.entries(AREA_UNIT_LABELS) as [AreaUnit, string][]).map(
                     ([unit, label]) => (
                       <SelectItem key={unit} value={unit}>
