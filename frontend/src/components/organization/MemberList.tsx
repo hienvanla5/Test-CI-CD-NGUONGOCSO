@@ -350,7 +350,7 @@ export const MemberList = () => {
                       "Số điện thoại",
                       "Vai trò",
                       "Trạng thái",
-                      "Thao tác",
+                      ...(canCreate ? ["Thao tác"] : []),
                     ].map((title) => (
                       <TableHead
                         key={title}
@@ -365,7 +365,7 @@ export const MemberList = () => {
                   {isLoading && (
                     <TableRow>
                       <TableCell
-                        colSpan={7}
+                        colSpan={canCreate ? 7 : 6}
                         className="py-12 text-center text-muted-foreground"
                       >
                         Đang tải danh sách thành viên...
@@ -419,17 +419,19 @@ export const MemberList = () => {
                               {inactive ? "Đã vô hiệu hóa" : "Đang hoạt động"}
                             </span>
                           </TableCell>
-                          <TableCell>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={inactive}
-                              onClick={() => openRoleDialog(member)}
-                              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                            >
-                              {member.roleCode ? "Đổi vai trò" : "Cấp quyền"}
-                            </Button>
-                          </TableCell>
+                          {canCreate && (
+                            <TableCell>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={inactive}
+                                onClick={() => openRoleDialog(member)}
+                                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                              >
+                                {member.roleCode ? "Đổi vai trò" : "Cấp quyền"}
+                              </Button>
+                            </TableCell>
+                          )}
                         </TableRow>
                       );
                     })}
