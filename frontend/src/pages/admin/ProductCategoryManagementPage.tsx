@@ -7,8 +7,10 @@ import type { ProductCategory, ProductCategoryQueryParams } from '@/types/produc
 import { ProductCategoryFilter } from '@/components/admin/product-category/ProductCategoryFilter';
 import { ProductCategoryList } from '@/components/admin/product-category/ProductCategoryList';
 import { ProductCategoryForm } from '@/components/admin/product-category/ProductCategoryForm';
+import { usePermission } from '@/hooks/usePermission';
 
 export default function ProductCategoryManagementPage() {
+  const canManage = usePermission(['VT-01'] as const);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [openForm, setOpenForm] = useState(false);
@@ -78,10 +80,11 @@ export default function ProductCategoryManagementPage() {
           <h1 className="text-2xl font-bold">Quản lý danh mục loại nông sản</h1>
           <p className="text-sm text-muted-foreground">Thêm, sửa, ẩn/hiện các loại nông sản dùng chung</p>
         </div>
-        {/* CHANGED: thêm variant="create" */}
-        <Button onClick={() => setOpenForm(true)} variant="create">
-          <Plus className="h-4 w-4 mr-1" /> Thêm loại nông sản
-        </Button>
+        {canManage && (
+          <Button onClick={() => setOpenForm(true)} variant="create">
+            <Plus className="h-4 w-4 mr-1" /> Thêm loại nông sản
+          </Button>
+        )}
       </div>
 
       <ProductCategoryFilter onFilter={handleFilter} onReset={handleReset} loading={loading} />
@@ -91,6 +94,7 @@ export default function ProductCategoryManagementPage() {
         loading={loading}
         onEdit={handleEdit}
         onToggleActive={handleToggleActive}
+        canManage={canManage}
       />
 
       <ProductCategoryForm
