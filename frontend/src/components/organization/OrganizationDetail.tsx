@@ -178,7 +178,7 @@ export function OrganizationDetail() {
                 open={openCreate}
                 onOpenChange={setOpenCreate}
             >
-                <DialogContent className="max-w-6xl w-full p-8 max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl lg:max-w-4xl xl:max-w-6xl w-full p-4 sm:p-6 lg:p-8 max-h-[90vh] overflow-y-auto">
                     <DialogHeader className="border-b pb-4 mb-4">
                         <DialogTitle className="text-2xl font-bold">Thêm tài khoản mới</DialogTitle>
                     </DialogHeader>

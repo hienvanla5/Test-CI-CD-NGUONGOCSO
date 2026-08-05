@@ -103,23 +103,23 @@ export function AdminDashboard({ initialTab }: AdminDashboardProps) {
                     Tổ chức:
                   </label>
                   <Select
-  value={selectedOrgId}
-  onValueChange={(value) => setSelectedOrgId(value ?? "")}
->
-  <SelectTrigger className="w-[250px]">
-    <SelectValue placeholder="Chọn tổ chức">
-      {organizations.find((org) => org.id === selectedOrgId)?.name ||
-        "Chọn tổ chức"}
-    </SelectValue>
-  </SelectTrigger>
-  <SelectContent>
-    {organizations.map((org) => (
-      <SelectItem key={org.id} value={org.id}>
-        {org.name}
-      </SelectItem>
-    ))}
-  </SelectContent>
-</Select>
+                    value={selectedOrgId}
+                    onValueChange={(value) => setSelectedOrgId(value ?? "")}
+                  >
+                    <SelectTrigger className="w-full sm:w-[280px] md:w-[350px]">
+                      <SelectValue placeholder="Chọn tổ chức">
+                        {organizations.find((org) => org.id === selectedOrgId)
+                          ?.name || "Chọn tổ chức"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {organizations.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
               <ProductionStatistics
