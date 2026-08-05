@@ -1,5 +1,6 @@
 package vn.nguongocso.backup.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,5 +21,6 @@ public class BackupScheduleRequest {
     private String description;
 
     @NotNull(message = "Trạng thái kích hoạt không được để trống")
+    @JsonProperty("isActive")
     private Boolean isActive;
 }

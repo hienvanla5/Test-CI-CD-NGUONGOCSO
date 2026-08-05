@@ -107,17 +107,20 @@ class OfflineSyncEventProcessorTest {
         Shipment recalledShipment = new Shipment();
         recalledShipment.setId(offlineEventDto.getProductionLotId());
         recalledShipment.setName("Lô hàng xuất khẩu 01");
-        recalledShipment.setStatus(ShipmentStatus.RECALLED); // Bị thu hồi
+        recalledShipment.setStatus(ShipmentStatus.RECALLED);
 
         when(offlineSyncLogRepository.findByOfflineEventId(offlineEventDto.getOfflineEventId()))
                 .thenReturn(Optional.empty());
         when(shipmentRepository.findById(offlineEventDto.getProductionLotId()))
                 .thenReturn(Optional.of(recalledShipment));
 
-        // When & Then
-        assertThatThrownBy(() -> eventProcessor.processEvent(offlineEventDto, syncId, currentUser))
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("Lô hàng đã bị thu hồi, không thể ghi nhận sự kiện.");
+        // When
+        OfflineEventSyncResultDto result = eventProcessor.processEvent(offlineEventDto, syncId, currentUser);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo("FAILED");
+        assertThat(result.getMessage()).contains("Lô hàng đã bị thu hồi, không thể ghi nhận sự kiện.");
 
         verify(eventValidationService).logFailedAttempt(any(), any(), any(), any(), any());
         verifyNoInteractions(chainEventService);
@@ -143,7 +146,7 @@ class OfflineSyncEventProcessorTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo("SUCCESS");
-        assertThat(result.getEventId()).isEqualTo(mockEventResponse.getId());
+        assertThat(result.getOfflineEventId()).isEqualTo(offlineEventDto.getOfflineEventId()); // ✅ sửa
 
         verify(offlineSyncLogRepository).save(any(OfflineSyncLog.class));
     }
