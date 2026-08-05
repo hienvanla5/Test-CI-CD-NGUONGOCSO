@@ -51,11 +51,12 @@ export function hasAnyRole(
 
 export function getRoleLabel(roleCode?: string): string {
   const map: Record<string, string> = {
-    'VT-01': 'Quản trị viên nền tảng',
+    'VT-01': 'Quản trị viên hệ thống',
     'VT-02': 'Quản lý hợp tác xã',
     'VT-03': 'Người ghi sự kiện',
     'VT-04': 'Doanh nghiệp thu mua',
     'VT-05': 'Cán bộ quản lý ngành',
+    'VT-06': 'Người dùng hệ thống',
   };
   return roleCode ? map[roleCode] || 'Người dùng' : 'Người dùng';
 }

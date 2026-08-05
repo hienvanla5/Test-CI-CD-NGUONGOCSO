@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { getToken } from '@/utils/storage';
+import apiClient from '@/api/axiosConfig';
 import type {
   OrganizationProfile,
   UpdateOrganizationRequest,
@@ -13,20 +12,6 @@ import type {
   AddMemberRequest,
   CreateOrganizationMemberResponse,
 } from "@/types/organization";
-
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-});
-
-// Interceptor để gắn token
-apiClient.interceptors.request.use((config) => {
-  const token = getToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 export const getOrganizationProfile = async (): Promise<OrganizationProfile> => {
   const response = await apiClient.get<{ data : OrganizationProfile }>('/organizations/profile');
   return response.data.data;

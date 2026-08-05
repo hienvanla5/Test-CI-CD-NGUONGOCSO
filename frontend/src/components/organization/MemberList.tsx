@@ -224,7 +224,7 @@ export const MemberList = () => {
   const getSelectedRoleLabel = () => {
     if (!selectedRoleId) return "Chọn vai trò";
     const role = assignableRoles.find(r => r.roleId === Number(selectedRoleId));
-    return role ? `${getRoleLabel(role.code)} (${role.code})` : "Chọn vai trò";
+    return role ? getRoleLabel(role.code) : "Chọn vai trò";
   };
 
   return (
@@ -506,7 +506,7 @@ export const MemberList = () => {
                         key={role.roleId}
                         value={String(role.roleId)}
                       >
-                        {getRoleLabel(role.code)} ({role.code})
+                        {getRoleLabel(role.code)}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -4,11 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { getOrganizationDetail } from "@/api/organizationApi";
+import { createOrganizationMember } from "@/api/organizationApi";
 import type { OrganizationDetailResponse } from "@/types/organization";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import type { AddMemberRequest } from "@/types/organization";
-import { CreateOrganizationMemberForm } from "./CreateOrganizationMemberFrom";
+import { CreateOrganizationMemberForm, type CreateOrganizationMemberFormData } from "./CreateOrganizationMemberFrom";
+import { toast } from "sonner";
+import { getRoleLabel } from "@/config/roleAccess";
 
 import {
     Dialog,
@@ -23,17 +26,33 @@ export function OrganizationDetail() {
 
     const [data, setData] = useState<OrganizationDetailResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [openCreate, setOpenCreate] = useState(false);
-    const handleCreateMember = async (values: AddMemberRequest) => {
-        console.log(values);
-    };
-    const ROLE_LABELS: Record<string, string> = {
-        "VT-01": "Quản trị viên",
-        "VT-02": "Quản lý hợp tác xã",
-        "VT-03": "Người ghi sự kiện",
-        "VT-04": "Doanh nghiệp thu mua",
-        "VT-05": "Cán bộ ngành",
-        "VT-06": "Người dùng hệ thống",
+    const handleCreateMember = async (values: CreateOrganizationMemberFormData) => {
+        if (!id) return;
+
+        const payload: AddMemberRequest = {
+            username: values.username,
+            password: values.password,
+            fullName: values.fullName,
+            phone: values.phone?.trim() ? values.phone.trim() : undefined,
+            email: values.email?.trim() ? values.email.trim() : undefined,
+            roleId: values.roleId,
+        };
+
+        try {
+            setSubmitting(true);
+            await createOrganizationMember(id, payload);
+            const refreshed = await getOrganizationDetail(id);
+            setData(refreshed);
+            setOpenCreate(false);
+            toast.success("Thêm tài khoản thành công");
+        } catch (error: any) {
+            const message = error?.response?.data?.message || "Không thể thêm tài khoản";
+            toast.error(message);
+        } finally {
+            setSubmitting(false);
+        }
     };
     const ORGANIZATION_TYPE_LABELS: Record<string, string> = {
         COOPERATIVE: "Hợp tác xã",
@@ -138,7 +157,7 @@ export function OrganizationDetail() {
                                     <TableCell>{m.email}</TableCell>
 
                                     <TableCell>
-                                        {ROLE_LABELS[m.roleCode] ?? m.roleName}
+                                        {m.roleCode ? getRoleLabel(m.roleCode) : m.roleName}
                                     </TableCell>
 
                                     <TableCell>{m.status}</TableCell>
@@ -166,6 +185,8 @@ export function OrganizationDetail() {
 
                     <CreateOrganizationMemberForm
                         onSubmit={handleCreateMember}
+                        loading={submitting}
+                        organizationType={data.profile.type}
                     />
                 </DialogContent>
             </Dialog>

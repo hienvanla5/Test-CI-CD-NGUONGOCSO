@@ -5,6 +5,7 @@ import type {
   UpdateRolePermissionRequest,
   RoleInfo,
 } from '@/types/permission';
+import { getRoleLabel } from '@/config/roleAccess';
 
 /**
  * Lấy danh sách toàn bộ quyền hệ thống (nhóm theo resource)
@@ -48,10 +49,10 @@ export const updateRolePermissions = async (
 
 /** Danh sách vai trò tĩnh dùng làm fallback cuối cùng khi tất cả API đều thất bại */
 const STATIC_ROLES: RoleInfo[] = [
-  { roleId: 2, roleCode: 'VT-02', roleName: 'Quản lý hợp tác xã' },
-  { roleId: 3, roleCode: 'VT-03', roleName: 'Người ghi sự kiện' },
-  { roleId: 4, roleCode: 'VT-04', roleName: 'Doanh nghiệp thu mua' },
-  { roleId: 5, roleCode: 'VT-05', roleName: 'Cán bộ quản lý ngành' },
+  { roleId: 2, roleCode: 'VT-02', roleName: getRoleLabel('VT-02') },
+  { roleId: 3, roleCode: 'VT-03', roleName: getRoleLabel('VT-03') },
+  { roleId: 4, roleCode: 'VT-04', roleName: getRoleLabel('VT-04') },
+  { roleId: 5, roleCode: 'VT-05', roleName: getRoleLabel('VT-05') },
 ];
 
 interface RoleOption {
@@ -77,7 +78,7 @@ export const getOrganizationRoles = async (
     return response.data.data.map((r) => ({
       roleId: r.roleId,
       roleCode: r.code,
-      roleName: r.name,
+      roleName: getRoleLabel(r.code),
     }));
   } catch (error: any) {
     if (error.response?.status !== 404) throw error;
@@ -89,7 +90,7 @@ export const getOrganizationRoles = async (
     return response.data.map((r) => ({
       roleId: r.roleId,
       roleCode: r.code,
-      roleName: r.name,
+      roleName: getRoleLabel(r.code),
     }));
   } catch {
     console.warn('Sử dụng danh sách vai trò tĩnh (fallback)');
