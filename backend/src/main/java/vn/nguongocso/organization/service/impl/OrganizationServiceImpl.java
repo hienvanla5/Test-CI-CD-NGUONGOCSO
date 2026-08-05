@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import vn.nguongocso.alert.event.ActivityLogEvent;
 import vn.nguongocso.auth.dto.request.AddMemberRequest;
+import vn.nguongocso.auth.dto.request.AssignRoleRequest;
 import vn.nguongocso.auth.dto.response.OrganizationUserResponse;
 import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
@@ -20,9 +21,11 @@ import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.common.util.IpUtils;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.exception.ResourceNotFoundException;
 import vn.nguongocso.organization.constant.RoleCode;
 import vn.nguongocso.organization.dto.request.CreateOrganizationRequest;
 import vn.nguongocso.organization.dto.request.OrganizationUpdateRequest;
+import vn.nguongocso.organization.dto.response.AvailableUserResponse;
 import vn.nguongocso.organization.dto.response.CreateOrganizationMemberResponse;
 import vn.nguongocso.organization.dto.response.OrganizationDetailResponse;
 import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
@@ -39,6 +42,7 @@ import vn.nguongocso.organization.service.OrganizationService;
 import java.util.List;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service xử lý nghiệp vụ liên quan đến tổ chức.
@@ -636,7 +640,7 @@ public class OrganizationServiceImpl
         }
 
         /*
-        * Tạo tài khoản cho 1 tổ chức cụ thể
+         * Tạo tài khoản cho 1 tổ chức cụ thể
          */
         @Override
         @Transactional
@@ -699,5 +703,177 @@ public class OrganizationServiceImpl
                                 .status(user.getStatus())
                                 .joinedAt(organizationUser.getJoinedAt())
                                 .build();
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public List<OrganizationUserResponse> getMembersOfCurrentOrganization() {
+                UUID orgId = getCurrentOrganizationId(); // lấy orgId từ SecurityContext
+                List<OrganizationUser> orgUsers = organizationUserRepository
+                                .findByOrganization_OrganizationIdAndStatus(orgId, OrganizationUserStatus.ACTIVE);
+                return orgUsers.stream()
+                                .map(this::toOrganizationUserResponse)
+                                .collect(Collectors.toList());
+        }
+
+        @Override
+        @Transactional
+        public OrganizationUserResponse assignRole(AssignRoleRequest request) {
+                UUID orgId = getCurrentOrganizationId();
+                String currentRoleCode = getCurrentUserRoleCode(); // cần viết thêm helper
+
+                // 1. Tìm OrganizationUser
+                OrganizationUser orgUser = organizationUserRepository
+                                .findByOrganization_OrganizationIdAndUser_UserId(orgId, request.getUserId())
+                                .orElseThrow(() -> new BusinessException("Thành viên không thuộc tổ chức này"));
+
+                // 2. Lấy role mới
+                Role newRole = roleRepository.findById(request.getRoleId())
+                                .orElseThrow(() -> new ResourceNotFoundException("Vai trò không tồn tại"));
+
+                // 3. Kiểm tra quyền: chỉ ADMIN mới gán được VT-01
+                if (RoleCode.ADMIN.equals(newRole.getCode()) && !RoleCode.ADMIN.equals(currentRoleCode)) {
+                        throw new BusinessException("Quản lý HTX không thể gán vai trò Quản trị viên nền tảng");
+                }
+
+                // 4. Nếu gán VT-02 (Quản lý HTX), hạ cấp quản lý cũ (nếu có)
+                if (RoleCode.ORG_MANAGER.equals(newRole.getCode())) {
+                        OrganizationUser currentManager = organizationUserRepository
+                                        .findByOrganization_OrganizationIdAndRole_Code(orgId, RoleCode.ORG_MANAGER)
+                                        .filter(m -> !m.getUser().getUserId().equals(request.getUserId()))
+                                        .orElse(null);
+                        if (currentManager != null) {
+                                Role vt03Role = roleRepository.findByCode(RoleCode.EVENT_RECORDER)
+                                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                                "Không tìm thấy role VT-03"));
+                                currentManager.setRole(vt03Role);
+                                organizationUserRepository.save(currentManager);
+                                log.info("Hạ quản lý cũ {} xuống VT-03", currentManager.getUser().getFullName());
+                        }
+                }
+
+                // 5. Gán vai trò mới
+                orgUser.setRole(newRole);
+                orgUser = organizationUserRepository.save(orgUser);
+
+                // 6. Ghi log
+                CustomUserDetails currentUser = getCurrentUser();
+                if (currentUser != null) {
+                        publishActivityLog(
+                                        currentUser,
+                                        "ASSIGN_ROLE",
+                                        "Gán vai trò " + newRole.getName() + " cho " + orgUser.getUser().getFullName(),
+                                        "OrganizationUser",
+                                        orgUser.getId().toString());
+                }
+
+                log.info("Gán role thành công: userId={}, orgId={}, newRole={}",
+                                request.getUserId(), orgId, newRole.getCode());
+                return toOrganizationUserResponse(orgUser);
+        }
+
+        private String getCurrentUserRoleCode() {
+                CustomUserDetails userDetails = getCurrentUser();
+                if (userDetails == null) {
+                        throw new BusinessException("Chưa đăng nhập");
+                }
+                return userDetails.getRoleCode();
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public List<AvailableUserResponse> getAvailableUsersForOrganization(UUID organizationId) {
+                Organization org = organizationRepository.findById(organizationId)
+                                .orElseThrow(() -> new BusinessException("Tổ chức không tồn tại"));
+
+                // Lấy danh sách user đã thuộc tổ chức này
+                List<UUID> existingUserIds = organizationUserRepository
+                                .findByOrganization_OrganizationId(organizationId)
+                                .stream()
+                                .map(ou -> ou.getUser().getUserId())
+                                .toList();
+
+                // Lấy các tổ chức cùng loại (không bao gồm tổ chức hiện tại)
+                List<Organization> sameTypeOrgs = organizationRepository
+                                .findByTypeAndOrganizationIdNot(org.getType(), organizationId);
+
+                // Lấy tất cả user trong các tổ chức đó (đã active)
+                List<User> availableUsers = organizationUserRepository
+                                .findAllByOrganizationIn(sameTypeOrgs)
+                                .stream()
+                                .map(OrganizationUser::getUser)
+                                .distinct()
+                                .filter(u -> !existingUserIds.contains(u.getUserId()))
+                                .toList();
+
+                // Với mỗi user, lấy role hiện tại (trong tổ chức cùng loại đầu tiên)
+                return availableUsers.stream()
+                                .map(user -> {
+                                        OrganizationUser orgUser = organizationUserRepository
+                                                        .findFirstByUserAndOrganization_Type(user, org.getType())
+                                                        .orElse(null);
+                                        return AvailableUserResponse.builder()
+                                                        .userId(user.getUserId())
+                                                        .username(user.getUserName())
+                                                        .fullName(user.getFullName())
+                                                        .email(user.getEmail())
+                                                        .phone(user.getPhone())
+                                                        .currentRoleCode(orgUser != null ? orgUser.getRole().getCode()
+                                                                        : null)
+                                                        .currentRoleName(orgUser != null ? orgUser.getRole().getName()
+                                                                        : null)
+                                                        .build();
+                                })
+                                .collect(Collectors.toList());
+        }
+
+        @Override
+        @Transactional
+        public OrganizationUserResponse addExistingUserToOrganization(UUID organizationId, UUID userId,
+                        Integer roleId) {
+                Organization org = organizationRepository.findById(organizationId)
+                                .orElseThrow(() -> new BusinessException("Tổ chức không tồn tại"));
+
+                User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new BusinessException("User không tồn tại"));
+
+                if (organizationUserRepository.existsByOrganizationAndUser(org, user)) {
+                        throw new BusinessException("User đã thuộc tổ chức này");
+                }
+
+                // Xác định role
+                Role role;
+                if (roleId != null) {
+                        role = roleRepository.findById(roleId)
+                                        .orElseThrow(() -> new BusinessException("Vai trò không tồn tại"));
+                } else {
+                        // Lấy role hiện tại của user trong tổ chức cùng loại
+                        OrganizationUser currentOrgUser = organizationUserRepository
+                                        .findFirstByUserAndOrganization_Type(user, org.getType())
+                                        .orElseThrow(() -> new BusinessException(
+                                                        "Không tìm thấy role hiện tại của user"));
+                        role = currentOrgUser.getRole();
+                }
+
+                // Tạo liên kết mới
+                OrganizationUser newOrgUser = new OrganizationUser();
+                newOrgUser.setOrganization(org);
+                newOrgUser.setUser(user);
+                newOrgUser.setRole(role);
+                newOrgUser.setStatus(OrganizationUserStatus.ACTIVE);
+                newOrgUser = organizationUserRepository.save(newOrgUser);
+
+                // Ghi log
+                CustomUserDetails currentUser = getCurrentUser();
+                if (currentUser != null) {
+                        publishActivityLog(
+                                        currentUser,
+                                        "ADD_EXISTING_USER",
+                                        "Thêm user " + user.getUserName() + " vào tổ chức " + org.getName(),
+                                        "OrganizationUser",
+                                        newOrgUser.getId().toString());
+                }
+
+                return toOrganizationUserResponse(newOrgUser);
         }
 }

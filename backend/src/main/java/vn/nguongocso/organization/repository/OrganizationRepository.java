@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Email;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import vn.nguongocso.organization.entity.Organization;
+import vn.nguongocso.organization.enums.OrganizationType;
 
 public interface OrganizationRepository extends JpaRepository<Organization, UUID> {
 
@@ -26,5 +27,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, UUID
 
     Optional<Organization> findByEmail(String email);
     Optional<Organization> findByPhone(String phone);
+
+    List<Organization> findByTypeAndOrganizationIdNot(OrganizationType type, UUID organizationId);
 }
 

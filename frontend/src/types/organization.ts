@@ -104,3 +104,28 @@ export interface CreateOrganizationMemberResponse {
   status: string;
   joinedAt: string;
 }
+
+export interface OrganizationUserResponse {
+  id: string;
+  organizationId: string;
+  userId: string;
+  username: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  roleId: number;
+  roleCode: string;
+  roleName: string;
+  status: string;
+  joinedAt: string;
+}
+
+export interface AvailableUser {
+  userId: string;
+  username: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  currentRoleCode: string;
+  currentRoleName: string;
+}

@@ -6,6 +6,7 @@ import type {
   CreateOrganizationResponse,
   Organization,
   OrganizationDetailResponse,
+  OrganizationUserResponse,
 } from "@/types/organization";
 
 import type {
@@ -52,5 +53,50 @@ export const createOrganizationMember = async (
     data
   );
 
+  return response.data.data;
+};
+
+// Types for available users
+export interface AvailableUser {
+  userId: string;
+  username: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  currentRoleCode: string;
+  currentRoleName: string;
+}
+
+export interface AddExistingUserRequest {
+  userId: string;
+  roleId?: number;
+}
+
+// Fetch available users for organization
+export const getAvailableUsers = async (organizationId: string): Promise<AvailableUser[]> => {
+  const response = await apiClient.get<{ data: AvailableUser[] }>(
+    `/admin/organizations/${organizationId}/available-users`
+  );
+  return response.data.data;
+};
+
+// Add existing user to organization
+export const addExistingUser = async (
+  organizationId: string,
+  data: AddExistingUserRequest
+): Promise<OrganizationUserResponse> => {
+  const response = await apiClient.post<{ data: OrganizationUserResponse }>(
+    `/admin/organizations/${organizationId}/add-existing-user`,
+    data
+  );
+  return response.data.data;
+};
+
+// Assign role (for current organization)
+export const assignRole = async (data: { userId: string; roleId: number }): Promise<OrganizationUserResponse> => {
+  const response = await apiClient.put<{ data: OrganizationUserResponse }>(
+    '/admin/organizations/current/members/role',
+    data
+  );
   return response.data.data;
 };
