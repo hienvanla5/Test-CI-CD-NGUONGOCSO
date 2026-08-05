@@ -1,4 +1,4 @@
-import React, { type ReactNode } from "react";
+import React, { type ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   AlertTriangle,
@@ -16,7 +16,6 @@ import {
   Package,
   ScanLine,
   Shield,
-  Smartphone,
   Truck,
   UserCheck,
   Users,
@@ -42,6 +41,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -410,6 +419,14 @@ export function Sidebar({
   const { user, logout } = useAuth();
   const location = useLocation();
 
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const handleLogout = () => {
+    if (onNavigate) onNavigate();
+    logout();
+    setShowLogoutDialog(false);
+  };
+
   const visibleGroups = filterVisibleGroups(MENU_GROUPS, user?.roleCode);
   const dashboardVisible = hasAnyRole(
     user?.roleCode,
@@ -454,10 +471,7 @@ export function Sidebar({
     {
       icon: <LogOut className="h-5 w-5" />,
       label: "Đăng xuất",
-      onClick: () => {
-        if (onNavigate) onNavigate();
-        logout();
-      },
+      onClick: () => setShowLogoutDialog(true),
       variant: "danger",
     },
   ];
@@ -470,12 +484,13 @@ export function Sidebar({
   const hasAnyVisibleItem = dashboardVisible || visibleGroups.length > 0;
 
   return (
-    <aside
-      className={cn(
-        "flex h-full min-h-0 flex-col border-r border-emerald-100 bg-white/90 backdrop-blur-sm transition-all duration-300 ease-in-out",
-        sidebarWidth,
-      )}
-    >
+    <>
+      <aside
+        className={cn(
+          "flex h-full min-h-0 flex-col border-r border-emerald-100 bg-white/90 backdrop-blur-sm transition-all duration-300 ease-in-out",
+          sidebarWidth,
+        )}
+      >
       {/* ── Header / Logo ─────────────────── */}
       <div
         className={cn(
@@ -647,5 +662,32 @@ export function Sidebar({
         })}
       </div>
     </aside>
+
+    {/* Logout confirmation dialog */}
+    <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+      <AlertDialogPopup>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Xác nhận đăng xuất</AlertDialogTitle>
+          <AlertDialogDescription>
+            Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel
+            onClick={() => setShowLogoutDialog(false)}
+            className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+          >
+            Hủy
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleLogout}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Đăng xuất
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogPopup>
+    </AlertDialog>
+    </>
   );
 }
