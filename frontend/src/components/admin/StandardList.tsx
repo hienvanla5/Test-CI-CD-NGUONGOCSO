@@ -153,7 +153,7 @@ export const StandardList: React.FC = () => {
                   else setIsActiveFilter(val === "true");
                 }}
               >
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger size="sm" className="w-[180px]">
                   <SelectValue placeholder="Trạng thái">
                     {getStatusFilterLabel(currentFilterValue)}
                   </SelectValue>

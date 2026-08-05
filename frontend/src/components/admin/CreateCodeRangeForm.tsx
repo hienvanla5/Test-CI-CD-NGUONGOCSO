@@ -135,9 +135,11 @@ export const CreateCodeRangeForm: React.FC = () => {
                 }
               }}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn tổ chức" >
-                  {selectedOrgId && organizations.find(org => org.id === selectedOrgId)?.name}
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chọn tổ chức">
+                  {selectedOrgId
+                    ? organizations.find((org) => org.id === selectedOrgId)?.name
+                    : undefined}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -162,18 +164,28 @@ export const CreateCodeRangeForm: React.FC = () => {
           {/* Tiền tố mã */}
           <div className="space-y-2">
             <Label htmlFor="prefix">Tiền tố mã *</Label>
-            <Input
-              id="prefix"
-              {...register("prefix")}
-              placeholder="Ví dụ: 893001"
-              className="uppercase"
-            />
-            <p className="text-sm text-gray-500">
-              Tiền tố phải duy nhất trên toàn hệ thống, chỉ chứa chữ hoa và số.
-            </p>
-            {errors.prefix && (
-              <p className="text-sm text-red-500">{errors.prefix.message}</p>
-            )}
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-start">
+              <div className="flex-1 space-y-2">
+                <Input
+                  id="prefix"
+                  {...register("prefix")}
+                  placeholder="893001"
+                  className="uppercase"
+                />
+                <p className="text-sm text-gray-500">
+                  Duy nhất, chỉ chứa chữ hoa và số.
+                </p>
+                {errors.prefix && (
+                  <p className="text-sm text-red-500">{errors.prefix.message}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 rounded-md border bg-muted/30 px-3 h-11 text-sm sm:w-56">
+                <span className="text-gray-500 shrink-0">Mẫu:</span>
+                <span className="font-medium truncate">
+                  {(watch("prefix") || "893001").toUpperCase()}-XXXX-XXXX
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Hạn mức */}
@@ -186,6 +198,9 @@ export const CreateCodeRangeForm: React.FC = () => {
               {...register("totalLimit")}
               placeholder="Nhập số lượng tem tối đa"
             />
+            <p className="text-sm text-gray-500">
+              Nhập số lượng tem tối đa (số nguyên dương).
+            </p>
             {errors.totalLimit && (
               <p className="text-sm text-red-500">
                 {errors.totalLimit.message}
