@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createOrganizationSchema, type CreateOrganizationFormValues } from '@/utils/validators';
 import { createOrganization } from '@/api/organizationApi';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, EyeOff, Building2, UserRound, ShieldCheck, Plus } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ORGANIZATION_TYPES } from '@/utils/constants';
 import type { CreateOrganizationRequest } from '@/types/organization';
 
+const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  if (password.length >= 12) score++;
+
+  if (score <= 2) return { score, label: 'Yếu', color: 'bg-red-500' };
+  if (score === 3) return { score, label: 'Trung bình', color: 'bg-yellow-500' };
+  return { score, label: 'Mạnh', color: 'bg-green-500' };
+};
+
 export function CreateOrganizationForm() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -29,15 +42,16 @@ export function CreateOrganizationForm() {
     resolver: zodResolver(createOrganizationSchema),
     defaultValues: {
       organizationType: 'COOPERATIVE',
-      address: '',
-      phone: '',
-      email: '',
-      managerPhone: '',
-      confirmPassword: '', // thêm
     },
   });
 
   const organizationType = watch('organizationType');
+  const password = watch('password');
+  const [passwordStrength, setPasswordStrength] = useState(getPasswordStrength(''));
+
+  useEffect(() => {
+    setPasswordStrength(getPasswordStrength(password || ''));
+  }, [password]);
 
   const onSubmit = async (values: CreateOrganizationFormValues) => {
     try {
@@ -45,13 +59,9 @@ export function CreateOrganizationForm() {
         organizationName: values.organizationName,
         organizationCode: values.organizationCode,
         organizationType: values.organizationType,
-        address: values.address,
-        phone: values.phone,
-        email: values.email,
         fullName: values.fullName,
         userName: values.userName,
         password: values.password,
-        managerPhone: values.managerPhone,
         managerEmail: values.managerEmail,
       };
 
@@ -72,24 +82,46 @@ export function CreateOrganizationForm() {
     }
   };
 
+  const InputWithIcon = ({ icon: Icon, ...props }: React.ComponentProps<typeof Input> & { icon: React.ElementType }) => (
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+        <Icon className="h-4 w-4" />
+      </div>
+      <Input {...props} className={`pl-9 ${props.className || ''}`} />
+    </div>
+  );
+
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Tạo tổ chức mới</CardTitle>
-        <CardDescription>
-          Nhập thông tin tổ chức và tài khoản quản lý ban đầu. Các trường có dấu * là bắt buộc.
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-6">
-          {/* Thông tin tổ chức - giữ nguyên */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-lg">Thông tin tổ chức</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Card className="w-full shadow-lg border-muted/50">
+        <CardHeader className="pb-3 pt-5 px-5">
+          <div className="flex items-center gap-3">
+            <div className="p-1.5 bg-primary/10 rounded-lg">
+              <Building2 className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-lg leading-tight">Tạo tổ chức mới</CardTitle>
+              <CardDescription className="text-xs mt-0.5">
+                Thiết lập tổ chức và tài khoản quản trị đầu tiên.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+
+        {/* CardContent không còn padding dưới dư thừa */}
+        <CardContent className="space-y-5 pt-0 pb-0 px-5">
+          {/* Thông tin tổ chức */}
+          <div className="rounded-xl border bg-muted/30 p-4 space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground/80">
+              <Building2 className="h-4 w-4" />
+              Thông tin tổ chức
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
                 <Label htmlFor="organizationName">Tên tổ chức *</Label>
-                <Input
+                <InputWithIcon
                   id="organizationName"
+                  icon={Building2}
                   {...register('organizationName')}
                   placeholder="VD: Công ty ABC"
                 />
@@ -97,10 +129,11 @@ export function CreateOrganizationForm() {
                   <p className="text-sm text-red-500">{errors.organizationName.message}</p>
                 )}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="organizationCode">Mã tổ chức *</Label>
-                <Input
+                <InputWithIcon
                   id="organizationCode"
+                  icon={Building2}
                   {...register('organizationCode')}
                   placeholder="VD: TC01"
                 />
@@ -108,81 +141,46 @@ export function CreateOrganizationForm() {
                   <p className="text-sm text-red-500">{errors.organizationCode.message}</p>
                 )}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="organizationType">Loại tổ chức *</Label>
-              <Select
-                items={Object.entries(ORGANIZATION_TYPES).map(([key, label]) => ({
-                  value: key,
-                  label,
-                }))}
-                value={organizationType}
-                onValueChange={(value) => setValue('organizationType', value as any)}
-              >
-                <SelectTrigger id="organizationType">
-                  <SelectValue placeholder="Chọn loại tổ chức" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(ORGANIZATION_TYPES).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.organizationType && (
-                <p className="text-sm text-red-500">{errors.organizationType.message}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="address">Địa chỉ</Label>
-                <Input
-                  id="address"
-                  {...register('address')}
-                  placeholder="VD: Hà Nội"
-                />
-                {errors.address && (
-                  <p className="text-sm text-red-500">{errors.address.message}</p>
+              <div className="space-y-1.5">
+                <Label htmlFor="organizationType">Loại tổ chức *</Label>
+                <Select
+                  items={Object.entries(ORGANIZATION_TYPES).map(([key, label]) => ({
+                    value: key,
+                    label,
+                  }))}
+                  value={organizationType}
+                  onValueChange={(value) => setValue('organizationType', value as any)}
+                >
+                  <SelectTrigger id="organizationType" className="w-full">
+                    <SelectValue placeholder="Chọn loại tổ chức" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(ORGANIZATION_TYPES).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.organizationType && (
+                  <p className="text-sm text-red-500">{errors.organizationType.message}</p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Số điện thoại</Label>
-                <Input
-                  id="phone"
-                  {...register('phone')}
-                  placeholder="VD: 024567890"
-                />
-                {errors.phone && (
-                  <p className="text-sm text-red-500">{errors.phone.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                {...register('email')}
-                placeholder="contact@abc.com"
-                type="email"
-              />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
-              )}
             </div>
           </div>
 
-          {/* Thông tin người quản lý */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-lg">Người quản lý ban đầu</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+          {/* Quản trị viên */}
+          <div className="rounded-xl border bg-muted/30 p-4 space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground/80">
+              <UserRound className="h-4 w-4" />
+              Quản trị viên đầu tiên
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
                 <Label htmlFor="fullName">Họ tên *</Label>
-                <Input
+                <InputWithIcon
                   id="fullName"
+                  icon={UserRound}
                   {...register('fullName')}
                   placeholder="Trần Văn B"
                 />
@@ -190,10 +188,11 @@ export function CreateOrganizationForm() {
                   <p className="text-sm text-red-500">{errors.fullName.message}</p>
                 )}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="userName">Tên đăng nhập *</Label>
-                <Input
+                <InputWithIcon
                   id="userName"
+                  icon={UserRound}
                   {...register('userName')}
                   placeholder="admin01"
                 />
@@ -201,76 +200,12 @@ export function CreateOrganizationForm() {
                   <p className="text-sm text-red-500">{errors.userName.message}</p>
                 )}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Mật khẩu *</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  className="pr-8 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
-                  {...register('password')}
-                  placeholder="Nhập mật khẩu"
-                />
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                  className="absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
-              )}
-            </div>
-
-            {/* Thêm trường xác nhận mật khẩu */}
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  className="pr-8 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
-                  {...register('confirmPassword')}
-                  placeholder="Nhập lại mật khẩu"
-                />
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                  className="absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground hover:text-foreground"
-                >
-                  {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="managerPhone">Số điện thoại quản lý</Label>
-                <Input
-                  id="managerPhone"
-                  {...register('managerPhone')}
-                  placeholder="0395724804"
-                />
-                {errors.managerPhone && (
-                  <p className="text-sm text-red-500">{errors.managerPhone.message}</p>
-                )}
-              </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="managerEmail">Email quản lý *</Label>
-                <Input
+                <InputWithIcon
                   id="managerEmail"
                   type="email"
+                  icon={UserRound}
                   {...register('managerEmail')}
                   placeholder="admin@abc.com"
                 />
@@ -280,9 +215,88 @@ export function CreateOrganizationForm() {
               </div>
             </div>
           </div>
+
+          {/* Bảo mật */}
+          <div className="rounded-xl border bg-muted/30 p-4 space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground/80">
+              <ShieldCheck className="h-4 w-4" />
+              Bảo mật
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="password">Mật khẩu *</Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    className="pl-9 pr-10"
+                    {...register('password')}
+                    placeholder="Nhập mật khẩu"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password.message}</p>
+                )}
+                {password && (
+                  <div className="mt-2">
+                    <div className="flex gap-1 h-1.5">
+                      <div className={`flex-1 rounded-full ${passwordStrength.score >= 1 ? passwordStrength.color : 'bg-gray-200'}`} />
+                      <div className={`flex-1 rounded-full ${passwordStrength.score >= 2 ? passwordStrength.color : 'bg-gray-200'}`} />
+                      <div className={`flex-1 rounded-full ${passwordStrength.score >= 3 ? passwordStrength.color : 'bg-gray-200'}`} />
+                      <div className={`flex-1 rounded-full ${passwordStrength.score >= 4 ? passwordStrength.color : 'bg-gray-200'}`} />
+                      <div className={`flex-1 rounded-full ${passwordStrength.score >= 5 ? passwordStrength.color : 'bg-gray-200'}`} />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Độ mạnh: <span className="font-medium">{passwordStrength.label}</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <Input
+                    id="confirmPassword"
+                    type={showPassword ? 'text' : 'password'}
+                    className="pl-9 pr-10"
+                    {...register('confirmPassword')}
+                    placeholder="Nhập lại mật khẩu"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                )}
+              </div>
+            </div>
+          </div>
         </CardContent>
 
-        <CardFooter className="flex justify-end gap-2">
+        {/* Footer gọn gàng */}
+        <div className="border-t px-5 py-4 flex justify-end gap-3">
           <Button
             type="button"
             variant="outline"
@@ -291,10 +305,11 @@ export function CreateOrganizationForm() {
             Hủy
           </Button>
           <Button type="submit" variant="create" disabled={isSubmitting}>
+            <Plus className="h-4 w-4 mr-1" />
             {isSubmitting ? 'Đang tạo...' : 'Tạo tổ chức'}
           </Button>
-        </CardFooter>
-      </form>
-    </Card>
+        </div>
+      </Card>
+    </form>
   );
 }
