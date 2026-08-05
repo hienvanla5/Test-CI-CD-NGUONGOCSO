@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PHONE_REGEX, PASSWORD_REGEX, ORGANIZATION_CODE_REGEX } from './constants';
+import { PASSWORD_REGEX, ORGANIZATION_CODE_REGEX } from './constants';
 import { ChainEventType } from '@/enums/chainEventType';
 
 // ---------- Login ----------

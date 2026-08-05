@@ -1,5 +1,5 @@
 // frontend/src/pages/admin/BackupRestorePage.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { useBackup } from "@/hooks/useBackup";
 import { BackupSchedule } from "@/components/backup/BackupSchedule";
 import { BackupStatus } from "@/components/backup/BackupStatus";

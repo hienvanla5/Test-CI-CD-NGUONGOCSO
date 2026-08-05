@@ -4,19 +4,24 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import vn.nguongocso.auth.entity.Role;
+import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.auth.service.CustomUserDetailsService;
 import vn.nguongocso.common.PageResponse;
 import vn.nguongocso.config.JwtTokenProvider;
 import vn.nguongocso.config.SecurityConfig;
 import vn.nguongocso.alert.controller.ActivityLogController;
 import vn.nguongocso.alert.service.ActivityLogService;
-import vn.nguongocso.alert_reclaim_history.service.ActivityLogServiceTest;
+import vn.nguongocso.organization.entity.Organization;
+import vn.nguongocso.organization.entity.OrganizationUser;
 
 import java.util.Collections;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -43,9 +48,34 @@ public class ActivityLogControllerTest {
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
 
+    // Helper tạo CustomUserDetails
+    private CustomUserDetails createCustomUserDetails(String username, String roleCode) {
+        User user = new User();
+        user.setUserId(UUID.randomUUID());
+        user.setUserName(username);
+        user.setFullName("Test User");
+        user.setPasswordHash("password");
+
+        Organization org = new Organization();
+        org.setOrganizationId(UUID.randomUUID());
+        org.setName("Test Organization");
+        org.setCode("TEST");
+
+        OrganizationUser orgUser = new OrganizationUser();
+        orgUser.setOrganization(org);
+
+        Role role = new Role();
+        role.setCode(roleCode);
+        role.setName("Role Name");
+
+        return new CustomUserDetails(user, orgUser, role);
+    }
+
     @Test
-    @WithMockUser(roles = "VT-02") // Giả lập User đăng nhập thành công với Role Quản lý HTX
+    @WithUserDetails("manager") // ✅ KHÔNG chỉ định bean name
     void getActivityLogs_shouldReturnOk_whenUserIsOrgManager() throws Exception {
+        CustomUserDetails mockUserDetails = createCustomUserDetails("manager", "VT-02");
+        when(customUserDetailsService.loadUserByUsername("manager")).thenReturn(mockUserDetails);
 
         PageResponse response = PageResponse.builder()
                 .items(Collections.emptyList())
@@ -66,19 +96,20 @@ public class ActivityLogControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "VT-03") // Giả lập User đăng nhập với vai trò Người ghi sự kiện (không có quyền)
+    @WithUserDetails("recorder")
     void getActivityLogs_shouldReturnForbidden_whenUserHasWrongRole() throws Exception {
+        CustomUserDetails mockUserDetails = createCustomUserDetails("recorder", "VT-03");
+        when(customUserDetailsService.loadUserByUsername("recorder")).thenReturn(mockUserDetails);
 
         mockMvc.perform(get("/api/v1/organizations/activity-logs")
                         .with(csrf()))
-                .andExpect(status().isForbidden()); // Kiểm tra hệ thống có trả về lỗi 403 Forbidden không
+                .andExpect(status().isForbidden());
     }
 
-    @Test // Giả lập cuộc gọi nặc danh (không đính kèm JWT token)
-    void getActivityLogs_shouldReturnUnauthorized_whenAnonymousUser() throws Exception {
-
+    @Test
+    void getActivityLogs_shouldReturnForbidden_whenAnonymousUser() throws Exception {
         mockMvc.perform(get("/api/v1/organizations/activity-logs")
                         .with(csrf()))
-                .andExpect(status().isUnauthorized()); // Kiểm tra hệ thống trả về lỗi 401 Unauthorized
+                .andExpect(status().isForbidden()); // 403 vì chưa đăng nhập
     }
 }
