@@ -32,57 +32,37 @@ export const organizationProfileSchema = z.object({
 export type OrganizationProfileFormValues = z.infer<typeof organizationProfileSchema>;
 
 // ---------- Create Organization ----------
+// ... các import giữ nguyên
+
 export const createOrganizationSchema = z
-    .object({
-        organizationName: z.string().max(255, 'Tên tổ chức tối đa 255 ký tự'),
-        organizationCode: z
-            .string()
-            .regex(ORGANIZATION_CODE_REGEX, 'Mã tổ chức chỉ chứa chữ hoa, số, gạch dưới và gạch ngang'),
-        organizationType: z.enum(['COOPERATIVE', 'ENTERPRISE', 'GOVERNMENT', 'SYSTEM'], {
-            required_error: 'Vui lòng chọn loại tổ chức',
-        }),
-        address: z
-            .string()
-            .max(255)
-            .optional()
-            .transform((val) => (val === '' ? undefined : val)),
-        phone: z
-            .string()
-            .optional()
-            .refine((val) => !val || PHONE_REGEX.test(val), {
-                message: 'Số điện thoại không hợp lệ (VD: 0987654321 hoặc +84987654321)',
-            })
-            .transform((val) => (val === '' ? undefined : val)),
-        email: z
-            .string()
-            .optional()
-            .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
-                message: 'Email không hợp lệ',
-            })
-            .transform((val) => (val === '' ? undefined : val)),
-        fullName: z.string().max(100, 'Họ tên tối đa 100 ký tự'),
-        userName: z.string().min(4, 'Tên đăng nhập ít nhất 4 ký tự').max(30, 'Tối đa 30 ký tự'),
-        password: z
-            .string()
-            .regex(
-                PASSWORD_REGEX,
-                'Mật khẩu phải có 8-50 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt'
-            ),
-        confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu'),
-        managerPhone: z
-            .string()
-            .optional()
-            .refine((val) => !val || PHONE_REGEX.test(val), {
-                message: 'Số điện thoại không hợp lệ',
-            })
-            .transform((val) => (val === '' ? undefined : val)),
-        managerEmail: z.string().email('Email không hợp lệ'),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-        message: 'Mật khẩu xác nhận không khớp',
-        path: ['confirmPassword'],
-    });
+  .object({
+    organizationName: z.string().max(255, 'Tên tổ chức tối đa 255 ký tự'),
+    organizationCode: z
+      .string()
+      .regex(ORGANIZATION_CODE_REGEX, 'Mã tổ chức chỉ chứa chữ hoa, số, gạch dưới và gạch ngang'),
+    organizationType: z.enum(['COOPERATIVE', 'ENTERPRISE', 'GOVERNMENT', 'SYSTEM'], {
+      required_error: 'Vui lòng chọn loại tổ chức',
+    }),
+    // Đã xóa: address, phone, email
+    fullName: z.string().max(100, 'Họ tên tối đa 100 ký tự'),
+    userName: z.string().min(4, 'Tên đăng nhập ít nhất 4 ký tự').max(30, 'Tối đa 30 ký tự'),
+    password: z
+      .string()
+      .regex(
+        PASSWORD_REGEX,
+        'Mật khẩu phải có 8-50 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt'
+      ),
+    confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu'),
+    // Đã xóa: managerPhone
+    managerEmail: z.string().email('Email không hợp lệ'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Mật khẩu xác nhận không khớp',
+    path: ['confirmPassword'],
+  });
+
 export type CreateOrganizationFormValues = z.infer<typeof createOrganizationSchema>;
+// Các schema khác giữ nguyên...
 
 // ---------- Farm Area ----------
 export const createFarmAreaSchema = z.object({
