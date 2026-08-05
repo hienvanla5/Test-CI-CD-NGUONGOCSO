@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { getProductionLotById } from "@/api/productionLotApi";
 import { ShipmentList } from "@/pages/shipment/ShipmentList";
 import { FarmLogList } from "@/components/farm-log/FarmLogList";
+import { usePermission } from "@/hooks/usePermission";
+import { ROLE_ACCESS } from "@/config/roleAccess";
 import { HarvestForm } from "@/components/trace-event/HarvestForm";
 import type { ProductionLot } from "@/types/productionLot";
 import { toast } from "sonner";
@@ -75,6 +77,7 @@ export const ProductionLotDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const canCreateFarmLog = usePermission(ROLE_ACCESS.farmLogCreate);
   const [lot, setLot] = useState<ProductionLot | null>(null);
   const [loading, setLoading] = useState(true);
   const [showHarvestForm, setShowHarvestForm] = useState(false);
@@ -346,7 +349,11 @@ export const ProductionLotDetailPage = () => {
         </TabsContent>
 
         <TabsContent value="farmlogs" className="mt-4">
-          <FarmLogList productionLotId={lot.id} productionLotName={lot.name} />
+          <FarmLogList
+            productionLotId={lot.id}
+            productionLotName={lot.name}
+            canCreate={canCreateFarmLog}
+          />
         </TabsContent>
 
         <TabsContent value="shipments" className="mt-4">

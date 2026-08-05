@@ -4,7 +4,9 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import vn.nguongocso.auth.entity.User;
+import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.organization.entity.OrganizationUser;
+import vn.nguongocso.organization.enums.OrganizationType;
 import vn.nguongocso.organization.enums.OrganizationUserStatus;
 
 import java.util.List;
@@ -36,4 +38,9 @@ public interface OrganizationUserRepository extends JpaRepository<OrganizationUs
 	List<OrganizationUser> findAllByUser_UserId(UUID userId);
 
 	List<OrganizationUser> findByUser_UserIdAndStatus(UUID userId, OrganizationUserStatus status);
+
+	List<OrganizationUser> findAllByOrganizationIn(List<Organization> organizations);
+Optional<OrganizationUser> findFirstByUserAndOrganization_Type(User user, OrganizationType type);
+boolean existsByOrganizationAndUser(Organization organization, User user);
+List<OrganizationUser> findByOrganization_OrganizationId(UUID organizationId);
 }

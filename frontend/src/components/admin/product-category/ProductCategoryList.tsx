@@ -9,9 +9,11 @@ interface Props {
   loading: boolean;
   onEdit: (category: ProductCategory) => void;
   onToggleActive: (id: string, currentActive: boolean) => void;
+  /** Có quyền sửa/ẩn-hiện hay không (mặc định true để không phá các nơi gọi cũ). */
+  canManage?: boolean;
 }
 
-export const ProductCategoryList = ({ categories, loading, onEdit, onToggleActive }: Props) => {
+export const ProductCategoryList = ({ categories, loading, onEdit, onToggleActive, canManage = true }: Props) => {
   if (loading) return <div className="text-center py-8">Đang tải...</div>;
   if (!categories || categories.length === 0) return <div className="text-center py-8 text-muted-foreground">Không có loại nông sản nào.</div>;
 
@@ -24,7 +26,7 @@ export const ProductCategoryList = ({ categories, loading, onEdit, onToggleActiv
             <TableHead>Nhóm hàng</TableHead>
             <TableHead>Mô tả</TableHead>
             <TableHead>Trạng thái</TableHead>
-            <TableHead className="text-right">Thao tác</TableHead>
+            {canManage && <TableHead className="text-right">Thao tác</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -38,14 +40,16 @@ export const ProductCategoryList = ({ categories, loading, onEdit, onToggleActiv
                   {category.isActive ? 'Đang hoạt động' : 'Đã ẩn'}
                 </Badge>
               </TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="sm" onClick={() => onEdit(category)}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => onToggleActive(category.id, category.isActive)}>
-                  {category.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </TableCell>
+              {canManage && (
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="sm" onClick={() => onEdit(category)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => onToggleActive(category.id, category.isActive)}>
+                    {category.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

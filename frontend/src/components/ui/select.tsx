@@ -76,12 +76,13 @@ function SelectContent({
   sideOffset = 4,
   align = "center",
   alignOffset = 0,
-  alignItemWithTrigger = true,
+  alignItemWithTrigger = false,
+  collisionPadding = 8,
   ...props
 }: SelectPrimitive.Popup.Props &
   Pick<
     SelectPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
+    "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger" | "collisionPadding"
   >) {
   return (
     <SelectPrimitive.Portal>
@@ -91,14 +92,15 @@ function SelectContent({
         align={align}
         alignOffset={alignOffset}
         alignItemWithTrigger={alignItemWithTrigger}
+        collisionPadding={collisionPadding}
         className="isolate z-[1100]"
       >
         <SelectPrimitive.Popup
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
           className={cn(
-            // Card-like panel: white bg, 12px radius, soft shadow, border
-            "relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-[12px] border border-border bg-popover text-popover-foreground shadow-card duration-150",
+            // Card-like panel: white bg, 12px radius, strong shadow, border
+            "relative isolate z-50 max-h-[min(var(--available-height),220px)] w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-[12px] border border-border bg-popover text-popover-foreground shadow-xl duration-150",
             // Animation: fade + slide
             "data-[align-trigger=true]:animate-none",
             "data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
@@ -141,6 +143,8 @@ function SelectItem({
       className={cn(
         // 40px height, 14px horizontal padding, 8px rounded, 14px font, 400 weight
         "relative flex w-full cursor-pointer items-center gap-2 rounded-md h-10 px-3.5 text-sm font-normal outline-none select-none transition-colors duration-100",
+        // Clear divider between items
+        "not-last:border-b not-last:border-border",
         // Hover / keyboard focus: #F3F4F6
         "hover:bg-[#F3F4F6] focus-visible:bg-[#F3F4F6]",
         // Selected: Primary Light bg, Primary text, medium weight
