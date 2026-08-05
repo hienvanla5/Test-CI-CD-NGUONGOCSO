@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea'; // thêm import Textarea
 import { Label } from '@/components/ui/label';
 import {
   Dialog,
@@ -19,7 +20,7 @@ interface StandardFormProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: StandardFormValues) => Promise<void>;
-  initialData?: Standard | null; // null => create mode
+  initialData?: Standard | null;
   isLoading?: boolean;
 }
 
@@ -51,30 +52,28 @@ export const StandardForm: React.FC<StandardFormProps> = ({
 
   const isActive = watch('isActive');
 
-  // Reset form khi initialData thay đổi hoặc đóng mở dialog
   useEffect(() => {
-  if (open) {
-    if (initialData) {
-      reset({
-        name: initialData.name,
-        description: initialData.description || '',
-        issuingBody: initialData.issuingBody || '',
-        isActive: initialData.isActive,
-      });
-    } else {
-      reset({
-        name: '',
-        description: '',
-        issuingBody: '',
-        isActive: true,
-      });
+    if (open) {
+      if (initialData) {
+        reset({
+          name: initialData.name,
+          description: initialData.description || '',
+          issuingBody: initialData.issuingBody || '',
+          isActive: initialData.isActive,
+        });
+      } else {
+        reset({
+          name: '',
+          description: '',
+          issuingBody: '',
+          isActive: true,
+        });
+      }
     }
-  }
-}, [open, initialData, reset]);
+  }, [open, initialData, reset]);
 
   const handleFormSubmit = async (data: StandardFormValues) => {
     await onSubmit(data);
-    // Không đóng dialog ở đây, để component cha xử lý (sau khi thành công)
   };
 
   return (
@@ -117,14 +116,16 @@ export const StandardForm: React.FC<StandardFormProps> = ({
               )}
             </div>
 
-            {/* Mô tả */}
+            {/* Mô tả - sử dụng Textarea */}
             <div className="space-y-2">
               <Label htmlFor="description">Mô tả</Label>
-              <Input
+              <Textarea
                 id="description"
                 {...register('description')}
                 placeholder="Nhập mô tả (không bắt buộc)"
                 disabled={isLoading}
+                rows={4} // số dòng hiển thị
+                className="resize-vertical" // cho phép kéo dãn theo chiều dọc
               />
               {errors.description && (
                 <p className="text-sm text-red-500">

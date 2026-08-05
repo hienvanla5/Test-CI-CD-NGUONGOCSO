@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { getProductionLots, getProductionLotDashboard, type DashboardResponse } from '@/api/productionLotApi';
-import { logDashboardAccess } from '@/api/reportApi';
 import { ProductionLotBoard } from '@/components/production-lot/ProductionLotBoard';
 import { ProductionStatistics } from '@/components/dashboard/PoductionStatistics';
 import type { ProductionLot } from '@/types/productionLot';
@@ -37,7 +36,6 @@ export function CooperativeDashboard({ initialTab }: CooperativeDashboardProps) 
       }
     };
     void loadData();
-    void logDashboardAccess('cooperative-dashboard');
   }, []);
 
   const statistics = useMemo(() => ({

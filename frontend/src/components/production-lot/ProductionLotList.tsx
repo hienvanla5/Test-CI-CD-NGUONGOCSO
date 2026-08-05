@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import type { ProductionLot } from "@/types/productionLot";
 import {
   ClipboardCheck,
+  FileUp,
   LoaderCircle,
   NotebookPen,
   PackageOpen,
@@ -41,6 +42,7 @@ import {
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ApproveProductionLotDialog } from "./Approveproductionlotdialog";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProductionLotListProps {
   lots: ProductionLot[];
@@ -119,6 +121,7 @@ export const ProductionLotList = ({
   onRecordProcurement,
 }: ProductionLotListProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [confirmingLot, setConfirmingLot] =
@@ -126,6 +129,8 @@ export const ProductionLotList = ({
   const [approvingLot, setApprovingLot] =
     useState<ProductionLot | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const canImport = user?.roleCode === "VT-02"; // quyền nhập lô hàng loạt
 
   const handleConfirmSubmit = async () => {
     if (!confirmingLot) return;
@@ -184,12 +189,25 @@ export const ProductionLotList = ({
                 </p>
               </div>
             </div>
-            {canCreate && (
-              <Button type="button" variant="create" onClick={onCreate}>
-                <Plus className="size-4" />
-                Tạo lô sản xuất
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {canCreate && (
+                <Button type="button" variant="create" onClick={onCreate}>
+                  <Plus className="size-4" />
+                  Tạo lô sản xuất
+                </Button>
+              )}
+              {canImport && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                  onClick={() => navigate("/production-lots/import")}
+                >
+                  <FileUp className="size-4" />
+                  Nhập lô hàng loạt
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
 

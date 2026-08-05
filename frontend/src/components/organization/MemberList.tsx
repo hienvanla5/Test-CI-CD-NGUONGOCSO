@@ -12,7 +12,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from "@/components/ui/select"; // không cần SelectValue nữa
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -27,7 +27,7 @@ import {
   getRoles,
 } from "@/api/memberApi";
 import type { OrganizationMember, RoleOption } from "@/types/member";
-import { Search, ShieldCheck, UserRoundCog, X } from "lucide-react";
+import { Search, ShieldCheck, UserRoundCog, X, MailPlus } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -61,6 +61,7 @@ export const MemberList = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const canCreate = usePermission(ROLE_ACCESS.memberManagement);
+  const canInvite = user?.roleCode === "VT-02"; // quyền mời thành viên
 
   const [members, setMembers] = useState<OrganizationMember[]>([]);
   const [roles, setRoles] = useState<RoleOption[]>([]);
@@ -206,21 +207,18 @@ export const MemberList = () => {
     }
   };
 
-  // Hàm lấy label hiển thị cho bộ lọc vai trò
   const getRoleFilterLabel = () => {
     if (roleFilter === "ALL") return "Tất cả vai trò";
     if (roleFilter === "NONE") return "Chưa cấp quyền";
     return getRoleLabel(roleFilter);
   };
 
-  // Hàm lấy label hiển thị cho bộ lọc trạng thái
   const getStatusFilterLabel = () => {
     if (statusFilter === "ALL") return "Tất cả trạng thái";
     if (statusFilter === "ACTIVE") return "Đang hoạt động";
     return "Đã vô hiệu hóa";
   };
 
-  // Hàm lấy label cho vai trò mới trong dialog
   const getSelectedRoleLabel = () => {
     if (!selectedRoleId) return "Chọn vai trò";
     const role = assignableRoles.find(r => r.roleId === Number(selectedRoleId));
@@ -281,10 +279,22 @@ export const MemberList = () => {
                     Thêm thành viên
                   </Button>
                 )}
+                {canInvite && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                    onClick={() => navigate("/invitations/create")}
+                  >
+                    <MailPlus className="h-4 w-4 mr-1" />
+                    Mời thành viên
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
 
+          {/* ... phần còn lại của MemberList giữ nguyên ... */}
           <CardContent className="p-0">
             {/* Bộ lọc */}
             <div className="grid gap-3 border-b border-emerald-100 bg-emerald-50/50 p-4 md:grid-cols-[1fr_220px_200px]">
@@ -298,7 +308,6 @@ export const MemberList = () => {
                 />
               </div>
 
-              {/* Bộ lọc vai trò – không dùng SelectValue */}
               <Select
                 value={roleFilter}
                 onValueChange={(value) => setRoleFilter(value ?? '')}
@@ -314,7 +323,6 @@ export const MemberList = () => {
                 </SelectContent>
               </Select>
 
-              {/* Bộ lọc trạng thái – không dùng SelectValue */}
               <Select
                 value={statusFilter}
                 onValueChange={(value) => setStatusFilter(value ?? '')}

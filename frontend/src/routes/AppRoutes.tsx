@@ -46,6 +46,7 @@ import { ProductionLotDetailPage } from "@/pages/shipment/ProductionLotDetailPag
 // ===== Public =====
 import PublicHomePage from "@/pages/public/PublicHomePage";
 import TraceLookupPage from "@/pages/public/TraceLookupPage";
+import JoinOrganizationPage from "@/pages/public/JoinOrganizationPage"; // 🆕 từ file 2
 
 // ===== Reports =====
 import LookupStatisticsPage from "@/pages/report/LookupStatisticsPage";
@@ -85,7 +86,13 @@ import RolePermissionConfigPage from "@/pages/permission/RolePermissionConfigPag
 
 // ===== Scan Quick Event (NCL-10-CN-004) =====
 import ScanQuickEventPage from "@/pages/scan-anomaly-alert/components/ScanQuickEventPage";
+
+// ===== Organization Detail =====
 import OrganizationDetailPage from "@/pages/organization/OrganizationDetailPage";
+
+// 🆕 Các import mới từ file 2
+import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
+import CreateInvitationPage from "@/pages/invitation/CreateInvitationPage";
 
 
 
@@ -155,6 +162,7 @@ const AppRoutes = () => (
         <Route path="/" element={<PublicHomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/public/trace/:codeValue" element={<TraceLookupPage />} />
+        <Route path="/join" element={<JoinOrganizationPage />} /> {/* 🆕 */}
 
         {/* ===== Protected routes with layout ===== */}
         <Route
@@ -490,11 +498,32 @@ const AppRoutes = () => (
                 }
             />
 
+            {/* ===== Organization Detail ===== */}
             <Route
                 path="organizations/:id"
                 element={
                     <RoleRoute allowedRoles={ROLE_ACCESS.organizationList}>
                         <OrganizationDetailPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* 🆕 Mobile: Record Event (NCL-10-CN-003) */}
+            <Route
+                path="mobile/record-event"
+                element={
+                    <RoleRoute allowedRoles={["VT-02", "VT-03"]}>
+                        <RecordMobileEventPage />
+                    </RoleRoute>
+                }
+            />
+
+            {/* 🆕 Invitation (NCL-09-CN-007) */}
+            <Route
+                path="invitations/create"
+                element={
+                    <RoleRoute allowedRoles={["VT-02"]}>
+                        <CreateInvitationPage />
                     </RoleRoute>
                 }
             />

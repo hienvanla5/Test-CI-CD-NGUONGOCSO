@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { LogOut, Menu, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Logo } from '@/components/common/Logo';
+import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,9 +21,13 @@ import {
 
 interface HeaderProps {
   onMenuClick?: () => void;
+  /** Current viewport is mobile (< 768px) */
+  isMobile?: boolean;
+  /** Current viewport is tablet (768px - 1279px) */
+  isTablet?: boolean;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick, isMobile = false, isTablet = false }: HeaderProps) {
   const { user, logout } = useAuth();
   const roleLabel = getRoleLabel(user?.roleCode);
   const canOpenOrganizationProfile = hasAnyRole(
@@ -37,46 +42,75 @@ export function Header({ onMenuClick }: HeaderProps) {
     setShowLogoutDialog(false);
   };
 
+  // Desktop: full name + role
+  // Tablet: shortened name
+  // Mobile: avatar only
+  const userName = user?.fullName || user?.username || 'Người dùng';
+  const shortName = userName.split(' ').pop() || userName.charAt(0);
+
   const accountContent = (
     <>
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 min-w-0">
         <User className="h-4 w-4" />
       </span>
-      <span className="hidden min-w-0 text-left sm:block">
-        <span className="block max-w-48 truncate text-sm font-medium text-foreground">
-          {user?.fullName || user?.username || 'Người dùng'}
+      {/* Desktop: Show name and role */}
+      {!isMobile && !isTablet && (
+        <span className="hidden lg:flex lg:flex-col lg:min-w-0 lg:text-left">
+          <span className="block max-w-48 truncate text-sm font-medium text-foreground">
+            {userName}
+          </span>
+          <span className="block max-w-48 truncate text-xs text-muted-foreground">
+            {roleLabel}
+            {user?.organizationName ? ` · ${user.organizationName}` : ''}
+          </span>
         </span>
-        <span className="block max-w-48 truncate text-xs text-muted-foreground">
-          {roleLabel}
-          {user?.organizationName ? ` · ${user.organizationName}` : ''}
+      )}
+      {/* Tablet: Show shortened name */}
+      {isTablet && (
+        <span className="hidden sm:flex sm:flex-col sm:min-w-0 sm:text-left">
+          <span className="block max-w-32 truncate text-sm font-medium text-foreground">
+            {shortName}
+          </span>
+          <span className="block max-w-32 truncate text-xs text-muted-foreground">
+            {roleLabel}
+          </span>
         </span>
-      </span>
+      )}
     </>
   );
 
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-emerald-100 bg-white/80 backdrop-blur-md">
-        <div className="flex h-16 items-center gap-3 px-4 md:px-6">
-          {/* Mobile menu button */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="md:hidden text-muted-foreground hover:text-emerald-700"
-            onClick={onMenuClick}
-            aria-label="Mở menu"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+        <div className={cn(
+          "flex h-16 items-center gap-2 sm:gap-3",
+          isMobile ? "px-3" : "px-4 md:px-6",
+        )}>
+          {/* Hamburger menu button - visible on mobile and tablet */}
+          {(isMobile || isTablet) && onMenuClick && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-emerald-700 flex-shrink-0"
+              onClick={onMenuClick}
+              aria-label="Mở menu"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
 
-          {/* Mobile title */}
-          <div className="min-w-0 md:hidden">
-            <Logo height={50} />
+          {/* Page title area - mobile shows compact logo */}
+          <div className="min-w-0 flex-1">
+            {isMobile && (
+              <Link to="/dashboard" className="inline-flex">
+                <Logo height={36} />
+              </Link>
+            )}
           </div>
 
           {/* Right side: account, notifications, sync, logout */}
-          <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
+          <div className="flex min-w-0 items-center gap-1 sm:gap-2 md:gap-3">
             {canOpenOrganizationProfile ? (
               <Link
                 to="/organizations/profile"
@@ -93,7 +127,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             <NotificationBell />
             <SyncBadge />
 
-            {/* Nút đăng xuất mở dialog */}
+            {/* Logout button - opens confirmation dialog */}
             <Button
               type="button"
               variant="ghost"
@@ -109,7 +143,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
       </header>
 
-      {/* Dialog xác nhận đăng xuất */}
+      {/* Logout confirmation dialog */}
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
         <AlertDialogPopup>
           <AlertDialogHeader>

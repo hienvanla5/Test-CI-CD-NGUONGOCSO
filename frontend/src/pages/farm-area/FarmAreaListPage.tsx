@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, MapPin, RefreshCw } from 'lucide-react';
+import { Plus, MapPin, ExternalLink, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { getFarmAreas } from '@/api/farmAreaApi';
 import type { FarmArea } from '@/types/farmArea';
@@ -45,7 +45,7 @@ export default function FarmAreaListPage() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Vùng trồng</h1>
+          <h1 className="text-2xl font-bold text-emerald-800">Vùng trồng</h1>
           <p className="text-sm text-muted-foreground">
             Quản lý các vùng trồng của tổ chức
           </p>
@@ -64,35 +64,40 @@ export default function FarmAreaListPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách vùng trồng</CardTitle>
+      <Card className="border-emerald-100 bg-white/80 backdrop-blur-sm shadow-sm">
+        <CardHeader className="border-b border-emerald-100">
+          <CardTitle className="text-lg font-semibold text-emerald-800">
+            Danh sách vùng trồng
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {loading ? (
-            <div className="text-center py-8">Đang tải...</div>
+            <div className="flex justify-center items-center py-16 text-muted-foreground">
+              <RefreshCw className="h-5 w-5 animate-spin mr-2 text-emerald-500" />
+              Đang tải...
+            </div>
           ) : areas.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <MapPin className="mx-auto h-12 w-12 text-muted-foreground/50" />
-              <p className="mt-2">Chưa có vùng trồng nào</p>
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <MapPin className="mx-auto h-12 w-12 text-emerald-300" />
+              <p className="mt-2 font-semibold text-emerald-800">Chưa có vùng trồng nào</p>
               <p className="text-sm">Nhấn "Tạo vùng trồng" để thêm mới.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Tên vùng</TableHead>
-                    <TableHead>Loại cây trồng</TableHead>
-                    <TableHead>Diện tích</TableHead>
-                    <TableHead>Vị trí</TableHead>
-                    <TableHead>Ngày tạo</TableHead>
+                  <TableRow className="bg-emerald-50/50">
+                    <TableHead className="text-emerald-800 font-semibold">Tên vùng</TableHead>
+                    <TableHead className="text-emerald-800 font-semibold">Loại cây trồng</TableHead>
+                    <TableHead className="text-emerald-800 font-semibold">Diện tích</TableHead>
+                    <TableHead className="text-emerald-800 font-semibold">Vị trí (tọa độ)</TableHead>
+                    <TableHead className="text-emerald-800 font-semibold">Ngày tạo</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {areas.map((area) => (
-                    <TableRow key={area.id}>
-                      <TableCell className="font-medium">{area.name}</TableCell>
+                    <TableRow key={area.id} className="hover:bg-emerald-50/30">
+                      <TableCell className="font-medium text-emerald-800">{area.name}</TableCell>
                       <TableCell>{area.cropTypeName}</TableCell>
                       <TableCell>
                         {convertAreaFromHa(area.area, area.areaUnit).toLocaleString('vi-VN', {
@@ -101,11 +106,19 @@ export default function FarmAreaListPage() {
                         {AREA_UNIT_LABELS[area.areaUnit]}
                       </TableCell>
                       <TableCell>
-                        <span className="text-xs font-mono">
-                          {area.latitude.toFixed(6)}, {area.longitude.toFixed(6)}
-                        </span>
+                        <a
+                          href={`https://www.google.com/maps?q=${area.latitude},${area.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-mono text-emerald-700 hover:text-emerald-800 hover:underline"
+                          title="Xem trên Google Maps"
+                        >
+                          <MapPin className="h-3 w-3 text-emerald-500" />
+                          {area.latitude.toFixed(4)}, {area.longitude.toFixed(4)}
+                          <ExternalLink className="h-3 w-3 opacity-50" />
+                        </a>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-muted-foreground">
                         {new Date(area.createdAt).toLocaleDateString('vi-VN')}
                       </TableCell>
                     </TableRow>

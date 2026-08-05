@@ -365,7 +365,7 @@ export const RecordMobileEventForm: React.FC<Props> = ({
                     </SelectValue>
                   </SelectTrigger>
 
-                  <SelectContent>
+                  <SelectContent className="min-w-[220px] w-auto">
                     {filteredLots.map((lot) => (
                       <SelectItem
                         key={lot.id}

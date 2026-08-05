@@ -42,18 +42,6 @@ export const getDashboardStatistics = async (params: DashboardQueryParams = {}):
   return response.data.data;
 };
 
-/**
- * TC-04 (NCL-07-CN-001): ghi lịch sử mỗi lần một bảng điều khiển/báo cáo được mở.
- * Endpoint: /reports/access-logs (giả định - cần xác nhận với backend)
- */
-export const logDashboardAccess = async (dashboardKey: string): Promise<void> => {
-  try {
-    await apiClient.post('/reports/access-logs', { dashboardKey });
-  } catch {
-    // best-effort — im lặng bỏ qua lỗi ghi log
-  }
-};
-
 // --- API cho Export Report (NCL-07-CN-003) ---
 
 /**
