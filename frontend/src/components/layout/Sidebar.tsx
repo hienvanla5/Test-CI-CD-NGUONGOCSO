@@ -168,18 +168,6 @@ const MENU_GROUPS: MenuGroup[] = [
         allowedRoles: ROLE_ACCESS.scanQuickEvent,
       },
       {
-        icon: <Smartphone className="h-5 w-5" />,
-        label: "Ghi sự kiện ngoài đồng",
-        href: "/mobile/record-event",
-        allowedRoles: ["VT-02", "VT-03"] as const,
-      },
-      {
-        icon: <Database className="h-5 w-5" />,
-        label: "Sự kiện chờ đồng bộ",
-        href: "/offline-events",
-        allowedRoles: ["VT-02", "VT-03"] as const,
-      },
-      {
         icon: <AlertTriangle className="h-5 w-5" />,
         label: "Cảnh báo tem bất thường",
         href: "/alerts/scan-anomaly",
@@ -246,6 +234,12 @@ const MENU_GROUPS: MenuGroup[] = [
         allowedRoles: ["VT-02"] as const,
       },
       {
+        icon: <Database className="h-5 w-5" />,
+        label: "Sao lưu & Phục hồi dữ liệu",
+        href: "/admin/backup-restore",
+        allowedRoles: ["VT-01"] as const,
+      },
+      {
         icon: <Shield className="h-5 w-5" />,
         label: "Phân quyền",
         href: "/permissions/config",
@@ -263,10 +257,7 @@ const MENU_GROUPS: MenuGroup[] = [
 
 // ─── Helpers ─────────────────────────────────────────────
 
-function filterVisibleItems(
-  items: MenuItem[],
-  userRole?: string,
-): MenuItem[] {
+function filterVisibleItems(items: MenuItem[], userRole?: string): MenuItem[] {
   return items.filter((item) => hasAnyRole(userRole, item.allowedRoles));
 }
 
@@ -325,9 +316,7 @@ function MenuLink({
     return (
       <Tooltip key={item.href}>
         <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-        <TooltipContent className="z-[60]">
-          {item.label}
-        </TooltipContent>
+        <TooltipContent className="z-[60]">{item.label}</TooltipContent>
       </Tooltip>
     );
   }
@@ -387,7 +376,9 @@ function AccordionGroup({
       <div
         className={cn(
           "grid transition-all duration-300 ease-in-out",
-          expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          expanded
+            ? "grid-rows-[1fr] opacity-100"
+            : "grid-rows-[0fr] opacity-0",
         )}
       >
         <div className="overflow-hidden">
