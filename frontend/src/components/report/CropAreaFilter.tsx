@@ -114,7 +114,7 @@ export const CropAreaFilter = ({
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
                 placeholder="VD: 2026"
-                className="border-emerald-200 focus-visible:ring-emerald-100"
+                className="h-9 border-emerald-200 focus-visible:ring-emerald-100"
               />
             </div>
 
@@ -126,7 +126,7 @@ export const CropAreaFilter = ({
                 value={productCategoryId}
                 onValueChange={(value) => setProductCategoryId(value || "")}
               >
-                <SelectTrigger className="w-full border-emerald-200 focus:ring-emerald-100">
+                <SelectTrigger size="sm" className="w-full border-emerald-200 focus:ring-emerald-100">
                   <SelectValue placeholder="Tất cả">
                     {productCategoryId
                       ? getCategoryName(productCategoryId)
@@ -152,7 +152,7 @@ export const CropAreaFilter = ({
                 value={farmAreaId}
                 onValueChange={(value) => setFarmAreaId(value || "")}
               >
-                <SelectTrigger className="w-full border-emerald-200 focus:ring-emerald-100">
+                <SelectTrigger size="sm" className="w-full border-emerald-200 focus:ring-emerald-100">
                   <SelectValue placeholder="Tất cả">
                     {farmAreaId ? getFarmAreaName(farmAreaId) : "Tất cả"}
                   </SelectValue>
@@ -177,7 +177,7 @@ export const CropAreaFilter = ({
                   value={organizationId}
                   onValueChange={(value) => setOrganizationId(value || "")}
                 >
-                  <SelectTrigger className="w-full border-emerald-200 focus:ring-emerald-100">
+                  <SelectTrigger size="sm" className="w-full border-emerald-200 focus:ring-emerald-100">
                     <SelectValue placeholder="Tất cả">
                       {organizationId
                         ? getOrganizationName(organizationId)
@@ -196,18 +196,21 @@ export const CropAreaFilter = ({
               </div>
             )}
 
-            <div className="flex items-end gap-2">
-              <Button type="submit" variant="search" disabled={loading}>
-                <Search className="h-4 w-4 mr-1" /> Lọc
-              </Button>
-              <Button
-                type="button"
-                variant="delete"
-                onClick={handleReset}
-                disabled={loading}
-              >
-                <X className="h-4 w-4 mr-1" /> Xóa
-              </Button>
+            <div className="space-y-1.5">
+              <Label className="invisible text-sm font-medium">Thao tác</Label>
+              <div className="flex gap-2">
+                <Button type="submit" variant="search" disabled={loading}>
+                  <Search className="h-4 w-4 mr-1" /> Lọc
+                </Button>
+                <Button
+                  type="button"
+                  variant="delete"
+                  onClick={handleReset}
+                  disabled={loading}
+                >
+                  <X className="h-4 w-4 mr-1" /> Xóa
+                </Button>
+              </div>
             </div>
           </div>
         </form>

@@ -64,6 +64,7 @@ export const ProductCategoryFilter = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Tìm theo tên..."
+                className="h-9"
               />
             </div>
             <div>
@@ -73,6 +74,7 @@ export const ProductCategoryFilter = ({
                 value={group}
                 onChange={(e) => setGroup(e.target.value)}
                 placeholder="VD: Cây ăn quả"
+                className="h-9"
               />
             </div>
             <div>
@@ -83,7 +85,7 @@ export const ProductCategoryFilter = ({
                   setIsActive(val === "" ? undefined : val === "true")
                 }
               >
-                <SelectTrigger>
+              <SelectTrigger size="sm" className="w-full">
                   <span>{selectedLabel}</span>
                 </SelectTrigger>
                 <SelectContent>
@@ -95,18 +97,21 @@ export const ProductCategoryFilter = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end gap-2">
-              <Button type="submit" variant="search" disabled={loading}>
-                <Search className="h-4 w-4 mr-1" /> Tìm kiếm
-              </Button>
-              <Button
-                type="button"
-                variant="delete"
-                onClick={handleReset}
-                disabled={loading}
-              >
-                <X className="h-4 w-4 mr-1" /> Xóa
-              </Button>
+            <div>
+              <Label className="invisible">Thao tác</Label>
+              <div className="flex gap-2">
+                <Button type="submit" variant="search" disabled={loading}>
+                  <Search className="h-4 w-4 mr-1" /> Tìm kiếm
+                </Button>
+                <Button
+                  type="button"
+                  variant="delete"
+                  onClick={handleReset}
+                  disabled={loading}
+                >
+                  <X className="h-4 w-4 mr-1" /> Xóa
+                </Button>
+              </div>
             </div>
           </div>
         </form>

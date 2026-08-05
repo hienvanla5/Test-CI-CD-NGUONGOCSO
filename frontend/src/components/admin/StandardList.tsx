@@ -27,6 +27,8 @@ import {
 import { StandardForm } from "./StandardForm";
 import type { StandardFormValues } from "@/utils/validators";
 import type { Standard } from "@/types/standard";
+import { usePermission } from "@/hooks/usePermission";
+import { ROLE_ACCESS } from "@/config/roleAccess";
 
 const PAGE_SIZE = 10;
 
@@ -37,6 +39,7 @@ const statusFilterOptions = [
 ];
 
 export const StandardList: React.FC = () => {
+  const canManage = usePermission(ROLE_ACCESS.standardManagement);
   const [standards, setStandards] = useState<Standard[]>([]);
   const [totalElements, setTotalElements] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
@@ -153,7 +156,7 @@ export const StandardList: React.FC = () => {
                   else setIsActiveFilter(val === "true");
                 }}
               >
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger size="sm" className="w-[180px]">
                   <SelectValue placeholder="Trạng thái">
                     {getStatusFilterLabel(currentFilterValue)}
                   </SelectValue>
@@ -177,10 +180,12 @@ export const StandardList: React.FC = () => {
                 />
                 Làm mới
               </Button>
-              <Button onClick={openCreateDialog}>
-                <Plus className="h-4 w-4 mr-1" />
-                Thêm tiêu chuẩn
-              </Button>
+              {canManage && (
+                <Button onClick={openCreateDialog}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Thêm tiêu chuẩn
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -202,7 +207,9 @@ export const StandardList: React.FC = () => {
                       <TableHead>Mô tả</TableHead>
                       <TableHead>Trạng thái</TableHead>
                       <TableHead>Ngày tạo</TableHead>
-                      <TableHead className="text-right">Thao tác</TableHead>
+                      {canManage && (
+                        <TableHead className="text-right">Thao tác</TableHead>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -235,17 +242,19 @@ export const StandardList: React.FC = () => {
                           <TableCell>
                             {new Date(std.createdAt).toLocaleDateString("vi-VN")}
                           </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openEditDialog(std)}
-                              disabled={!isActive}
-                              className={!isActive ? "text-muted-foreground" : ""}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
+                          {canManage && (
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditDialog(std)}
+                                disabled={!isActive}
+                                className={!isActive ? "text-muted-foreground" : ""}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          )}
                         </TableRow>
                       );
                     })}

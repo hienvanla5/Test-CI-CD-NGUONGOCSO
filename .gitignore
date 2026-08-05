@@ -19,3 +19,6 @@ AI_GUIDE.md
 
 
 backups/
+
+backend/.env
+backend/src/main/resources/application.properties

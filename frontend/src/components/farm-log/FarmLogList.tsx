@@ -43,6 +43,8 @@ interface FarmLogListProps {
   productionLotId: string;
   productionLotName?: string;
   onBack?: () => void;
+  /** Có quyền tạo nhật ký canh tác mới hay không (mặc định true để không phá các nơi gọi cũ). */
+  canCreate?: boolean;
 }
 
 const ACTIVITY_TYPE_LABELS: Record<string, string> = {
@@ -89,6 +91,7 @@ export function FarmLogList({
   productionLotId,
   productionLotName = "",
   onBack,
+  canCreate = true,
 }: FarmLogListProps) {
   const navigate = useNavigate();
   const [logs, setLogs] = useState<FarmLog[]>([]);
@@ -130,7 +133,6 @@ export function FarmLogList({
         page,
         size,
       });
-      console.log("Farm logs:", response.items);
       setLogs(response.items);
       setPageInfo({
         page: response.page,
@@ -227,10 +229,12 @@ export function FarmLogList({
               Quay lại
             </Button>
           )}
-          <Button variant="create" onClick={goToCreateLog}>
-            <Plus className="h-4 w-4 mr-1" />
-            Tạo nhật ký
-          </Button>
+          {canCreate && (
+            <Button variant="create" onClick={goToCreateLog}>
+              <Plus className="h-4 w-4 mr-1" />
+              Tạo nhật ký
+            </Button>
+          )}
         </div>
       </div>
 
@@ -333,14 +337,14 @@ export function FarmLogList({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[100px]">Ngày</TableHead>
-                    <TableHead className="w-[120px]">Người ghi</TableHead>
-                    <TableHead className="w-[140px]">Hoạt động</TableHead>
+                    <TableHead className="w-25">Ngày</TableHead>
+                    <TableHead className="w-30">Người ghi</TableHead>
+                    <TableHead className="w-35">Hoạt động</TableHead>
                     <TableHead>Vật tư</TableHead>
-                    <TableHead className="w-[80px]">Số lượng</TableHead>
+                    <TableHead className="w-20">Số lượng</TableHead>
                     <TableHead>Ghi chú</TableHead>
-                    <TableHead className="w-[150px]">Thời gian tạo</TableHead>
-                    <TableHead className="w-[120px] text-center">
+                    <TableHead className="w-35">Thời gian tạo</TableHead>
+                    <TableHead className="w-30 text-center">
                       Chứng từ
                     </TableHead>
                   </TableRow>
@@ -364,7 +368,7 @@ export function FarmLogList({
                           ? `${log.quantity} ${log.unit}`
                           : "—"}
                       </TableCell>
-                      <TableCell className="max-w-[200px] truncate">
+                      <TableCell className="max-w-50 truncate">
                         {log.notes || "—"}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
@@ -426,7 +430,7 @@ export function FarmLogList({
                     }
                   }}
                 >
-                  <SelectTrigger className="w-[70px] h-8">
+                  <SelectTrigger className="w-17.5 h-8">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -446,7 +450,7 @@ export function FarmLogList({
 
       {/* Modal đính kèm */}
       <Dialog open={attachmentModalOpen} onOpenChange={setAttachmentModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto sm:max-w-5xl">
+        <DialogContent className="max-w-xl md:max-w-3xl lg:max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Quản lý chứng từ</DialogTitle>
           </DialogHeader>

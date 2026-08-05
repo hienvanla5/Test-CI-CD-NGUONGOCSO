@@ -102,8 +102,6 @@ public class OrganizationController {
         return ResponseEntity.ok(ApiResult.success(response));
     }
 
-    // ===================== CÁC API MỚI =====================
-
     /**
      * Lấy danh sách user có sẵn để thêm vào tổ chức (cùng loại, chưa có trong tổ chức).
      */

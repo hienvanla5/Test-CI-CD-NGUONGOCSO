@@ -44,7 +44,7 @@ export function ScanAnomalyAlertDetailsDialog({
 }: Props) {
   return (
     <Dialog open={Boolean(alert)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
         {alert && (
           <>
             <DialogHeader>
