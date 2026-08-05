@@ -30,7 +30,6 @@ export function OrganizationListPage() {
     try {
       setLoading(true);
       const data = await getOrganizations();
-      console.log('📦 Dữ liệu từ API:', data); // Debug
 
       // ✅ Ánh xạ dữ liệu từ API sang kiểu Organization
       const mappedData: Organization[] = data.map((item: any) => ({
@@ -43,7 +42,6 @@ export function OrganizationListPage() {
         updatedAt: item.updatedAt,
       }));
 
-      console.log('✅ Dữ liệu sau khi map:', mappedData); // Debug
       setOrganizations(mappedData);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Không thể tải danh sách tổ chức');
@@ -73,7 +71,7 @@ export function OrganizationListPage() {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="py-8">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Danh sách tổ chức</CardTitle>

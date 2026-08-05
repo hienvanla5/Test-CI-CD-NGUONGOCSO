@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React, { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -19,17 +19,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   createInvitationSchema,
   type CreateInvitationFormValues,
-} from '@/utils/validators';
-import { createInvitation } from '@/api/invitationApi';
-import { getRoles } from '@/api/memberApi';
-import type { RoleOption } from '@/types/member';
-import { getRoleLabel } from '@/config/roleAccess';
-import { Loader2, Mail, MailPlus, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+} from "@/utils/validators";
+import { createInvitation } from "@/api/invitationApi";
+import { getRoles } from "@/api/memberApi";
+import type { RoleOption } from "@/types/member";
+import { getRoleLabel } from "@/config/roleAccess";
+import { Loader2, Mail, MailPlus, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const CreateInvitationForm: React.FC = () => {
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ export const CreateInvitationForm: React.FC = () => {
   } = useForm<CreateInvitationFormValues>({
     resolver: zodResolver(createInvitationSchema),
     defaultValues: {
-      email: '',
+      email: "",
       roleId: undefined,
       expiryDays: 7,
     },
@@ -56,11 +56,11 @@ export const CreateInvitationForm: React.FC = () => {
       try {
         const data = await getRoles();
         const filtered = data.filter(
-          (r) => r.code !== 'VT-01' && r.code !== 'VT-02'
+          (r) => r.code !== "VT-01" && r.code !== "VT-02",
         );
         setRoles(filtered);
       } catch (error) {
-        toast.error('Không thể tải danh sách vai trò');
+        toast.error("Không thể tải danh sách vai trò");
       } finally {
         setLoading(false);
       }
@@ -72,17 +72,17 @@ export const CreateInvitationForm: React.FC = () => {
     setSubmitting(true);
     try {
       await createInvitation(data);
-      toast.success('Thư mời đã được gửi thành công!');
+      toast.success("Thư mời đã được gửi thành công!");
       reset();
     } catch (error: any) {
       const status = error.response?.status;
       const message = error.response?.data?.message;
       if (status === 409) {
-        toast.error('Người dùng này đã là thành viên của tổ chức.');
+        toast.error("Người dùng này đã là thành viên của tổ chức.");
       } else if (status === 404) {
-        toast.error('Vai trò không tồn tại.');
+        toast.error("Vai trò không tồn tại.");
       } else {
-        toast.error(message || 'Không thể gửi thư mời.');
+        toast.error(message || "Không thể gửi thư mời.");
       }
     } finally {
       setSubmitting(false);
@@ -122,7 +122,8 @@ export const CreateInvitationForm: React.FC = () => {
                   Mời thành viên
                 </CardTitle>
                 <CardDescription>
-                  Gửi thư mời qua email để thành viên mới đăng ký và tham gia tổ chức.
+                  Gửi thư mời qua email để thành viên mới đăng ký và tham gia tổ
+                  chức.
                 </CardDescription>
               </div>
             </div>
@@ -131,7 +132,10 @@ export const CreateInvitationForm: React.FC = () => {
             <CardContent className="space-y-5 pt-6">
               {/* Email */}
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm font-medium text-emerald-800">
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-medium text-emerald-800"
+                >
                   Email <span className="text-red-500">*</span>
                 </Label>
                 <Controller
@@ -155,17 +159,22 @@ export const CreateInvitationForm: React.FC = () => {
 
               {/* Vai trò */}
               <div className="space-y-1.5">
-                <Label htmlFor="roleId" className="text-sm font-medium text-emerald-800">
+                <Label
+                  htmlFor="roleId"
+                  className="text-sm font-medium text-emerald-800"
+                >
                   Vai trò <span className="text-red-500">*</span>
                 </Label>
                 <Controller
                   name="roleId"
                   control={control}
                   render={({ field }) => {
-                    const selectedRole = roles.find((r) => r.roleId === field.value);
+                    const selectedRole = roles.find(
+                      (r) => r.roleId === field.value,
+                    );
                     return (
                       <Select
-                        value={field.value?.toString() || ''}
+                        value={field.value?.toString() || ""}
                         onValueChange={(val) => {
                           if (val !== null && val !== undefined) {
                             field.onChange(parseInt(val));
@@ -175,12 +184,18 @@ export const CreateInvitationForm: React.FC = () => {
                       >
                         <SelectTrigger className="border-emerald-200 focus:ring-emerald-100">
                           <SelectValue placeholder="Chọn vai trò">
-                            {selectedRole ? getRoleLabel(selectedRole.code) : ''}
+                            {selectedRole
+                              ? getRoleLabel(selectedRole.code)
+                              : undefined}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent className="min-w-[220px] w-auto">
                           {roles.map((role) => (
-                            <SelectItem key={role.roleId} value={role.roleId.toString()}>
+                            <SelectItem
+                              className="w-[350px]"
+                              key={role.roleId}
+                              value={role.roleId.toString()}
+                            >
                               {getRoleLabel(role.code)} ({role.code})
                             </SelectItem>
                           ))}
@@ -190,13 +205,18 @@ export const CreateInvitationForm: React.FC = () => {
                   }}
                 />
                 {errors.roleId && (
-                  <p className="text-sm text-red-500">{errors.roleId.message}</p>
+                  <p className="text-sm text-red-500">
+                    {errors.roleId.message}
+                  </p>
                 )}
               </div>
 
               {/* Thời hạn */}
               <div className="space-y-1.5">
-                <Label htmlFor="expiryDays" className="text-sm font-medium text-emerald-800">
+                <Label
+                  htmlFor="expiryDays"
+                  className="text-sm font-medium text-emerald-800"
+                >
                   Thời hạn (ngày)
                 </Label>
                 <Controller
@@ -210,13 +230,17 @@ export const CreateInvitationForm: React.FC = () => {
                       max="30"
                       className="border-emerald-200 focus-visible:ring-emerald-100"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 7)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 7)
+                      }
                       disabled={submitting}
                     />
                   )}
                 />
                 {errors.expiryDays && (
-                  <p className="text-sm text-red-500">{errors.expiryDays.message}</p>
+                  <p className="text-sm text-red-500">
+                    {errors.expiryDays.message}
+                  </p>
                 )}
               </div>
             </CardContent>

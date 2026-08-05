@@ -384,7 +384,7 @@ export const ImportProductionLotForm: React.FC<ImportProductionLotFormProps> = (
 
       {/* Dialog kết quả */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-lg md:max-w-2xl lg:max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {statusConfig?.icon}

@@ -122,7 +122,7 @@ export function ProcurementShipmentList({
           </div>
 
           <div className="overflow-x-auto">
-            <Table className="min-w-[900px]">
+            <Table className="min-w-[600px] md:min-w-[750px]">
               <TableHeader>
                 <TableRow>
                   {[

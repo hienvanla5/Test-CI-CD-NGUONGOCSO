@@ -39,7 +39,7 @@ export const ShipmentTimelineDialog = ({ open, onClose, shipmentId, shipmentName
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col overflow-hidden">
+      <DialogContent className="sm:max-w-lg md:max-w-2xl lg:max-w-3xl max-h-[80vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>Dòng sự kiện - {shipmentName}</DialogTitle>
           {!loading && !error && (

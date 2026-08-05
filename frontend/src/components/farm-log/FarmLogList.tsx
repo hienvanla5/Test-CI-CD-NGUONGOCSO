@@ -130,7 +130,6 @@ export function FarmLogList({
         page,
         size,
       });
-      console.log("Farm logs:", response.items);
       setLogs(response.items);
       setPageInfo({
         page: response.page,
@@ -446,7 +445,7 @@ export function FarmLogList({
 
       {/* Modal đính kèm */}
       <Dialog open={attachmentModalOpen} onOpenChange={setAttachmentModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto sm:max-w-5xl">
+        <DialogContent className="max-w-xl md:max-w-3xl lg:max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Quản lý chứng từ</DialogTitle>
           </DialogHeader>
