@@ -16,7 +16,6 @@ import {
   Package,
   ScanLine,
   Shield,
-  Smartphone,
   Truck,
   UserCheck,
   Users,

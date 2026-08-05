@@ -1,5 +1,4 @@
 // frontend/src/components/backup/BackupHistoryFilter.tsx
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,

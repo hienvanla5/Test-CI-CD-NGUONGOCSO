@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -9,16 +8,13 @@ interface Props {
 
 export const BackupStatus = ({ isBackupInProgress, isRestoreInProgress }: Props) => {
   let statusText = 'Hệ thống hoạt động bình thường';
-  let variant: 'default' | 'destructive' | 'warning' = 'default';
   let dotColor = 'bg-green-500';
 
   if (isRestoreInProgress) {
     statusText = '⛔ Hệ thống đang phục hồi dữ liệu (Bảo trì)';
-    variant = 'destructive';
     dotColor = 'bg-red-500';
   } else if (isBackupInProgress) {
     statusText = '⏳ Đang sao lưu dữ liệu...';
-    variant = 'warning';
     dotColor = 'bg-amber-500';
   }
 

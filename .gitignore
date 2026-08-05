@@ -22,3 +22,5 @@ backups/
 
 backend/.env
 backend/src/main/resources/application.properties
+.env
+docker-compose.yml
