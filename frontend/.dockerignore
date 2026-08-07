@@ -1,0 +1,22 @@
+# Dependencies & build output
+node_modules/
+dist/
+
+# Environment & secrets
+.env
+*.env
+
+# VCS
+.git
+.gitignore
+
+# Logs
+*.log
+dev-server.log
+
+# IDE (if any)
+.idea/
+.vscode/
+
+# Misc local files
+npm_member_check.txt

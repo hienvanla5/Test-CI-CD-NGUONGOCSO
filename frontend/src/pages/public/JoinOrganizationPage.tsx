@@ -24,6 +24,22 @@ import {
 import type { InvitationPublicResponse } from '@/types/invitation';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
+// Helper chỉ dùng roleName
+const getRoleDisplay = (roleName?: string): string => {
+  const map: Record<string, string> = {
+    'EVENT_RECORDER': 'Người ghi sự kiện',
+    'ORG_MANAGER': 'Quản lý hợp tác xã',
+    'PROCUREMENT': 'Doanh nghiệp thu mua',
+    'GOVERNMENT': 'Cán bộ quản lý ngành',
+    'VT-01': 'Quản trị viên nền tảng',
+    'VT-02': 'Quản lý hợp tác xã',
+    'VT-03': 'Người ghi sự kiện',
+    'VT-04': 'Doanh nghiệp thu mua',
+    'VT-05': 'Cán bộ quản lý ngành',
+  };
+  return map[roleName || ''] || roleName || 'Vai trò không xác định';
+};
+
 const JoinOrganizationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -86,7 +102,6 @@ const JoinOrganizationPage: React.FC = () => {
       });
       setSuccess(true);
       toast.success('Đăng ký thành công! Bạn đã tham gia tổ chức.');
-      // Chuyển hướng đến trang đăng nhập sau vài giây
       setTimeout(() => {
         navigate('/login');
       }, 3000);
@@ -149,7 +164,7 @@ const JoinOrganizationPage: React.FC = () => {
             <p className="text-muted-foreground">
               Bạn đã tham gia tổ chức{' '}
               <strong>{invitation?.organizationName}</strong> với vai trò{' '}
-              <strong>{invitation?.roleName}</strong>.
+              <strong>{getRoleDisplay(invitation?.roleName)}</strong>.
             </p>
             <p className="mt-2 text-sm">
               Bạn sẽ được chuyển hướng đến trang đăng nhập...
@@ -167,7 +182,7 @@ const JoinOrganizationPage: React.FC = () => {
           <CardTitle>Chào mừng bạn đến với {invitation?.organizationName}</CardTitle>
           <CardDescription>
             Bạn đã được mời tham gia tổ chức với vai trò{' '}
-            <strong>{invitation?.roleName}</strong>. Vui lòng hoàn tất đăng ký
+            <strong>{getRoleDisplay(invitation?.roleName)}</strong>. Vui lòng hoàn tất đăng ký
             để bắt đầu.
           </CardDescription>
         </CardHeader>
