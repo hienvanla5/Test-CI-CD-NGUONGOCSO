@@ -19,7 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/farm-logs")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('VT-03')")
+@PreAuthorize("hasAnyRole('VT-03', 'VT-02')")
 /** Quản lý tệp đính kèm của nhật ký canh tác. */
 public class FarmLogAttachmentController {
 

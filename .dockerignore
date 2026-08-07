@@ -1,0 +1,60 @@
+# ============================================================
+# Root-level .dockerignore
+# Used by images built from the repo root (e.g. mysql service).
+# Sub-folder Dockerfiles have their own .dockerignore files
+# (backend/.dockerignore, frontend/.dockerignore).
+# ============================================================
+
+# Dependencies / build output
+**/node_modules/
+**/dist/
+**/target/
+**/build/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Environment & secrets
+.env
+**/.env
+*.env
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / temp
+*.log
+tmp/
+temp/
+*.tmp
+*.cache
+.cache/
+
+# Python
+__pycache__/
+*.pyc
+
+# Coverage
+coverage/
+reports/
+
+# Docker volumes
+docker-data/
+docker-volumes/
+mysql_data/
+
+# Runtime data (bind-mounted by compose, not needed in image context)
+uploads/
+files/
+backups/
+qr/
+
+# Avoid recursion: the root dockerignore is only for root-context builds

@@ -1,0 +1,22 @@
+# Build artifacts
+target/
+
+# IDE
+.idea/
+*.iml
+
+# Environment & secrets
+.env
+
+# Local runtime data
+uploads/
+files/
+backups/
+
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# Logs
+*.log
