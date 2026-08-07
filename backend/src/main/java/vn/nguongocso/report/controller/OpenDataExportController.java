@@ -44,7 +44,8 @@ public class OpenDataExportController {
             HttpServletRequest request) {
 
         String ipAddress = extractClientIp(request);
-        byte[] fileBytes = openDataExportService.exportOpenData(region, fromDate, toDate, format, currentUser, ipAddress);
+        byte[] fileBytes = openDataExportService.exportOpenData(region, fromDate, toDate, format, currentUser,
+                ipAddress);
 
         String fileExtension = format.toLowerCase();
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));

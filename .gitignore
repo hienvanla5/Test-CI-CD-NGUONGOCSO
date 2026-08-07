@@ -105,3 +105,5 @@ dev-server.log
 
 # Keep the Docker Compose definition under version control
 !docker-compose.yml
+
+uploads/

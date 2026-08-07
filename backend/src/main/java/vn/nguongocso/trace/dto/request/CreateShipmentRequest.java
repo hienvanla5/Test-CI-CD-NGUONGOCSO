@@ -23,5 +23,4 @@ public class CreateShipmentRequest {
     private long totalQuantity;
 
     private String packagingInfo;
-
 }

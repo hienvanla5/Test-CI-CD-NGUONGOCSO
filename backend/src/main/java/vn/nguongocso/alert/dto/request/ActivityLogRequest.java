@@ -11,7 +11,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ActivityLogRequest {
-
     private UUID userId;
 
     private String username;

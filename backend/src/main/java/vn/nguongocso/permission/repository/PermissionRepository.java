@@ -6,8 +6,10 @@ import vn.nguongocso.auth.entity.Permission;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository cho thực thể Permission.
+ */
 public interface PermissionRepository extends JpaRepository<Permission, Integer> {
-
     /**
      * Lấy tất cả quyền theo nhóm chức năng (resource).
      */
