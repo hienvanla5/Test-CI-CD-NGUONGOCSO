@@ -27,6 +27,7 @@ export interface InvitationResponse {
   roleName: string;
   status: string;
   token: string;
+  joinUrl?: string;
   expiryDate: string;
   createdBy: string;
   createdAt: string;
@@ -38,6 +39,7 @@ export interface InvitationPublicResponse {
   roleName: string;
   status: string;
   expiryDate: string;
+  isExistingUser?: boolean;
 }
 
 export interface AcceptInvitationRequest {

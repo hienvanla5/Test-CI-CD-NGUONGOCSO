@@ -56,6 +56,8 @@ const JoinOrganizationPage: React.FC = () => {
   const {
     control,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<AcceptInvitationFormValues>({
     resolver: zodResolver(acceptInvitationSchema),
@@ -68,6 +70,8 @@ const JoinOrganizationPage: React.FC = () => {
     },
   });
 
+  const watchPassword = watch('password');
+
   useEffect(() => {
     const fetchInvitation = async () => {
       if (!token) {
@@ -78,30 +82,45 @@ const JoinOrganizationPage: React.FC = () => {
       try {
         const data = await getInvitationDetails(token);
         setInvitation(data);
+        if (data.isExistingUser) {
+          setValue('userName', 'existing_member');
+          setValue('fullName', 'Thành viên hiện có');
+        }
       } catch (err: any) {
         setError(
           err.response?.data?.message ||
-            'Thư mời không hợp lệ hoặc đã hết hạn.'
+          'Thư mời không hợp lệ hoặc đã hết hạn.'
         );
       } finally {
         setLoading(false);
       }
     };
     fetchInvitation();
-  }, [token]);
+  }, [token, setValue]);
+
+  useEffect(() => {
+    if (invitation?.isExistingUser) {
+      setValue('confirmPassword', watchPassword || '');
+    }
+  }, [watchPassword, invitation?.isExistingUser, setValue]);
 
   const onSubmit = async (data: AcceptInvitationFormValues) => {
     if (!token) return;
     setSubmitting(true);
     try {
       await acceptInvitation(token, {
-        userName: data.userName,
+        userName: invitation?.isExistingUser ? 'existing_member' : data.userName,
         password: data.password,
-        fullName: data.fullName,
+        fullName: invitation?.isExistingUser ? 'Thành viên hiện có' : data.fullName,
         phone: data.phone,
       });
       setSuccess(true);
-      toast.success('Đăng ký thành công! Bạn đã tham gia tổ chức.');
+      toast.success(
+        invitation?.isExistingUser
+          ? 'Xác nhận thành công! Bạn đã tham gia tổ chức.'
+          : 'Đăng ký thành công! Bạn đã tham gia tổ chức.'
+      );
+      // Chuyển hướng đến trang đăng nhập sau vài giây
       setTimeout(() => {
         navigate('/login');
       }, 3000);
@@ -114,7 +133,7 @@ const JoinOrganizationPage: React.FC = () => {
         toast.error('Thư mời đã hết hạn. Vui lòng yêu cầu mời lại.');
         setError('Thư mời đã hết hạn.');
       } else {
-        toast.error(message || 'Đăng ký thất bại.');
+        toast.error(message || 'Tham gia tổ chức thất bại.');
       }
     } finally {
       setSubmitting(false);
@@ -157,7 +176,7 @@ const JoinOrganizationPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="text-green-600 flex items-center gap-2">
               <CheckCircle className="h-6 w-6" />
-              Đăng ký thành công!
+              {invitation?.isExistingUser ? 'Xác nhận tham gia thành công!' : 'Đăng ký thành công!'}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -181,9 +200,16 @@ const JoinOrganizationPage: React.FC = () => {
         <CardHeader>
           <CardTitle>Chào mừng bạn đến với {invitation?.organizationName}</CardTitle>
           <CardDescription>
-            Bạn đã được mời tham gia tổ chức với vai trò{' '}
-            <strong>{getRoleDisplay(invitation?.roleName)}</strong>. Vui lòng hoàn tất đăng ký
-            để bắt đầu.
+            {invitation?.isExistingUser ? (
+              <>
+                Tài khoản email <strong>{invitation?.email}</strong> đã tồn tại trong hệ thống. Vui lòng nhập mật khẩu tài khoản của bạn để xác nhận gia nhập tổ chức với vai trò <strong>{invitation?.roleName}</strong>.
+              </>
+            ) : (
+              <>
+                Bạn đã được mời tham gia tổ chức với vai trò{' '}
+                <strong>{invitation?.roleName}</strong>. Vui lòng hoàn tất đăng ký để bắt đầu.
+              </>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -193,105 +219,129 @@ const JoinOrganizationPage: React.FC = () => {
               <Input value={invitation?.email} disabled className="bg-muted" />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="userName">Tên đăng nhập *</Label>
-              <Controller
-                name="userName"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    id="userName"
-                    placeholder="vd: nguyenvanA"
-                    {...field}
-                    disabled={submitting}
-                  />
+            {invitation?.isExistingUser ? (
+              <div className="space-y-2">
+                <Label htmlFor="password">Mật khẩu tài khoản hiện tại *</Label>
+                <Controller
+                  name="password"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Nhập mật khẩu tài khoản của bạn"
+                      {...field}
+                      disabled={submitting}
+                    />
+                  )}
+                />
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password.message}</p>
                 )}
-              />
-              {errors.userName && (
-                <p className="text-sm text-red-500">{errors.userName.message}</p>
-              )}
-            </div>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="userName">Tên đăng nhập *</Label>
+                  <Controller
+                    name="userName"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        id="userName"
+                        placeholder="vd: nguyenvanA"
+                        {...field}
+                        disabled={submitting}
+                      />
+                    )}
+                  />
+                  {errors.userName && (
+                    <p className="text-sm text-red-500">{errors.userName.message}</p>
+                  )}
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Họ và tên *</Label>
-              <Controller
-                name="fullName"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    id="fullName"
-                    placeholder="Nguyễn Văn A"
-                    {...field}
-                    disabled={submitting}
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Họ và tên *</Label>
+                  <Controller
+                    name="fullName"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        id="fullName"
+                        placeholder="Nguyễn Văn A"
+                        {...field}
+                        disabled={submitting}
+                      />
+                    )}
                   />
-                )}
-              />
-              {errors.fullName && (
-                <p className="text-sm text-red-500">{errors.fullName.message}</p>
-              )}
-            </div>
+                  {errors.fullName && (
+                    <p className="text-sm text-red-500">{errors.fullName.message}</p>
+                  )}
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Mật khẩu *</Label>
-              <Controller
-                name="password"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Mật khẩu mạnh"
-                    {...field}
-                    disabled={submitting}
+                <div className="space-y-2">
+                  <Label htmlFor="password">Mật khẩu *</Label>
+                  <Controller
+                    name="password"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="Mật khẩu mạnh"
+                        {...field}
+                        disabled={submitting}
+                      />
+                    )}
                   />
-                )}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
-              )}
-            </div>
+                  {errors.password && (
+                    <p className="text-sm text-red-500">{errors.password.message}</p>
+                  )}
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
-              <Controller
-                name="confirmPassword"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="Nhập lại mật khẩu"
-                    {...field}
-                    disabled={submitting}
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
+                  <Controller
+                    name="confirmPassword"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Nhập lại mật khẩu"
+                        {...field}
+                        disabled={submitting}
+                      />
+                    )}
                   />
-                )}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-500">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
-            </div>
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-red-500">
+                      {errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Số điện thoại</Label>
-              <Controller
-                name="phone"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="0987654321"
-                    {...field}
-                    disabled={submitting}
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Số điện thoại</Label>
+                  <Controller
+                    name="phone"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="0987654321"
+                        {...field}
+                        disabled={submitting}
+                      />
+                    )}
                   />
-                )}
-              />
-              {errors.phone && (
-                <p className="text-sm text-red-500">{errors.phone.message}</p>
-              )}
-            </div>
+                  {errors.phone && (
+                    <p className="text-sm text-red-500">{errors.phone.message}</p>
+                  )}
+                </div>
+              </>
+            )}
 
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting ? (
@@ -299,6 +349,8 @@ const JoinOrganizationPage: React.FC = () => {
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Đang xử lý...
                 </>
+              ) : invitation?.isExistingUser ? (
+                'Xác nhận gia nhập'
               ) : (
                 'Đăng ký tham gia'
               )}

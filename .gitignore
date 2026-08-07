@@ -51,6 +51,9 @@ venv/
 # Environment / Secrets
 # ============================================================
 .env
+docker-compose.yml
+
+uploads/
 *.env
 .env.*
 !.env.example
@@ -106,4 +109,3 @@ dev-server.log
 # Keep the Docker Compose definition under version control
 !docker-compose.yml
 
-uploads/
