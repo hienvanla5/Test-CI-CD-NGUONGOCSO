@@ -13,12 +13,20 @@ import java.util.UUID;
 
 /** Repository thao tác TraceCodeScanLog. */
 public interface TraceCodeScanLogRepository extends JpaRepository<TraceCodeScanLog, UUID> {
-
+        /** Đếm số lượt quét của một mã truy xuất sau một thời điểm nhất định. */
         long countByTraceCodeIdAndScannedAtAfter(UUID traceCodeId, LocalDateTime time);
 
+        /**
+         * Lấy danh sách các lượt quét của một mã truy xuất sau một thời điểm nhất định,
+         * sắp xếp theo thời gian quét giảm dần.
+         */
         List<TraceCodeScanLog> findByTraceCodeIdAndScannedAtAfterOrderByScannedAtDesc(UUID traceCodeId,
                         LocalDateTime time);
 
+        /**
+         * Lấy danh sách các lượt quét của một mã truy xuất trong một khoảng thời gian,
+         * sắp xếp theo thời gian quét giảm dần.
+         */
         @Query("SELECT COUNT(l) FROM TraceCodeScanLog l " +
                         "JOIN l.traceCode tc JOIN tc.shipment s " +
                         "WHERE (:orgId IS NULL OR s.organization.organizationId = :orgId) " +
@@ -32,6 +40,9 @@ public interface TraceCodeScanLogRepository extends JpaRepository<TraceCodeScanL
                         @Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
 
+        /**
+         * Đếm số lượng mã truy xuất duy nhất đã được quét trong một khoảng thời gian.
+         */
         @Query("SELECT COUNT(DISTINCT tc.id) FROM TraceCodeScanLog l " +
                         "JOIN l.traceCode tc JOIN tc.shipment s " +
                         "WHERE (:orgId IS NULL OR s.organization.organizationId = :orgId) " +
@@ -45,6 +56,10 @@ public interface TraceCodeScanLogRepository extends JpaRepository<TraceCodeScanL
                         @Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
 
+        /**
+         * Lấy danh sách các lượt quét bất thường trong một khoảng thời gian, sắp xếp
+         * theo thời gian quét giảm dần.
+         */
         @Query("SELECT COUNT(l) FROM TraceCodeScanLog l " +
                         "JOIN l.traceCode tc JOIN tc.shipment s " +
                         "WHERE l.isAbnormal = true " +
@@ -59,6 +74,7 @@ public interface TraceCodeScanLogRepository extends JpaRepository<TraceCodeScanL
                         @Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
 
+        /** Lấy thống kê số lượt quét theo vị trí trong một khoảng thời gian. */
         @Query("SELECT l.location AS location, COUNT(l.id) AS scanCount FROM TraceCodeScanLog l " +
                         "JOIN l.traceCode tc JOIN tc.shipment s " +
                         "WHERE (:orgId IS NULL OR s.organization.organizationId = :orgId) " +
@@ -74,6 +90,7 @@ public interface TraceCodeScanLogRepository extends JpaRepository<TraceCodeScanL
                         @Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
 
+        /** Lấy thống kê số lượt quét theo lô sản xuất trong một khoảng thời gian. */
         @Query("SELECT pl.id AS lotId, pl.name AS lotName, COUNT(l.id) AS scanCount, SUM(CASE WHEN l.isAbnormal = true THEN 1 ELSE 0 END) AS abnormalCount FROM TraceCodeScanLog l "
                         +
                         "JOIN l.traceCode tc JOIN tc.shipment s JOIN s.productionLot pl " +
@@ -90,6 +107,10 @@ public interface TraceCodeScanLogRepository extends JpaRepository<TraceCodeScanL
                         @Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
 
+        /**
+         * Lấy danh sách thời điểm quét của các lượt quét trong một khoảng thời gian,
+         * sắp xếp theo thời gian quét tăng dần.
+         */
         @Query("SELECT l.scannedAt FROM TraceCodeScanLog l " +
                         "JOIN l.traceCode tc JOIN tc.shipment s " +
                         "WHERE (:orgId IS NULL OR s.organization.organizationId = :orgId) " +
@@ -104,6 +125,10 @@ public interface TraceCodeScanLogRepository extends JpaRepository<TraceCodeScanL
                         @Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
 
+        /**
+         * Lấy danh sách các lượt quét bất thường trong một khoảng thời gian, sắp xếp
+         * theo thời gian quét giảm dần.
+         */
         @Query("SELECT l FROM TraceCodeScanLog l " +
                         "JOIN l.traceCode tc JOIN tc.shipment s JOIN s.productionLot pl " +
                         "WHERE l.isAbnormal = true " +

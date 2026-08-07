@@ -18,10 +18,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin/code-ranges")
 @RequiredArgsConstructor
+/** Quản lý cấp dải mã truy xuất. */
 public class CodeRangeController {
-
     private final CodeRangeService codeRangeService;
 
+    /** Cấp mới một dải mã. */
     @PostMapping
     @PreAuthorize("hasRole('VT-01')")
     public ResponseEntity<ApiResult<CodeRangeResponse>> createCodeRange(
@@ -31,6 +32,7 @@ public class CodeRangeController {
         return ResponseEntity.ok(ApiResult.success(response));
     }
 
+    /** Lấy trạng thái sử dụng của các dải mã. */
     @GetMapping("/status")
     @PreAuthorize("hasRole('VT-01')")
     public ResponseEntity<ApiResult<List<CodeRangeStatusResponse>>> getStatus() {

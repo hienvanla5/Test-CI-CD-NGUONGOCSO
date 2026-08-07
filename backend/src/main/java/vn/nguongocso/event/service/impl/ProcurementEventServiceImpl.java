@@ -34,6 +34,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+/** Ghi nhận sự kiện thu mua cho lô hàng. */
 public class ProcurementEventServiceImpl implements ProcurementEventService {
 
     private final ShipmentRepository shipmentRepository;
@@ -44,6 +45,7 @@ public class ProcurementEventServiceImpl implements ProcurementEventService {
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
     private final ApplicationEventPublisher eventPublisher;
 
+    /** Ghi nhận sự kiện thu mua. */
     @Override
     @Transactional
     @Auditable(action = "RECORD_PROCUREMENT_EVENT", entityType = "CHAIN_EVENT", description = "'Ghi nhận sự kiện thu mua cho lô hàng ID: ' + #request.shipmentId + ', Số lượng nhận: ' + #request.receivedQuantity")

@@ -11,13 +11,21 @@ import vn.nguongocso.alert.event.ActivityLogEvent;
 import vn.nguongocso.alert.entity.ActivityLog;
 import vn.nguongocso.alert.repository.ActivityLogRepository;
 
+/**
+ * Lắng nghe sự kiện ghi nhật ký hoạt động của người dùng và lưu vào cơ sở dữ
+ * liệu.
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class ActivityLogListener {
-
     private final ActivityLogRepository activityLogRepository;
 
+    /**
+     * Xử lý sự kiện ActivityLogEvent và lưu thông tin vào cơ sở dữ liệu.
+     *
+     * @param event sự kiện ghi nhật ký hoạt động
+     */
     @Async // Thực thi bất đồng bộ trên một Thread Pool riêng biệt
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW) // Tạo transaction mới hoàn toàn biệt lập

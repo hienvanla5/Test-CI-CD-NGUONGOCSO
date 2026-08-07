@@ -7,10 +7,12 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+/**
+ * DTO cho yêu cầu gắn chứng nhận vào lô sản xuất.
+ */
 @Getter
 @Setter
 public class AttachCertificationRequest {
-
     @NotNull(message = "ID chứng nhận không được để trống")
     private UUID certificationId;
 

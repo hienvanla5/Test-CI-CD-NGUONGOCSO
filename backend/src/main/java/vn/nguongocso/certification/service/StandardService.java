@@ -14,7 +14,6 @@ import vn.nguongocso.certification.dto.response.StandardResponse;
  * Service quản lý danh mục tiêu chuẩn chất lượng.
  */
 public interface StandardService {
-
     /**
      * Thêm mới tiêu chuẩn chất lượng.
      */

@@ -7,8 +7,13 @@ import vn.nguongocso.alert.dto.response.ActivityLogResponse;
 
 import java.time.LocalDate;
 
+/**
+ * Service để quản lý nhật ký hoạt động của người dùng.
+ */
 public interface ActivityLogService {
-
+    /**
+     * Lấy danh sách nhật ký hoạt động theo bộ lọc.
+     */
     PageResponse<ActivityLogResponse> getActivityLogs(
             int page,
             int size,

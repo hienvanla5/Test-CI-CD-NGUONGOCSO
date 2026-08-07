@@ -24,46 +24,43 @@ import vn.nguongocso.trace.service.ShipmentRecallService;
 @RequiredArgsConstructor
 @Validated
 public class ShipmentRecallController {
+        private final ShipmentRecallService shipmentRecallService;
+        private final PermissionChecker permissionChecker;
 
-    private final ShipmentRecallService shipmentRecallService;
-    private final PermissionChecker permissionChecker;
+        /**
+         * Thu hồi một lô hàng.
+         *
+         * POST /api/v1/shipments/{shipmentId}/recall
+         */
+        @PostMapping("/{shipmentId}/recall")
+        public ResponseEntity<ApiResult<RecallResponse>> recallShipment(
+                        @PathVariable UUID shipmentId,
+                        @Valid @RequestBody RecallRequest request) {
 
-    /**
-     * Thu hồi một lô hàng.
-     *
-     * POST /api/v1/shipments/{shipmentId}/recall
-     */
-    @PostMapping("/{shipmentId}/recall")
-    public ResponseEntity<ApiResult<RecallResponse>> recallShipment(
-            @PathVariable UUID shipmentId,
-            @Valid @RequestBody RecallRequest request) {
+                permissionChecker.check("SHIPMENT", "CREATE");
+                RecallResponse response = shipmentRecallService.recallShipment(shipmentId, request);
 
-        permissionChecker.check("SHIPMENT", "CREATE");
-        RecallResponse response =
-                shipmentRecallService.recallShipment(shipmentId, request);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(ApiResult.success(
+                                                HttpStatus.CREATED.value(),
+                                                response));
+        }
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResult.success(
-                        HttpStatus.CREATED.value(),
-                        response));
-    }
+        /**
+         * Lấy thông tin thu hồi của lô hàng.
+         *
+         * GET /api/v1/shipments/{shipmentId}/recall
+         */
+        @GetMapping("/{shipmentId}/recall")
+        public ResponseEntity<ApiResult<RecallInfoResponse>> getRecallInfo(
+                        @PathVariable UUID shipmentId) {
 
-    /**
-     * Lấy thông tin thu hồi của lô hàng.
-     *
-     * GET /api/v1/shipments/{shipmentId}/recall
-     */
-    @GetMapping("/{shipmentId}/recall")
-    public ResponseEntity<ApiResult<RecallInfoResponse>> getRecallInfo(
-            @PathVariable UUID shipmentId) {
+                permissionChecker.check("SHIPMENT", "READ");
+                RecallInfoResponse response = shipmentRecallService.getRecallInfo(shipmentId);
 
-        permissionChecker.check("SHIPMENT", "READ");
-        RecallInfoResponse response =
-                shipmentRecallService.getRecallInfo(shipmentId);
-
-        return ResponseEntity.ok(
-                ApiResult.success(
-                        HttpStatus.OK.value(),
-                        response));
-    }
+                return ResponseEntity.ok(
+                                ApiResult.success(
+                                                HttpStatus.OK.value(),
+                                                response));
+        }
 }

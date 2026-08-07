@@ -48,7 +48,6 @@ import vn.nguongocso.trace.dto.response.TraceCodeResponse;
 @Transactional
 @RequiredArgsConstructor
 public class ShipmentServiceImpl implements ShipmentService {
-
     private final ShipmentRepository shipmentRepository;
     private final TraceCodeRepository traceCodeRepository;
     private final CodeRangeRepository codeRangeRepository;
@@ -95,13 +94,15 @@ public class ShipmentServiceImpl implements ShipmentService {
         CodeRange codeRange = findAvailableCodeRange(currentUser);
 
         // Đồng bộ usedCount với thực tế từ max code_value
-        String maxCode = traceCodeRepository.findMaxCodeValueByOrganization(currentUser.getOrganizationId(), codeRange.getPrefix());
+        String maxCode = traceCodeRepository.findMaxCodeValueByOrganization(currentUser.getOrganizationId(),
+                codeRange.getPrefix());
         long actualUsedCount = 0;
         if (maxCode != null && maxCode.startsWith(codeRange.getPrefix())) {
             String seqStr = maxCode.substring(codeRange.getPrefix().length());
             try {
                 actualUsedCount = Long.parseLong(seqStr);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
         codeRange.setUsedCount(actualUsedCount); // cập nhật usedCount trước khi validate
 
@@ -125,8 +126,7 @@ public class ShipmentServiceImpl implements ShipmentService {
                 "CREATE",
                 "Tạo lô hàng " + shipment.getName() + " cho lô sản xuất " + productionLot.getName(),
                 "Shipment",
-                shipment.getId().toString()
-        );
+                shipment.getId().toString());
 
         return buildShipmentResponse(shipment, traceCodes, currentUser.getFullName());
     }
@@ -185,8 +185,7 @@ public class ShipmentServiceImpl implements ShipmentService {
                 "ACTIVATE",
                 "Kích hoạt tem cho lô hàng " + shipment.getName(),
                 "Shipment",
-                shipment.getId().toString()
-        );
+                shipment.getId().toString());
 
         String createdByName = null;
         if (shipment.getCreatedBy() != null) {
@@ -198,6 +197,14 @@ public class ShipmentServiceImpl implements ShipmentService {
         return buildShipmentResponse(shipment, traceCodes, createdByName);
     }
 
+    /**
+     * Lấy danh sách lô hàng theo ID của lô sản xuất.
+     *
+     * @param productionLotId ID của lô sản xuất
+     * @return danh sách ShipmentResponse
+     * @throws BusinessException nếu không tìm thấy lô sản xuất hoặc không thuộc tổ
+     *                           chức
+     */
     @Override
     public List<ShipmentResponse> getShipmentsByProductionLot(UUID productionLotId) {
         CustomUserDetails currentUser = getCurrentUser();
@@ -223,7 +230,6 @@ public class ShipmentServiceImpl implements ShipmentService {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * Lấy thông tin người dùng đang đăng nhập từ SecurityContext.
      *
@@ -236,7 +242,8 @@ public class ShipmentServiceImpl implements ShipmentService {
         return (CustomUserDetails) authentication.getPrincipal();
     }
 
-    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType,
+            String entityId) {
         eventPublisher.publishEvent(ActivityLogEvent.builder()
                 .userId(currentUser.getUserId())
                 .username(currentUser.getUsername())
@@ -248,16 +255,15 @@ public class ShipmentServiceImpl implements ShipmentService {
                 .entityId(entityId)
                 .ipAddress(IpUtils.getClientIp())
                 .timestamp(LocalDateTime.now())
-                .build()
-        );
+                .build());
     }
 
     /**
      * Kiểm tra người dùng có đúng vai trò được phép thực hiện nghiệp vụ.
      *
-     * @param currentUser người dùng hiện tại
+     * @param currentUser  người dùng hiện tại
      * @param expectedRole mã vai trò yêu cầu
-     * @param message thông báo lỗi nếu không đủ quyền
+     * @param message      thông báo lỗi nếu không đủ quyền
      * @throws BusinessException nếu người dùng không có quyền
      */
     private void validateRole(CustomUserDetails currentUser, String expectedRole, String message) {
@@ -284,7 +290,7 @@ public class ShipmentServiceImpl implements ShipmentService {
      * Kiểm tra người dùng có quyền thao tác trên lô sản xuất
      * thuộc tổ chức của mình.
      *
-     * @param currentUser người dùng hiện tại
+     * @param currentUser   người dùng hiện tại
      * @param productionLot lô sản xuất cần kiểm tra
      * @throws BusinessException nếu khác tổ chức
      */
@@ -311,7 +317,6 @@ public class ShipmentServiceImpl implements ShipmentService {
         }
     }
 
-
     /**
      * Lấy dải mã truy xuất còn hiệu lực của tổ chức.
      *
@@ -329,7 +334,7 @@ public class ShipmentServiceImpl implements ShipmentService {
      * Kiểm tra số lượng tem cần sinh có vượt quá
      * số lượng mã còn lại trong dải mã hay không.
      *
-     * @param codeRange dải mã truy xuất
+     * @param codeRange        dải mã truy xuất
      * @param requiredQuantity số lượng tem cần sinh
      * @throws BusinessException nếu vượt quá hạn mức
      */
@@ -346,13 +351,13 @@ public class ShipmentServiceImpl implements ShipmentService {
     /**
      * Khởi tạo đối tượng lô hàng từ yêu cầu tạo lô hàng.
      *
-     * @param request thông tin tạo lô hàng
+     * @param request       thông tin tạo lô hàng
      * @param productionLot lô sản xuất
-     * @param currentUser người dùng tạo
+     * @param currentUser   người dùng tạo
      * @return đối tượng lô hàng
      */
     private Shipment createShipmentEntity(CreateShipmentRequest request, ProductionLot productionLot,
-                                          CustomUserDetails currentUser) {
+            CustomUserDetails currentUser) {
 
         Shipment shipment = new Shipment();
 
@@ -376,9 +381,9 @@ public class ShipmentServiceImpl implements ShipmentService {
     /**
      * Sinh danh sách mã truy xuất cho lô hàng.
      *
-     * @param shipment lô hàng
+     * @param shipment  lô hàng
      * @param codeRange dải mã truy xuất
-     * @param quantity số lượng mã cần sinh
+     * @param quantity  số lượng mã cần sinh
      * @return danh sách mã truy xuất
      */
     private List<TraceCode> generateTraceCodes(Shipment shipment, CodeRange codeRange, long quantity) {
@@ -417,7 +422,7 @@ public class ShipmentServiceImpl implements ShipmentService {
      * Sinh giá trị mã truy xuất duy nhất từ tiền tố
      * và số thứ tự trong dải mã.
      *
-     * @param prefix tiền tố mã
+     * @param prefix   tiền tố mã
      * @param sequence số thứ tự
      * @return mã truy xuất
      */
@@ -435,13 +440,13 @@ public class ShipmentServiceImpl implements ShipmentService {
      * Xây dựng dữ liệu phản hồi sau khi tạo lô hàng
      * và sinh mã truy xuất thành công.
      *
-     * @param shipment lô hàng
-     * @param traceCodes danh sách mã truy xuất
+     * @param shipment      lô hàng
+     * @param traceCodes    danh sách mã truy xuất
      * @param createdByName tên người tạo
      * @return thông tin phản hồiF
      */
     private ShipmentResponse buildShipmentResponse(Shipment shipment, List<TraceCode> traceCodes,
-                                                   String createdByName) {
+            String createdByName) {
 
         return ShipmentResponse.builder().id(shipment.getId()).productionLotId(shipment.getProductionLot().getId())
                 .productionLotName(shipment.getProductionLot().getName()).name(shipment.getName())
@@ -459,12 +464,11 @@ public class ShipmentServiceImpl implements ShipmentService {
         double percent = (double) range.getUsedCount() / range.getTotalLimit() * 100;
         if (percent >= 80 && percent < 100) {
             notificationService.sendAlert(
-                    "Cảnh báo: Dải mã " + range.getPrefix() + " đã sử dụng " + range.getUsedCount() + "/" + range.getTotalLimit() + " (gần mức hết hạn)"
-            );
+                    "Cảnh báo: Dải mã " + range.getPrefix() + " đã sử dụng " + range.getUsedCount() + "/"
+                            + range.getTotalLimit() + " (gần mức hết hạn)");
         } else if (percent >= 100) {
             notificationService.sendAlert(
-                    "Cảnh báo: Dải mã " + range.getPrefix() + " đã vượt hạn mức " + range.getTotalLimit() + "!"
-            );
+                    "Cảnh báo: Dải mã " + range.getPrefix() + " đã vượt hạn mức " + range.getTotalLimit() + "!");
         }
     }
 
@@ -488,7 +492,8 @@ public class ShipmentServiceImpl implements ShipmentService {
 
         // Không cho phép ghi sự kiện nếu lô hàng đã bị thu hồi
         if (shipment.getStatus() == ShipmentStatus.RECALLED) {
-            throw new BusinessException("Lô hàng " + shipment.getName() + " đã bị thu hồi, không thể ghi nhận thu mua.");
+            throw new BusinessException(
+                    "Lô hàng " + shipment.getName() + " đã bị thu hồi, không thể ghi nhận thu mua.");
         }
 
         String productionLotName = null;
@@ -558,7 +563,8 @@ public class ShipmentServiceImpl implements ShipmentService {
             throw new BusinessException("Chưa đăng nhập");
         }
 
-        // Kiểm tra ranh giới dữ liệu (Data Boundary): VT-02 và VT-03 chỉ được xem lô hàng thuộc tổ chức của mình
+        // Kiểm tra ranh giới dữ liệu (Data Boundary): VT-02 và VT-03 chỉ được xem lô
+        // hàng thuộc tổ chức của mình
         String roleCode = currentUser.getRoleCode();
         if ("VT-02".equals(roleCode) || "VT-03".equals(roleCode)) {
             UUID userOrgId = currentUser.getOrganizationId();

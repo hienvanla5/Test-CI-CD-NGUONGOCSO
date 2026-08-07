@@ -12,7 +12,6 @@ import vn.nguongocso.farm.entity.ProductionLotImportHistory;
  */
 public interface ProductionLotImportHistoryRepository
         extends JpaRepository<ProductionLotImportHistory, UUID> {
-
     /**
      * Lấy lịch sử nhập dữ liệu của một tổ chức, sắp xếp mới nhất trước.
      *

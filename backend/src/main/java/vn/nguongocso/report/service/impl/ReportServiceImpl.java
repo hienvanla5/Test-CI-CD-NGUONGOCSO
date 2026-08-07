@@ -30,7 +30,6 @@ import vn.nguongocso.trace.repository.ShipmentRepository;
 @RequiredArgsConstructor
 @Transactional
 public class ReportServiceImpl implements ReportService {
-
     private final OrganizationRepository organizationRepository;
     private final ShipmentRepository shipmentRepository;
     private final IndustryReportPdfGenerator pdfGenerator;
@@ -98,7 +97,7 @@ public class ReportServiceImpl implements ReportService {
             };
 
             log.info("Export industry report succeeded. role={}, user={}, region={}, "
-                            + "fromDate={}, toDate={}, format={}, sizeBytes={}, durationMs={}",
+                    + "fromDate={}, toDate={}, format={}, sizeBytes={}, durationMs={}",
                     currentUser.getRoleCode(),
                     currentUser.getUsername(),
                     region,

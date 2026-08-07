@@ -5,26 +5,44 @@ import vn.nguongocso.backup.entity.BackupRestoreHistory;
 
 import java.time.LocalDateTime;
 
+/**
+ * Phản hồi chi tiết lịch sử sao lưu.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class BackupHistoryResponse {
-
     private Integer id;
+
     private String operationType;
+
     private String fileName;
+
     private Long fileSize;
+
     private String backupType;
+
     private String status;
+
     private String errorMessage;
+
     private Integer referenceId;
+
     private LocalDateTime createdAt;
+
     private String createdBy;
 
+    /**
+     * Chuyển đổi từ thực thể BackupRestoreHistory sang BackupHistoryResponse.
+     *
+     * @param history Thực thể BackupRestoreHistory cần chuyển đổi.
+     * @return Đối tượng BackupHistoryResponse tương ứng.
+     */
     public static BackupHistoryResponse fromEntity(BackupRestoreHistory history) {
-        if (history == null) return null;
+        if (history == null)
+            return null;
         return BackupHistoryResponse.builder()
                 .id(history.getId())
                 .operationType(history.getOperationType().name())

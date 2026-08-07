@@ -8,11 +8,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * DTO phản hồi thông tin lô sản xuất.
+ */
 @Getter
 @Setter
 @Builder
 public class CreateProductionLotResponse {
-
         private UUID id;
 
         private UUID farmAreaId;

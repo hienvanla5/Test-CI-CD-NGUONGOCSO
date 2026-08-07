@@ -1,6 +1,5 @@
 package vn.nguongocso.event.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -15,9 +14,9 @@ import java.util.UUID;
 
 /**
  * Thực thể đại diện cho một sự kiện trong chuỗi cung ứng.
+ * 
  * @author Triệu Văn Đại
  */
-
 
 @Entity
 @Table(name = "chain_events")
@@ -43,7 +42,6 @@ public class ChainEvent {
 
     @Column(name = "event_data", columnDefinition = "json")
     private String eventData;
-
 
     @Column(name = "location", columnDefinition = "geometry")
     private Point location;
@@ -73,4 +71,3 @@ public class ChainEvent {
         createdAt = LocalDateTime.now();
     }
 }
-

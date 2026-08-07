@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Service quản lý thành viên của tổ chức.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -124,8 +127,7 @@ public class OrganizationMemberService {
                 "ASSIGN_ROLE",
                 "Gán vai trò " + newRole.getName() + " cho " + targetUser.getFullName(),
                 "OrganizationUser",
-                orgUser.getId().toString()
-        );
+                orgUser.getId().toString());
 
         log.info("Gán role thành công: userId={}, orgId={}, newRole={}", request.getUserId(), orgId, newRole.getCode());
         return toResponse(orgUser);
@@ -144,12 +146,14 @@ public class OrganizationMemberService {
         }
 
         // Kiểm tra trùng email
-        if (request.getEmail() != null && !request.getEmail().isBlank() && userRepository.existsByEmail(request.getEmail())) {
+        if (request.getEmail() != null && !request.getEmail().isBlank()
+                && userRepository.existsByEmail(request.getEmail())) {
             throw new BusinessException("Email đã tồn tại");
         }
 
         // Kiểm tra trùng số điện thoại
-        if (request.getPhone() != null && !request.getPhone().isBlank() && userRepository.existsByPhone(request.getPhone())) {
+        if (request.getPhone() != null && !request.getPhone().isBlank()
+                && userRepository.existsByPhone(request.getPhone())) {
             throw new BusinessException("Số điện thoại đã tồn tại");
         }
 
@@ -188,8 +192,7 @@ public class OrganizationMemberService {
                 "CREATE",
                 "Thêm thành viên " + newUser.getFullName() + " vào tổ chức",
                 "OrganizationUser",
-                orgUser.getId().toString()
-        );
+                orgUser.getId().toString());
 
         log.info("Thêm thành viên thành công: userId={}, orgId={}, role={}",
                 newUser.getUserId(), orgId, role.getCode());
@@ -205,7 +208,8 @@ public class OrganizationMemberService {
         return (CustomUserDetails) auth.getPrincipal();
     }
 
-    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType,
+            String entityId) {
         eventPublisher.publishEvent(ActivityLogEvent.builder()
                 .userId(currentUser.getUserId())
                 .username(currentUser.getUsername())
@@ -217,8 +221,7 @@ public class OrganizationMemberService {
                 .entityId(entityId)
                 .ipAddress(IpUtils.getClientIp())
                 .timestamp(LocalDateTime.now())
-                .build()
-        );
+                .build());
     }
 
     private OrganizationUserResponse toResponse(OrganizationUser orgUser) {

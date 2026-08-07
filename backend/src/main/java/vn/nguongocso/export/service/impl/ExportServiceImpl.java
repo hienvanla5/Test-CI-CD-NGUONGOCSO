@@ -29,6 +29,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Triển khai dịch vụ xuất dữ liệu công khai.
+ */
 @Service
 @RequiredArgsConstructor
 public class ExportServiceImpl implements ExportService {
@@ -42,13 +45,13 @@ public class ExportServiceImpl implements ExportService {
             ChainEventType.HARVEST,
             ChainEventType.PACKAGING,
             ChainEventType.TRANSPORT,
-            ChainEventType.PROCUREMENT
-    );
+            ChainEventType.PROCUREMENT);
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+    /** Xuất dữ liệu công khai theo yêu cầu. */
     @Override
     @Transactional(readOnly = true)
     public Resource exportOpenData(ExportOpenDataRequest request, CustomUserDetails currentUser) {
@@ -63,8 +66,7 @@ public class ExportServiceImpl implements ExportService {
                 request.getFromDate(),
                 request.getToDate(),
                 request.getProductCategoryIds(),
-                request.getShipmentIds()
-        );
+                request.getShipmentIds());
 
         if (shipments.isEmpty()) {
             throw new BusinessException("Không có lô hàng nào trong phạm vi lọc.");
@@ -76,7 +78,8 @@ public class ExportServiceImpl implements ExportService {
         // 3a. Event completeness check
         Map<UUID, Set<ChainEventType>> eventMap = getEventTypesByShipment(shipmentIds);
 
-        // 3b. Documentation check: at least 1 farm log OR 1 certification per production lot
+        // 3b. Documentation check: at least 1 farm log OR 1 certification per
+        // production lot
         Map<UUID, Boolean> docMap = getDocumentationExistence(shipments);
 
         List<Shipment> eligibleShipments = shipments.stream()
@@ -99,8 +102,6 @@ public class ExportServiceImpl implements ExportService {
         // 5. Generate file
         return generateFile(schema, request.getFormat());
     }
-
-    // ── QTN-11 helpers ─────────────────────────────────────────────────────
 
     private Map<UUID, Set<ChainEventType>> getEventTypesByShipment(List<UUID> shipmentIds) {
         List<Object[]> results = chainEventRepository.countEventsByShipmentAndTypes(
@@ -154,8 +155,6 @@ public class ExportServiceImpl implements ExportService {
         return result;
     }
 
-    // ── Schema builder ──────────────────────────────────────────────────────
-
     private OpenDataSchema buildSchema(List<Shipment> shipments, CustomUserDetails currentUser) {
         List<UUID> shipmentIds = shipments.stream().map(Shipment::getId).collect(Collectors.toList());
         List<ChainEvent> allEvents = chainEventRepository.findByShipmentIdInOrderByRecordedAtAsc(shipmentIds);
@@ -203,9 +202,11 @@ public class ExportServiceImpl implements ExportService {
                                 .standardName(cert.getName())
                                 .certificationCode(cert.getCode())
                                 .issueDate(cert.getIssueDate() != null
-                                        ? cert.getIssueDate().atStartOfDay() : null)
+                                        ? cert.getIssueDate().atStartOfDay()
+                                        : null)
                                 .expiryDate(cert.getExpiryDate() != null
-                                        ? cert.getExpiryDate().atStartOfDay() : null)
+                                        ? cert.getExpiryDate().atStartOfDay()
+                                        : null)
                                 .attachedFileUrl(null) // No file URL model in current schema
                                 .build();
                     })
@@ -216,7 +217,8 @@ public class ExportServiceImpl implements ExportService {
                     .name(s.getName())
                     .productionLotName(lot != null ? lot.getName() : null)
                     .productCategory(lot != null && lot.getProductCategory() != null
-                            ? lot.getProductCategory().getName() : null)
+                            ? lot.getProductCategory().getName()
+                            : null)
                     .totalQuantity((double) s.getTotalQuantity())
                     .unit(lot != null ? lot.getExpectedQuantityUnit() : null)
                     .status(s.getStatus().name())
@@ -243,13 +245,12 @@ public class ExportServiceImpl implements ExportService {
             return Collections.emptyMap();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            });
         } catch (Exception e) {
             return Collections.singletonMap("raw", json);
         }
     }
-
-    // ── File generation ────────────────────────────────────────────────────
 
     private Resource generateFile(OpenDataSchema schema, String format) {
         try {
@@ -280,7 +281,8 @@ public class ExportServiceImpl implements ExportService {
 
     /**
      * Converts OpenDataSchema to CSV by flattening shipments into rows.
-     * Each row represents one shipment with timeline/certifications as JSON columns.
+     * Each row represents one shipment with timeline/certifications as JSON
+     * columns.
      */
     private String convertToCsv(OpenDataSchema schema) {
         StringBuilder sb = new StringBuilder();
@@ -311,14 +313,14 @@ public class ExportServiceImpl implements ExportService {
                     escapeCsv(s.getUnit()),
                     s.getStatus(),
                     timelineJson.replace("\"", "\"\""),
-                    escapeCsv(schema.getExportedAt().toString())
-            ));
+                    escapeCsv(schema.getExportedAt().toString())));
         }
         return sb.toString();
     }
 
     private String escapeCsv(String value) {
-        if (value == null) return "";
+        if (value == null)
+            return "";
         if (value.contains(",") || value.contains("\"")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }

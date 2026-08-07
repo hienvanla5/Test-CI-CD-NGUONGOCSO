@@ -11,6 +11,11 @@ import vn.nguongocso.farm.service.ProductFeedbackService;
 
 import java.util.UUID;
 
+/**
+ * Controller quản lý phản ánh sản phẩm.
+ * API công khai cho phép người dùng gửi phản ánh sản phẩm mà không yêu cầu đăng
+ * nhập.
+ */
 @RestController
 @RequestMapping("/api/v1/public/production-lots")
 @RequiredArgsConstructor

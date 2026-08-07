@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.nguongocso.common.ApiResult;
 import vn.nguongocso.report.dto.response.LookupResponse;
 import vn.nguongocso.report.service.PublicLookupService;
+
 /**
  * Controller tra cứu công khai mã truy xuất.
  *
@@ -16,9 +17,11 @@ import vn.nguongocso.report.service.PublicLookupService;
 @RequestMapping("/api/v1/public/trace-codes")
 @RequiredArgsConstructor
 public class PublicLookupController {
-
     private final PublicLookupService publicLookupService;
 
+    /**
+     * Tra cứu thông tin mã truy xuất công khai.
+     */
     @GetMapping("/{codeValue}")
     public ResponseEntity<ApiResult<LookupResponse>> lookupCode(
             @PathVariable String codeValue,
@@ -30,7 +33,8 @@ public class PublicLookupController {
         String ipAddress = getClientIp(request);
         String userAgent = request.getHeader("User-Agent");
 
-        LookupResponse response = publicLookupService.lookupCode(codeValue, latitude, longitude, location, ipAddress, userAgent);
+        LookupResponse response = publicLookupService.lookupCode(codeValue, latitude, longitude, location, ipAddress,
+                userAgent);
         return ResponseEntity.ok(ApiResult.success(response));
     }
 

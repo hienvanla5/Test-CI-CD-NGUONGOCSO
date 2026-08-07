@@ -16,10 +16,12 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+/** Đồng bộ các sự kiện ngoại tuyến. */
 public class OfflineSyncServiceImpl implements OfflineSyncService {
 
     private final OfflineSyncEventProcessor eventProcessor;
 
+    /** Đồng bộ danh sách sự kiện ngoại tuyến. */
     @Override
     public OfflineEventSyncResponse syncOfflineEvents(OfflineEventSyncRequest request, CustomUserDetails currentUser) {
         log.info("Bắt đầu xử lý đồng bộ ngoại tuyến cho syncId: {}", request.getSyncId());

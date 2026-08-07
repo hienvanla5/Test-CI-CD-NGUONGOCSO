@@ -1,6 +1,5 @@
 package vn.nguongocso.report.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -24,7 +23,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class ReportAccessLog {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")

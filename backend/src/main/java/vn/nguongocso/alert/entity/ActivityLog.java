@@ -8,7 +8,9 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/** Lịch sử hoạt động của người dùng. */
+/** 
+ * Lịch sử hoạt động của người dùng.
+ */
 @Entity
 @Table(name = "activity_logs")
 @Getter
@@ -17,7 +19,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class ActivityLog {
-
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     @JdbcTypeCode(SqlTypes.CHAR)

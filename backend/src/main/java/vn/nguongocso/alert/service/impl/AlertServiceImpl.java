@@ -40,7 +40,6 @@ import vn.nguongocso.trace.repository.TraceCodeRepository;
 @Service
 @RequiredArgsConstructor
 public class AlertServiceImpl implements AlertService {
-
     private static final String ADMIN_ROLE = "VT-01";
     private static final String ORG_MANAGER_ROLE = "VT-02";
 

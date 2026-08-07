@@ -12,7 +12,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class StandardResponse {
-
     private UUID id;
 
     private String name;

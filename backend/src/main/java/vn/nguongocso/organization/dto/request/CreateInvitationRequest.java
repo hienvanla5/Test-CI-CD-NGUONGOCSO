@@ -8,10 +8,12 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Yêu cầu tạo lời mời tham gia tổ chức.
+ */
 @Getter
 @Setter
 public class CreateInvitationRequest {
-
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không đúng định dạng")
     private String email;

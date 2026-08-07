@@ -13,7 +13,6 @@ import vn.nguongocso.certification.entity.Standard;
  * Repository thao tác Standard.
  */
 public interface StandardRepository extends JpaRepository<Standard, UUID> {
-
     /**
      * Tìm tiêu chuẩn theo tên (không phân biệt hoa thường).
      * Dùng khi tạo mới để kiểm tra trùng tên.

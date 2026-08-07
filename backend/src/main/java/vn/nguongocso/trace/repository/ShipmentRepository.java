@@ -18,6 +18,9 @@ import vn.nguongocso.trace.enums.ShipmentStatus;
  */
 public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
 
+        /**
+         * Lấy danh sách lô hàng theo ID của lô sản xuất.
+         */
         List<Shipment> findByProductionLotId(UUID productionLotId);
 
         /**
@@ -101,6 +104,9 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
                         @Param("categoryIds") List<UUID> categoryIds,
                         @Param("shipmentIds") List<UUID> shipmentIds);
 
+        /**
+         * Lấy danh sách lô hàng theo danh sách ID của lô sản xuất.
+         */
         @Query("SELECT s FROM Shipment s WHERE s.productionLot.id IN :productionLotIds")
         List<Shipment> findByProductionLotIdIn(@Param("productionLotIds") List<UUID> productionLotIds);
 }

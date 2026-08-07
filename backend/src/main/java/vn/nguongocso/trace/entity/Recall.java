@@ -32,7 +32,6 @@ import vn.nguongocso.trace.enums.RecallStatus;
 @Setter
 @NoArgsConstructor
 public class Recall {
-
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "id", nullable = false, updatable = false)

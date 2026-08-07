@@ -15,7 +15,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class DossierCheckResponse {
-
     // ID lô hàng
     private UUID shipmentId;
 

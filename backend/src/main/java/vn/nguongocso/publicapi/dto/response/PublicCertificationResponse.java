@@ -13,7 +13,6 @@ import vn.nguongocso.certification.enums.CertificationStatus;
 @Getter
 @Builder
 public class PublicCertificationResponse {
-
     private UUID certificationId; // ID chứng nhận
 
     private String certificationName;// Tên chứng nhận

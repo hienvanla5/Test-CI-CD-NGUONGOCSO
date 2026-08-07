@@ -11,7 +11,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateStandardRequest {
-
     @NotBlank(message = "Tên tiêu chuẩn không được để trống.")
     @Size(max = 255, message = "Tên tiêu chuẩn không được vượt quá 255 ký tự.")
     private String name;

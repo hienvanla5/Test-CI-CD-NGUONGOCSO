@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
-import vn.nguongocso.alert.entity.AlertDetails;
 import vn.nguongocso.alert.enums.AlertSeverity;
 import vn.nguongocso.alert.enums.AlertStatus;
 import vn.nguongocso.alert.enums.AlertType;
@@ -14,7 +13,6 @@ import vn.nguongocso.alert.enums.AlertType;
 @Getter
 @Setter
 public class AlertResponse {
-
     private UUID id;
 
     private AlertType type;
@@ -34,5 +32,4 @@ public class AlertResponse {
     private LocalDateTime resolvedAt;
 
     private UUID resolvedBy;
-
 }

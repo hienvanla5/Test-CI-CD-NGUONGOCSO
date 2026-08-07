@@ -14,7 +14,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class RecallResponse {
-
     private UUID id;
 
     private UUID shipmentId;
@@ -30,6 +29,4 @@ public class RecallResponse {
     private String shipmentStatus;
 
     private Integer traceCodesUpdated;
-
-
 }

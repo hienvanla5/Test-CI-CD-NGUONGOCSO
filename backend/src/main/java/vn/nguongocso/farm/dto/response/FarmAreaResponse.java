@@ -20,7 +20,6 @@ import vn.nguongocso.farm.enums.AreaUnit;
 @AllArgsConstructor
 @Builder
 public class FarmAreaResponse {
-
 	private UUID id;
 
 	private String name;

@@ -24,7 +24,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class DossierExportHistory {
-
     // ID lịch sử xuất
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -34,7 +34,6 @@ import vn.nguongocso.organization.entity.Organization;
 @AllArgsConstructor
 @Builder
 public class FarmArea {
-
 	@Id
 	@Column(name = "id", nullable = false, updatable = false)
 	@JdbcTypeCode(SqlTypes.CHAR)

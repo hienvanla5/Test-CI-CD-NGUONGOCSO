@@ -12,16 +12,17 @@ import vn.nguongocso.trace.entity.Recall;
 
 /** Dịch vụ gửi thông báo. */
 public interface NotificationService {
-
     /** Gửi thông báo cảnh báo. */
     void sendScanAnomalyNotification(Alert alert);
 
     /** Gửi thông báo thu hồi lô hàng. */
     void sendShipmentRecallNotification(Recall recall);
+
     /**
-    * Gửi thông báo chứng nhận sắp hết hạn hoặc đã hết hạn.
-    */
+     * Gửi thông báo chứng nhận sắp hết hạn hoặc đã hết hạn.
+     */
     void sendCertificationExpiryNotification(Alert alert);
+
     /** Lấy danh sách thông báo của người dùng đang đăng nhập. */
     PageResponse<NotificationResponse> getNotifications(
             Boolean isRead,
@@ -41,5 +42,4 @@ public interface NotificationService {
      * Gửi thông báo cảnh báo chung.
      */
     void sendAlert(String message);
-
 }

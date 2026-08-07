@@ -9,10 +9,12 @@ import lombok.Setter;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * DTO cho yêu cầu đồng bộ các sự kiện ngoại tuyến.
+ */
 @Getter
 @Setter
 public class OfflineEventSyncRequest {
-
     @NotNull(message = "Mã phiên đồng bộ (syncId) không được để trống")
     private UUID syncId;
 

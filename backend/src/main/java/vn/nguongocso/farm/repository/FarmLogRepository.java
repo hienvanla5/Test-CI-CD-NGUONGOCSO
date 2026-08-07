@@ -47,14 +47,42 @@ public interface FarmLogRepository extends JpaRepository<FarmLog, UUID> {
 			ProductionLot productionLot,
 			Pageable pageable);
 
+	/**
+	 * Lấy danh sách nhật ký canh tác của lô sản xuất theo ID của lô sản xuất, sắp
+	 * xếp theo ngày thực hiện tăng dần.
+	 *
+	 * @param productionLotId ID của lô sản xuất
+	 * @return danh sách nhật ký canh tác
+	 */
 	Page<FarmLog> findByProductionLotId(ProductionLot productionLot, Pageable pageable);
 
+	/**
+	 * Lấy danh sách nhật ký canh tác của lô sản xuất theo ID của lô sản xuất, sắp
+	 * xếp theo ngày thực hiện tăng dần.
+	 *
+	 * @param productionLotId ID của lô sản xuất
+	 * @return danh sách nhật ký canh tác
+	 */
 	List<FarmLog> findByProductionLotId_IdOrderByExecutedDateAsc(UUID productionLotId);
 
+	/**
+	 * Kiểm tra xem có tồn tại nhật ký canh tác nào liên quan đến lô sản xuất hay
+	 * không.
+	 *
+	 * @param productionLotId ID của lô sản xuất
+	 * @return true nếu tồn tại, false nếu không tồn tại
+	 */
 	@Query("SELECT COUNT(fl) > 0 FROM FarmLog fl " +
 			"WHERE fl.productionLotId.id = :productionLotId")
 	boolean existsByProductionLotId(@Param("productionLotId") UUID productionLotId);
 
+	/**
+	 * Lấy danh sách nhật ký canh tác của các lô sản xuất theo danh sách ID của lô
+	 * sản xuất, sắp xếp theo ngày thực hiện tăng dần.
+	 *
+	 * @param productionLotIds danh sách ID của các lô sản xuất
+	 * @return danh sách nhật ký canh tác
+	 */
 	@Query("SELECT fl FROM FarmLog fl WHERE fl.productionLotId.id IN :productionLotIds ORDER BY fl.executedDate ASC")
 	List<FarmLog> findByProductionLotId_IdInOrderByExecutedDateAsc(
 			@Param("productionLotIds") List<UUID> productionLotIds);

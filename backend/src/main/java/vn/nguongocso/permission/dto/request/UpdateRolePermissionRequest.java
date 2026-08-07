@@ -14,11 +14,13 @@ import java.util.List;
 @Getter
 @Setter
 public class UpdateRolePermissionRequest {
-
     @NotEmpty(message = "Danh sách quyền không được để trống.")
     @Valid
     private List<PermissionToggle> permissions;
 
+    /**
+     * Lớp con đại diện cho trạng thái bật/tắt của một quyền.
+     */
     @Getter
     @Setter
     public static class PermissionToggle {

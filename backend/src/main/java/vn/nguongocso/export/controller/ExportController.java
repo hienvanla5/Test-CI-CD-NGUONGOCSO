@@ -22,10 +22,12 @@ import java.time.format.DateTimeFormatter;
 @RestController
 @RequestMapping("/api/v1/export")
 @RequiredArgsConstructor
+/** Xuất dữ liệu công khai ra tệp tải về. */
 public class ExportController {
 
     private final ExportService exportService;
 
+    /** Xuất dữ liệu open data theo định dạng yêu cầu. */
     @PostMapping("/open-data")
     @PreAuthorize("hasRole('VT-05')")
     public ResponseEntity<Resource> exportOpenData(

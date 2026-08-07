@@ -5,8 +5,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
 
+/**
+ * Lớp tiện ích cho các thao tác liên quan đến bảo mật và xác thực người dùng.
+ */
 public class SecurityUtils {
-
+    /**
+     * Lấy thông tin chi tiết của người dùng hiện tại từ ngữ cảnh bảo mật.
+     *
+     * @return Thông tin chi tiết của người dùng hiện tại.
+     * @throws BusinessException nếu người dùng chưa đăng nhập hoặc xác thực không hợp lệ.
+     */
     public static CustomUserDetails getCurrentUserDetails() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -19,4 +27,5 @@ public class SecurityUtils {
         }
         return (CustomUserDetails) principal;
     }
+    
 }

@@ -12,25 +12,31 @@ import vn.nguongocso.backup.enums.BackupStatus;
 
 import java.util.List;
 
+/**
+ * Repository cho thực thể BackupRestoreHistory.
+ */
 @Repository
 public interface BackupRestoreHistoryRepository extends JpaRepository<BackupRestoreHistory, Integer> {
+        // Lọc lịch sử hoạt động theo loại thao tác và trạng thái (hỗ trợ phân trang)
+        @Query("SELECT h FROM BackupRestoreHistory h " +
+                        "LEFT JOIN FETCH h.createdBy " +
+                        "LEFT JOIN FETCH h.reference " +
+                        "WHERE (:operationType IS NULL OR h.operationType = :operationType) " +
+                        "AND (:status IS NULL OR h.status = :status)")
 
-    // Lọc lịch sử hoạt động theo loại thao tác và trạng thái (hỗ trợ phân trang)
-    @Query("SELECT h FROM BackupRestoreHistory h " +
-           "LEFT JOIN FETCH h.createdBy " +
-           "LEFT JOIN FETCH h.reference " +
-           "WHERE (:operationType IS NULL OR h.operationType = :operationType) " +
-           "AND (:status IS NULL OR h.status = :status)")
-    Page<BackupRestoreHistory> findHistoryWithFilters(
-            @Param("operationType") BackupOperationType operationType,
-            @Param("status") BackupStatus status,
-            Pageable pageable);
+        // Sử dụng LEFT JOIN FETCH để tránh vấn đề N+1 khi truy xuất thông tin người tạo
+        // và bản tham chiếu
+        Page<BackupRestoreHistory> findHistoryWithFilters(
+                        @Param("operationType") BackupOperationType operationType,
+                        @Param("status") BackupStatus status,
+                        Pageable pageable);
 
-    // Kiểm tra xem có tiến trình nào đang chạy ngầm hay không (để lock tài nguyên)
-    boolean existsByStatus(BackupStatus status);
+        // Kiểm tra xem có tiến trình nào đang chạy ngầm hay không (để lock tài nguyên)
+        boolean existsByStatus(BackupStatus status);
 
-    // Lấy các bản sao lưu thành công để phục vụ dọn dẹp các bản sao lưu cũ vượt quá giới hạn
-    List<BackupRestoreHistory> findByOperationTypeAndStatusOrderByCreatedAtDesc(
-            BackupOperationType operationType,
-            BackupStatus status);
+        // Lấy các bản sao lưu thành công để phục vụ dọn dẹp các bản sao lưu cũ vượt quá
+        // giới hạn
+        List<BackupRestoreHistory> findByOperationTypeAndStatusOrderByCreatedAtDesc(
+                        BackupOperationType operationType,
+                        BackupStatus status);
 }

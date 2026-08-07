@@ -15,11 +15,14 @@ import vn.nguongocso.permission.service.PermissionChecker;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Controller quản lý dòng sự kiện truy xuất của lô hàng.
+ * Chỉ VT-02 mới được phép xem.
+ */
 @RestController
 @RequestMapping("/api/v1/shipments")
 @RequiredArgsConstructor
 public class ShipmentTimelineController {
-
     private final ChainEventService chainEventService;
     private final PermissionChecker permissionChecker;
 

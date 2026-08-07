@@ -1,6 +1,5 @@
 package vn.nguongocso.event.dto.request;
 
-
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
@@ -19,7 +18,6 @@ import java.util.UUID;
 @Getter
 @Setter
 public class RecordHarvestEventRequest {
-
     @NotNull(message = "Vui lòng chọn lô sản xuất")
     private UUID productionLotId;
 
@@ -43,4 +41,3 @@ public class RecordHarvestEventRequest {
      */
     private String deviceSource = "WEB";
 }
-

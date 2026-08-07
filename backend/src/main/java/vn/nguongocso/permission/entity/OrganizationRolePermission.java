@@ -14,14 +14,13 @@ import java.util.UUID;
 
 // Thực thể OrganizationRolePermission đại diện cho mối quan hệ giữa vai trò (Role) và quyền (Permission) trong một tổ chức (Organization). Nó xác định quyền hạn mà một vai trò cụ thể có trong tổ chức đó.
 @Entity
-@Table( name = "organization_role_permissions")
+@Table(name = "organization_role_permissions")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class OrganizationRolePermission {
-
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     @JdbcTypeCode(SqlTypes.CHAR)

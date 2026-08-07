@@ -16,6 +16,10 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import vn.nguongocso.auth.enums.UserStatus;
 
+/**
+ * Thực thể người dùng, bao gồm thông tin đăng nhập, thông tin cá nhân và trạng
+ * thái.
+ */
 @Entity
 @Table(name = "users")
 @Getter
@@ -24,7 +28,6 @@ import vn.nguongocso.auth.enums.UserStatus;
 @AllArgsConstructor
 @Builder
 public class User {
-
     @Id
     @Column(name = "user_id")
     @JdbcTypeCode(SqlTypes.CHAR)

@@ -40,7 +40,8 @@ public class ProductCategoryController {
 			@RequestParam(required = false) Boolean isActive,
 			@AuthenticationPrincipal CustomUserDetails currentUser) {
 
-		List<ProductCategoryResponse> response = productCategoryService.search(name, categoryGroup, isActive, currentUser);
+		List<ProductCategoryResponse> response = productCategoryService.search(name, categoryGroup, isActive,
+				currentUser);
 		return ResponseEntity.ok(ApiResult.success(response));
 	}
 
@@ -58,7 +59,8 @@ public class ProductCategoryController {
 	}
 
 	/**
-	 * Cập nhật thông tin/trạng thái ẩn hiện loại nông sản (Chỉ cho phép Admin hệ thống).
+	 * Cập nhật thông tin/trạng thái ẩn hiện loại nông sản (Chỉ cho phép Admin hệ
+	 * thống).
 	 */
 	@PutMapping("/{id}")
 	@PreAuthorize("hasRole('VT-01')")

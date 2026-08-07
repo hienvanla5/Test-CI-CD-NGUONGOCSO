@@ -12,13 +12,18 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ProductionLotImportHistoryResponse {
-
     private UUID id;
+
     private String fileName;
+
     private Integer totalRows;
+
     private Integer successCount;
+
     private Integer failedCount;
+
     private String status;
+
     private Instant importedAt;
 
 }

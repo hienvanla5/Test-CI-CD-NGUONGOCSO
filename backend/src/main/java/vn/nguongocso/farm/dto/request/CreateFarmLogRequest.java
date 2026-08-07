@@ -16,7 +16,6 @@ import vn.nguongocso.farm.enums.FarmActivityType;
 @Getter
 @Setter
 public class CreateFarmLogRequest {
-
     @NotNull(message = "Vui lòng chọn lô sản xuất")
     private UUID productionLotId;
 

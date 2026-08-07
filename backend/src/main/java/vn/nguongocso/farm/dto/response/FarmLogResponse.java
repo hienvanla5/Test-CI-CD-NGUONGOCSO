@@ -21,7 +21,6 @@ import vn.nguongocso.farm.enums.FarmActivityType;
 @NoArgsConstructor
 @Builder
 public class FarmLogResponse {
-
     private UUID id;
 
     private UUID productionLotId;

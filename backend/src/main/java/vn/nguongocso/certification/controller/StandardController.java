@@ -26,58 +26,57 @@ import vn.nguongocso.common.PageResponse;
 @RequestMapping("/api/v1/standards")
 @RequiredArgsConstructor
 public class StandardController {
+        private final StandardService standardService;
 
-    private final StandardService standardService;
+        /**
+         * Thêm mới tiêu chuẩn chất lượng.
+         */
+        @PostMapping
+        public ApiResult<StandardResponse> createStandard(
+                        @Valid @RequestBody CreateStandardRequest request,
+                        @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-    /**
-     * Thêm mới tiêu chuẩn chất lượng.
-     */
-    @PostMapping
-    public ApiResult<StandardResponse> createStandard(
-            @Valid @RequestBody CreateStandardRequest request,
-            @AuthenticationPrincipal CustomUserDetails currentUser) {
+                return ApiResult.success(
+                                201,
+                                standardService.createStandard(request, currentUser));
+        }
 
-        return ApiResult.success(
-                201,
-                standardService.createStandard(request, currentUser));
-    }
+        /**
+         * Cập nhật thông tin tiêu chuẩn.
+         */
+        @PutMapping("/{standardId}")
+        public ApiResult<StandardResponse> updateStandard(
+                        @PathVariable UUID standardId,
+                        @Valid @RequestBody UpdateStandardRequest request,
+                        @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-    /**
-     * Cập nhật thông tin tiêu chuẩn.
-     */
-    @PutMapping("/{standardId}")
-    public ApiResult<StandardResponse> updateStandard(
-            @PathVariable UUID standardId,
-            @Valid @RequestBody UpdateStandardRequest request,
-            @AuthenticationPrincipal CustomUserDetails currentUser) {
+                return ApiResult.success(
+                                standardService.updateStandard(
+                                                standardId,
+                                                request,
+                                                currentUser));
+        }
 
-        return ApiResult.success(
-                standardService.updateStandard(
-                        standardId,
-                        request,
-                        currentUser));
-    }
+        /**
+         * Lấy danh sách tiêu chuẩn chất lượng.
+         */
+        @GetMapping
+        @PreAuthorize("isAuthenticated()")
+        public ApiResult<PageResponse<StandardResponse>> getStandards(
+                        @RequestParam(required = false) Boolean isActive,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size,
+                        @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-    /**
-     * Lấy danh sách tiêu chuẩn chất lượng.
-     */
-    @GetMapping
-    @PreAuthorize("isAuthenticated()")
-    public ApiResult<PageResponse<StandardResponse>> getStandards(
-            @RequestParam(required = false) Boolean isActive,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @AuthenticationPrincipal CustomUserDetails currentUser) {
+                Pageable pageable = PageRequest.of(page, size);
 
-        Pageable pageable = PageRequest.of(page, size);
+                Page<StandardResponse> result = standardService.getStandards(
+                                isActive,
+                                pageable,
+                                currentUser);
 
-        Page<StandardResponse> result = standardService.getStandards(
-                isActive,
-                pageable,
-                currentUser);
-
-        return ApiResult.success(
-                PageResponse.from(result, result.getContent()));
-    }
+                return ApiResult.success(
+                                PageResponse.from(result, result.getContent()));
+        }
 
 }

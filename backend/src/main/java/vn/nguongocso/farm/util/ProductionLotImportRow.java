@@ -12,7 +12,6 @@ import vn.nguongocso.farm.enums.FarmActivityType;
 @Getter
 @Builder
 public class ProductionLotImportRow {
-
     private Integer rowNumber;
 
     private String lotName;

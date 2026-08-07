@@ -18,12 +18,13 @@ import java.util.UUID;
  * Custom implementation of {@link UserDetails} that stores both
  * user identity and organization-specific authorization information.
  *
- * <p>Besides the standard Spring Security user information, this class
+ * <p>
+ * Besides the standard Spring Security user information, this class
  * also exposes organization and role information used throughout the
- * application.</p>
+ * application.
+ * </p>
  */
 public class CustomUserDetails implements UserDetails {
-
     private static final String ROLE_PREFIX = "ROLE_";
 
     private final User user;
@@ -53,16 +54,14 @@ public class CustomUserDetails implements UserDetails {
         this.roleCode = role.getCode();
         this.roleName = role.getName();
         this.authorities = List.of(
-                new SimpleGrantedAuthority(ROLE_PREFIX + roleCode)
-        );
+                new SimpleGrantedAuthority(ROLE_PREFIX + roleCode));
     }
 
     public User getUser() {
-		return user;
-	}
+        return user;
+    }
 
-
-	@Override
+    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
@@ -118,7 +117,9 @@ public class CustomUserDetails implements UserDetails {
         return organizationCode;
     }
 
-    public OrganizationType getOrganizationType() {return organizationType;}
+    public OrganizationType getOrganizationType() {
+        return organizationType;
+    }
 
     public String getRoleCode() {
         return roleCode;
@@ -127,4 +128,5 @@ public class CustomUserDetails implements UserDetails {
     public String getRoleName() {
         return roleName;
     }
+
 }

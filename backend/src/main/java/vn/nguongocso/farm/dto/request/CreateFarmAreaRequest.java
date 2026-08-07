@@ -21,7 +21,6 @@ import vn.nguongocso.farm.enums.AreaUnit;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateFarmAreaRequest {
-
 	@NotBlank(message = "Tên vùng trồng không được để trống")
 	@Size(max = 255, message = "Tên vùng trồng không được vượt quá 255 ký tự")
 	private String name;

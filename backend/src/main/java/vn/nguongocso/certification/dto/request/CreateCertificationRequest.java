@@ -9,10 +9,12 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * DTO cho yêu cầu tạo chứng nhận mới.
+ */
 @Getter
 @Setter
 public class CreateCertificationRequest {
-
     @NotNull(message = "ID tiêu chuẩn không được để trống")
     private UUID standardId;
 

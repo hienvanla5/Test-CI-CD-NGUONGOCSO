@@ -17,11 +17,14 @@ import vn.nguongocso.event.dto.response.ChainEventResponse;
 import vn.nguongocso.event.service.ProcurementEventService;
 import vn.nguongocso.permission.service.PermissionChecker;
 
+/**
+ * Controller quản lý sự kiện thu mua.
+ * Chỉ dành cho Doanh nghiệp thu mua (VT-04).
+ */
 @RestController
 @RequestMapping("/api/v1/chain-events")
 @RequiredArgsConstructor
 public class ProcurementEventController {
-
     private final ProcurementEventService procurementEventService;
     private final PermissionChecker permissionChecker;
 

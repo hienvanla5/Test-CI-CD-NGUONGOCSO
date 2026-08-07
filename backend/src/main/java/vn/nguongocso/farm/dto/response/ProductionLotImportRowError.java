@@ -9,7 +9,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ProductionLotImportRowError {
-
     private Integer rowNumber; // Số dòng trong tệp xảy ra lỗi.
 
     private String reason; // Lý do dòng dữ liệu không hợp lệ.

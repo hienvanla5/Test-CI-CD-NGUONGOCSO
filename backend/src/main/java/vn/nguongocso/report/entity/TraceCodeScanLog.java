@@ -9,6 +9,7 @@ import vn.nguongocso.trace.entity.TraceCode;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
 /**
  * Entity log tra cứu mã truy xuất.
  *
@@ -22,7 +23,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class TraceCodeScanLog {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id")

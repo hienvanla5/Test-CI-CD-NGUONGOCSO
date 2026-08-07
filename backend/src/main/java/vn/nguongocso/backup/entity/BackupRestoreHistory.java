@@ -9,6 +9,9 @@ import vn.nguongocso.backup.enums.BackupType;
 
 import java.time.LocalDateTime;
 
+/**
+ * Thực thể lưu trữ lịch sử sao lưu và phục hồi.
+ */
 @Entity
 @Table(name = "backup_restore_history")
 @Getter
@@ -17,7 +20,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class BackupRestoreHistory {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

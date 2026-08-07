@@ -10,6 +10,10 @@ import vn.nguongocso.farm.entity.ProductionLot;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Lớp ProductionLotCertification đại diện cho chứng nhận gắn vào lô sản xuất
+ * trong hệ thống.
+ */
 @Entity
 @Table(name = "production_lot_certifications")
 @Getter
@@ -18,7 +22,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class ProductionLotCertification {
-
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "id", nullable = false, updatable = false)

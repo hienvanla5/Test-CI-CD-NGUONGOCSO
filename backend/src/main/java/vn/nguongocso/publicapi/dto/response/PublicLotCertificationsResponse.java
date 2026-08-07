@@ -12,7 +12,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class PublicLotCertificationsResponse {
-
     private UUID productionLotId;// ID lô sản xuất
 
     private String lotName;// Tên lô sản xuất

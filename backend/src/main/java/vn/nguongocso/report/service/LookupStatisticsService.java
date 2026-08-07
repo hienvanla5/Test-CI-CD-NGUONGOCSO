@@ -15,27 +15,26 @@ import java.util.UUID;
  * @author Triệu Văn Đại
  */
 public interface LookupStatisticsService {
+        /**
+         * Lấy thống kê tra cứu.
+         */
+        LookupStatisticsResponse getStatistics(
+                        LocalDate startDate,
+                        LocalDate endDate,
+                        UUID productionLotId,
+                        UUID shipmentId,
+                        UUID organizationId,
+                        String groupBy,
+                        CustomUserDetails currentUser);
 
-    /**
-     * Lấy thống kê tra cứu.
-     */
-    LookupStatisticsResponse getStatistics(
-            LocalDate startDate,
-            LocalDate endDate,
-            UUID productionLotId,
-            UUID shipmentId,
-            UUID organizationId,
-            String groupBy,
-            CustomUserDetails currentUser);
-
-    /**
-     * Lấy danh sách tra cứu bất thường.
-     */
-    Page<AbnormalScanResponse> getAbnormalScans(
-            LocalDate startDate,
-            LocalDate endDate,
-            UUID productionLotId,
-            UUID organizationId,
-            Pageable pageable,
-            CustomUserDetails currentUser);
+        /**
+         * Lấy danh sách tra cứu bất thường.
+         */
+        Page<AbnormalScanResponse> getAbnormalScans(
+                        LocalDate startDate,
+                        LocalDate endDate,
+                        UUID productionLotId,
+                        UUID organizationId,
+                        Pageable pageable,
+                        CustomUserDetails currentUser);
 }

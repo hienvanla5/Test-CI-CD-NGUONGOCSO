@@ -18,7 +18,6 @@ import vn.nguongocso.farm.entity.FarmLog;
 import vn.nguongocso.farm.entity.FarmLogAttachment;
 import vn.nguongocso.farm.repository.FarmLogAttachmentRepository;
 import vn.nguongocso.farm.repository.FarmLogRepository;
-import vn.nguongocso.farm.repository.ProductionLotRepository;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,6 +33,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+/** Quản lý tệp đính kèm của nhật ký canh tác. */
 public class AttachmentService {
 
     private final FarmLogRepository farmLogRepository;
@@ -51,16 +51,18 @@ public class AttachmentService {
     @Value("${app.upload.farm-log.max-size:5242880}")
     private long maxFileSize;
 
+    /** Xác định thư mục tải lên của một nhật ký. */
     private String getUploadDir(UUID logId) {
         return Paths.get(baseDir, farmLogRelativePath, logId.toString()).toString();
     }
 
     private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/png", "application/pdf"
-    );
+            "image/jpeg", "image/png", "application/pdf");
 
+    /** Tải lên tệp đính kèm cho nhật ký canh tác. */
     @Transactional
-    public AttachmentResponse uploadAttachment(UUID logId, MultipartFile file, String description, CustomUserDetails userDetails) {
+    public AttachmentResponse uploadAttachment(UUID logId, MultipartFile file, String description,
+            CustomUserDetails userDetails) {
 
         // 1. Kiểm tra log tồn tại và quyền sở hữu
         FarmLog farmLog = farmLogRepository.findById(logId)
@@ -74,9 +76,10 @@ public class AttachmentService {
         }
 
         // 3. Kiểm tra file
-        if (file.isEmpty()) throw new BusinessException("File không được để trống");
+        if (file.isEmpty())
+            throw new BusinessException("File không được để trống");
         if (file.getSize() > maxFileSize) {
-            throw new BusinessException("File vượt quá dung lượng cho phép (" + maxFileSize/1024/1024 + "MB)");
+            throw new BusinessException("File vượt quá dung lượng cho phép (" + maxFileSize / 1024 / 1024 + "MB)");
         }
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
@@ -89,7 +92,8 @@ public class AttachmentService {
         if (originalFilename != null && originalFilename.contains(".")) {
             extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
-        String newFileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
+        String newFileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8)
+                + extension;
         String uploadDir = getUploadDir(logId);
         String filePath = uploadDir + newFileName;
 
@@ -122,14 +126,14 @@ public class AttachmentService {
         publishActivityLog(userDetails, "CREATE",
                 "Tải lên chứng từ cho nhật ký canh tác ID: " + logId,
                 "FarmLogAttachment",
-                attachment.getId().toString()
-        );
+                attachment.getId().toString());
 
         log.info("Upload attachment thành công: id={}, logId={}", attachment.getId(), logId);
 
         return toResponse(attachment);
     }
 
+    /** Lấy danh sách tệp đính kèm của nhật ký. */
     @Transactional(readOnly = true)
     public List<AttachmentResponse> getAttachments(UUID logId, CustomUserDetails userDetails) {
 
@@ -149,6 +153,7 @@ public class AttachmentService {
                 .collect(Collectors.toList());
     }
 
+    /** Xóa tệp đính kèm. */
     @Transactional
     public void deleteAttachment(UUID attachmentId, CustomUserDetails userDetails) {
         FarmLogAttachment attachment = attachmentRepository.findById(attachmentId)
@@ -179,7 +184,9 @@ public class AttachmentService {
         log.info("Xóa attachment thành công: id={}", attachmentId);
     }
 
-    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+    /** Gửi sự kiện nhật ký hoạt động. */
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType,
+            String entityId) {
         eventPublisher.publishEvent(ActivityLogEvent.builder()
                 .userId(currentUser.getUserId())
                 .username(currentUser.getUsername())
@@ -191,10 +198,10 @@ public class AttachmentService {
                 .entityId(entityId)
                 .ipAddress(IpUtils.getClientIp())
                 .timestamp(LocalDateTime.now())
-                .build()
-        );
+                .build());
     }
 
+    /** Chuyển entity đính kèm sang response. */
     private AttachmentResponse toResponse(FarmLogAttachment attachment) {
         return AttachmentResponse.builder()
                 .id(attachment.getId())

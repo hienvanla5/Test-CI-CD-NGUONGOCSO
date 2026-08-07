@@ -16,11 +16,12 @@ import vn.nguongocso.permission.service.PermissionChecker;
 @RestController
 @RequestMapping("/api/v1/organizations")
 @RequiredArgsConstructor
+/** Quản lý hồ sơ tổ chức hiện tại. */
 public class OrganizationProfileController {
-
     private final OrganizationService organizationService;
     private final PermissionChecker permissionChecker;
 
+    /** Lấy hồ sơ tổ chức hiện tại. */
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResult<OrganizationProfileResponse>> getProfile() {
@@ -28,6 +29,7 @@ public class OrganizationProfileController {
         return ResponseEntity.ok(ApiResult.success(organizationService.getCurrentOrganizationProfile()));
     }
 
+    /** Cập nhật hồ sơ tổ chức hiện tại. */
     @PutMapping("/profile")
     @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
     public ResponseEntity<ApiResult<OrganizationProfileResponse>> updateProfile(

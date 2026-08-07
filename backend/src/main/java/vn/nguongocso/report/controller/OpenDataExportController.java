@@ -28,9 +28,11 @@ import java.time.format.DateTimeFormatter;
 @RequestMapping("/api/v1/reports/open-data")
 @RequiredArgsConstructor
 public class OpenDataExportController {
-
     private final OpenDataExportService openDataExportService;
 
+    /**
+     * API xuất dữ liệu mở theo lược đồ chuẩn.
+     */
     @GetMapping("/export")
     @PreAuthorize("hasRole('VT-05')")
     public ResponseEntity<byte[]> exportOpenData(

@@ -10,7 +10,6 @@ import vn.nguongocso.trace.dto.response.RecallResponse;
  * Dịch vụ quản lý thu hồi lô hàng.
  */
 public interface ShipmentRecallService {
-
     /**
      * Thực hiện thu hồi một lô hàng.
      */

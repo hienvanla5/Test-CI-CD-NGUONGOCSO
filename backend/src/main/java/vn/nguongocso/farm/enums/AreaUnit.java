@@ -10,11 +10,16 @@ import java.math.RoundingMode;
  */
 public enum AreaUnit {
 
-	HA(BigDecimal.ONE),
-	KM2(BigDecimal.valueOf(0.01));
+	HA(BigDecimal.ONE), // Héc-ta
+	KM2(BigDecimal.valueOf(0.01)); // Kilômét vuông
 
 	private final BigDecimal unitsPerHectare;
 
+	/**
+	 * Khởi tạo đơn vị diện tích với hệ số quy đổi về héc-ta.
+	 *
+	 * @param unitsPerHectare Hệ số quy đổi từ đơn vị hiện tại sang héc-ta.
+	 */
 	AreaUnit(BigDecimal unitsPerHectare) {
 		this.unitsPerHectare = unitsPerHectare;
 	}

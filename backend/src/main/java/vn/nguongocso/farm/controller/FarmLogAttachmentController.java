@@ -20,11 +20,13 @@ import java.util.UUID;
 @RequestMapping("/api/v1/farm-logs")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('VT-03')")
+/** Quản lý tệp đính kèm của nhật ký canh tác. */
 public class FarmLogAttachmentController {
 
     private final AttachmentService attachmentService;
     private final PermissionChecker permissionChecker;
 
+    /** Tải lên tệp đính kèm cho nhật ký. */
     @PostMapping("/{logId}/attachments")
     public ResponseEntity<ApiResult<AttachmentResponse>> uploadAttachment(
             @PathVariable UUID logId,
@@ -37,6 +39,7 @@ public class FarmLogAttachmentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(response));
     }
 
+    /** Lấy danh sách tệp đính kèm của nhật ký. */
     @GetMapping("/{logId}/attachments")
     public ResponseEntity<ApiResult<List<AttachmentResponse>>> getAttachments(
             @PathVariable UUID logId,
@@ -45,6 +48,7 @@ public class FarmLogAttachmentController {
         return ResponseEntity.ok(ApiResult.success(attachmentService.getAttachments(logId, userDetails)));
     }
 
+    /** Xóa một tệp đính kèm. */
     @DeleteMapping("/attachments/{attachmentId}")
     public ResponseEntity<ApiResult<Void>> deleteAttachment(
             @PathVariable UUID attachmentId,

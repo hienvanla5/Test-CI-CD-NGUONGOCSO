@@ -39,7 +39,6 @@ import org.hibernate.type.SqlTypes;
 @AllArgsConstructor
 @Builder
 public class Organization {
-
 	@Id
 	@Column(name = "organization_id")
 	@JdbcTypeCode(SqlTypes.CHAR)
@@ -74,18 +73,6 @@ public class Organization {
 	@Column(nullable = false, name = "updated_at")
 	private LocalDateTime updatedAt;
 
-	/**
-	 * Khởi tạo các giá trị mặc định trước khi lưu bản ghi mới.
-	 *
-	 * <p>
-	 * Phương thức này sẽ:
-	 * <ul>
-	 * <li>Tạo UUID nếu chưa được gán.</li>
-	 * <li>Khởi tạo thời gian tạo và cập nhật.</li>
-	 * <li>Đặt trạng thái mặc định là {@code ACTIVE} nếu chưa có giá trị.</li>
-	 * </ul>
-	 * </p>
-	 */
 	@PrePersist
 	public void prePersist() {
 		if (organizationId == null) {
@@ -99,9 +86,6 @@ public class Organization {
 		}
 	}
 
-	/**
-	 * Cập nhật thời gian chỉnh sửa trước khi cập nhật bản ghi.
-	 */
 	@PreUpdate
 	public void preUpdate() {
 		updatedAt = LocalDateTime.now();

@@ -11,6 +11,9 @@ import vn.nguongocso.event.entity.OfflineSyncLog;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Repository cho thực thể OfflineSyncLog.
+ */
 @Repository
 public interface OfflineSyncLogRepository extends JpaRepository<OfflineSyncLog, UUID> {
 

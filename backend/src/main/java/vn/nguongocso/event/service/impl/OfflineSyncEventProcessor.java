@@ -35,8 +35,10 @@ import java.util.UUID;
  * Xử lý một sự kiện ngoại tuyến trong transaction riêng.
  * <p>
  * Đảm bảo logic xử lý offline nhất quán với online:
- * - Sử dụng cùng các service method (recordHarvestEvent, recordPackagingEvent, recordTransportEvent).
- * - Log thất bại vào cả failed_event_logs (qua EventValidationService) và offline_sync_logs.
+ * - Sử dụng cùng các service method (recordHarvestEvent, recordPackagingEvent,
+ * recordTransportEvent).
+ * - Log thất bại vào cả failed_event_logs (qua EventValidationService) và
+ * offline_sync_logs.
  * - Hỗ trợ HARVEST, PACKAGING, TRANSPORT.
  */
 @Slf4j
@@ -58,7 +60,8 @@ public class OfflineSyncEventProcessor {
      * và một transaction mới được tạo.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public OfflineEventSyncResultDto processEvent(RecordOfflineEventDto eventDto, UUID syncId, CustomUserDetails currentUser) {
+    public OfflineEventSyncResultDto processEvent(RecordOfflineEventDto eventDto, UUID syncId,
+            CustomUserDetails currentUser) {
         try {
             // Kiểm tra trùng lặp trước khi xử lý
             Optional<OfflineSyncLog> existingLog = offlineSyncLogRepository
@@ -84,7 +87,8 @@ public class OfflineSyncEventProcessor {
                     processTransportOffline(eventDto, currentUser);
                     break;
                 default:
-                    throw new BusinessException("Loại sự kiện không hỗ trợ đồng bộ ngoại tuyến: " + eventDto.getEventType());
+                    throw new BusinessException(
+                            "Loại sự kiện không hỗ trợ đồng bộ ngoại tuyến: " + eventDto.getEventType());
             }
 
             // Ghi log thành công vào offline_sync_logs
@@ -118,10 +122,6 @@ public class OfflineSyncEventProcessor {
                     .build();
         }
     }
-
-    // ============================
-    // Private processing methods — delegate to online service methods
-    // ============================
 
     private void processHarvestOffline(RecordOfflineEventDto eventDto, CustomUserDetails currentUser) {
         RecordHarvestEventRequest harvestRequest = new RecordHarvestEventRequest();
@@ -207,10 +207,6 @@ public class OfflineSyncEventProcessor {
         chainEventService.recordTransportEvent(transportRequest, currentUser);
     }
 
-    // ============================
-    // Logging methods
-    // ============================
-
     /**
      * Ghi log thất bại vào failed_event_logs (cùng bảng với online).
      * Sử dụng REQUIRES_NEW để không bị ảnh hưởng bởi transaction chính.
@@ -242,7 +238,8 @@ public class OfflineSyncEventProcessor {
 
             // Nếu không xác định được lotId/lotCode, vẫn log với thông tin có sẵn
             if (lotId == null) {
-                lotId = eventDto.getProductionLotId() != null ? eventDto.getProductionLotId() : eventDto.getShipmentId();
+                lotId = eventDto.getProductionLotId() != null ? eventDto.getProductionLotId()
+                        : eventDto.getShipmentId();
             }
             if (lotCode == null) {
                 lotCode = lotId != null ? lotId.toString() : "UNKNOWN";
@@ -259,14 +256,17 @@ public class OfflineSyncEventProcessor {
      * Lưu log thất bại vào offline_sync_logs với pessimistic locking.
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveFailedSyncLog(RecordOfflineEventDto eventDto, UUID syncId, String reason, CustomUserDetails currentUser) {
+    public void saveFailedSyncLog(RecordOfflineEventDto eventDto, UUID syncId, String reason,
+            CustomUserDetails currentUser) {
         try {
             User actor = userRepository.findById(currentUser.getUserId()).orElse(null);
-            if (actor == null) return;
+            if (actor == null)
+                return;
 
             UUID lotId = null;
             UUID shipmentId = null;
-            if (eventDto.getEventType() == ChainEventType.TRANSPORT || eventDto.getEventType() == ChainEventType.PROCUREMENT) {
+            if (eventDto.getEventType() == ChainEventType.TRANSPORT
+                    || eventDto.getEventType() == ChainEventType.PROCUREMENT) {
                 shipmentId = eventDto.getShipmentId() != null ? eventDto.getShipmentId() : resolveShipmentId(eventDto);
                 lotId = eventDto.getProductionLotId();
             } else {
@@ -310,11 +310,13 @@ public class OfflineSyncEventProcessor {
     public void saveSuccessSyncLog(RecordOfflineEventDto eventDto, UUID syncId, CustomUserDetails currentUser) {
         try {
             User actor = userRepository.findById(currentUser.getUserId()).orElse(null);
-            if (actor == null) return;
+            if (actor == null)
+                return;
 
             UUID lotId = null;
             UUID shipmentId = null;
-            if (eventDto.getEventType() == ChainEventType.TRANSPORT || eventDto.getEventType() == ChainEventType.PROCUREMENT) {
+            if (eventDto.getEventType() == ChainEventType.TRANSPORT
+                    || eventDto.getEventType() == ChainEventType.PROCUREMENT) {
                 shipmentId = eventDto.getShipmentId() != null ? eventDto.getShipmentId() : resolveShipmentId(eventDto);
                 lotId = eventDto.getProductionLotId();
             } else {

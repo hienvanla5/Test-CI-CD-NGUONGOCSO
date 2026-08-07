@@ -14,10 +14,11 @@ import java.util.List;
 @RequestMapping("/api/v1/roles")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
+/** Cung cấp danh sách vai trò trong hệ thống. */
 public class RoleController {
-
     private final RoleRepository roleRepository;
 
+    /** Lấy toàn bộ vai trò. */
     @GetMapping
     public List<Role> getAllRoles() {
         return roleRepository.findAll();

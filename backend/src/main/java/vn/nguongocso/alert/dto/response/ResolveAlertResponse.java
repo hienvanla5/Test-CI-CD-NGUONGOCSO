@@ -11,7 +11,6 @@ import vn.nguongocso.alert.enums.AlertStatus;
 @Getter
 @Setter
 public class ResolveAlertResponse {
-
     private UUID id;
 
     private AlertStatus status;
@@ -19,5 +18,4 @@ public class ResolveAlertResponse {
     private LocalDateTime resolvedAt;
 
     private UUID resolvedBy;
-
 }

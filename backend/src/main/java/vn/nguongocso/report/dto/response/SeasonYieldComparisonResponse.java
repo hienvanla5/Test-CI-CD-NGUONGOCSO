@@ -11,7 +11,6 @@ import java.util.List;
 @Getter
 @Builder
 public class SeasonYieldComparisonResponse {
-
     /**
      * Có dữ liệu để so sánh hay không.
      */

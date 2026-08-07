@@ -17,7 +17,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class IndustryReportExportResponse {
     private String fileUrl;
+
     private String format;
+
     private LocalDateTime exportedAt;
+
     private UUID auditLogId;
 }

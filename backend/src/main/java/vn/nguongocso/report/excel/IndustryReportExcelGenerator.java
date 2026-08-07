@@ -6,7 +6,6 @@ import vn.nguongocso.report.dto.response.IndustryReportResponse;
  * Sinh file Excel cho báo cáo tổng hợp ngành.
  */
 public interface IndustryReportExcelGenerator {
-
     /**
      * Tạo nội dung file Excel dạng byte[].
      *

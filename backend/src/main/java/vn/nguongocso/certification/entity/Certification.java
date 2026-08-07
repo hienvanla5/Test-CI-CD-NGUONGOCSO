@@ -10,6 +10,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Lớp Certification đại diện cho chứng nhận trong hệ thống.
+ */
 @Entity
 @Table(name = "certifications")
 @Getter
@@ -18,7 +21,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class Certification {
-
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "id", nullable = false, updatable = false)

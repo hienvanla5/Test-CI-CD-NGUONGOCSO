@@ -15,11 +15,13 @@ import vn.nguongocso.common.ApiResult;
 
 import java.util.List;
 
+/*
+* Controller quản lý chứng nhận cho tổ chức.
+ */
 @RestController
 @RequestMapping("/api/v1/certifications")
 @RequiredArgsConstructor
 public class CertificationController {
-
     private final CertificationService certificationService;
 
     /**

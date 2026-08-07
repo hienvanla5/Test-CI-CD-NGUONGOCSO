@@ -28,7 +28,6 @@ import vn.nguongocso.organization.entity.Organization;
 @Entity
 @Table(name = "alerts")
 public class Alert {
-
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     @JdbcTypeCode(SqlTypes.CHAR)
