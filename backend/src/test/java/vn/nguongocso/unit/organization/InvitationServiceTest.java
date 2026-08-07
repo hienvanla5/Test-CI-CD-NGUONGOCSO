@@ -28,6 +28,7 @@ import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.exception.DuplicateResourceException;
 import vn.nguongocso.exception.ResourceNotFoundException;
+import vn.nguongocso.mail.service.EmailService;
 import vn.nguongocso.organization.dto.request.AcceptInvitationRequest;
 import vn.nguongocso.organization.dto.request.CreateInvitationRequest;
 import vn.nguongocso.organization.dto.response.AcceptInvitationResponse;
@@ -66,6 +67,9 @@ public class InvitationServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private InvitationServiceImpl invitationService;
@@ -123,6 +127,7 @@ public class InvitationServiceTest {
         assertThat(response.getStatus()).isEqualTo("PENDING");
 
         verify(invitationRepository, times(1)).save(any(Invitation.class));
+        verify(emailService, times(1)).sendInvitationEmail(anyString(), anyString(), anyString(), anyString(), anyInt());
         verify(eventPublisher, times(1)).publishEvent(any(ActivityLogEvent.class));
     }
 
@@ -164,10 +169,10 @@ public class InvitationServiceTest {
                 .token(token)
                 .status(InvitationStatus.PENDING)
                 .expiryDate(LocalDateTime.now().plusDays(1))
-                .createdAt(LocalDateTime.now())
                 .build();
 
         when(invitationRepository.findByToken(token)).thenReturn(Optional.of(invitation));
+        when(userRepository.existsByEmail("member.new@gmail.com")).thenReturn(false);
 
         // When
         InvitationPublicResponse response = invitationService.getInvitationDetails(token);
@@ -178,6 +183,7 @@ public class InvitationServiceTest {
         assertThat(response.getOrganizationName()).isEqualTo("HTX Nông Sản Sạch");
         assertThat(response.getRoleName()).isEqualTo("Người ghi sự kiện");
         assertThat(response.getStatus()).isEqualTo("PENDING");
+        assertThat(response.isExistingUser()).isFalse();
     }
 
     @Test
@@ -191,8 +197,7 @@ public class InvitationServiceTest {
                 .role(role)
                 .token(token)
                 .status(InvitationStatus.PENDING)
-                .expiryDate(LocalDateTime.now().minusDays(1)) // expired
-                .createdAt(LocalDateTime.now())
+                .expiryDate(LocalDateTime.now().minusDays(1))
                 .build();
 
         when(invitationRepository.findByToken(token)).thenReturn(Optional.of(invitation));
@@ -227,8 +232,10 @@ public class InvitationServiceTest {
         request.setFullName("Nguyễn Văn A");
 
         when(invitationRepository.findByToken(token)).thenReturn(Optional.of(invitation));
+        when(userRepository.findByEmail("member.new@gmail.com")).thenReturn(Optional.empty());
         when(userRepository.existsByUserName("newmember")).thenReturn(false);
         when(passwordEncoder.encode("SecureP@ss123")).thenReturn("encoded_pass");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         AcceptInvitationResponse response = invitationService.acceptInvitation(token, request);

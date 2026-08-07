@@ -35,6 +35,10 @@ import vn.nguongocso.organization.repository.OrganizationRepository;
 import vn.nguongocso.organization.repository.OrganizationUserRepository;
 import vn.nguongocso.organization.service.InvitationService;
 
+import org.springframework.beans.factory.annotation.Value;
+
+import vn.nguongocso.mail.service.EmailService;
+
 @Slf4j
 @Service
 /** Quản lý thư mời tham gia tổ chức. */
@@ -47,6 +51,10 @@ public class InvitationServiceImpl implements InvitationService {
     private final OrganizationUserRepository organizationUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
+    private final EmailService emailService;
+
+    @Value("${app.frontend-url:http://localhost:5173}")
+    private String frontendUrl;
 
     public InvitationServiceImpl(
             InvitationRepository invitationRepository,
@@ -55,7 +63,8 @@ public class InvitationServiceImpl implements InvitationService {
             RoleRepository roleRepository,
             OrganizationUserRepository organizationUserRepository,
             PasswordEncoder passwordEncoder,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            EmailService emailService) {
         this.invitationRepository = invitationRepository;
         this.organizationRepository = organizationRepository;
         this.userRepository = userRepository;
@@ -63,6 +72,7 @@ public class InvitationServiceImpl implements InvitationService {
         this.organizationUserRepository = organizationUserRepository;
         this.passwordEncoder = passwordEncoder;
         this.eventPublisher = eventPublisher;
+        this.emailService = emailService;
     }
 
     /** Tạo thư mời mới. */
@@ -118,8 +128,13 @@ public class InvitationServiceImpl implements InvitationService {
 
         invitationRepository.save(invitation);
 
-        log.info("📧 [MAIL SIMULATION] Gửi thư mời tới email {}. Link: http://localhost:5173/join?token={}",
-                request.getEmail(), token);
+        String joinUrl = frontendUrl + "/join?token=" + token;
+        emailService.sendInvitationEmail(
+                request.getEmail(),
+                organization.getName(),
+                role.getName(),
+                joinUrl,
+                request.getExpiryDays());
 
         eventPublisher.publishEvent(ActivityLogEvent.builder()
                 .userId(currentUser.getUserId())
@@ -143,6 +158,7 @@ public class InvitationServiceImpl implements InvitationService {
                 .roleName(role.getName())
                 .status(invitation.getStatus().name())
                 .token(invitation.getToken())
+                .joinUrl(joinUrl)
                 .expiryDate(invitation.getExpiryDate())
                 .createdBy(currentUser.getUserId())
                 .createdAt(invitation.getCreatedAt())
@@ -167,12 +183,15 @@ public class InvitationServiceImpl implements InvitationService {
             throw new BusinessException("Thư mời đã quá hạn hoặc đã được sử dụng");
         }
 
+        boolean isExistingUser = userRepository.existsByEmail(invitation.getEmail());
+
         return InvitationPublicResponse.builder()
                 .email(invitation.getEmail())
                 .organizationName(invitation.getOrganization().getName())
                 .roleName(invitation.getRole().getName())
                 .status(invitation.getStatus().name())
                 .expiryDate(invitation.getExpiryDate())
+                .isExistingUser(isExistingUser)
                 .build();
     }
 
@@ -198,17 +217,26 @@ public class InvitationServiceImpl implements InvitationService {
         // Tìm user hiện có theo email
         User existingUser = userRepository.findByEmail(invitation.getEmail()).orElse(null);
 
-        // Nếu user đã tồn tại, kiểm tra xem đã là thành viên active của tổ chức này
-        // chưa
+        // Nếu user đã tồn tại, yêu cầu mật khẩu đúng để xác thực
         if (existingUser != null) {
-            organizationUserRepository
+            if (request.getPassword() == null || request.getPassword().isBlank()
+                    || !passwordEncoder.matches(request.getPassword(), existingUser.getPasswordHash())) {
+                throw new BusinessException("Mật khẩu tài khoản không chính xác");
+            }
+
+            OrganizationUser orgUser = organizationUserRepository
                     .findByOrganization_OrganizationIdAndUser_UserId(
                             invitation.getOrganization().getOrganizationId(), existingUser.getUserId())
-                    .ifPresent(orgUser -> {
-                        if (orgUser.getStatus() == OrganizationUserStatus.ACTIVE) {
-                            throw new DuplicateResourceException("Bạn đã là thành viên của tổ chức này");
-                        }
+                    .orElseGet(() -> {
+                        OrganizationUser ou = new OrganizationUser();
+                        ou.setOrganization(invitation.getOrganization());
+                        ou.setUser(existingUser);
+                        return ou;
                     });
+
+            if (orgUser.getStatus() == OrganizationUserStatus.ACTIVE) {
+                throw new DuplicateResourceException("Bạn đã là thành viên của tổ chức này");
+            }
 
             // Nếu vai trò được mời là VT-03 → xóa user khỏi tổ chức cũ (nếu có)
             if (RoleCode.EVENT_RECORDER.equals(invitation.getRole().getCode())) {
@@ -225,13 +253,11 @@ public class InvitationServiceImpl implements InvitationService {
                 }
             }
 
-            // Tạo liên kết mới
-            OrganizationUser newOrgUser = new OrganizationUser();
-            newOrgUser.setOrganization(invitation.getOrganization());
-            newOrgUser.setUser(existingUser);
-            newOrgUser.setRole(invitation.getRole());
-            newOrgUser.setStatus(OrganizationUserStatus.ACTIVE);
-            organizationUserRepository.save(newOrgUser);
+            // Cập nhật/tạo liên kết
+            orgUser.setRole(invitation.getRole());
+            orgUser.setStatus(OrganizationUserStatus.ACTIVE);
+            orgUser.setJoinedAt(LocalDateTime.now());
+            organizationUserRepository.save(orgUser);
 
             // Cập nhật thư mời
             invitation.setStatus(InvitationStatus.ACCEPTED);

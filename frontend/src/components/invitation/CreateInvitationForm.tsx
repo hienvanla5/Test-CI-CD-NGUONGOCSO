@@ -28,7 +28,7 @@ import { createInvitation } from "@/api/invitationApi";
 import { getRoles } from "@/api/memberApi";
 import type { RoleOption } from "@/types/member";
 import { getRoleLabel } from "@/config/roleAccess";
-import { Loader2, Mail, MailPlus, ArrowLeft } from "lucide-react";
+import { Loader2, Mail, MailPlus, ArrowLeft, Copy, Check, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const CreateInvitationForm: React.FC = () => {
@@ -36,6 +36,11 @@ export const CreateInvitationForm: React.FC = () => {
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [createdInvitation, setCreatedInvitation] = useState<{
+    email: string;
+    joinUrl: string;
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const {
     control,
@@ -70,9 +75,15 @@ export const CreateInvitationForm: React.FC = () => {
 
   const onSubmit = async (data: CreateInvitationFormValues) => {
     setSubmitting(true);
+    setCreatedInvitation(null);
     try {
-      await createInvitation(data);
-      toast.success("Thư mời đã được gửi thành công!");
+      const res = await createInvitation(data);
+      const url = res.joinUrl || `${window.location.origin}/join?token=${res.token}`;
+      setCreatedInvitation({
+        email: res.email,
+        joinUrl: url,
+      });
+      toast.success("Thư mời đã được khởi tạo thành công!");
       reset();
     } catch (error: any) {
       const status = error.response?.status;
@@ -87,6 +98,13 @@ export const CreateInvitationForm: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleCopyLink = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    toast.success("Đã sao chép liên kết thư mời vào clipboard!");
+    setTimeout(() => setCopied(false), 3000);
   };
 
   if (loading) {
@@ -110,6 +128,50 @@ export const CreateInvitationForm: React.FC = () => {
           <ArrowLeft className="h-4 w-4 mr-1" />
           Quay lại
         </Button>
+
+        {createdInvitation && (
+          <Card className="border-emerald-200 bg-emerald-50/60 shadow-sm transition-all animate-in fade-in slide-in-from-top-2">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2 text-emerald-800">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                <CardTitle className="text-base font-semibold">
+                  Thư mời đã được khởi tạo cho: {createdInvitation.email}
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-slate-700">
+              <p>
+                Liên kết xác nhận tham gia tổ chức:
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={createdInvitation.joinUrl}
+                  className="bg-white border-emerald-200 text-xs font-mono text-slate-800"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleCopyLink(createdInvitation.joinUrl)}
+                  className="border-emerald-300 text-emerald-700 hover:bg-emerald-100 shrink-0"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 mr-1 text-emerald-600" />
+                      Đã chép
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5 mr-1" />
+                      Sao chép
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="border-emerald-100 bg-white/80 backdrop-blur-sm shadow-sm">
           <CardHeader className="border-b border-emerald-100">
