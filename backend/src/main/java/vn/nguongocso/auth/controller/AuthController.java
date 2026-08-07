@@ -19,8 +19,10 @@ import vn.nguongocso.common.ApiResult;
 /**
  * REST controller providing authentication-related endpoints.
  *
- * <p>This controller handles user authentication and exposes APIs
- * for retrieving information about the currently authenticated user.</p>
+ * <p>
+ * This controller handles user authentication and exposes APIs
+ * for retrieving information about the currently authenticated user.
+ * </p>
  */
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -33,8 +35,10 @@ public class AuthController {
     /**
      * Authenticates a user using the provided credentials.
      *
-     * <p>If the credentials are valid, a JWT access token and the
-     * associated user information are returned.</p>
+     * <p>
+     * If the credentials are valid, a JWT access token and the
+     * associated user information are returned.
+     * </p>
      *
      * @param request login request containing username, password and
      *                organization information
@@ -48,8 +52,10 @@ public class AuthController {
     /**
      * Returns the profile of the currently authenticated user.
      *
-     * <p>The user information is obtained from the Spring Security
-     * authentication context.</p>
+     * <p>
+     * The user information is obtained from the Spring Security
+     * authentication context.
+     * </p>
      *
      * @return profile of the authenticated user
      */

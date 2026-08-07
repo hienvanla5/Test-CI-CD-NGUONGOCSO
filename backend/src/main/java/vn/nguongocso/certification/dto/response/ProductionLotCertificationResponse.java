@@ -8,6 +8,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * DTO cho phản hồi thông tin chứng nhận gắn vào lô sản xuất.
+ */
 @Getter
 @Setter
 @Builder

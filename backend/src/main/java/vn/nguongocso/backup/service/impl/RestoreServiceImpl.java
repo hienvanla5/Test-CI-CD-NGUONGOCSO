@@ -25,6 +25,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.GZIPInputStream;
 
+// commnet bằng tiếng việt
+/**
+ * Lớp triển khai phục hồi dữ liệu
+ */
 @Service
 @Slf4j
 public class RestoreServiceImpl implements RestoreService {
@@ -35,11 +39,25 @@ public class RestoreServiceImpl implements RestoreService {
 
     private RestoreService self;
 
+    /**
+     * Setter để inject chính bản thân bean này, cho phép gọi các phương
+     * thức @Transactional từ bên trong.
+     * 
+     * @param self RestoreServiceImpl bean được Spring quản lý
+     */
     @org.springframework.beans.factory.annotation.Autowired
     public void setSelf(@org.springframework.context.annotation.Lazy RestoreService self) {
         this.self = self;
     }
 
+    /**
+     * Constructor để khởi tạo các repository và service cần thiết.
+     * 
+     * @param backupRestoreHistoryRepository Repository cho lịch sử sao lưu và phục
+     *                                       hồi
+     * @param backupService                  Service sao lưu
+     * @param taskExecutor                   Executor tác vụ
+     */
     public RestoreServiceImpl(
             BackupRestoreHistoryRepository backupRestoreHistoryRepository,
             BackupService backupService,
@@ -71,17 +89,32 @@ public class RestoreServiceImpl implements RestoreService {
     @Value("${app.backup.mysql-path:mysql}")
     private String mysqlPath;
 
+    /**
+     * Kiểm tra xem hệ thống có đang ở chế độ bảo trì hay không.
+     * 
+     * @return true nếu đang ở chế độ bảo trì, false nếu không
+     */
     @Override
     public boolean isMaintenanceMode() {
         return maintenanceMode.get();
     }
 
+    /**
+     * Thiết lập chế độ bảo trì của hệ thống.
+     * 
+     * @param mode true để bật chế độ bảo trì, false để tắt
+     */
     @Override
     public void setMaintenanceMode(boolean mode) {
         log.info("Setting system maintenance mode to: {}", mode);
         maintenanceMode.set(mode);
     }
 
+    /**
+     * Cập nhật trạng thái của một bản ghi lịch sử sao lưu/phục hồi.
+     * 
+     * @param id ID của bản ghi cần cập nhật
+     */
     @Override
     @Transactional
     public void updateStatus(Integer id, BackupStatus status, String errorMessage) {
@@ -92,6 +125,13 @@ public class RestoreServiceImpl implements RestoreService {
         });
     }
 
+    /**
+     * Kích hoạt quá trình phục hồi dữ liệu từ một bản sao lưu đã tồn tại.
+     * 
+     * @param backupHistoryId ID của bản ghi sao lưu cần phục hồi
+     * @param creator         Người dùng kích hoạt quá trình phục hồi
+     * @return Phản hồi chứa thông tin lịch sử phục hồi vừa được tạo
+     */
     @Override
     @Transactional
     public BackupHistoryResponse triggerRestore(Integer backupHistoryId, User creator) {
@@ -99,13 +139,16 @@ public class RestoreServiceImpl implements RestoreService {
 
         // Check lock
         if (backupRestoreHistoryRepository.existsByStatus(BackupStatus.IN_PROGRESS)) {
-            throw new BusinessException("Hệ thống đang có một tiến trình sao lưu hoặc khôi phục khác đang diễn ra. Vui lòng thử lại sau.");
+            throw new BusinessException(
+                    "Hệ thống đang có một tiến trình sao lưu hoặc khôi phục khác đang diễn ra. Vui lòng thử lại sau.");
         }
 
         BackupRestoreHistory targetBackup = backupRestoreHistoryRepository.findById(backupHistoryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bản ghi sao lưu để khôi phục với ID: " + backupHistoryId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy bản ghi sao lưu để khôi phục với ID: " + backupHistoryId));
 
-        if (targetBackup.getOperationType() != BackupOperationType.BACKUP || targetBackup.getStatus() != BackupStatus.SUCCESS) {
+        if (targetBackup.getOperationType() != BackupOperationType.BACKUP
+                || targetBackup.getStatus() != BackupStatus.SUCCESS) {
             throw new BusinessException("Bản ghi chỉ định không phải là một bản sao lưu thành công.");
         }
 
@@ -131,10 +174,10 @@ public class RestoreServiceImpl implements RestoreService {
                     new org.springframework.transaction.support.TransactionSynchronizationAdapter() {
                         @Override
                         public void afterCommit() {
-                            CompletableFuture.runAsync(() -> runRestoreProcess(saved, backupFile, creator), taskExecutor);
+                            CompletableFuture.runAsync(() -> runRestoreProcess(saved, backupFile, creator),
+                                    taskExecutor);
                         }
-                    }
-            );
+                    });
         } else {
             CompletableFuture.runAsync(() -> runRestoreProcess(saved, backupFile, creator), taskExecutor);
         }
@@ -155,11 +198,14 @@ public class RestoreServiceImpl implements RestoreService {
             try {
                 quickBackup = backupService.executeBackupWithoutLock(BackupType.MANUAL, creator);
                 if (quickBackup.getStatus() != BackupStatus.SUCCESS) {
-                    throw new RuntimeException("Tạo bản sao lưu khẩn cấp thất bại. Dừng quá trình phục hồi để bảo vệ dữ liệu. Chi tiết: " + quickBackup.getErrorMessage());
+                    throw new RuntimeException(
+                            "Tạo bản sao lưu khẩn cấp thất bại. Dừng quá trình phục hồi để bảo vệ dữ liệu. Chi tiết: "
+                                    + quickBackup.getErrorMessage());
                 }
             } catch (Exception ex) {
                 log.error("Emergency backup failed. Restoring aborted.", ex);
-                throw new RuntimeException("Không thể tạo bản sao lưu khẩn cấp trước khi khôi phục: " + ex.getMessage());
+                throw new RuntimeException(
+                        "Không thể tạo bản sao lưu khẩn cấp trước khi khôi phục: " + ex.getMessage());
             }
 
             // 2. Perform the database restoration
@@ -178,12 +224,14 @@ public class RestoreServiceImpl implements RestoreService {
             if (quickBackup != null && quickBackup.getFilePath() != null) {
                 File quickBackupFile = new File(quickBackup.getFilePath());
                 if (quickBackupFile.exists()) {
-                    log.warn("Attempting database rollback using emergency backup file: {}", quickBackupFile.getAbsolutePath());
+                    log.warn("Attempting database rollback using emergency backup file: {}",
+                            quickBackupFile.getAbsolutePath());
                     try {
                         performRestore(quickBackupFile);
                         log.info("Database rollback completed successfully.");
                     } catch (Exception rollbackException) {
-                        log.error("CRITICAL ERROR: Database rollback failed. System database is corrupted!", rollbackException);
+                        log.error("CRITICAL ERROR: Database rollback failed. System database is corrupted!",
+                                rollbackException);
                     }
                 }
             }
@@ -219,7 +267,7 @@ public class RestoreServiceImpl implements RestoreService {
 
         // Feed decompressed SQL directly into mysql's stdin
         try (GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(backupFile));
-             OutputStream os = process.getOutputStream()) {
+                OutputStream os = process.getOutputStream()) {
             byte[] buffer = new byte[8192];
             int len;
             while ((len = gzis.read(buffer)) != -1) {
@@ -228,7 +276,8 @@ public class RestoreServiceImpl implements RestoreService {
             os.flush();
         } // Đóng os (stdin) để báo cho mysql biết đã truyền xong dữ liệu
 
-        // Đọc sạch dữ liệu output (cảnh báo/lỗi) để giải phóng buffer của OS, tránh deadlock treo tiến trình
+        // Đọc sạch dữ liệu output (cảnh báo/lỗi) để giải phóng buffer của OS, tránh
+        // deadlock treo tiến trình
         StringBuilder outputMsg = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -239,7 +288,8 @@ public class RestoreServiceImpl implements RestoreService {
 
         int exitCode = process.waitFor();
         if (exitCode != 0) {
-            throw new IOException("mysql CLI exited with code: " + exitCode + ". Detail: " + outputMsg.toString().trim());
+            throw new IOException(
+                    "mysql CLI exited with code: " + exitCode + ". Detail: " + outputMsg.toString().trim());
         }
     }
 }

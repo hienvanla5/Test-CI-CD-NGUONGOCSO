@@ -15,10 +15,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/public/shipments")
 @RequiredArgsConstructor
+/** Cung cấp hành trình công khai của lô hàng. */
 public class PublicJourneyController {
 
     private final JourneyService journeyService;
 
+    /** Lấy hành trình theo mã lô hàng. */
     @GetMapping("/{shipmentId}/journey")
     public ResponseEntity<ApiResult<JourneyResponse>> getJourney(@PathVariable UUID shipmentId) {
         JourneyResponse response = journeyService.getJourney(shipmentId);

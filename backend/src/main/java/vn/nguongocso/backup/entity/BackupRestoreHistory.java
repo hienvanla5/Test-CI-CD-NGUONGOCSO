@@ -9,6 +9,9 @@ import vn.nguongocso.backup.enums.BackupType;
 
 import java.time.LocalDateTime;
 
+/**
+ * Thực thể lưu trữ lịch sử sao lưu và phục hồi.
+ */
 @Entity
 @Table(name = "backup_restore_history")
 @Getter

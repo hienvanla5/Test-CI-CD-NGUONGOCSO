@@ -22,6 +22,15 @@ import vn.nguongocso.alert.event.ActivityLogEvent;
 
 import java.time.LocalDateTime;
 
+/**
+ * Lớp AuditAspect chịu trách nhiệm thu thập thông tin lưu vết (audit log) cho
+ * các hành động
+ * được đánh dấu bằng annotation @Auditable. Nó sử dụng AOP để tự động ghi lại
+ * các sự kiện
+ * quan trọng trong hệ thống, bao gồm thông tin người dùng, hành động, mô tả,
+ * loại thực thể,
+ * địa chỉ IP và thời gian thực hiện.
+ */
 @Aspect
 @Component
 @Slf4j
@@ -31,6 +40,9 @@ public class AuditAspect {
     private final ApplicationEventPublisher eventPublisher;
     private final ExpressionParser parser = new SpelExpressionParser();
 
+    /**
+     * Ghi lại hoạt động của người dùng.
+     */
     @AfterReturning(value = "@annotation(auditable)", returning = "result")
     public void logActivity(JoinPoint joinPoint, Auditable auditable, Object result) {
         try {
@@ -41,7 +53,8 @@ public class AuditAspect {
             CustomUserDetails currentUser = (CustomUserDetails) auth.getPrincipal();
 
             // Lấy thông tin HTTP request để lấy IP
-            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder
+                    .getRequestAttributes();
             String ipAddress = "";
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
@@ -51,7 +64,8 @@ public class AuditAspect {
                         : request.getRemoteAddr();
             }
 
-            // Đánh giá biểu thức SpEL để sinh mô tả động dựa trên tham số truyền vào phương thức
+            // Đánh giá biểu thức SpEL để sinh mô tả động dựa trên tham số truyền vào phương
+            // thức
             StandardEvaluationContext context = new StandardEvaluationContext();
             MethodSignature signature = (MethodSignature) joinPoint.getSignature();
             String[] parameterNames = signature.getParameterNames();
@@ -62,7 +76,8 @@ public class AuditAspect {
             }
             context.setVariable("result", result); // Có thể dùng kết quả trả về của method
 
-            String evaluatedDescription = parser.parseExpression(auditable.description()).getValue(context, String.class);
+            String evaluatedDescription = parser.parseExpression(auditable.description()).getValue(context,
+                    String.class);
 
             // Xây dựng sự kiện lưu log
             ActivityLogEvent event = ActivityLogEvent.builder()

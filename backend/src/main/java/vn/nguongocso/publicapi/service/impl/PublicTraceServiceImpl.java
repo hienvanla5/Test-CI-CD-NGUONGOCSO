@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+/** Cung cấp dữ liệu truy xuất công khai cho tem lô hàng. */
 public class PublicTraceServiceImpl implements PublicTraceService {
 
     private final TraceCodeRepository traceCodeRepository;
@@ -52,6 +53,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
     private final RecallRepository recallRepository;
     private final ProductionLotCertificationRepository productionLotCertificationRepository;
 
+    /** Lấy thông tin truy xuất công khai. */
     @Override
     public PublicTraceResponse getPublicTrace(String codeValue,
             Double latitude,
@@ -156,6 +158,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 .build();
     }
 
+    /** Chuyển một sự kiện nội bộ thành dữ liệu công khai. */
     private PublicChainEventItem convertToPublicEvent(ChainEvent event) {
         // Parse eventData JSON sang Map
         Map<String, Object> rawData = parseEventData(event.getEventData());
@@ -179,6 +182,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 .build();
     }
 
+    /** Parse JSON eventData thành map an toàn. */
     private Map<String, Object> parseEventData(String eventDataJson) {
         if (eventDataJson == null || eventDataJson.isBlank()) {
             return new HashMap<>();
@@ -192,6 +196,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
         }
     }
 
+    /** Lọc trường dữ liệu được phép hiển thị công khai. */
     private Map<String, Object> filterEventData(Map<String, Object> rawData, ChainEventType eventType) {
         Map<String, Object> result = new HashMap<>();
 
@@ -219,6 +224,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
         return result;
     }
 
+    /** Giữ lại một tập trường dữ liệu cụ thể. */
     private void keepFields(Map<String, Object> source, Map<String, Object> target, String... fields) {
         for (String field : fields) {
             if (source.containsKey(field)) {
@@ -227,8 +233,9 @@ public class PublicTraceServiceImpl implements PublicTraceService {
         }
     }
 
-	@Override
-	public PublicLotCertificationsResponse getPublicCertifications(String codeValue) {
+    /** Lấy chứng nhận công khai của lô hàng. */
+    @Override
+    public PublicLotCertificationsResponse getPublicCertifications(String codeValue) {
 		// 1. Tìm trace code
 		TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
 				.orElseThrow(() -> new ResourceNotFoundException("Mã lô hàng không tồn tại."));

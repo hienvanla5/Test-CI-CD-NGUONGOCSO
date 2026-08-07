@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Thực thể quyền, bao gồm tài nguyên, hành động và mô tả.
+ */
 @Entity
 @Table(name = "permissions")
 @Getter
@@ -27,4 +30,5 @@ public class Permission {
 
     @Column(length = 255)
     private String description;
+    
 }

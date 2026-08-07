@@ -1,6 +1,8 @@
 package vn.nguongocso.backup.enums;
 
 public enum BackupOperationType {
-    BACKUP,
-    RESTORE
+
+    BACKUP, // Sao lưu
+    RESTORE // Khôi phục
+    
 }

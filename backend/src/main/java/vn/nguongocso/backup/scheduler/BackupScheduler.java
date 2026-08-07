@@ -16,6 +16,10 @@ import vn.nguongocso.backup.service.BackupService;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 
+/**
+ * Lớp BackupScheduler chịu trách nhiệm quản lý lịch trình sao lưu dựa trên cấu hình trong cơ sở dữ liệu.
+ * Nó lắng nghe sự kiện thay đổi lịch trình và cập nhật lịch trình sao lưu một cách động.
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j

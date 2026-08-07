@@ -30,11 +30,13 @@ import java.util.List;
 @RequestMapping("/api/v1/backups")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('VT-01')")
+/** Quản lý cấu hình và lịch sử sao lưu. */
 public class BackupController {
 
     private final BackupService backupService;
     private final RestoreService restoreService;
 
+    /** Lấy lịch sao lưu đang áp dụng. */
     @GetMapping("/schedules")
     public ResponseEntity<ApiResult<List<BackupScheduleResponse>>> getSchedules() {
         BackupScheduleResponse active = backupService.getActiveSchedule();
@@ -42,6 +44,7 @@ public class BackupController {
         return ResponseEntity.ok(ApiResult.success(list));
     }
 
+    /** Cấu hình lại lịch sao lưu. */
     @PostMapping("/schedules")
     public ResponseEntity<ApiResult<BackupScheduleResponse>> configureSchedule(
             @Valid @RequestBody BackupScheduleRequest request,
@@ -50,6 +53,7 @@ public class BackupController {
         return ResponseEntity.ok(ApiResult.success(response));
     }
 
+    /** Kích hoạt sao lưu thủ công. */
     @PostMapping("/trigger")
     public ResponseEntity<ApiResult<BackupHistoryResponse>> triggerBackup(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -58,6 +62,7 @@ public class BackupController {
                 .body(ApiResult.success(HttpStatus.ACCEPTED.value(), response));
     }
 
+    /** Lấy lịch sử sao lưu theo phân trang. */
     @GetMapping("/history")
     public ResponseEntity<ApiResult<Page<BackupHistoryResponse>>> getHistory(
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -70,6 +75,7 @@ public class BackupController {
         return ResponseEntity.ok(ApiResult.success(history));
     }
 
+    /** Tải xuống tệp sao lưu. */
     @GetMapping("/history/{id}/download")
     public ResponseEntity<org.springframework.core.io.Resource> downloadBackup(@PathVariable("id") Integer id) {
         File file = backupService.getBackupFile(id);
@@ -80,12 +86,14 @@ public class BackupController {
                 .body(resource);
     }
 
+    /** Xóa bản sao lưu. */
     @DeleteMapping("/history/{id}")
     public ResponseEntity<ApiResult<Void>> deleteBackup(@PathVariable("id") Integer id) {
         backupService.deleteBackup(id);
         return ResponseEntity.ok(ApiResult.success(null));
     }
 
+    /** Khôi phục dữ liệu từ bản sao lưu. */
     @PostMapping("/history/{id}/restore")
     public ResponseEntity<ApiResult<BackupHistoryResponse>> triggerRestore(
             @PathVariable("id") Integer id,
@@ -94,4 +102,5 @@ public class BackupController {
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(ApiResult.success(HttpStatus.ACCEPTED.value(), response));
     }
+    
 }

@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+/** Quản lý vòng đời lô sản xuất và dashboard liên quan. */
 public class ProductionLotServiceImpl implements ProductionLotService {
 
     private static final Logger log = LoggerFactory.getLogger(ProductionLotServiceImpl.class);
@@ -54,6 +55,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    /** Tạo lô sản xuất mới. */
     @Override
     @Transactional
     @Auditable(action = "CREATE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Tạo lô sản xuất mới: ' + #request.name")
@@ -110,6 +112,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         return mapToResponse(savedLot);
     }
 
+    /** Lấy chi tiết lô sản xuất theo ID. */
     @Override
     @Transactional(readOnly = true)
     public CreateProductionLotResponse getProductionLotById(UUID id) {
@@ -119,6 +122,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         return mapToResponse(lot);
     }
 
+    /** Lấy danh sách lô sản xuất của tổ chức hiện tại. */
     @Override
     @Transactional(readOnly = true)
     public List<CreateProductionLotResponse> getAllProductionLots(CustomUserDetails userDetails) {
@@ -133,6 +137,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .collect(Collectors.toList());
     }
 
+    /** Phê duyệt hoặc từ chối lô sản xuất. */
     @Override
     @Transactional
     @Auditable(action = "APPROVE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Duyệt lô sản xuất ID: ' + #lotId + ', Kết quả duyệt: ' + #request.approved")
@@ -185,6 +190,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         return mapToResponse(saved);
     }
 
+    /** Gửi lô sản xuất sang trạng thái chờ duyệt. */
     @Override
     @Transactional
     @Auditable(action = "SUBMIT_PRODUCTION_LOT_FOR_APPROVAL", entityType = "PRODUCTION_LOT", description = "'Gửi yêu cầu duyệt lô sản xuất ID: ' + #lotId")
@@ -223,6 +229,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         return mapToResponse(lot);
     }
 
+    /** Chuyển entity lô sản xuất sang response. */
     private CreateProductionLotResponse mapToResponse(ProductionLot lot) {
         return CreateProductionLotResponse.builder()
                 .id(lot.getId())
@@ -310,6 +317,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .build();
     }
 
+    /** Gửi sự kiện nhật ký hoạt động. */
     private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
         eventPublisher.publishEvent(ActivityLogEvent.builder()
                 .userId(currentUser.getUserId())
@@ -326,6 +334,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         );
     }
 
+    /** Lấy dashboard thống kê lô sản xuất. */
     @Override
     @Transactional(readOnly = true)
     public ProductionLotDashboardResponse getDashboard(
@@ -416,6 +425,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .build();
     }
 
+    /** Định dạng khoảng thời gian cho biểu đồ dashboard. */
     private String formatPeriod(LocalDate date, String groupBy) {
         if (groupBy == null) {
             groupBy = "MONTH";

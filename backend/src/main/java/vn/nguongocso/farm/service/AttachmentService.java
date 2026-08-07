@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+/** Quản lý tệp đính kèm của nhật ký canh tác. */
 public class AttachmentService {
 
     private final FarmLogRepository farmLogRepository;
@@ -51,6 +52,7 @@ public class AttachmentService {
     @Value("${app.upload.farm-log.max-size:5242880}")
     private long maxFileSize;
 
+    /** Xác định thư mục tải lên của một nhật ký. */
     private String getUploadDir(UUID logId) {
         return Paths.get(baseDir, farmLogRelativePath, logId.toString()).toString();
     }
@@ -59,6 +61,7 @@ public class AttachmentService {
             "image/jpeg", "image/png", "application/pdf"
     );
 
+    /** Tải lên tệp đính kèm cho nhật ký canh tác. */
     @Transactional
     public AttachmentResponse uploadAttachment(UUID logId, MultipartFile file, String description, CustomUserDetails userDetails) {
 
@@ -130,6 +133,7 @@ public class AttachmentService {
         return toResponse(attachment);
     }
 
+    /** Lấy danh sách tệp đính kèm của nhật ký. */
     @Transactional(readOnly = true)
     public List<AttachmentResponse> getAttachments(UUID logId, CustomUserDetails userDetails) {
 
@@ -149,6 +153,7 @@ public class AttachmentService {
                 .collect(Collectors.toList());
     }
 
+    /** Xóa tệp đính kèm. */
     @Transactional
     public void deleteAttachment(UUID attachmentId, CustomUserDetails userDetails) {
         FarmLogAttachment attachment = attachmentRepository.findById(attachmentId)
@@ -179,6 +184,7 @@ public class AttachmentService {
         log.info("Xóa attachment thành công: id={}", attachmentId);
     }
 
+    /** Gửi sự kiện nhật ký hoạt động. */
     private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
         eventPublisher.publishEvent(ActivityLogEvent.builder()
                 .userId(currentUser.getUserId())
@@ -195,6 +201,7 @@ public class AttachmentService {
         );
     }
 
+    /** Chuyển entity đính kèm sang response. */
     private AttachmentResponse toResponse(FarmLogAttachment attachment) {
         return AttachmentResponse.builder()
                 .id(attachment.getId())

@@ -19,14 +19,26 @@ import java.util.UUID;
  */
 public interface ChainEventService {
 
+	/**
+	 * Ghi nhận sự kiện thu hoạch.
+	 */
 	ChainEventResponse recordHarvestEvent(RecordHarvestEventRequest request, CustomUserDetails currentUser);
 
+	/**
+	 * Ghi nhận sự kiện đóng gói.
+	 */
 	ChainEventResponse recordPackagingEvent(RecordPackagingEventRequest request, CustomUserDetails currentUser);
 
+	/**
+	 * Ghi nhận sự kiện vận chuyển.
+	 */
 	ChainEventResponse recordTransportEvent(RecordTransportEventRequest request, CustomUserDetails currentUser);
 
+	/**
+	 * Sửa đổi sự kiện đóng gói.
+	 */
 	ChainEventResponse correctPackagingEvent(UUID originalEventId, CorrectPackagingEventRequest request,
-	                                         CustomUserDetails currentUser);
+			CustomUserDetails currentUser);
 
 	/**
 	 * Lấy dòng thời gian các sự kiện của một lô hàng.
@@ -38,5 +50,8 @@ public interface ChainEventService {
 	 */
 	ChainEventResponse recordMobileEvent(RecordMobileEventRequest request, CustomUserDetails currentUser);
 
+	/**
+	 * Tra cứu thông tin qua mã quét.
+	 */
 	ScanLookupResponse scanLookup(String codeValue, CustomUserDetails currentUser);
 }

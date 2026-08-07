@@ -18,10 +18,12 @@ import vn.nguongocso.publicapi.service.PublicTraceService;
 @RestController
 @RequestMapping("/api/v1/public/trace")
 @RequiredArgsConstructor
+/** Cung cấp tra cứu công khai theo mã truy xuất. */
 public class PublicTraceController {
 
     private final PublicTraceService publicTraceService;
 
+    /** Lấy thông tin truy xuất công khai của một mã. */
     @GetMapping("/{codeValue}")
     public ResponseEntity<ApiResult<PublicTraceResponse>> getPublicTrace(
             @PathVariable String codeValue,
@@ -41,6 +43,7 @@ public class PublicTraceController {
         return ResponseEntity.ok(ApiResult.success(response));
     }
 
+    /** Lấy danh sách chứng nhận công khai của lô hàng. */
     @GetMapping("/{codeValue}/certifications")
     public ResponseEntity<ApiResult<PublicLotCertificationsResponse>> getPublicCertifications(
             @PathVariable String codeValue) {

@@ -9,6 +9,7 @@ import vn.nguongocso.event.enums.ChainEventType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+
 /**
  * Entity nhật ký sự kiện bị chặn (ghi lỗi).
  *

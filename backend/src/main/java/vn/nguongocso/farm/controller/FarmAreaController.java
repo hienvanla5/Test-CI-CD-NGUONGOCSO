@@ -16,21 +16,25 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/farm-areas")
 @RequiredArgsConstructor
+/** Quản lý vùng trồng. */
 public class FarmAreaController {
 
     private final FarmAreaService farmAreaService;
     private final PermissionChecker permissionChecker;
 
+    /** Lấy danh sách vùng trồng. */
     @GetMapping
     public ResponseEntity<ApiResult<List<FarmAreaResponse>>> getFarmAreas() {
         return ResponseEntity.ok(ApiResult.success(farmAreaService.getFarmAreas()));
     }
 
+    /** Lấy các đơn vị diện tích hỗ trợ. */
     @GetMapping("/units")
     public ResponseEntity<ApiResult<List<AreaUnit>>> getAreaUnits() {
         return ResponseEntity.ok(ApiResult.success(farmAreaService.getAreaUnits()));
     }
 
+    /** Tạo mới vùng trồng. */
     @PostMapping
     public ResponseEntity<ApiResult<FarmAreaResponse>> createFarmArea(
             @Valid @RequestBody CreateFarmAreaRequest request) {

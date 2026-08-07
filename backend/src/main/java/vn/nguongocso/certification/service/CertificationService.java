@@ -9,47 +9,57 @@ import vn.nguongocso.certification.dto.response.ProductionLotCertificationRespon
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Giao diện CertificationService định nghĩa các phương thức liên quan đến quản
+ * lý chứng nhận.
+ */
 public interface CertificationService {
 
-    List<ProductionLotCertificationResponse> getCertificationsOfLot(
-            UUID lotId,
-            CustomUserDetails currentUser
-    );
+        /**
+         * Lấy danh sách chứng nhận của một lô sản xuất.
+         */
+        List<ProductionLotCertificationResponse> getCertificationsOfLot(
+                        UUID lotId,
+                        CustomUserDetails currentUser);
 
-    ProductionLotCertificationResponse attachCertification(
-            UUID lotId,
-            AttachCertificationRequest request,
-            CustomUserDetails currentUser
-    );
+        /**
+         * Gắn chứng nhận cho lô sản xuất.
+         */
+        ProductionLotCertificationResponse attachCertification(
+                        UUID lotId,
+                        AttachCertificationRequest request,
+                        CustomUserDetails currentUser);
 
-    void detachCertification(
-            UUID lotId,
-            UUID certificationId,
-            CustomUserDetails currentUser
-    );
+        /**
+         * Gỡ bỏ chứng nhận khỏi lô sản xuất.
+         */
+        void detachCertification(
+                        UUID lotId,
+                        UUID certificationId,
+                        CustomUserDetails currentUser);
 
-    List<CertificationResponse> getValidCertifications(
-            CustomUserDetails currentUser
-    );
+        /**
+         * Lấy danh sách chứng nhận hợp lệ của tổ chức hiện tại.
+         */
+        List<CertificationResponse> getValidCertifications(
+                        CustomUserDetails currentUser);
 
-    /**
-     * Tạo mới chứng nhận cho tổ chức hiện tại.
-     */
-    CertificationResponse createCertification(
-            CreateCertificationRequest request,
-            CustomUserDetails currentUser
-    );
+        /**
+         * Tạo mới chứng nhận cho tổ chức hiện tại.
+         */
+        CertificationResponse createCertification(
+                        CreateCertificationRequest request,
+                        CustomUserDetails currentUser);
 
-    /**
-     * Lấy tất cả chứng nhận của tổ chức hiện tại.
-     */
-    List<CertificationResponse> getAllCertifications(
-            CustomUserDetails currentUser
-    );
+        /**
+         * Lấy tất cả chứng nhận của tổ chức hiện tại.
+         */
+        List<CertificationResponse> getAllCertifications(
+                        CustomUserDetails currentUser);
 
-    /**
-     * Kiểm tra và tạo cảnh báo cho các chứng nhận
-     * đã hết hạn hoặc sắp hết hạn.
-     */
-    void checkCertificationExpiry();
+        /**
+         * Kiểm tra và tạo cảnh báo cho các chứng nhận
+         * đã hết hạn hoặc sắp hết hạn.
+         */
+        void checkCertificationExpiry();
 }

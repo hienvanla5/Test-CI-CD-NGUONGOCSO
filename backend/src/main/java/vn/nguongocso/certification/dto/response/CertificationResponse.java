@@ -7,6 +7,9 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * DTO cho phản hồi thông tin chứng nhận.
+ */
 @Getter
 @Setter
 @Builder

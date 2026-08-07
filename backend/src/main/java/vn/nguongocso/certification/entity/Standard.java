@@ -18,6 +18,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Lớp Standard đại diện cho tiêu chuẩn trong hệ thống.
+ */
 @Entity
 @Table(name = "standards")
 @Getter
@@ -58,7 +61,7 @@ public class Standard {
         if (isActive == null) {
             isActive = true;
         }
-        
+
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;

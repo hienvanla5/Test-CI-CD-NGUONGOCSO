@@ -15,10 +15,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/certifications")
 @RequiredArgsConstructor
+
+/** Tra cứu và kiểm tra hạn chứng nhận. */
 public class CertificationLookupController {
 
     private final CertificationService certificationService;
 
+    /** Lấy danh sách chứng nhận còn hiệu lực. */
     @GetMapping("/valid")
     @PreAuthorize("hasRole('VT-02')")
     public ResponseEntity<ApiResult<List<CertificationResponse>>> getValidCertifications(
@@ -27,6 +30,7 @@ public class CertificationLookupController {
         return ResponseEntity.ok(ApiResult.success(certifications));
     }
 
+    /** Kiểm tra các chứng nhận sắp hết hạn. */
     @PostMapping("/check-expiry")
     @PreAuthorize("hasRole('VT-01')")
     public ResponseEntity<ApiResult<Void>> checkCertificationExpiry() {

@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.util.UUID;
 
+/**
+ * Yêu cầu gán vai trò cho người dùng.
+ */
 @Data
 public class AssignRoleRequest {
 

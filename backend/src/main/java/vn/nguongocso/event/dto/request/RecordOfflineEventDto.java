@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * DTO ghi nhận sự kiện ngoại tuyến.
+ */
 @Getter
 @Setter
 public class RecordOfflineEventDto {
@@ -29,7 +32,8 @@ public class RecordOfflineEventDto {
     private UUID shipmentId;
 
     /**
-     * Mã truy xuất (dùng cho TRANSPORT để lookup shipment thay vì dùng shipmentId trực tiếp).
+     * Mã truy xuất (dùng cho TRANSPORT để lookup shipment thay vì dùng shipmentId
+     * trực tiếp).
      */
     private String codeValue;
 

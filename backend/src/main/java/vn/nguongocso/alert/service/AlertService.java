@@ -13,6 +13,9 @@ import vn.nguongocso.alert.enums.AlertStatus;
 /** Dịch vụ quản lý cảnh báo. */
 public interface AlertService {
 
+    /**
+     * Lấy danh sách cảnh báo theo bộ lọc.
+     */
     AlertListResponse getAlerts(
             vn.nguongocso.alert.enums.AlertType type,
             AlertStatus status,

@@ -56,11 +56,11 @@ public class PageResponse<T> {
      * Có phải trang cuối cùng hay không.
      */
     private boolean last;
-    
+
     /**
      * Tạo đối tượng phân trang từ dữ liệu Spring Data.
      *
-     * @param page thông tin phân trang
+     * @param page  thông tin phân trang
      * @param items danh sách dữ liệu
      * @return dữ liệu phân trang
      */

@@ -1,6 +1,8 @@
 package vn.nguongocso.backup.enums;
 
 public enum BackupType {
-    SCHEDULED,
-    MANUAL
+
+    SCHEDULED, // Sao lưu theo lịch
+    MANUAL // Sao lưu thủ công
+    
 }

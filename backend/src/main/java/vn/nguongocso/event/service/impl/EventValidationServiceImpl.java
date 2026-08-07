@@ -37,6 +37,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+/** Xác thực lô hàng trước khi ghi nhận sự kiện. */
 public class EventValidationServiceImpl implements EventValidationService {
 
     private final ProductionLotRepository productionLotRepository;
@@ -48,6 +49,7 @@ public class EventValidationServiceImpl implements EventValidationService {
     private final ChainEventRepository chainEventRepository;
     private final DossierExportHistoryRepository dossierExportHistoryRepository;
 
+    /** Kiểm tra tính hợp lệ của lô cho loại sự kiện. */
     @Override
     @Transactional(readOnly = true)
     public LotValidationResponse validateLot(UUID lotId, ChainEventType eventType, CustomUserDetails currentUser) {
@@ -88,7 +90,8 @@ public class EventValidationServiceImpl implements EventValidationService {
             boolean valid = false;
             String message = "";
 
-            if (eventType == ChainEventType.TRANSPORT && !shipment.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
+            if (eventType == ChainEventType.TRANSPORT
+                    && !shipment.getOrganization().getOrganizationId().equals(currentUser.getOrganizationId())) {
                 message = "Bạn không thuộc tổ chức quản lý của lô hàng này.";
             } else if (shipment.getStatus() == ShipmentStatus.RECALLED) {
                 message = "Lô hàng đã bị thu hồi, không thể ghi sự kiện.";
@@ -115,6 +118,7 @@ public class EventValidationServiceImpl implements EventValidationService {
         throw new BusinessException("Loại sự kiện không được hỗ trợ để xác thực lô.");
     }
 
+    /** Xóa bản nháp của lô hàng. */
     @Transactional
     @Override
     public void deleteDraft(UUID draftId, CustomUserDetails currentUser) {
@@ -152,6 +156,7 @@ public class EventValidationServiceImpl implements EventValidationService {
         log.info("Hủy bản nháp lô hàng thành công: id={}, name={}", shipment.getId(), shipment.getName());
     }
 
+    /** Lấy danh sách log sự kiện thất bại. */
     @Override
     @Transactional(readOnly = true)
     public PageResponse<FailedEventLogResponse> getFailedLogs(Pageable pageable) {
@@ -172,9 +177,11 @@ public class EventValidationServiceImpl implements EventValidationService {
         return PageResponse.from(logs, items);
     }
 
+    /** Ghi nhận một lần thử thất bại. */
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW) // 👈 quan trọng
-    public void logFailedAttempt(UUID lotId, String lotCode, ChainEventType eventType, String reason, CustomUserDetails currentUser) {
+    public void logFailedAttempt(UUID lotId, String lotCode, ChainEventType eventType, String reason,
+            CustomUserDetails currentUser) {
         User user = userRepository.findById(currentUser.getUserId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng."));
 

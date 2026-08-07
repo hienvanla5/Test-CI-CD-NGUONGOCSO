@@ -6,6 +6,9 @@ import vn.nguongocso.auth.entity.User;
 
 import java.time.LocalDateTime;
 
+/**
+ * Thực thể lưu trữ thông tin lịch trình sao lưu.
+ */
 @Entity
 @Table(name = "backup_schedules")
 @Getter

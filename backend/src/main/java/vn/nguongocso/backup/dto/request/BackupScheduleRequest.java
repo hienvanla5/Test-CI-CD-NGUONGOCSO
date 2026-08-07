@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+/**
+ * Yêu cầu tạo hoặc cập nhật lịch sao lưu.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,4 +24,5 @@ public class BackupScheduleRequest {
 
     @NotNull(message = "Trạng thái kích hoạt không được để trống")
     private Boolean isActive;
+    
 }

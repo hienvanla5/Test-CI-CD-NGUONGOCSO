@@ -17,6 +17,9 @@ import vn.nguongocso.permission.service.PermissionChecker;
 import java.util.List;
 import java.util.UUID;
 
+/*
+ * Controller quản lý chứng nhận cho lô sản xuất.
+ */
 @RestController
 @RequestMapping("/api/v1/production-lots/{lotId}/certifications")
 @RequiredArgsConstructor
@@ -30,7 +33,7 @@ public class ProductionLotCertificationController {
      * Cho phép VT-01, VT-02 và VT-03 xem (VT-03 cần để ghi sự kiện).
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('VT-01', 'VT-02', 'VT-03')")  // ✅ Thêm VT-03
+    @PreAuthorize("hasAnyRole('VT-01', 'VT-02', 'VT-03')") // ✅ Thêm VT-03
     public ResponseEntity<ApiResult<List<ProductionLotCertificationResponse>>> getCertificationsOfLot(
             @PathVariable UUID lotId,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
@@ -50,7 +53,8 @@ public class ProductionLotCertificationController {
             @Valid @RequestBody AttachCertificationRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
 
-        ProductionLotCertificationResponse response = certificationService.attachCertification(lotId, request, currentUser);
+        ProductionLotCertificationResponse response = certificationService.attachCertification(lotId, request,
+                currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResult.success(HttpStatus.CREATED.value(), response));
     }
 

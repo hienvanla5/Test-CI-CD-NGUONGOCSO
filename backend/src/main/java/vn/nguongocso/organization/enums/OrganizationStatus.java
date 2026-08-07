@@ -1,6 +1,6 @@
 package vn.nguongocso.organization.enums;
 
 public enum OrganizationStatus {
-    ACTIVE,
-    INACTIVE
+    ACTIVE, // Đang hoạt động
+    INACTIVE // Ngừng hoạt động
 }

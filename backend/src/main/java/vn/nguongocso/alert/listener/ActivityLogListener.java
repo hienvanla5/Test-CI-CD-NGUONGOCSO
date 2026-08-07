@@ -11,6 +11,10 @@ import vn.nguongocso.alert.event.ActivityLogEvent;
 import vn.nguongocso.alert.entity.ActivityLog;
 import vn.nguongocso.alert.repository.ActivityLogRepository;
 
+/**
+ * Lắng nghe sự kiện ghi nhật ký hoạt động của người dùng và lưu vào cơ sở dữ
+ * liệu.
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -42,4 +46,5 @@ public class ActivityLogListener {
             log.error("Không thể ghi nhật ký hoạt động vào database: {}", e.getMessage(), e);
         }
     }
+
 }

@@ -17,11 +17,13 @@ import java.util.List;
 @RequestMapping("/api/v1/organization/members")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
+/** Quản lý thành viên trong tổ chức hiện tại. */
 public class OrganizationMemberController {
 
     private final OrganizationMemberService permissionService;
     private final PermissionChecker permissionChecker;
 
+        /** Lấy danh sách thành viên của tổ chức. */
     @GetMapping
     public ResponseEntity<ApiResult<List<OrganizationUserResponse>>> getMembers() {
 //        permissionChecker.check("organization_user", "READ");
@@ -30,6 +32,7 @@ public class OrganizationMemberController {
         ));
     }
 
+        /** Gán vai trò cho thành viên. */
     @PutMapping("/roles")
     public ResponseEntity<ApiResult<OrganizationUserResponse>> assignRole(
             @Valid @RequestBody AssignRoleRequest request) {
@@ -39,6 +42,7 @@ public class OrganizationMemberController {
         ));
     }
 
+        /** Thêm thành viên mới vào tổ chức. */
     @PostMapping
     public ResponseEntity<ApiResult<OrganizationUserResponse>> addMember(
             @Valid @RequestBody AddMemberRequest request

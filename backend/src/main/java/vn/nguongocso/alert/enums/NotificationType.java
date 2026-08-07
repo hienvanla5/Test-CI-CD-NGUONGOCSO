@@ -5,10 +5,8 @@ package vn.nguongocso.alert.enums;
  */
 public enum NotificationType {
 
-    TASK,
-
-    ALERT,
-
-    INFO
+    TASK, // Nhiệm vụ
+    ALERT, // Cảnh báo
+    INFO // Thông tin
 
 }

@@ -23,10 +23,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+/** Tra cứu và ghi nhật ký hoạt động. */
 public class ActivityLogServiceImpl implements ActivityLogService {
 
     private final ActivityLogRepository activityLogRepository;
 
+    /** Lấy danh sách nhật ký theo bộ lọc. */
     @Override
     @Transactional(readOnly = true)
     public PageResponse<ActivityLogResponse> getActivityLogs(
@@ -56,6 +58,7 @@ public class ActivityLogServiceImpl implements ActivityLogService {
         return PageResponse.from(logPage, items);
     }
 
+    /** Chuyển entity nhật ký sang response. */
     private ActivityLogResponse convertToResponse(ActivityLog log) {
         return ActivityLogResponse.builder()
                 .id(log.getId())
@@ -73,6 +76,7 @@ public class ActivityLogServiceImpl implements ActivityLogService {
 
     @Override
     @Transactional
+    /** Ghi một nhật ký hoạt động mới. */
     public void logActivity(ActivityLogRequest request) {
 
         ActivityLog activityLog = ActivityLog.builder()

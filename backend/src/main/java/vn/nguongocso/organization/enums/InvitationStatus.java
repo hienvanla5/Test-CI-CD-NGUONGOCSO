@@ -1,7 +1,7 @@
 package vn.nguongocso.organization.enums;
 
 public enum InvitationStatus {
-    PENDING,
-    ACCEPTED,
-    EXPIRED
+    PENDING, // Đang chờ
+    ACCEPTED, // Đã chấp nhận
+    EXPIRED // Hết hạn
 }

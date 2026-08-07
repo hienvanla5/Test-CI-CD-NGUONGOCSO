@@ -5,10 +5,10 @@ package vn.nguongocso.farm.enums;
  */
 public enum ProductionLotImportStatus {
 
-    SUCCESS,
+    SUCCESS, // Thành công
 
-    PARTIAL_SUCCESS,
+    PARTIAL_SUCCESS, // Thành công một phần
 
-    FAILED
+    FAILED // Thất bại
 
 }

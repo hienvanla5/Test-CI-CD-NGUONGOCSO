@@ -43,11 +43,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation của dịch vụ sự kiện chuỗi cung ứng.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChainEventServiceImpl implements ChainEventService {
-
     private final ChainEventRepository chainEventRepository;
     private final ProductionLotRepository productionLotRepository;
     private final UserRepository userRepository;
@@ -60,9 +62,13 @@ public class ChainEventServiceImpl implements ChainEventService {
 
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
-    // ============================
-    // Ghi sự kiện thu hoạch
-    // ============================
+    /**
+     * Ghi nhận sự kiện thu hoạch cho lô sản xuất.
+     *
+     * @param request     yêu cầu ghi nhận sự kiện thu hoạch
+     * @param currentUser người dùng hiện tại
+     * @return phản hồi sự kiện chuỗi cung ứng
+     */
     @Override
     @Transactional
     @Auditable(action = "RECORD_HARVEST_EVENT", entityType = "CHAIN_EVENT", description = "'Ghi nhận sự kiện thu hoạch cho lô sản xuất ID: ' + #request.productionLotId + ', Sản lượng: ' + #request.quantity + ' kg'")
@@ -124,9 +130,13 @@ public class ChainEventServiceImpl implements ChainEventService {
         return buildResponse(chainEvent, eventDataMap, request.getLatitude(), request.getLongitude(), actor);
     }
 
-    // ============================
-    // Ghi sự kiện đóng gói
-    // ============================
+    /**
+     * Ghi nhận sự kiện đóng gói cho lô sản xuất.
+     *
+     * @param request     yêu cầu ghi nhận sự kiện đóng gói
+     * @param currentUser người dùng hiện tại
+     * @return phản hồi sự kiện chuỗi cung ứng
+     */
     @Override
     @Transactional
     @Auditable(action = "RECORD_PACKAGING_EVENT", entityType = "CHAIN_EVENT", description = "'Ghi nhận sự kiện đóng gói cho lô sản xuất ID: ' + #request.productionLotId + ', Quy cách: ' + #request.packagingSpecification")
@@ -188,9 +198,14 @@ public class ChainEventServiceImpl implements ChainEventService {
         return buildResponse(chainEvent, eventDataMap, request.getLatitude(), request.getLongitude(), actor);
     }
 
-    // ============================
-    // Đính chính sự kiện đóng gói
-    // ============================
+    /**
+     * Đính chính sự kiện đóng gói cho lô sản xuất.
+     *
+     * @param originalEventId ID sự kiện gốc
+     * @param request         yêu cầu đính chính sự kiện đóng gói
+     * @param currentUser     người dùng hiện tại
+     * @return phản hồi sự kiện chuỗi cung ứng
+     */
     @Override
     @Transactional
     @Auditable(action = "CORRECT_PACKAGING_EVENT", entityType = "CHAIN_EVENT", description = "'Đính chính thông tin đóng gói cho sự kiện gốc ID: ' + #originalEventId")
@@ -255,9 +270,13 @@ public class ChainEventServiceImpl implements ChainEventService {
         return buildResponse(correctionEvent, eventDataMap, request.getLatitude(), request.getLongitude(), actor);
     }
 
-    // ============================
-    // Ghi sự kiện vận chuyển
-    // ============================
+    /**
+     * Ghi nhận sự kiện vận chuyển cho lô sản xuất.
+     *
+     * @param request     yêu cầu ghi nhận sự kiện vận chuyển
+     * @param currentUser người dùng hiện tại
+     * @return phản hồi sự kiện chuỗi cung ứng
+     */
     @Override
     @Transactional
     @Auditable(action = "RECORD_TRANSPORT_EVENT", entityType = "CHAIN_EVENT", description = "'Ghi nhận sự kiện vận chuyển mã tem: ' + #request.codeValue + ', Từ: ' + #request.fromLocation + ', Đến: ' + #request.toLocation")
@@ -326,9 +345,9 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .build();
     }
 
-    // ============================
-    // Ghi sự kiện từ thiết bị di động
-    // ============================
+    /**
+     * Ghi nhận sự kiện ngoại tuyến từ thiết bị di động.
+     */
     @Override
     @Transactional
     public ChainEventResponse recordMobileEvent(RecordMobileEventRequest request, CustomUserDetails currentUser) {
@@ -343,7 +362,8 @@ public class ChainEventServiceImpl implements ChainEventService {
             throw new BusinessException("Thời điểm ghi nhận không được là thời gian ở tương lai.");
         }
 
-        // Delegate to shared online service methods to ensure consistent validation and processing
+        // Delegate to shared online service methods to ensure consistent validation and
+        // processing
         ChainEventResponse delegateResponse;
         if (request.getEventType() == ChainEventType.HARVEST) {
             delegateResponse = delegateHarvestFromMobile(lot, request, currentUser);
@@ -370,9 +390,12 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .build();
     }
 
-    // ============================
-    // Lấy dòng thời gian của lô hàng
-    // ============================
+    /**
+     * Lấy dòng thời gian của một lô hàng.
+     *
+     * @param shipmentId ID lô hàng
+     * @return danh sách sự kiện trong dòng thời gian
+     */
     @Override
     public List<ChainEventResponse> getShipmentTimeline(UUID shipmentId) {
         Shipment shipment = shipmentRepository.findById(shipmentId)
@@ -403,10 +426,6 @@ public class ChainEventServiceImpl implements ChainEventService {
                 .map(this::toChainEventResponse)
                 .collect(Collectors.toList());
     }
-
-    // ============================
-    // Private helper methods
-    // ============================
 
     private void validateEventPermission(CustomUserDetails currentUser) {
         String role = currentUser.getRoleCode();
@@ -520,10 +539,12 @@ public class ChainEventServiceImpl implements ChainEventService {
     }
 
     /**
-     * Delegates harvest event creation from mobile to the online recordHarvestEvent method.
+     * Delegates harvest event creation from mobile to the online recordHarvestEvent
+     * method.
      * Constructs a RecordHarvestEventRequest from mobile DTO fields and delegates.
      */
-    private ChainEventResponse delegateHarvestFromMobile(ProductionLot lot, RecordMobileEventRequest request, CustomUserDetails currentUser) {
+    private ChainEventResponse delegateHarvestFromMobile(ProductionLot lot, RecordMobileEventRequest request,
+            CustomUserDetails currentUser) {
         Object quantityObj = request.getEventData().get("quantity");
         Object harvestDateStrObj = request.getEventData().get("harvestDate");
 
@@ -548,15 +569,19 @@ public class ChainEventServiceImpl implements ChainEventService {
         harvestRequest.setLatitude(request.getLatitude());
         harvestRequest.setLongitude(request.getLongitude());
 
-        // Delegate to the shared online method — ensures identical validation, status updates, and error logging
+        // Delegate to the shared online method — ensures identical validation, status
+        // updates, and error logging
         return recordHarvestEvent(harvestRequest, currentUser);
     }
 
     /**
-     * Delegates packaging event creation from mobile to the online recordPackagingEvent method.
-     * Constructs a RecordPackagingEventRequest from mobile DTO fields and delegates.
+     * Delegates packaging event creation from mobile to the online
+     * recordPackagingEvent method.
+     * Constructs a RecordPackagingEventRequest from mobile DTO fields and
+     * delegates.
      */
-    private ChainEventResponse delegatePackagingFromMobile(ProductionLot lot, RecordMobileEventRequest request, CustomUserDetails currentUser) {
+    private ChainEventResponse delegatePackagingFromMobile(ProductionLot lot, RecordMobileEventRequest request,
+            CustomUserDetails currentUser) {
         Object specObj = request.getEventData().get("packagingSpecification");
         Object packagingDateStrObj = request.getEventData().get("packagingDate");
 
@@ -587,14 +612,21 @@ public class ChainEventServiceImpl implements ChainEventService {
         packagingRequest.setLatitude(request.getLatitude());
         packagingRequest.setLongitude(request.getLongitude());
 
-        // Delegate to the shared online method — ensures identical validation, status updates, and error logging
+        // Delegate to the shared online method — ensures identical validation, status
+        // updates, and error logging
         return recordPackagingEvent(packagingRequest, currentUser);
     }
 
+    /**
+     * Tra cứu thông tin lô hàng dựa trên mã truy xuất.
+     *
+     * @param codeValue   giá trị mã truy xuất
+     * @param currentUser người dùng hiện tại
+     * @return phản hồi tra cứu thông tin lô hàng
+     */
     @Override
     @Transactional(readOnly = true)
     public ScanLookupResponse scanLookup(String codeValue, CustomUserDetails currentUser) {
-
 
         TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
                 .orElseThrow(() -> new BusinessException("Mã truy xuất không tồn tại."));

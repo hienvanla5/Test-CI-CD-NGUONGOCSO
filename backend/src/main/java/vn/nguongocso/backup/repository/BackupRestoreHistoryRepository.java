@@ -21,6 +21,8 @@ public interface BackupRestoreHistoryRepository extends JpaRepository<BackupRest
            "LEFT JOIN FETCH h.reference " +
            "WHERE (:operationType IS NULL OR h.operationType = :operationType) " +
            "AND (:status IS NULL OR h.status = :status)")
+
+    // Sử dụng LEFT JOIN FETCH để tránh vấn đề N+1 khi truy xuất thông tin người tạo và bản tham chiếu
     Page<BackupRestoreHistory> findHistoryWithFilters(
             @Param("operationType") BackupOperationType operationType,
             @Param("status") BackupStatus status,

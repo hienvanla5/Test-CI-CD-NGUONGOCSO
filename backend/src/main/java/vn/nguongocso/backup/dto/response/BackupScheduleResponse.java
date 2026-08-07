@@ -5,6 +5,9 @@ import vn.nguongocso.backup.entity.BackupSchedule;
 
 import java.time.LocalDateTime;
 
+/**
+ * Phản hồi chi tiết lịch trình sao lưu.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,6 +23,12 @@ public class BackupScheduleResponse {
     private LocalDateTime updatedAt;
     private String updatedBy;
 
+    /**
+     * Chuyển đổi từ thực thể BackupSchedule sang BackupScheduleResponse.
+     *
+     * @param schedule Thực thể BackupSchedule cần chuyển đổi.
+     * @return Đối tượng BackupScheduleResponse tương ứng.
+     */
     public static BackupScheduleResponse fromEntity(BackupSchedule schedule) {
         if (schedule == null) return null;
         return BackupScheduleResponse.builder()

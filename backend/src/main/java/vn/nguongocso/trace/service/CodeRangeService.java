@@ -20,11 +20,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+/** Cấp và theo dõi dải mã truy xuất. */
 public class CodeRangeService {
 
     private final CodeRangeRepository codeRangeRepository;
     private final OrganizationRepository organizationRepository;
 
+    /** Cấp một dải mã mới cho tổ chức. */
     @Transactional
     public CodeRangeResponse createCodeRange(CreateCodeRangeRequest request, CustomUserDetails admin) {
         // Kiểm tra quyền admin
@@ -59,6 +61,7 @@ public class CodeRangeService {
         return toResponse(codeRange);
     }
 
+    /** Chuyển entity dải mã sang response. */
     private CodeRangeResponse toResponse(CodeRange codeRange) {
 
         return CodeRangeResponse.builder()
@@ -72,6 +75,7 @@ public class CodeRangeService {
                 .build();
     }
 
+    /** Lấy trạng thái sử dụng của toàn bộ dải mã. */
     public List<CodeRangeStatusResponse> getCodeRangeStatus() {
         List<CodeRange> ranges = codeRangeRepository.findAll();
         return ranges.stream()
@@ -79,6 +83,7 @@ public class CodeRangeService {
                 .collect(Collectors.toList());
     }
 
+    /** Chuyển entity dải mã sang response trạng thái. */
     private CodeRangeStatusResponse toStatusResponse(CodeRange range) {
         double percent = (double) range.getUsedCount() / range.getTotalLimit() * 100;
         String status;

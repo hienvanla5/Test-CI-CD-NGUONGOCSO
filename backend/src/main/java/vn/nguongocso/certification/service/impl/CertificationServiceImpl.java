@@ -41,6 +41,14 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Lớp CertificationServiceImpl triển khai các phương thức của
+ * CertificationService.
+ * Nó chịu trách nhiệm quản lý chứng nhận, bao gồm việc gắn chứng nhận cho lô
+ * sản xuất,
+ * tạo mới chứng nhận, kiểm tra hạn hiệu lực và tạo cảnh báo liên quan đến chứng
+ * nhận.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -60,6 +68,11 @@ public class CertificationServiceImpl implements CertificationService {
     @Value("${app.certification.expiry-warning-threshold-days:30}")
     private int warningThresholdDays;
 
+    /**
+     * Lấy danh sách chứng nhận của một lô sản xuất.
+     * Chỉ những người dùng thuộc cùng tổ chức với lô sản xuất mới có quyền truy
+     * cập.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<ProductionLotCertificationResponse> getCertificationsOfLot(UUID lotId, CustomUserDetails currentUser) {
@@ -71,17 +84,24 @@ public class CertificationServiceImpl implements CertificationService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Gắn chứng nhận cho lô sản xuất.
+     * Chỉ những người dùng thuộc cùng tổ chức với lô sản xuất mới có quyền thao
+     * tác.
+     */
     @Override
     @Transactional
-    public ProductionLotCertificationResponse attachCertification(UUID lotId, AttachCertificationRequest request, CustomUserDetails currentUser) {
+    public ProductionLotCertificationResponse attachCertification(UUID lotId, AttachCertificationRequest request,
+            CustomUserDetails currentUser) {
         // 1. Kiểm tra lô và quyền
         ProductionLot lot = findLotAndValidateOrganization(lotId, currentUser);
 
         // 2. Kiểm tra chứng nhận tồn tại và thuộc tổ chức
         Certification cert = certificationRepository.findByIdAndOrganizationId(
                 request.getCertificationId(),
-                currentUser.getOrganizationId()
-        ).orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chứng nhận hoặc chứng nhận không thuộc tổ chức của bạn."));
+                currentUser.getOrganizationId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy chứng nhận hoặc chứng nhận không thuộc tổ chức của bạn."));
 
         // 3. Kiểm tra hiệu lực (QTN-13)
         if (cert.getExpiryDate().isBefore(LocalDate.now())) {
@@ -113,6 +133,11 @@ public class CertificationServiceImpl implements CertificationService {
         return toResponse(plc);
     }
 
+    /**
+     * Gỡ chứng nhận khỏi lô sản xuất.
+     * Chỉ những người dùng thuộc cùng tổ chức với lô sản xuất mới có quyền thao
+     * tác.
+     */
     @Override
     @Transactional
     public void detachCertification(UUID lotId, UUID certificationId, CustomUserDetails currentUser) {
@@ -134,6 +159,9 @@ public class CertificationServiceImpl implements CertificationService {
                 "ProductionLot", lotId.toString());
     }
 
+    /**
+     * Lấy danh sách chứng nhận hợp lệ của người dùng hiện tại.
+     */
     @Override
     public List<CertificationResponse> getValidCertifications(CustomUserDetails currentUser) {
         List<Certification> certs = certificationRepository.findByOrganizationIdAndExpiryDateAfter(
@@ -148,7 +176,8 @@ public class CertificationServiceImpl implements CertificationService {
      */
     @Override
     @Transactional
-    public CertificationResponse createCertification(CreateCertificationRequest request, CustomUserDetails currentUser) {
+    public CertificationResponse createCertification(CreateCertificationRequest request,
+            CustomUserDetails currentUser) {
         // 1. Kiểm tra quyền (đã có @PreAuthorize, nhưng vẫn kiểm tra lại)
         if (!"VT-02".equals(currentUser.getRoleCode())) {
             throw new BusinessException("Bạn không có quyền tạo chứng nhận.");
@@ -197,12 +226,14 @@ public class CertificationServiceImpl implements CertificationService {
         return toCertificationResponse(certification);
     }
 
+    /**
+     * Lấy danh sách chứng nhận của người dùng hiện tại.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<CertificationResponse> getAllCertifications(CustomUserDetails currentUser) {
         List<Certification> certs = certificationRepository.findAllByOrganizationId(
-                currentUser.getOrganizationId()
-        );
+                currentUser.getOrganizationId());
         return certs.stream()
                 .map(this::toCertificationResponse)
                 .collect(Collectors.toList());
@@ -249,7 +280,7 @@ public class CertificationServiceImpl implements CertificationService {
     }
 
     private void publishActivityLog(CustomUserDetails currentUser, String action, String description,
-                                    String entityType, String entityId) {
+            String entityType, String entityId) {
         eventPublisher.publishEvent(ActivityLogEvent.builder()
                 .userId(currentUser.getUserId())
                 .username(currentUser.getUsername())
@@ -261,14 +292,21 @@ public class CertificationServiceImpl implements CertificationService {
                 .entityId(entityId)
                 .ipAddress(IpUtils.getClientIp())
                 .timestamp(java.time.LocalDateTime.now())
-                .build()
-        );
+                .build());
     }
 
+    /**
+     * Quét và kiểm tra hạn hiệu lực của các chứng nhận.
+     * Nếu chứng nhận đã hết hạn, tạo cảnh báo CERT_EXPIRED.
+     * Nếu chứng nhận sắp hết hạn (dưới ngưỡng warningThresholdDays), tạo cảnh báo
+     * CERT_EXPIRING.
+     * Cảnh báo CERT_EXPIRING sẽ được tự động RESOLVED nếu chứng nhận hết hạn.
+     */
     @Override
     @Transactional
     public void checkCertificationExpiry() {
-        log.info("⏰ Bắt đầu quét kiểm tra hạn hiệu lực của các chứng nhận. Ngưỡng cảnh báo: {} ngày", warningThresholdDays);
+        log.info("⏰ Bắt đầu quét kiểm tra hạn hiệu lực của các chứng nhận. Ngưỡng cảnh báo: {} ngày",
+                warningThresholdDays);
 
         List<Certification> certifications = certificationRepository.findAll();
         LocalDate today = LocalDate.now();
@@ -297,8 +335,7 @@ public class CertificationServiceImpl implements CertificationService {
         boolean exists = alertRepository.existsByRelatedEntityIdAndTypeAndStatus(
                 cert.getId(),
                 AlertType.CERT_EXPIRED,
-                AlertStatus.PENDING
-        );
+                AlertStatus.PENDING);
 
         if (!exists) {
             long daysOverdue = today.toEpochDay() - cert.getExpiryDate().toEpochDay();
@@ -310,8 +347,7 @@ public class CertificationServiceImpl implements CertificationService {
                     "issueDate", cert.getIssueDate() != null ? cert.getIssueDate().toString() : "",
                     "expiryDate", cert.getExpiryDate().toString(),
                     "daysOverdue", daysOverdue,
-                    "thresholdConfigured", warningThresholdDays
-            );
+                    "thresholdConfigured", warningThresholdDays);
 
             Alert alert = new Alert();
             alert.setId(UUID.randomUUID());
@@ -339,8 +375,7 @@ public class CertificationServiceImpl implements CertificationService {
         boolean exists = alertRepository.existsByRelatedEntityIdAndTypeAndStatus(
                 cert.getId(),
                 AlertType.CERT_EXPIRING,
-                AlertStatus.PENDING
-        );
+                AlertStatus.PENDING);
 
         if (!exists) {
             java.util.Map<String, Object> details = java.util.Map.of(
@@ -350,8 +385,7 @@ public class CertificationServiceImpl implements CertificationService {
                     "issueDate", cert.getIssueDate() != null ? cert.getIssueDate().toString() : "",
                     "expiryDate", cert.getExpiryDate().toString(),
                     "daysRemaining", daysRemaining,
-                    "thresholdConfigured", warningThresholdDays
-            );
+                    "thresholdConfigured", warningThresholdDays);
 
             Alert alert = new Alert();
             alert.setId(UUID.randomUUID());
@@ -370,7 +404,8 @@ public class CertificationServiceImpl implements CertificationService {
 
             alertRepository.save(alert);
             notificationService.sendCertificationExpiryNotification(alert);
-            log.info("⚠️ Đã tạo cảnh báo CERT_EXPIRING cho chứng nhận '{}' (còn {} ngày)", cert.getName(), daysRemaining);
+            log.info("⚠️ Đã tạo cảnh báo CERT_EXPIRING cho chứng nhận '{}' (còn {} ngày)", cert.getName(),
+                    daysRemaining);
         }
     }
 
@@ -378,8 +413,7 @@ public class CertificationServiceImpl implements CertificationService {
         java.util.List<Alert> pendingExpiringAlerts = alertRepository.findByRelatedEntityIdAndTypeAndStatus(
                 certificationId,
                 AlertType.CERT_EXPIRING,
-                AlertStatus.PENDING
-        );
+                AlertStatus.PENDING);
 
         for (Alert alert : pendingExpiringAlerts) {
             alert.setStatus(AlertStatus.RESOLVED);

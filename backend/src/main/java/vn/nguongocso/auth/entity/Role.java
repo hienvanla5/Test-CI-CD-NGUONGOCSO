@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Thực thể vai trò, bao gồm mã, tên và danh sách quyền.
+ */
 @Entity
 @Table(name = "roles")
 @Getter
@@ -25,4 +28,5 @@ public class Role {
 
     @Column(nullable = false, unique = true)
     private String name;
+    
 }

@@ -10,7 +10,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum CertificationStatus {
 
-    VALID("Còn hiệu lực"), //Chứng nhận còn hiệu lực
-    EXPIRED("Đã hết hạn"); //Chứng nhận đã hết hạn
+    VALID("Còn hiệu lực"), // Chứng nhận còn hiệu lực
+    EXPIRED("Đã hết hạn"); // Chứng nhận đã hết hạn
+
     private final String label; // Nhãn hiển thị cho người dùng
 }

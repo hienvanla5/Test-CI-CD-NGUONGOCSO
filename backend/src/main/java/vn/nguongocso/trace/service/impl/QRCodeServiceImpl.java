@@ -20,6 +20,7 @@ import vn.nguongocso.trace.service.QRCodeService;
 
 @Service
 @Slf4j
+/** Sinh và lưu file ảnh QR cho mã truy xuất. */
 public class QRCodeServiceImpl implements QRCodeService {
 
 	@Value("${qr.image.storage.path:./files/qr}")
@@ -29,6 +30,7 @@ public class QRCodeServiceImpl implements QRCodeService {
 	private static final int QR_WIDTH = 300;
 	private static final int QR_HEIGHT = 300;
 
+	/** Tạo ảnh QR và trả về đường dẫn lưu trữ. */
 	@Override
 	public String generateQRCode(String codeValue, UUID organizationId, UUID productionLotId, UUID shipmentId) {
 		try {

@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
-import vn.nguongocso.alert.entity.AlertDetails;
 import vn.nguongocso.alert.enums.AlertSeverity;
 import vn.nguongocso.alert.enums.AlertStatus;
 import vn.nguongocso.alert.enums.AlertType;

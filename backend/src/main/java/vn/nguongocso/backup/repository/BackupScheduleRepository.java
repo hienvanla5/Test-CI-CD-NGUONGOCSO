@@ -6,6 +6,9 @@ import vn.nguongocso.backup.entity.BackupSchedule;
 
 import java.util.Optional;
 
+/**
+ * Repository cho thực thể BackupSchedule.
+ */
 @Repository
 public interface BackupScheduleRepository extends JpaRepository<BackupSchedule, Integer> {
     

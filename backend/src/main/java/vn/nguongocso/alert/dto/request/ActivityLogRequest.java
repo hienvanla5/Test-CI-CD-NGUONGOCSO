@@ -5,6 +5,9 @@ import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
 
+/**
+ * Request DTO cho việc tạo log hoạt động.
+ */
 @Getter
 @Builder
 public class ActivityLogRequest {

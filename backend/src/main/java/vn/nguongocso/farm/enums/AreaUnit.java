@@ -10,8 +10,8 @@ import java.math.RoundingMode;
  */
 public enum AreaUnit {
 
-	HA(BigDecimal.ONE),
-	KM2(BigDecimal.valueOf(0.01));
+	HA(BigDecimal.ONE), // Héc-ta
+	KM2(BigDecimal.valueOf(0.01)); // Kilômét vuông
 
 	private final BigDecimal unitsPerHectare;
 

@@ -4,24 +4,43 @@ import lombok.Builder;
 import lombok.Data;
 import vn.nguongocso.organization.enums.OrganizationType;
 
+/**
+ * Response cho phép đăng nhập.
+ */
 @Data
 @Builder
 public class LoginResponse {
+
     private String accessToken;
+
     private String tokenType = "Bearer";
+
     private Long expiresIn;
+
     private UserInfo user;
 
+    /**
+     * Thông tin người dùng.
+     */
     @Data
     @Builder
     public static class UserInfo {
+
         private String userId;
+
         private String username;
+
         private String fullName;
+
         private String roleCode;
+
         private String organizationId;
+
         private String organizationName;
+
         private String organizationCode;
+
         private OrganizationType organizationType;
     }
+
 }

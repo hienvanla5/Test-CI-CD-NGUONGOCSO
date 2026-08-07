@@ -20,6 +20,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+/** Lưu và phát sự kiện phản ánh sản phẩm. */
 public class ProductFeedbackServiceImpl implements ProductFeedbackService {
 
     private static final Logger log = LoggerFactory.getLogger(ProductFeedbackServiceImpl.class);
@@ -28,6 +29,7 @@ public class ProductFeedbackServiceImpl implements ProductFeedbackService {
     private final ProductionLotRepository productionLotRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+        /** Tạo phản ánh mới cho lô sản xuất. */
     @Override
     @Transactional
     public ProductFeedbackResponse createFeedback(UUID productionLotId, CreateProductFeedbackRequest request) {

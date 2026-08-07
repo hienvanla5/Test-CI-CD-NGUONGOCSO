@@ -10,6 +10,9 @@ import vn.nguongocso.event.enums.ChainEventType;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Entity nhật ký đồng bộ các sự kiện ngoại tuyến.
+ */
 @Entity
 @Table(name = "offline_sync_logs")
 @Getter

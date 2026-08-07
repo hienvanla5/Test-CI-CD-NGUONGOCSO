@@ -37,6 +37,7 @@ import vn.nguongocso.organization.service.InvitationService;
 
 @Slf4j
 @Service
+/** Quản lý thư mời tham gia tổ chức. */
 public class InvitationServiceImpl implements InvitationService {
 
     private final InvitationRepository invitationRepository;
@@ -65,6 +66,7 @@ public class InvitationServiceImpl implements InvitationService {
         this.eventPublisher = eventPublisher;
     }
 
+    /** Tạo thư mời mới. */
     @Override
     @Transactional
     public InvitationResponse createInvitation(CreateInvitationRequest request, CustomUserDetails currentUser) {
@@ -147,6 +149,7 @@ public class InvitationServiceImpl implements InvitationService {
                 .build();
     }
 
+    /** Lấy thông tin thư mời công khai. */
     @Override
     @Transactional
     public InvitationPublicResponse getInvitationDetails(String token) {
@@ -172,6 +175,7 @@ public class InvitationServiceImpl implements InvitationService {
                 .build();
     }
 
+    /** Chấp nhận thư mời. */
     @Override
     @Transactional
     public AcceptInvitationResponse acceptInvitation(String token, AcceptInvitationRequest request) {

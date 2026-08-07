@@ -3,6 +3,9 @@ package vn.nguongocso.auth.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+/**
+ * Yêu cầu đăng nhập, bao gồm tên đăng nhập, mật khẩu và mã tổ chức.
+ */
 @Data
 public class LoginRequest {
 
