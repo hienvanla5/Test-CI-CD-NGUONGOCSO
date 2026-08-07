@@ -1,5 +1,6 @@
 package vn.nguongocso.backup.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import vn.nguongocso.backup.entity.BackupSchedule;
 
@@ -18,6 +19,7 @@ public class BackupScheduleResponse {
     private Integer id;
     private String cronExpression;
     private String description;
+    @JsonProperty("isActive")
     private boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -1,4 +1,4 @@
-import React, { type ReactNode } from "react";
+import React, { type ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   AlertTriangle,
@@ -16,7 +16,6 @@ import {
   Package,
   ScanLine,
   Shield,
-  Smartphone,
   Truck,
   UserCheck,
   Users,
@@ -42,6 +41,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -168,18 +177,6 @@ const MENU_GROUPS: MenuGroup[] = [
         allowedRoles: ROLE_ACCESS.scanQuickEvent,
       },
       {
-        icon: <Smartphone className="h-5 w-5" />,
-        label: "Ghi sự kiện ngoài đồng",
-        href: "/mobile/record-event",
-        allowedRoles: ["VT-02", "VT-03"] as const,
-      },
-      {
-        icon: <Database className="h-5 w-5" />,
-        label: "Sự kiện chờ đồng bộ",
-        href: "/offline-events",
-        allowedRoles: ["VT-02", "VT-03"] as const,
-      },
-      {
         icon: <AlertTriangle className="h-5 w-5" />,
         label: "Cảnh báo tem bất thường",
         href: "/alerts/scan-anomaly",
@@ -246,6 +243,12 @@ const MENU_GROUPS: MenuGroup[] = [
         allowedRoles: ["VT-02"] as const,
       },
       {
+        icon: <Database className="h-5 w-5" />,
+        label: "Sao lưu & Phục hồi dữ liệu",
+        href: "/admin/backup-restore",
+        allowedRoles: ["VT-01"] as const,
+      },
+      {
         icon: <Shield className="h-5 w-5" />,
         label: "Phân quyền",
         href: "/permissions/config",
@@ -263,10 +266,7 @@ const MENU_GROUPS: MenuGroup[] = [
 
 // ─── Helpers ─────────────────────────────────────────────
 
-function filterVisibleItems(
-  items: MenuItem[],
-  userRole?: string,
-): MenuItem[] {
+function filterVisibleItems(items: MenuItem[], userRole?: string): MenuItem[] {
   return items.filter((item) => hasAnyRole(userRole, item.allowedRoles));
 }
 
@@ -325,9 +325,7 @@ function MenuLink({
     return (
       <Tooltip key={item.href}>
         <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-        <TooltipContent className="z-[60]">
-          {item.label}
-        </TooltipContent>
+        <TooltipContent className="z-[60]">{item.label}</TooltipContent>
       </Tooltip>
     );
   }
@@ -387,7 +385,9 @@ function AccordionGroup({
       <div
         className={cn(
           "grid transition-all duration-300 ease-in-out",
-          expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          expanded
+            ? "grid-rows-[1fr] opacity-100"
+            : "grid-rows-[0fr] opacity-0",
         )}
       >
         <div className="overflow-hidden">
@@ -418,6 +418,14 @@ export function Sidebar({
 }: SidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
+
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const handleLogout = () => {
+    if (onNavigate) onNavigate();
+    logout();
+    setShowLogoutDialog(false);
+  };
 
   const visibleGroups = filterVisibleGroups(MENU_GROUPS, user?.roleCode);
   const dashboardVisible = hasAnyRole(
@@ -463,10 +471,7 @@ export function Sidebar({
     {
       icon: <LogOut className="h-5 w-5" />,
       label: "Đăng xuất",
-      onClick: () => {
-        if (onNavigate) onNavigate();
-        logout();
-      },
+      onClick: () => setShowLogoutDialog(true),
       variant: "danger",
     },
   ];
@@ -479,12 +484,13 @@ export function Sidebar({
   const hasAnyVisibleItem = dashboardVisible || visibleGroups.length > 0;
 
   return (
-    <aside
-      className={cn(
-        "flex h-full min-h-0 flex-col border-r border-emerald-100 bg-white/90 backdrop-blur-sm transition-all duration-300 ease-in-out",
-        sidebarWidth,
-      )}
-    >
+    <>
+      <aside
+        className={cn(
+          "flex h-full min-h-0 flex-col border-r border-emerald-100 bg-white/90 backdrop-blur-sm transition-all duration-300 ease-in-out",
+          sidebarWidth,
+        )}
+      >
       {/* ── Header / Logo ─────────────────── */}
       <div
         className={cn(
@@ -656,5 +662,32 @@ export function Sidebar({
         })}
       </div>
     </aside>
+
+    {/* Logout confirmation dialog */}
+    <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+      <AlertDialogPopup>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Xác nhận đăng xuất</AlertDialogTitle>
+          <AlertDialogDescription>
+            Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel
+            onClick={() => setShowLogoutDialog(false)}
+            className="border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+          >
+            Hủy
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleLogout}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Đăng xuất
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogPopup>
+    </AlertDialog>
+    </>
   );
 }

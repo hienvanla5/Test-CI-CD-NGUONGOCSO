@@ -16,7 +16,14 @@ import { getRoleLabel } from '@/config/roleAccess';
 const createMemberSchema = z
   .object({
     username: z.string().min(1, 'Tên đăng nhập không được để trống'),
-    password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+    password: z
+      .string()
+      .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+      .max(50, 'Mật khẩu tối đa 50 ký tự')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+        'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường, một số và một ký tự đặc biệt (@$!%*?&)'
+      ),
     confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu'),
     fullName: z.string().min(1, 'Họ tên không được để trống'),
     phone: z.string().optional().nullable(),
@@ -42,6 +49,7 @@ export function CreateMemberForm() {
     register,
     handleSubmit,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<CreateMemberFormValues>({
     resolver: zodResolver(createMemberSchema),
@@ -90,7 +98,7 @@ export function CreateMemberForm() {
         username: values.username,
         password: values.password,
         fullName: values.fullName,
-        phone: values.phone ?? null,
+        phone: values.phone?.trim() ? values.phone.trim() : null,
         email: values.email ?? null,
         roleId: values.roleId,
       };
@@ -101,6 +109,15 @@ export function CreateMemberForm() {
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Có lỗi xảy ra khi thêm thành viên';
       toast.error(msg);
+
+      const fieldErrors = error.response?.data?.errors as Record<string, string> | undefined;
+      if (fieldErrors) {
+        Object.entries(fieldErrors).forEach(([field, fieldMsg]) => {
+          if (field in values) {
+            setError(field as keyof CreateMemberFormValues, { type: 'server', message: fieldMsg });
+          }
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -132,7 +149,7 @@ export function CreateMemberForm() {
                 type={showPassword ? 'text' : 'password'}
                 className="pr-8 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                 {...register('password')}
-                placeholder="Mật khẩu (tối thiểu 6 ký tự)"
+                placeholder="Mật khẩu (tối thiểu 8 ký tự)"
               />
               <button
                 type="button"
@@ -144,6 +161,9 @@ export function CreateMemberForm() {
                 {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt (@$!%*?&)
+            </p>
             {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
           </div>
 
@@ -198,7 +218,7 @@ export function CreateMemberForm() {
             <div className="text-sm font-medium text-muted-foreground">
               {roles.length > 0 ? getRoleLabel('VT-03') : 'Đang tải...'}
             </div>
-            <input type="hidden" {...register('roleId')} />
+            <input type="hidden" {...register('roleId', { valueAsNumber: true })} />
             {errors.roleId && <p className="text-sm text-red-500">{errors.roleId.message}</p>}
           </div>
         </CardContent>
