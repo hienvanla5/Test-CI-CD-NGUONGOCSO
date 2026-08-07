@@ -87,6 +87,11 @@ const formatDateTime = (dateStr: string) => {
   }
 };
 
+const getActivityLabel = (value: string): string => {
+  if (value === "ALL") return "Tất cả loại";
+  return ACTIVITY_TYPE_LABELS[value] || value;
+};
+
 export function FarmLogList({
   productionLotId,
   productionLotName = "",
@@ -259,7 +264,9 @@ export function FarmLogList({
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Loại hoạt động" />
+                <SelectValue placeholder="Loại hoạt động">
+                  {getActivityLabel(activityFilter)}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">Tất cả loại</SelectItem>
@@ -344,9 +351,7 @@ export function FarmLogList({
                     <TableHead className="w-20">Số lượng</TableHead>
                     <TableHead>Ghi chú</TableHead>
                     <TableHead className="w-35">Thời gian tạo</TableHead>
-                    <TableHead className="w-30 text-center">
-                      Chứng từ
-                    </TableHead>
+                    <TableHead className="w-30 text-center">Chứng từ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
