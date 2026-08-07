@@ -51,6 +51,9 @@ venv/
 # Environment / Secrets
 # ============================================================
 .env
+docker-compose.yml
+
+uploads/
 *.env
 .env.*
 !.env.example

@@ -29,6 +29,8 @@ public class InvitationResponse {
 
     private String token;
 
+    private String joinUrl;
+
     private LocalDateTime expiryDate;
 
     private UUID createdBy;

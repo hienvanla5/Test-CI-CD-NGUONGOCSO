@@ -21,4 +21,6 @@ public class InvitationPublicResponse {
     private String status;
 
     private LocalDateTime expiryDate;
+
+    private boolean isExistingUser;
 }

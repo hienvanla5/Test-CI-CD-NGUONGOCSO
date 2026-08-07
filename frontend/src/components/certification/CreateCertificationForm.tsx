@@ -21,7 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getStandards } from '@/api/standardApi'; // hoặc API lấy standards active
+import { getStandards } from '@/api/standardApi';
 import { createCertification } from '@/api/certificationApi';
 import { createCertificationSchema, type CreateCertificationFormValues } from '@/utils/validators';
 import type { Standard } from '@/types/standard';
@@ -48,11 +48,9 @@ export const CreateCertificationForm: React.FC = () => {
     },
   });
 
-  // Lấy danh sách tiêu chuẩn đang hoạt động
   useEffect(() => {
     const fetchStandards = async () => {
       try {
-        // Giả định API lấy standards có param isActive=true
         const data = await getStandards({ isActive: true, page: 0, size: 100 });
         setStandards(data.items || []);
       } catch (error) {
@@ -76,8 +74,7 @@ export const CreateCertificationForm: React.FC = () => {
       });
       toast.success('Tạo chứng nhận thành công!');
       reset();
-      // Có thể chuyển về trang danh sách hoặc ở lại form
-      navigate('/certifications'); // nếu có trang danh sách, hoặc '/organizations/profile'
+      navigate('/certifications');
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Tạo chứng nhận thất bại';
       toast.error(msg);
@@ -106,24 +103,34 @@ export const CreateCertificationForm: React.FC = () => {
             <Controller
               name="standardId"
               control={control}
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={submitting}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn tiêu chuẩn" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {standards.map((std) => (
-                      <SelectItem key={std.id} value={std.id}>
-                        {std.name} {std.issuingBody ? `(${std.issuingBody})` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+              render={({ field }) => {
+                const selectedStandard = standards.find((s) => s.id === field.value);
+                return (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={submitting}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Chọn tiêu chuẩn">
+                        {selectedStandard?.name}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="min-w-[300px] max-h-[200px]">
+                      {standards.map((std) => (
+                        <SelectItem key={std.id} value={std.id}>
+                          {std.name} {std.issuingBody ? `(${std.issuingBody})` : ''}
+                        </SelectItem>
+                      ))}
+                      {standards.length === 0 && (
+                        <div className="px-2 py-1 text-sm text-muted-foreground">
+                          Không có tiêu chuẩn nào
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                );
+              }}
             />
             {errors.standardId && (
               <p className="text-sm text-red-500">{errors.standardId.message}</p>
