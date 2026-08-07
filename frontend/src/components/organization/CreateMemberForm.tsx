@@ -27,7 +27,7 @@ const createMemberSchema = z
     confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu'),
     fullName: z.string().min(1, 'Họ tên không được để trống'),
     phone: z.string().optional().nullable(),
-    email: z.string().email('Email không hợp lệ').optional().nullable(),
+    email: z.string().email('Email không hợp lệ').or(z.literal('')).optional().nullable(),
     roleId: z.number({ required_error: 'Vai trò là bắt buộc' }),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -99,7 +99,7 @@ export function CreateMemberForm() {
         password: values.password,
         fullName: values.fullName,
         phone: values.phone?.trim() ? values.phone.trim() : null,
-        email: values.email ?? null,
+        email: values.email?.trim() ? values.email.trim() : null,
         roleId: values.roleId,
       };
 

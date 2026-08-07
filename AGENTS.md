@@ -27,6 +27,22 @@ Frontend (from `frontend/`):
 - A live MySQL database (`nguon_goc_so`) is needed to run the app. Only `BackendApplicationTests` is `@SpringBootTest` and requires that DB; Testcontainers is declared in `pom.xml` but unused.
 - System-level paths are hardcoded for Windows MySQL (backup `mysqldump`/`mysql` paths in `application.properties`).
 
+## Plan mode workflow
+
+When working in plan mode, follow these steps in order:
+
+- **Step 1:** Receive the user's request, analyze it, and ask the user to confirm it matches their actual needs. This avoids going off track and wasting time and tokens.
+- **Step 2:** After getting the user's confirmation, propose options with clear strengths and weaknesses. For each option, state its pros and cons explicitly so the user can decide. Never decide on your own which direction to take — doing so may upset the user.
+- **Step 3:** Create a plan following a scientific process, divided into tasks. Each task is one part of the work to be done. Execute tasks one at a time sequentially — never all at once, as that easily causes mistakes and makes it hard for the user to follow along.
+
+## Build mode workflow
+
+When working in build mode:
+
+- Keep tasks as a checklist, with each task defaulting to `false`.
+- Do the work strictly according to the tasks. When a task finishes, clearly announce the completed work.
+- Only move on to the next step after the user confirms and reviews the current one; then mark that task as `true`.
+
 ## Conventions
 
 - Services use `XService` interface + `XServiceImpl` in `service/impl`.
