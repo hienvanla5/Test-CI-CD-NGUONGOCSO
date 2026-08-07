@@ -11,7 +11,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer{
-
 	@Value("${qr.image.storage.path:./files/qr}")
 	private String qrStoragePath;
 	

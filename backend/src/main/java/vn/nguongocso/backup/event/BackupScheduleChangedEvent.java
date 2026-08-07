@@ -7,7 +7,6 @@ import vn.nguongocso.backup.entity.BackupSchedule;
  * Sự kiện được phát ra khi lịch trình sao lưu thay đổi.
  */
 public class BackupScheduleChangedEvent extends ApplicationEvent {
-
     private final BackupSchedule schedule;
 
     /**
@@ -18,6 +17,7 @@ public class BackupScheduleChangedEvent extends ApplicationEvent {
         this.schedule = schedule;
     }
 
+    /** Lấy thông tin lịch trình sao lưu đã thay đổi. */
     public BackupSchedule getSchedule() {
         return schedule;
     }

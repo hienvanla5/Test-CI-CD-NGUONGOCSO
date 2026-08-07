@@ -15,7 +15,6 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductionLotDashboardResponse {
-
     // Thống kê tổng hợp
     private SummaryDto summary;
 
@@ -35,7 +34,9 @@ public class ProductionLotDashboardResponse {
     @AllArgsConstructor
     public static class SummaryDto {
         private Long totalLots;
+
         private Double totalExpectedYield;
+
         private Double totalActualYield;
     }
 
@@ -49,8 +50,11 @@ public class ProductionLotDashboardResponse {
     @AllArgsConstructor
     public static class TimeSeriesDto {
         private String period;
+
         private Long lotCount;
+
         private Double expectedYield;
+
         private Double actualYield;
     }
 }

@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * DTO phản hồi thông tin loại nông sản.
+ */
 @Getter
 @Setter
 @Builder
@@ -14,8 +17,12 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ProductCategoryResponse {
 	private UUID id;
+
 	private String name;
+
 	private String group;
+
 	private String description;
+
 	private Boolean isActive;
 }

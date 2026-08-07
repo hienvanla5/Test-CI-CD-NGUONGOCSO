@@ -42,7 +42,6 @@ import java.util.zip.GZIPOutputStream;
 @Service
 @Slf4j
 public class BackupServiceImpl implements BackupService {
-
     private final BackupScheduleRepository backupScheduleRepository;
     private final BackupRestoreHistoryRepository backupRestoreHistoryRepository;
     private final ApplicationEventPublisher eventPublisher;

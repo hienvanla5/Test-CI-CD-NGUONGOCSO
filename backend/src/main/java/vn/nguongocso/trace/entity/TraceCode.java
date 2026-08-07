@@ -21,12 +21,14 @@ import lombok.Setter;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.trace.enums.TraceCodeStatus;
 
+/**
+ * Thực thể đại diện cho một mã truy xuất.
+ */
 @Getter
 @Setter
 @Entity
 @Table(name = "trace_codes")
 public class TraceCode {
-
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "id", nullable = false, updatable = false)

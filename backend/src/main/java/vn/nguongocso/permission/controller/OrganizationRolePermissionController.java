@@ -15,6 +15,9 @@ import vn.nguongocso.permission.service.OrganizationRolePermissionService;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Controller quản lý vai trò và quyền của tổ chức.
+ */
 @RestController
 @RequestMapping("/api/v1/")
 @RequiredArgsConstructor
@@ -30,8 +33,7 @@ public class OrganizationRolePermissionController {
     public ApiResult<List<RolePermissionGroupResponse>> getSystemPermissions() {
 
         return ApiResult.success(
-                organizationRolePermissionService.getSystemPermissions()
-        );
+                organizationRolePermissionService.getSystemPermissions());
     }
 
     /**
@@ -61,8 +63,7 @@ public class OrganizationRolePermissionController {
         return ApiResult.success(
                 organizationRolePermissionService.getRolePermissions(
                         organizationId,
-                        roleId)
-        );
+                        roleId));
     }
 
     /**
@@ -78,7 +79,6 @@ public class OrganizationRolePermissionController {
                 organizationRolePermissionService.updateRolePermissions(
                         organizationId,
                         roleId,
-                        request)
-        );
+                        request));
     }
 }

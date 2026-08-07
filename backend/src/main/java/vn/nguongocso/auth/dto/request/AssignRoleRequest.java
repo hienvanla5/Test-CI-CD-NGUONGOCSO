@@ -10,7 +10,6 @@ import java.util.UUID;
  */
 @Data
 public class AssignRoleRequest {
-
     @NotNull(message = "User ID is required")
     private UUID userId;
 

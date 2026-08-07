@@ -16,7 +16,6 @@ import java.util.UUID;
  * Repository cho thực thể Certification.
  */
 public interface CertificationRepository extends JpaRepository<Certification, UUID> {
-
     /**
      * Tìm chứng nhận theo ID và ID tổ chức.
      *

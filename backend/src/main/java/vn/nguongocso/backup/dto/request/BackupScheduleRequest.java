@@ -15,7 +15,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class BackupScheduleRequest {
-
     @NotBlank(message = "Lịch chạy cron không được để trống")
     @Size(max = 100, message = "Lịch chạy cron tối đa 100 ký tự")
     private String cronExpression;
@@ -26,5 +25,4 @@ public class BackupScheduleRequest {
     @NotNull(message = "Trạng thái kích hoạt không được để trống")
     @JsonProperty("isActive")
     private Boolean isActive;
-    
 }

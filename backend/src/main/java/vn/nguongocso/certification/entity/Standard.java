@@ -29,7 +29,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class Standard {
-
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "id", nullable = false, updatable = false)

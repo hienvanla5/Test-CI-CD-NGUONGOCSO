@@ -13,7 +13,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProductionLotImportRequest {
-
     private MultipartFile file; // Tệp CSV chứa dữ liệu lô sản xuất.
 
     private UUID organizationId; // Tổ chức được nhập dữ liệu (chỉ áp dụng cho VT-01).

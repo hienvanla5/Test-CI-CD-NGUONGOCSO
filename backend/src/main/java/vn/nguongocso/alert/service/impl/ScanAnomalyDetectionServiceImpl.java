@@ -32,7 +32,6 @@ import vn.nguongocso.trace.repository.TraceCodeRepository;
 @RequiredArgsConstructor
 public class ScanAnomalyDetectionServiceImpl
         implements ScanAnomalyDetectionService {
-
     private static final int DETECTION_WINDOW_MINUTES = 10; // Khoảng thời gian xét các lượt quét (phút)
     private static final double EARTH_RADIUS_KM = 6371.0; // Bán kính Trái Đất (km)
     private static final double SAME_LOCATION_THRESHOLD_KM = 5.0; // Ngưỡng coi là cùng một vị trí (km)

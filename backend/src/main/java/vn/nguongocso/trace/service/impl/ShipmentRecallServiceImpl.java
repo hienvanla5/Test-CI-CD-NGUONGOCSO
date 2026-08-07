@@ -36,7 +36,6 @@ import vn.nguongocso.trace.service.ShipmentRecallService;
 @Transactional
 @RequiredArgsConstructor
 public class ShipmentRecallServiceImpl implements ShipmentRecallService {
-
     private static final String ORG_MANAGER_ROLE = "VT-02";
 
     private static final String MSG_SHIPMENT_NOT_FOUND = "Không tìm thấy lô hàng.";
@@ -51,7 +50,7 @@ public class ShipmentRecallServiceImpl implements ShipmentRecallService {
     private final UserRepository userRepository;
     private final NotificationService alertNotificationService;
 
-    /**
+    /*
      * {@inheritDoc}
      */
     @Override
@@ -87,11 +86,9 @@ public class ShipmentRecallServiceImpl implements ShipmentRecallService {
         shipment.setStatus(ShipmentStatus.RECALLED);
         shipmentRepository.save(shipment);
 
-        List<TraceCode> traceCodes =
-                traceCodeRepository.findByShipmentId(shipmentId);
+        List<TraceCode> traceCodes = traceCodeRepository.findByShipmentId(shipmentId);
 
-        traceCodes.forEach(code ->
-                code.setStatus(TraceCodeStatus.RECALLED));
+        traceCodes.forEach(code -> code.setStatus(TraceCodeStatus.RECALLED));
 
         traceCodeRepository.saveAll(traceCodes);
 
@@ -111,7 +108,7 @@ public class ShipmentRecallServiceImpl implements ShipmentRecallService {
     }
 
     /**
-     * {@inheritDoc}
+     * Lấy thông tin thu hồi của một lô hàng.
      */
     @Override
     public RecallInfoResponse getRecallInfo(UUID shipmentId) {
@@ -141,8 +138,7 @@ public class ShipmentRecallServiceImpl implements ShipmentRecallService {
      */
     private CustomUserDetails getCurrentUser() {
 
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         return (CustomUserDetails) authentication.getPrincipal();
     }

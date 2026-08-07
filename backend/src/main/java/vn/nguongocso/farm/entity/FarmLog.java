@@ -38,7 +38,6 @@ import vn.nguongocso.farm.enums.FarmActivityType;
 @AllArgsConstructor
 @Builder
 public class FarmLog {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
 	@Column(name = "id")
@@ -74,15 +73,15 @@ public class FarmLog {
 
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
-	
+
 	@PrePersist
 	protected void prePersist() {
-	    if (id == null) {
-	        id = UUID.randomUUID();
-	    }
+		if (id == null) {
+			id = UUID.randomUUID();
+		}
 
-	    if (createdAt == null) {
-	        createdAt = LocalDateTime.now();
-	    }
+		if (createdAt == null) {
+			createdAt = LocalDateTime.now();
+		}
 	}
 }

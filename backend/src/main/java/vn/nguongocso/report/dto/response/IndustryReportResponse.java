@@ -17,12 +17,20 @@ import lombok.Setter;
 @AllArgsConstructor
 public class IndustryReportResponse {
     private String region;
+
     private LocalDate fromDate;
+
     private LocalDate toDate;
+
     private Boolean hasData;
+
     private Integer totalOrganizations;
+
     private Integer totalShipments;
+
     private Double totalQuantity;
+
     private List<ProductBreakdownItem> productBreakdown;
+
     private String message;
 }

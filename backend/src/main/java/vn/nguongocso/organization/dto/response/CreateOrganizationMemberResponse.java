@@ -10,13 +10,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.nguongocso.auth.enums.UserStatus;
 
+/**
+ * Phản hồi khi tạo thành viên tổ chức.
+ */
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateOrganizationMemberResponse {
-
     private UUID id;
 
     private String username;

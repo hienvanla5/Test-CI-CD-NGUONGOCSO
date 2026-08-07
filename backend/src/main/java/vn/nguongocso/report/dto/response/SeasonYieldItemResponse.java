@@ -9,7 +9,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class SeasonYieldItemResponse {
-
     /**
      * Năm mùa vụ.
      */

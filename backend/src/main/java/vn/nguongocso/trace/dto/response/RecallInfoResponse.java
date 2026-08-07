@@ -14,7 +14,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class RecallInfoResponse {
-
     private UUID shipmentId;
 
     private Boolean recalled;
@@ -22,5 +21,4 @@ public class RecallInfoResponse {
     private String reason;
 
     private LocalDateTime recalledAt;
-
 }

@@ -26,7 +26,6 @@ import java.io.IOException;
  */
 @Component
 public class MaintenanceFilter extends OncePerRequestFilter {
-
     private final org.springframework.context.ApplicationContext applicationContext;
     private final ObjectMapper objectMapper;
 

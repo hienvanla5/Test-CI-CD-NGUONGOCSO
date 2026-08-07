@@ -12,7 +12,6 @@ import java.util.UUID;
 @Getter
 @Builder
 public class ActivityLogResponse {
-
     private UUID id;
 
     private UUID userId;
@@ -32,5 +31,4 @@ public class ActivityLogResponse {
     private String ipAddress;
 
     private LocalDateTime createdAt;
-    
 }

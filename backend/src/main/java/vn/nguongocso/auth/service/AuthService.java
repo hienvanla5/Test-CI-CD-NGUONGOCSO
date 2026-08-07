@@ -26,7 +26,6 @@ import vn.nguongocso.exception.BusinessException;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthService {
-
     private final CustomUserDetailsService userDetailsService;
     private final JwtTokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;

@@ -16,7 +16,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Permission {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "permission_id")
@@ -30,5 +29,4 @@ public class Permission {
 
     @Column(length = 255)
     private String description;
-    
 }

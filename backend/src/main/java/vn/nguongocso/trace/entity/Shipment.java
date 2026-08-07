@@ -24,12 +24,14 @@ import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.organization.entity.Organization;
 import vn.nguongocso.trace.enums.ShipmentStatus;
 
+/**
+ * Thực thể đại diện cho một lô hàng.
+ */
 @Getter
 @Setter
 @Entity
 @Table(name = "shipments")
 public class Shipment {
-
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "id", nullable = false, updatable = false)

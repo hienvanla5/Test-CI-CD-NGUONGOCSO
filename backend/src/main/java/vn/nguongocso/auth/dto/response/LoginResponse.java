@@ -10,7 +10,6 @@ import vn.nguongocso.organization.enums.OrganizationType;
 @Data
 @Builder
 public class LoginResponse {
-
     private String accessToken;
 
     private String tokenType = "Bearer";
@@ -25,7 +24,6 @@ public class LoginResponse {
     @Data
     @Builder
     public static class UserInfo {
-
         private String userId;
 
         private String username;
@@ -42,5 +40,4 @@ public class LoginResponse {
 
         private OrganizationType organizationType;
     }
-
 }

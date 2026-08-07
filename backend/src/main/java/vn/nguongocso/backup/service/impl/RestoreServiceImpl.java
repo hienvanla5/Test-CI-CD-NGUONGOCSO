@@ -32,7 +32,6 @@ import java.util.zip.GZIPInputStream;
 @Service
 @Slf4j
 public class RestoreServiceImpl implements RestoreService {
-
     private final BackupRestoreHistoryRepository backupRestoreHistoryRepository;
     private final BackupService backupService;
     private final TaskExecutor taskExecutor;

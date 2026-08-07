@@ -15,6 +15,11 @@ public enum AreaUnit {
 
 	private final BigDecimal unitsPerHectare;
 
+	/**
+	 * Khởi tạo đơn vị diện tích với hệ số quy đổi về héc-ta.
+	 *
+	 * @param unitsPerHectare Hệ số quy đổi từ đơn vị hiện tại sang héc-ta.
+	 */
 	AreaUnit(BigDecimal unitsPerHectare) {
 		this.unitsPerHectare = unitsPerHectare;
 	}

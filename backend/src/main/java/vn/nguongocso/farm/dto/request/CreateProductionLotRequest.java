@@ -9,10 +9,12 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * DTO yêu cầu tạo lô sản xuất.
+ */
 @Getter
 @Setter
 public class CreateProductionLotRequest {
-
     @NotBlank(message = "Tên lô không được để trống")
     private String name;
 

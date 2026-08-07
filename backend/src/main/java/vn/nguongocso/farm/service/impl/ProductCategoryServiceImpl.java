@@ -17,6 +17,7 @@ import vn.nguongocso.farm.dto.response.ProductCategoryResponse;
 import vn.nguongocso.farm.entity.ProductCategory;
 import vn.nguongocso.farm.repository.ProductCategoryRepository;
 import vn.nguongocso.farm.service.ProductCategoryService;
+
 /**
  * Triển khai nghiệp vụ danh mục loại cây trồng.
  */
@@ -26,6 +27,7 @@ import vn.nguongocso.farm.service.ProductCategoryService;
 public class ProductCategoryServiceImpl implements ProductCategoryService {
 
 	private final ProductCategoryRepository productCategoryRepository;
+
 	/**
 	 * Lấy danh sách loại cây trồng.
 	 *
@@ -39,9 +41,19 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 				.toList();
 	}
 
+	/**
+	 * Tìm kiếm danh mục loại cây trồng theo tên, nhóm và trạng thái hoạt động.
+	 *
+	 * @param name        tên loại cây trồng
+	 * @param group       nhóm loại cây trồng
+	 * @param isActive    trạng thái hoạt động
+	 * @param currentUser người dùng hiện tại
+	 * @return danh sách loại cây trồng phù hợp với điều kiện tìm kiếm
+	 */
 	@Override
 	@Transactional(readOnly = true)
-	public List<ProductCategoryResponse> search(String name, String group, Boolean isActive, CustomUserDetails currentUser) {
+	public List<ProductCategoryResponse> search(String name, String group, Boolean isActive,
+			CustomUserDetails currentUser) {
 		log.info("Tìm kiếm danh mục loại nông sản với name={}, group={}, isActive={}", name, group, isActive);
 
 		Boolean filterActive = isActive;
@@ -60,6 +72,12 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 				.toList();
 	}
 
+	/**
+	 * Tạo mới loại cây trồng.
+	 *
+	 * @param request thông tin loại cây trồng cần tạo
+	 * @return thông tin loại cây trồng sau khi tạo
+	 */
 	@Override
 	@Transactional
 	@Auditable(action = "CREATE_PRODUCT_CATEGORY", entityType = "PRODUCT_CATEGORY", description = "'Thêm mới loại nông sản: ' + #request.name + ', thuộc nhóm hàng: ' + #request.group")
@@ -67,7 +85,8 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 		log.info("Bắt đầu xử lý thêm mới loại nông sản: {}", request.getName());
 
 		if (productCategoryRepository.existsByNameIgnoreCase(request.getName().trim())) {
-			throw new DuplicateResourceException("Loại nông sản với tên '" + request.getName() + "' đã tồn tại trong danh mục");
+			throw new DuplicateResourceException(
+					"Loại nông sản với tên '" + request.getName() + "' đã tồn tại trong danh mục");
 		}
 
 		ProductCategory category = new ProductCategory();
@@ -82,6 +101,13 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 		return toResponse(saved);
 	}
 
+	/**
+	 * Cập nhật thông tin loại cây trồng.
+	 *
+	 * @param id      ID của loại cây trồng cần cập nhật
+	 * @param request thông tin mới của loại cây trồng
+	 * @return thông tin loại cây trồng sau khi cập nhật
+	 */
 	@Override
 	@Transactional
 	@Auditable(action = "UPDATE_PRODUCT_CATEGORY", entityType = "PRODUCT_CATEGORY", description = "'Cập nhật loại nông sản ID: ' + #id + ', Tên mới: ' + #request.name + ', Trạng thái hoạt động: ' + #request.isActive")
@@ -92,7 +118,8 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy loại nông sản với ID: " + id));
 
 		if (productCategoryRepository.existsByNameIgnoreCaseAndIdNot(request.getName().trim(), id)) {
-			throw new DuplicateResourceException("Loại nông sản với tên '" + request.getName() + "' đã tồn tại trong danh mục");
+			throw new DuplicateResourceException(
+					"Loại nông sản với tên '" + request.getName() + "' đã tồn tại trong danh mục");
 		}
 
 		category.setName(request.getName().trim());

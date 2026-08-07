@@ -9,7 +9,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AlertListResponse {
-
     private List<AlertResponse> content;
 
     private Integer totalElements;
@@ -19,5 +18,4 @@ public class AlertListResponse {
     private Integer page;
 
     private Integer size;
-
 }

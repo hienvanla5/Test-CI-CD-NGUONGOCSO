@@ -14,7 +14,6 @@ import vn.nguongocso.trace.enums.ShipmentStatus;
 @Data
 @Builder
 public class ShipmentResponse {
-
     private UUID id;
 
     private UUID productionLotId;
@@ -34,5 +33,4 @@ public class ShipmentResponse {
     private String createdByName;
 
     private LocalDateTime createdAt;
-    
 }

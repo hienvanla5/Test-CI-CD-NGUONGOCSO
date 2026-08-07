@@ -14,7 +14,6 @@ import vn.nguongocso.certification.service.CertificationService;
 @Slf4j
 @RequiredArgsConstructor
 public class CertificationExpiryScheduler {
-
     private final CertificationService certificationService;
 
     /**

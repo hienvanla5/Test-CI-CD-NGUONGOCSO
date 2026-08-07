@@ -23,7 +23,6 @@ import java.time.LocalDate;
 @RequestMapping("/api/v1/organizations/activity-logs")
 @RequiredArgsConstructor
 public class ActivityLogController {
-
         private final ActivityLogService activityLogService;
 
         /**

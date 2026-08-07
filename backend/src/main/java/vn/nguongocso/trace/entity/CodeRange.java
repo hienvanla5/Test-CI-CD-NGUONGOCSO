@@ -9,6 +9,9 @@ import vn.nguongocso.organization.entity.Organization;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Thực thể đại diện cho một dải mã truy xuất.
+ */
 @Entity
 @Table(name = "code_ranges")
 @Getter
@@ -17,7 +20,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class CodeRange {
-
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
     private UUID id;
@@ -50,8 +52,10 @@ public class CodeRange {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) id = UUID.randomUUID();
-        if (usedCount == null) usedCount = 0L;
+        if (id == null)
+            id = UUID.randomUUID();
+        if (usedCount == null)
+            usedCount = 0L;
         createdAt = LocalDateTime.now();
         updatedAt = createdAt;
     }
@@ -60,5 +64,4 @@ public class CodeRange {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
 }

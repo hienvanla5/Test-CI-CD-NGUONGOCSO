@@ -11,11 +11,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ScanPoint {
-
     private Double latitude;
 
     private Double longitude;
 
     private LocalDateTime scannedAt;
-
 }

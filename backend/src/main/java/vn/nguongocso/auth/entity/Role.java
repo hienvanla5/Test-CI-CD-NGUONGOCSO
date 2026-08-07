@@ -17,7 +17,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Role {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
@@ -28,5 +27,4 @@ public class Role {
 
     @Column(nullable = false, unique = true)
     private String name;
-    
 }

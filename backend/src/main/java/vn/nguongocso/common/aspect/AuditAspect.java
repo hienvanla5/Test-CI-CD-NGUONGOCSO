@@ -36,7 +36,6 @@ import java.time.LocalDateTime;
 @Slf4j
 @RequiredArgsConstructor
 public class AuditAspect {
-
     private final ApplicationEventPublisher eventPublisher;
     private final ExpressionParser parser = new SpelExpressionParser();
 

@@ -353,8 +353,6 @@ public class OrganizationServiceImpl
                                 organization.getCreatedAt());
         }
 
-        // ==================== Helper methods ====================
-
         private void publishActivityLog(CustomUserDetails currentUser, String action, String description,
                         String entityType, String entityId) {
                 try {
@@ -593,6 +591,12 @@ public class OrganizationServiceImpl
                                 .build();
         }
 
+        /**
+         * Lấy chi tiết tổ chức theo ID.
+         *
+         * @param organizationId ID tổ chức
+         * @return chi tiết tổ chức
+         */
         @Override
         @Transactional(readOnly = true)
         public OrganizationDetailResponse getOrganizationDetail(
@@ -705,6 +709,11 @@ public class OrganizationServiceImpl
                                 .build();
         }
 
+        /**
+         * Lấy danh sách thành viên của tổ chức hiện tại.
+         *
+         * @return danh sách thành viên
+         */
         @Override
         @Transactional(readOnly = true)
         public List<OrganizationUserResponse> getMembersOfCurrentOrganization() {
@@ -716,6 +725,12 @@ public class OrganizationServiceImpl
                                 .collect(Collectors.toList());
         }
 
+        /**
+         * Lấy danh sách thành viên của một tổ chức theo ID.
+         *
+         * @param organizationId ID của tổ chức
+         * @return danh sách thành viên
+         */
         @Override
         @Transactional
         public OrganizationUserResponse assignRole(AssignRoleRequest request) {
@@ -780,6 +795,12 @@ public class OrganizationServiceImpl
                 return userDetails.getRoleCode();
         }
 
+        /**
+         * Lấy danh sách người dùng có thể được gán vào tổ chức.
+         *
+         * @param organizationId ID của tổ chức
+         * @return danh sách người dùng có thể được gán
+         */
         @Override
         @Transactional(readOnly = true)
         public List<AvailableUserResponse> getAvailableUsersForOrganization(UUID organizationId) {
@@ -827,6 +848,14 @@ public class OrganizationServiceImpl
                                 .collect(Collectors.toList());
         }
 
+        /**
+         * Thêm một người dùng hiện có vào tổ chức.
+         *
+         * @param organizationId ID của tổ chức
+         * @param userId         ID của người dùng
+         * @param roleId         ID của vai trò (nếu null, giữ vai trò hiện tại)
+         * @return thông tin người dùng trong tổ chức sau khi thêm
+         */
         @Override
         @Transactional
         public OrganizationUserResponse addExistingUserToOrganization(UUID organizationId, UUID userId,

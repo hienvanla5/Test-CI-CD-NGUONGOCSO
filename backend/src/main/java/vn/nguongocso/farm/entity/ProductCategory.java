@@ -22,7 +22,6 @@ import jakarta.persistence.Table;
 @AllArgsConstructor
 @Builder
 public class ProductCategory {
-
 	@Id
 	@Column(name = "id", nullable = false, updatable = false)
 	@JdbcTypeCode(SqlTypes.CHAR)

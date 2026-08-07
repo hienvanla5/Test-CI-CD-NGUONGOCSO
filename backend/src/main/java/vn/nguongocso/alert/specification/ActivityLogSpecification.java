@@ -14,7 +14,6 @@ import java.util.UUID;
  * tiêu chí khác nhau.
  */
 public class ActivityLogSpecification {
-
     /**
      * Tạo Specification để lọc ActivityLog theo organizationId.
      */
@@ -64,5 +63,4 @@ public class ActivityLogSpecification {
             return cb.between(root.get("createdAt"), startInstant, endInstant);
         };
     }
-
 }

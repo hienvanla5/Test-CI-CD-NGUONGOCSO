@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OpenDataExportServiceImpl implements OpenDataExportService {
-
     private final OrganizationRepository organizationRepository;
     private final ProductionLotRepository productionLotRepository;
     private final FarmLogRepository farmLogRepository;
@@ -53,9 +52,21 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
     private static final String REPORT_NAME = "OPEN_DATA_EXPORT";
     private static final String EMPTY_DATA_MESSAGE = "Không có dữ liệu mở đủ điều kiện để xuất trong phạm vi đã chọn.";
 
+    /**
+     * Kết xuất dữ liệu mở dựa trên các tiêu chí lọc.
+     *
+     * @param region      Địa bàn (tỉnh/thành phố)
+     * @param fromDate    Ngày bắt đầu
+     * @param toDate      Ngày kết thúc
+     * @param format      Định dạng xuất (JSON, XML, CSV)
+     * @param currentUser Thông tin người dùng hiện tại
+     * @param ipAddress   Địa chỉ IP của người dùng
+     * @return Mảng byte đại diện cho tệp dữ liệu mở đã xuất
+     */
     @Override
     @Transactional(readOnly = true)
-    public byte[] exportOpenData(String region, LocalDate fromDate, LocalDate toDate, String format, CustomUserDetails currentUser, String ipAddress) {
+    public byte[] exportOpenData(String region, LocalDate fromDate, LocalDate toDate, String format,
+            CustomUserDetails currentUser, String ipAddress) {
         // 1. Phân quyền kiểm tra bảo mật (VT-05)
         validateRole(currentUser, ipAddress);
 
@@ -73,10 +84,10 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
                     .map(Organization::getOrganizationId)
                     .toList();
 
-            // 4. Lấy danh sách lô hàng trong khoảng thời gian có trạng thái CLOSED hoặc PACKAGED
+            // 4. Lấy danh sách lô hàng trong khoảng thời gian có trạng thái CLOSED hoặc
+            // PACKAGED
             List<ProductionLot> lots = productionLotRepository.findEligibleLotsForExport(
-                    orgIds, fromDate, toDate, List.of(ProductionLotStatus.CLOSED, ProductionLotStatus.PACKAGED)
-            );
+                    orgIds, fromDate, toDate, List.of(ProductionLotStatus.CLOSED, ProductionLotStatus.PACKAGED));
             if (lots.isEmpty()) {
                 throw new BusinessException(EMPTY_DATA_MESSAGE);
             }
@@ -229,8 +240,7 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
                     currentUser.getOrganizationId(),
                     REPORT_NAME,
                     true,
-                    ipAddress
-            );
+                    ipAddress);
 
             return fileBytes;
 
@@ -242,8 +252,7 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
                     currentUser.getOrganizationId(),
                     REPORT_NAME,
                     false,
-                    ipAddress
-            );
+                    ipAddress);
             throw e;
         } catch (Exception e) {
             log.error("Lỗi hệ thống khi xuất dữ liệu mở", e);
@@ -253,8 +262,7 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
                     currentUser.getOrganizationId(),
                     REPORT_NAME,
                     false,
-                    ipAddress
-            );
+                    ipAddress);
             throw new BusinessException("Đã xảy ra lỗi trong quá trình kết xuất dữ liệu mở.");
         }
     }
@@ -268,8 +276,7 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
                         currentUser.getOrganizationId(),
                         REPORT_NAME,
                         false,
-                        ipAddress
-                );
+                        ipAddress);
             }
             throw new AccessDeniedException("Bạn không có quyền thực hiện chức năng này");
         }
@@ -282,12 +289,14 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
         if (fromDate == null || toDate == null || fromDate.isAfter(toDate)) {
             throw new BusinessException("Khoảng thời gian không hợp lệ.");
         }
-        if (format == null || (!format.equalsIgnoreCase("JSON") && !format.equalsIgnoreCase("XML") && !format.equalsIgnoreCase("CSV"))) {
+        if (format == null || (!format.equalsIgnoreCase("JSON") && !format.equalsIgnoreCase("XML")
+                && !format.equalsIgnoreCase("CSV"))) {
             throw new BusinessException("Định dạng xuất dữ liệu không hợp lệ.");
         }
     }
 
-    private boolean verifyQTN11(UUID lotId, Map<UUID, List<FarmLog>> logsByLot, Map<UUID, List<FarmLogAttachment>> attachmentsByLog) {
+    private boolean verifyQTN11(UUID lotId, Map<UUID, List<FarmLog>> logsByLot,
+            Map<UUID, List<FarmLogAttachment>> attachmentsByLog) {
         List<FarmLog> lotLogs = logsByLot.getOrDefault(lotId, List.of());
 
         boolean hasPlanting = false;
@@ -298,10 +307,14 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
         for (FarmLog logItem : lotLogs) {
             List<FarmLogAttachment> atts = attachmentsByLog.getOrDefault(logItem.getId(), List.of());
             if (!atts.isEmpty()) {
-                if (logItem.getActivityType() == FarmActivityType.PLANTING) hasPlanting = true;
-                else if (logItem.getActivityType() == FarmActivityType.FERTILIZING) hasFertilizing = true;
-                else if (logItem.getActivityType() == FarmActivityType.PESTICIDE) hasPesticide = true;
-                else if (logItem.getActivityType() == FarmActivityType.HARVESTING) hasHarvesting = true;
+                if (logItem.getActivityType() == FarmActivityType.PLANTING)
+                    hasPlanting = true;
+                else if (logItem.getActivityType() == FarmActivityType.FERTILIZING)
+                    hasFertilizing = true;
+                else if (logItem.getActivityType() == FarmActivityType.PESTICIDE)
+                    hasPesticide = true;
+                else if (logItem.getActivityType() == FarmActivityType.HARVESTING)
+                    hasHarvesting = true;
             }
         }
         return hasPlanting && hasFertilizing && hasPesticide && hasHarvesting;
@@ -318,31 +331,44 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
             sb.append("    <ProductionLot>\n");
             sb.append("      <LotId>").append(dto.getLotId()).append("</LotId>\n");
             sb.append("      <LotCode>").append(escapeXml(dto.getLotCode())).append("</LotCode>\n");
-            sb.append("      <ProductCategory>").append(escapeXml(dto.getProductCategory())).append("</ProductCategory>\n");
+            sb.append("      <ProductCategory>").append(escapeXml(dto.getProductCategory()))
+                    .append("</ProductCategory>\n");
             sb.append("      <ExpectedQuantity>").append(dto.getExpectedQuantity()).append("</ExpectedQuantity>\n");
-            sb.append("      <ExpectedQuantityUnit>").append(escapeXml(dto.getExpectedQuantityUnit())).append("</ExpectedQuantityUnit>\n");
-            sb.append("      <ActualQuantity>").append(dto.getActualQuantity() != null ? dto.getActualQuantity() : "").append("</ActualQuantity>\n");
-            sb.append("      <PlantingDate>").append(dto.getPlantingDate() != null ? dto.getPlantingDate() : "").append("</PlantingDate>\n");
-            sb.append("      <HarvestDate>").append(dto.getHarvestDate() != null ? dto.getHarvestDate() : "").append("</HarvestDate>\n");
+            sb.append("      <ExpectedQuantityUnit>").append(escapeXml(dto.getExpectedQuantityUnit()))
+                    .append("</ExpectedQuantityUnit>\n");
+            sb.append("      <ActualQuantity>").append(dto.getActualQuantity() != null ? dto.getActualQuantity() : "")
+                    .append("</ActualQuantity>\n");
+            sb.append("      <PlantingDate>").append(dto.getPlantingDate() != null ? dto.getPlantingDate() : "")
+                    .append("</PlantingDate>\n");
+            sb.append("      <HarvestDate>").append(dto.getHarvestDate() != null ? dto.getHarvestDate() : "")
+                    .append("</HarvestDate>\n");
             sb.append("      <Status>").append(dto.getStatus()).append("</Status>\n");
 
             if (dto.getOrganization() != null) {
                 sb.append("      <Organization>\n");
-                sb.append("        <OrganizationId>").append(dto.getOrganization().getOrganizationId()).append("</OrganizationId>\n");
-                sb.append("        <OrganizationName>").append(escapeXml(dto.getOrganization().getOrganizationName())).append("</OrganizationName>\n");
-                sb.append("        <OrganizationAddress>").append(escapeXml(dto.getOrganization().getOrganizationAddress())).append("</OrganizationAddress>\n");
+                sb.append("        <OrganizationId>").append(dto.getOrganization().getOrganizationId())
+                        .append("</OrganizationId>\n");
+                sb.append("        <OrganizationName>").append(escapeXml(dto.getOrganization().getOrganizationName()))
+                        .append("</OrganizationName>\n");
+                sb.append("        <OrganizationAddress>")
+                        .append(escapeXml(dto.getOrganization().getOrganizationAddress()))
+                        .append("</OrganizationAddress>\n");
                 sb.append("      </Organization>\n");
             }
 
             if (dto.getFarmArea() != null) {
                 sb.append("      <FarmArea>\n");
                 sb.append("        <FarmAreaId>").append(dto.getFarmArea().getFarmAreaId()).append("</FarmAreaId>\n");
-                sb.append("        <FarmAreaName>").append(escapeXml(dto.getFarmArea().getFarmAreaName())).append("</FarmAreaName>\n");
-                sb.append("        <FarmAreaSize>").append(dto.getFarmArea().getFarmAreaSize()).append("</FarmAreaSize>\n");
+                sb.append("        <FarmAreaName>").append(escapeXml(dto.getFarmArea().getFarmAreaName()))
+                        .append("</FarmAreaName>\n");
+                sb.append("        <FarmAreaSize>").append(dto.getFarmArea().getFarmAreaSize())
+                        .append("</FarmAreaSize>\n");
                 if (dto.getFarmArea().getFarmAreaLocation() != null) {
                     sb.append("        <FarmAreaLocation>\n");
-                    sb.append("          <Latitude>").append(dto.getFarmArea().getFarmAreaLocation().getLatitude()).append("</Latitude>\n");
-                    sb.append("          <Longitude>").append(dto.getFarmArea().getFarmAreaLocation().getLongitude()).append("</Longitude>\n");
+                    sb.append("          <Latitude>").append(dto.getFarmArea().getFarmAreaLocation().getLatitude())
+                            .append("</Latitude>\n");
+                    sb.append("          <Longitude>").append(dto.getFarmArea().getFarmAreaLocation().getLongitude())
+                            .append("</Longitude>\n");
                     sb.append("        </FarmAreaLocation>\n");
                 }
                 sb.append("      </FarmArea>\n");
@@ -355,9 +381,12 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
                     sb.append("          <LogId>").append(logItem.getLogId()).append("</LogId>\n");
                     sb.append("          <ActivityType>").append(logItem.getActivityType()).append("</ActivityType>\n");
                     sb.append("          <Material>").append(escapeXml(logItem.getMaterial())).append("</Material>\n");
-                    sb.append("          <Quantity>").append(logItem.getQuantity() != null ? logItem.getQuantity() : "").append("</Quantity>\n");
+                    sb.append("          <Quantity>").append(logItem.getQuantity() != null ? logItem.getQuantity() : "")
+                            .append("</Quantity>\n");
                     sb.append("          <Unit>").append(escapeXml(logItem.getUnit())).append("</Unit>\n");
-                    sb.append("          <ExecutedDate>").append(logItem.getExecutedDate() != null ? logItem.getExecutedDate() : "").append("</ExecutedDate>\n");
+                    sb.append("          <ExecutedDate>")
+                            .append(logItem.getExecutedDate() != null ? logItem.getExecutedDate() : "")
+                            .append("</ExecutedDate>\n");
                     sb.append("          <Notes>").append(escapeXml(logItem.getNotes())).append("</Notes>\n");
                     sb.append("          <Attachments>\n");
                     if (logItem.getAttachments() != null) {
@@ -376,7 +405,8 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
                 for (ShipmentDto sh : dto.getShipments()) {
                     sb.append("        <Shipment>\n");
                     sb.append("          <ShipmentId>").append(sh.getShipmentId()).append("</ShipmentId>\n");
-                    sb.append("          <ShipmentName>").append(escapeXml(sh.getShipmentName())).append("</ShipmentName>\n");
+                    sb.append("          <ShipmentName>").append(escapeXml(sh.getShipmentName()))
+                            .append("</ShipmentName>\n");
                     sb.append("          <TotalQuantity>").append(sh.getTotalQuantity()).append("</TotalQuantity>\n");
                     sb.append("          <ShippedAt>").append(sh.getShippedAt()).append("</ShippedAt>\n");
                     sb.append("          <JourneyEvents>\n");
@@ -385,12 +415,16 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
                             sb.append("            <JourneyEvent>\n");
                             sb.append("              <EventId>").append(ev.getEventId()).append("</EventId>\n");
                             sb.append("              <EventType>").append(ev.getEventType()).append("</EventType>\n");
-                            sb.append("              <RecordedAt>").append(ev.getRecordedAt()).append("</RecordedAt>\n");
-                            sb.append("              <ActorName>").append(escapeXml(ev.getActorName())).append("</ActorName>\n");
+                            sb.append("              <RecordedAt>").append(ev.getRecordedAt())
+                                    .append("</RecordedAt>\n");
+                            sb.append("              <ActorName>").append(escapeXml(ev.getActorName()))
+                                    .append("</ActorName>\n");
                             if (ev.getEventLocation() != null) {
                                 sb.append("              <EventLocation>\n");
-                                sb.append("                <Latitude>").append(ev.getEventLocation().getLatitude()).append("</Latitude>\n");
-                                sb.append("                <Longitude>").append(ev.getEventLocation().getLongitude()).append("</Longitude>\n");
+                                sb.append("                <Latitude>").append(ev.getEventLocation().getLatitude())
+                                        .append("</Latitude>\n");
+                                sb.append("                <Longitude>").append(ev.getEventLocation().getLongitude())
+                                        .append("</Longitude>\n");
                                 sb.append("              </EventLocation>\n");
                             }
                             sb.append("            </JourneyEvent>\n");
@@ -413,7 +447,8 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
         StringBuilder sb = new StringBuilder();
         // BOM UTF-8 để hỗ trợ mở Excel Tiếng Việt không lỗi font
         sb.append('\ufeff');
-        sb.append("lotId,lotCode,productCategory,expectedQuantity,expectedQuantityUnit,actualQuantity,plantingDate,harvestDate,status,organizationName,organizationAddress,farmAreaName,totalFarmLogs,totalShipments\n");
+        sb.append(
+                "lotId,lotCode,productCategory,expectedQuantity,expectedQuantityUnit,actualQuantity,plantingDate,harvestDate,status,organizationName,organizationAddress,farmAreaName,totalFarmLogs,totalShipments\n");
         for (OpenDataExportDto dto : dtos) {
             sb.append(dto.getLotId()).append(",");
             sb.append(escapeCsv(dto.getLotCode())).append(",");
@@ -424,8 +459,10 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
             sb.append(dto.getPlantingDate() != null ? dto.getPlantingDate() : "").append(",");
             sb.append(dto.getHarvestDate() != null ? dto.getHarvestDate() : "").append(",");
             sb.append(dto.getStatus()).append(",");
-            sb.append(dto.getOrganization() != null ? escapeCsv(dto.getOrganization().getOrganizationName()) : "").append(",");
-            sb.append(dto.getOrganization() != null ? escapeCsv(dto.getOrganization().getOrganizationAddress()) : "").append(",");
+            sb.append(dto.getOrganization() != null ? escapeCsv(dto.getOrganization().getOrganizationName()) : "")
+                    .append(",");
+            sb.append(dto.getOrganization() != null ? escapeCsv(dto.getOrganization().getOrganizationAddress()) : "")
+                    .append(",");
             sb.append(dto.getFarmArea() != null ? escapeCsv(dto.getFarmArea().getFarmAreaName()) : "").append(",");
             sb.append(dto.getFarmLogs() != null ? dto.getFarmLogs().size() : 0).append(",");
             sb.append(dto.getShipments() != null ? dto.getShipments().size() : 0).append("\n");
@@ -434,7 +471,8 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
     }
 
     private String escapeXml(String value) {
-        if (value == null) return "";
+        if (value == null)
+            return "";
         return value.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
@@ -443,7 +481,8 @@ public class OpenDataExportServiceImpl implements OpenDataExportService {
     }
 
     private String escapeCsv(String value) {
-        if (value == null) return "";
+        if (value == null)
+            return "";
         if (value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }

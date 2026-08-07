@@ -19,6 +19,9 @@ import vn.nguongocso.farm.dto.response.FarmLogResponse;
 import vn.nguongocso.farm.service.FarmLogService;
 import vn.nguongocso.permission.service.PermissionChecker;
 
+/**
+ * Controller quản lý nhật ký canh tác.
+ */
 @RestController
 @RequestMapping("/api/v1/farm-logs")
 @RequiredArgsConstructor
@@ -45,8 +48,8 @@ public class FarmLogController {
      * Lấy danh sách nhật ký canh tác của lô sản xuất theo phân trang.
      *
      * @param productionLotId mã lô sản xuất
-     * @param page số trang (mặc định 0)
-     * @param size số bản ghi trên mỗi trang (mặc định 10)
+     * @param page            số trang (mặc định 0)
+     * @param size            số bản ghi trên mỗi trang (mặc định 10)
      * @return danh sách nhật ký canh tác
      */
     @GetMapping

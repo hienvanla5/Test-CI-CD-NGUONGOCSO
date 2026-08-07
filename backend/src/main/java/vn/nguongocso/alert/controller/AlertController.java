@@ -25,7 +25,6 @@ import vn.nguongocso.common.ApiResult;
 @RequestMapping("/api/v1/alerts")
 @RequiredArgsConstructor
 public class AlertController {
-
         private final AlertService alertService;
 
         /**

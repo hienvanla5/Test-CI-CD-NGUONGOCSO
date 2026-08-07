@@ -19,10 +19,15 @@ import lombok.Getter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResult<T> {
 	private boolean success;
+
 	private int status;
+
 	private String message;
+
 	private T data;
+
 	private Object errors;
+
 	private String path;
 
 	@Builder.Default

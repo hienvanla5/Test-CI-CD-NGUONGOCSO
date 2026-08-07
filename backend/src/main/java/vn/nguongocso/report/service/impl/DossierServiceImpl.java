@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
 /**
  * Service xử lý nghiệp vụ hồ sơ.
  *
@@ -61,7 +60,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class DossierServiceImpl implements DossierService {
-
     private final ShipmentRepository shipmentRepository;
     private final FarmLogRepository farmLogRepository;
     private final FarmLogAttachmentRepository farmLogAttachmentRepository;
@@ -71,6 +69,13 @@ public class DossierServiceImpl implements DossierService {
     private final OrganizationUserRepository organizationUserRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * Kiểm tra điều kiện xuất hồ sơ truy xuất cho một lô hàng.
+     *
+     * @param shipmentId  ID của lô hàng
+     * @param currentUser Thông tin người dùng hiện tại
+     * @return DossierCheckResponse chứa kết quả kiểm tra
+     */
     @Override
     @Transactional(readOnly = true)
     public DossierCheckResponse checkEligibility(UUID shipmentId, CustomUserDetails currentUser) {
@@ -115,16 +120,19 @@ public class DossierServiceImpl implements DossierService {
             }
         }
 
-        if (!hasPlanting) missingDocs.add("Thiếu chứng từ gieo giống/xuống giống (PLANTING)");
-        if (!hasFertilizing) missingDocs.add("Thiếu chứng từ bón phân (FERTILIZING)");
-        if (!hasPesticide) missingDocs.add("Thiếu chứng từ phun thuốc/phòng trừ sâu bệnh (PESTICIDE)");
-        if (!hasHarvesting) missingDocs.add("Thiếu chứng từ thu hoạch (HARVESTING)");
+        if (!hasPlanting)
+            missingDocs.add("Thiếu chứng từ gieo giống/xuống giống (PLANTING)");
+        if (!hasFertilizing)
+            missingDocs.add("Thiếu chứng từ bón phân (FERTILIZING)");
+        if (!hasPesticide)
+            missingDocs.add("Thiếu chứng từ phun thuốc/phòng trừ sâu bệnh (PESTICIDE)");
+        if (!hasHarvesting)
+            missingDocs.add("Thiếu chứng từ thu hoạch (HARVESTING)");
 
         if (!missingDocs.isEmpty()) {
             throw new DossierValidationException(
                     "Không đủ điều kiện xuất hồ sơ truy xuất: Lô hàng chưa hoàn tất hoặc thiếu chứng từ bắt buộc.",
-                    missingDocs
-            );
+                    missingDocs);
         }
 
         return DossierCheckResponse.builder()
@@ -134,7 +142,14 @@ public class DossierServiceImpl implements DossierService {
                 .build();
     }
 
-
+    /**
+     * Xuất hồ sơ truy xuất cho một lô hàng dưới dạng PDF.
+     *
+     * @param shipmentId  ID của lô hàng
+     * @param currentUser Thông tin người dùng hiện tại
+     * @param ipAddress   Địa chỉ IP của người dùng
+     * @return Mảng byte đại diện cho tệp PDF đã tạo
+     */
     @Override
     @Transactional
     public byte[] exportDossierPdf(UUID shipmentId, CustomUserDetails currentUser, String ipAddress) {
@@ -149,7 +164,8 @@ public class DossierServiceImpl implements DossierService {
         if (!checkResult.isEligible()) {
             // Ghi nhật ký thất bại
             logDossierExport(shipment, currentUser, "FAILED", ipAddress, 0L);
-            throw new DossierValidationException("Không đủ điều kiện xuất hồ sơ truy xuất.", checkResult.getMissingDocuments());
+            throw new DossierValidationException("Không đủ điều kiện xuất hồ sơ truy xuất.",
+                    checkResult.getMissingDocuments());
         }
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -205,13 +221,25 @@ public class DossierServiceImpl implements DossierService {
             addTableCell(lotTable, "Đơn vị sản xuất (HTX):", boldFont);
             addTableCell(lotTable, shipment.getProductionLot().getOrganization().getName(), normalFont);
             addTableCell(lotTable, "Ngày xuống giống:", boldFont);
-            addTableCell(lotTable, shipment.getProductionLot().getPlantingDate() != null ? shipment.getProductionLot().getPlantingDate().toString() : "N/A", normalFont);
+            addTableCell(lotTable,
+                    shipment.getProductionLot().getPlantingDate() != null
+                            ? shipment.getProductionLot().getPlantingDate().toString()
+                            : "N/A",
+                    normalFont);
             addTableCell(lotTable, "Ngày thu hoạch:", boldFont);
-            addTableCell(lotTable, shipment.getProductionLot().getHarvestDate() != null ? shipment.getProductionLot().getHarvestDate().toString() : "N/A", normalFont);
+            addTableCell(lotTable,
+                    shipment.getProductionLot().getHarvestDate() != null
+                            ? shipment.getProductionLot().getHarvestDate().toString()
+                            : "N/A",
+                    normalFont);
             addTableCell(lotTable, "Sản lượng dự kiến:", boldFont);
             addTableCell(lotTable, shipment.getProductionLot().getExpectedQuantity() + " kg", normalFont);
             addTableCell(lotTable, "Sản lượng thực tế:", boldFont);
-            addTableCell(lotTable, shipment.getProductionLot().getActualQuantity() != null ? shipment.getProductionLot().getActualQuantity() + " kg" : "N/A", normalFont);
+            addTableCell(lotTable,
+                    shipment.getProductionLot().getActualQuantity() != null
+                            ? shipment.getProductionLot().getActualQuantity() + " kg"
+                            : "N/A",
+                    normalFont);
 
             document.add(lotTable);
 
@@ -227,7 +255,8 @@ public class DossierServiceImpl implements DossierService {
             addTableCell(shipmentTable, "Số lượng lô hàng:", boldFont);
             addTableCell(shipmentTable, shipment.getTotalQuantity() + " sản phẩm", normalFont);
             addTableCell(shipmentTable, "Thông tin đóng gói:", boldFont);
-            addTableCell(shipmentTable, shipment.getPackagingInfo() != null ? shipment.getPackagingInfo() : "N/A", normalFont);
+            addTableCell(shipmentTable, shipment.getPackagingInfo() != null ? shipment.getPackagingInfo() : "N/A",
+                    normalFont);
             addTableCell(shipmentTable, "Trạng thái vận hành:", boldFont);
             addTableCell(shipmentTable, shipment.getStatus().name(), normalFont);
 
@@ -238,7 +267,7 @@ public class DossierServiceImpl implements DossierService {
             document.add(new Paragraph(" "));
             PdfPTable logTable = new PdfPTable(5);
             logTable.setWidthPercentage(100);
-            logTable.setWidths(new float[]{15f, 20f, 15f, 25f, 25f});
+            logTable.setWidths(new float[] { 15f, 20f, 15f, 25f, 25f });
             logTable.setSpacingAfter(15);
 
             // Header cho bảng nhật ký
@@ -248,12 +277,14 @@ public class DossierServiceImpl implements DossierService {
             addTableHeaderCell(logTable, "Ghi chú", boldFont);
             addTableHeaderCell(logTable, "Chứng từ đính kèm", boldFont);
 
-            List<FarmLog> logs = farmLogRepository.findByProductionLotId_IdOrderByExecutedDateAsc(shipment.getProductionLot().getId());
+            List<FarmLog> logs = farmLogRepository
+                    .findByProductionLotId_IdOrderByExecutedDateAsc(shipment.getProductionLot().getId());
             for (FarmLog logItem : logs) {
                 addTableCell(logTable, logItem.getExecutedDate().toString(), normalFont);
                 addTableCell(logTable, logItem.getActivityType().name(), normalFont);
                 String materialInfo = (logItem.getMaterial() != null ? logItem.getMaterial() : "") +
-                        (logItem.getQuantity() != null ? " (" + logItem.getQuantity() + " " + logItem.getUnit() + ")" : "");
+                        (logItem.getQuantity() != null ? " (" + logItem.getQuantity() + " " + logItem.getUnit() + ")"
+                                : "");
                 addTableCell(logTable, materialInfo, normalFont);
                 addTableCell(logTable, logItem.getNotes() != null ? logItem.getNotes() : "", normalFont);
 
@@ -262,7 +293,8 @@ public class DossierServiceImpl implements DossierService {
                 StringBuilder filesStr = new StringBuilder();
                 if (attachments != null) {
                     for (FarmLogAttachment att : attachments) {
-                        if (filesStr.length() > 0) filesStr.append("\n");
+                        if (filesStr.length() > 0)
+                            filesStr.append("\n");
                         filesStr.append(att.getFileName());
                     }
                 }
@@ -275,7 +307,7 @@ public class DossierServiceImpl implements DossierService {
             document.add(new Paragraph(" "));
             PdfPTable eventTable = new PdfPTable(4);
             eventTable.setWidthPercentage(100);
-            eventTable.setWidths(new float[]{20f, 20f, 35f, 25f});
+            eventTable.setWidths(new float[] { 20f, 20f, 35f, 25f });
             eventTable.setSpacingAfter(15);
 
             addTableHeaderCell(eventTable, "Thời điểm ghi nhận", boldFont);
@@ -287,7 +319,8 @@ public class DossierServiceImpl implements DossierService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             for (ChainEvent ev : events) {
                 addTableCell(eventTable, ev.getRecordedAt().format(formatter), normalFont);
-                addTableCell(eventTable, ev.getEventType().name() + (ev.isCorrection() ? " (Đã điều chỉnh)" : ""), normalFont);
+                addTableCell(eventTable, ev.getEventType().name() + (ev.isCorrection() ? " (Đã điều chỉnh)" : ""),
+                        normalFont);
                 addTableCell(eventTable, ev.getEventData() != null ? ev.getEventData() : "", normalFont);
                 addTableCell(eventTable, ev.getRecordedBy().getFullName(), normalFont);
             }
@@ -306,8 +339,7 @@ public class DossierServiceImpl implements DossierService {
                     "EXPORT",
                     "Xuất hồ sơ truy xuất cho lô hàng " + shipment.getName(),
                     "Shipment",
-                    shipment.getId().toString()
-            );
+                    shipment.getId().toString());
 
             return pdfData;
         } catch (Exception e) {
@@ -350,16 +382,18 @@ public class DossierServiceImpl implements DossierService {
             return;
         }
 
-        // 3. Quyền Doanh nghiệp thu mua (VT-04): Lô hàng phải được thu mua bởi doanh nghiệp của mình
+        // 3. Quyền Doanh nghiệp thu mua (VT-04): Lô hàng phải được thu mua bởi doanh
+        // nghiệp của mình
         if ("VT-04".equals(role)) {
             boolean isAssociated = false;
             List<ChainEvent> events = chainEventRepository.findByShipment_IdOrderByRecordedAtAsc(shipment.getId());
             for (ChainEvent event : events) {
                 if (event.getEventType() == ChainEventType.PROCUREMENT && !event.isCorrection()) {
                     UUID recorderId = event.getRecordedBy().getUserId();
-                    boolean belongsToSameOrg = organizationUserRepository.findByOrganization_OrganizationIdAndUser_UserId(
-                            currentUser.getOrganizationId(), recorderId
-                    ).isPresent();
+                    boolean belongsToSameOrg = organizationUserRepository
+                            .findByOrganization_OrganizationIdAndUser_UserId(
+                                    currentUser.getOrganizationId(), recorderId)
+                            .isPresent();
                     if (belongsToSameOrg) {
                         isAssociated = true;
                         break;
@@ -368,7 +402,8 @@ public class DossierServiceImpl implements DossierService {
             }
 
             if (!isAssociated) {
-                throw new AccessDeniedException("Từ chối thao tác: Lô hàng này không thuộc sở hữu thu mua của doanh nghiệp bạn.");
+                throw new AccessDeniedException(
+                        "Từ chối thao tác: Lô hàng này không thuộc sở hữu thu mua của doanh nghiệp bạn.");
             }
             return;
         }
@@ -377,7 +412,8 @@ public class DossierServiceImpl implements DossierService {
         throw new AccessDeniedException("Từ chối thao tác: Bạn không có quyền xem hoặc xuất hồ sơ cho lô hàng này.");
     }
 
-    private void logDossierExport(Shipment shipment, CustomUserDetails currentUser, String status, String ipAddress, Long fileSize) {
+    private void logDossierExport(Shipment shipment, CustomUserDetails currentUser, String status, String ipAddress,
+            Long fileSize) {
         try {
             User user = userRepository.findById(currentUser.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin tài khoản người xuất."));
@@ -407,7 +443,8 @@ public class DossierServiceImpl implements DossierService {
         }
     }
 
-    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType,
+            String entityId) {
         eventPublisher.publishEvent(ActivityLogEvent.builder()
                 .userId(currentUser.getUserId())
                 .username(currentUser.getUsername())
@@ -419,7 +456,6 @@ public class DossierServiceImpl implements DossierService {
                 .entityId(entityId)
                 .ipAddress(IpUtils.getClientIp())
                 .timestamp(LocalDateTime.now())
-                .build()
-        );
+                .build());
     }
 }

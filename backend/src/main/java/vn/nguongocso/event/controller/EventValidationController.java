@@ -28,7 +28,6 @@ import java.util.UUID;
 @RequestMapping("/api/v1/chain-events")
 @RequiredArgsConstructor
 public class EventValidationController {
-
     private final EventValidationService eventValidationService;
     private final PermissionChecker permissionChecker;
 

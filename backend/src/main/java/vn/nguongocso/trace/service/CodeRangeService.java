@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 /** Cấp và theo dõi dải mã truy xuất. */
 public class CodeRangeService {
-
     private final CodeRangeRepository codeRangeRepository;
     private final OrganizationRepository organizationRepository;
 
@@ -87,9 +86,12 @@ public class CodeRangeService {
     private CodeRangeStatusResponse toStatusResponse(CodeRange range) {
         double percent = (double) range.getUsedCount() / range.getTotalLimit() * 100;
         String status;
-        if (percent >= 100) status = "EXHAUSTED";
-        else if (percent >= 80) status = "NEARLY_EXHAUSTED";
-        else status = "OK";
+        if (percent >= 100)
+            status = "EXHAUSTED";
+        else if (percent >= 80)
+            status = "NEARLY_EXHAUSTED";
+        else
+            status = "OK";
 
         return CodeRangeStatusResponse.builder()
                 .id(range.getId())

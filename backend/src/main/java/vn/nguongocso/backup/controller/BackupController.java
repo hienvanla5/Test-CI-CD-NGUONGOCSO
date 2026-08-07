@@ -32,7 +32,6 @@ import java.util.List;
 @PreAuthorize("hasRole('VT-01')")
 /** Quản lý cấu hình và lịch sử sao lưu. */
 public class BackupController {
-
     private final BackupService backupService;
     private final RestoreService restoreService;
 
@@ -102,5 +101,4 @@ public class BackupController {
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(ApiResult.success(HttpStatus.ACCEPTED.value(), response));
     }
-    
 }

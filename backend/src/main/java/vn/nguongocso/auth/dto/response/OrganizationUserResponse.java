@@ -13,7 +13,6 @@ import java.util.UUID;
 @Data
 @Builder
 public class OrganizationUserResponse {
-
     private UUID id;
 
     private UUID organizationId;
@@ -37,5 +36,4 @@ public class OrganizationUserResponse {
     private OrganizationUserStatus status;
 
     private LocalDateTime joinedAt;
-
 }

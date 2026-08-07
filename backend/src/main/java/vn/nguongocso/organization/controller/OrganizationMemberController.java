@@ -19,37 +19,32 @@ import java.util.List;
 @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
 /** Quản lý thành viên trong tổ chức hiện tại. */
 public class OrganizationMemberController {
-
     private final OrganizationMemberService permissionService;
     private final PermissionChecker permissionChecker;
 
-        /** Lấy danh sách thành viên của tổ chức. */
+    /** Lấy danh sách thành viên của tổ chức. */
     @GetMapping
     public ResponseEntity<ApiResult<List<OrganizationUserResponse>>> getMembers() {
-//        permissionChecker.check("organization_user", "READ");
+        // permissionChecker.check("organization_user", "READ");
         return ResponseEntity.ok(ApiResult.success(
-                permissionService.getMembersOfCurrentOrganization()
-        ));
+                permissionService.getMembersOfCurrentOrganization()));
     }
 
-        /** Gán vai trò cho thành viên. */
+    /** Gán vai trò cho thành viên. */
     @PutMapping("/roles")
     public ResponseEntity<ApiResult<OrganizationUserResponse>> assignRole(
             @Valid @RequestBody AssignRoleRequest request) {
-//        permissionChecker.check("organization_user", "UPDATE");
+        // permissionChecker.check("organization_user", "UPDATE");
         return ResponseEntity.ok(ApiResult.success(
-                permissionService.assignRole(request)
-        ));
+                permissionService.assignRole(request)));
     }
 
-        /** Thêm thành viên mới vào tổ chức. */
+    /** Thêm thành viên mới vào tổ chức. */
     @PostMapping
     public ResponseEntity<ApiResult<OrganizationUserResponse>> addMember(
-            @Valid @RequestBody AddMemberRequest request
-    ) {
-//        permissionChecker.check("organization_user", "CREATE");
+            @Valid @RequestBody AddMemberRequest request) {
+        // permissionChecker.check("organization_user", "CREATE");
         return ResponseEntity.ok(ApiResult.success(
-                permissionService.addMember(request)
-        ));
+                permissionService.addMember(request)));
     }
 }

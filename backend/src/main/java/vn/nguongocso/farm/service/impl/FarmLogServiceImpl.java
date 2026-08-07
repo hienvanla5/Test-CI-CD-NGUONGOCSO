@@ -25,7 +25,6 @@ import vn.nguongocso.farm.dto.response.FarmLogResponse;
 import vn.nguongocso.farm.entity.FarmLog;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.enums.ProductionLotStatus;
-import vn.nguongocso.farm.projection.FarmLogProjection;
 import vn.nguongocso.farm.repository.FarmLogAttachmentRepository;
 import vn.nguongocso.farm.repository.FarmLogRepository;
 import vn.nguongocso.farm.repository.ProductionLotRepository;
@@ -48,21 +47,15 @@ public class FarmLogServiceImpl implements FarmLogService {
 	private static final String EVENT_RECORDER_ROLE = "VT-03";
 	private static final String ORG_MANAGER_ROLE = "VT-02";
 
-	private static final String CREATE_PERMISSION_MESSAGE =
-			"Bạn không có quyền ghi nhật ký canh tác.";
-	private static final String VIEW_PERMISSION_MESSAGE =
-			"Bạn không có quyền xem lịch sử nhật ký canh tác.";
-	private static final String ORGANIZATION_ACCESS_MESSAGE =
-			"Bạn không thuộc tổ chức của lô sản xuất.";
-	private static final String PRODUCTION_LOT_NOT_FOUND_MESSAGE =
-			"Không tìm thấy lô sản xuất";
-	private static final String INVALID_LOT_STATUS_MESSAGE =
-			"Chỉ được ghi nhật ký cho lô đã duyệt hoặc đang thu hoạch.";
+	private static final String CREATE_PERMISSION_MESSAGE = "Bạn không có quyền ghi nhật ký canh tác.";
+	private static final String VIEW_PERMISSION_MESSAGE = "Bạn không có quyền xem lịch sử nhật ký canh tác.";
+	private static final String ORGANIZATION_ACCESS_MESSAGE = "Bạn không thuộc tổ chức của lô sản xuất.";
+	private static final String PRODUCTION_LOT_NOT_FOUND_MESSAGE = "Không tìm thấy lô sản xuất";
+	private static final String INVALID_LOT_STATUS_MESSAGE = "Chỉ được ghi nhật ký cho lô đã duyệt hoặc đang thu hoạch.";
 
-	private static final Sort FARM_LOG_SORT =
-			Sort.by(
-					Sort.Order.desc("executedDate"),
-					Sort.Order.desc("createdAt"));
+	private static final Sort FARM_LOG_SORT = Sort.by(
+			Sort.Order.desc("executedDate"),
+			Sort.Order.desc("createdAt"));
 
 	/**
 	 * Tạo nhật ký canh tác.
@@ -92,13 +85,13 @@ public class FarmLogServiceImpl implements FarmLogService {
 				"CREATE",
 				"Ghi nhật ký canh tác cho lô " + saved.getProductionLotId().getName(),
 				"FarmLog",
-				saved.getId().toString()
-		);
+				saved.getId().toString());
 
 		return toResponse(saved);
 	}
 
-	private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+	private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType,
+			String entityId) {
 		eventPublisher.publishEvent(ActivityLogEvent.builder()
 				.userId(currentUser.getUserId())
 				.username(currentUser.getUsername())
@@ -110,8 +103,7 @@ public class FarmLogServiceImpl implements FarmLogService {
 				.entityId(entityId)
 				.ipAddress(getClientIp()) // lấy từ request context nếu có
 				.timestamp(LocalDateTime.now())
-				.build()
-		);
+				.build());
 	}
 
 	private String getClientIp() {
@@ -195,8 +187,8 @@ public class FarmLogServiceImpl implements FarmLogService {
 	 * Lấy danh sách nhật ký canh tác của lô sản xuất theo phân trang.
 	 *
 	 * @param productionLotId mã lô sản xuất
-	 * @param page số trang (bắt đầu từ 0)
-	 * @param size số bản ghi trên mỗi trang
+	 * @param page            số trang (bắt đầu từ 0)
+	 * @param size            số bản ghi trên mỗi trang
 	 * @return dữ liệu nhật ký canh tác theo phân trang
 	 */
 	@Override

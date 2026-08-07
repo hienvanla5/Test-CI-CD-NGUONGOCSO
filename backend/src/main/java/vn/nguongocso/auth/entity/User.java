@@ -28,7 +28,6 @@ import vn.nguongocso.auth.enums.UserStatus;
 @AllArgsConstructor
 @Builder
 public class User {
-
     @Id
     @Column(name = "user_id")
     @JdbcTypeCode(SqlTypes.CHAR)
@@ -72,5 +71,4 @@ public class User {
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
-    
 }

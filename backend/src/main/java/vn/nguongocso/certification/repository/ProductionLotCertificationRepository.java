@@ -13,7 +13,6 @@ import java.util.UUID;
  * Repository cho thực thể ProductionLotCertification.
  */
 public interface ProductionLotCertificationRepository extends JpaRepository<ProductionLotCertification, UUID> {
-
     /**
      * Tìm tất cả chứng nhận gắn vào lô sản xuất theo ID lô sản xuất.
      *

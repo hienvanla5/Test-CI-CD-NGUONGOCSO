@@ -13,7 +13,6 @@ import java.util.UUID;
 @Getter
 @Setter
 public class AttachCertificationRequest {
-
     @NotNull(message = "ID chứng nhận không được để trống")
     private UUID certificationId;
 

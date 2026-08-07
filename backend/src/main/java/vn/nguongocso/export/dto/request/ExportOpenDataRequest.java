@@ -14,10 +14,15 @@ import java.util.UUID;
 @Setter
 public class ExportOpenDataRequest {
     private UUID organizationId;
+
     private LocalDateTime fromDate;
+
     private LocalDateTime toDate;
+
     private List<UUID> productCategoryIds;
+
     private List<UUID> shipmentIds;
+
     @Pattern(regexp = "^(JSON|XML|CSV)$", message = "Định dạng chỉ hỗ trợ JSON, XML hoặc CSV")
     private String format = "JSON"; // Mặc định JSON
 }

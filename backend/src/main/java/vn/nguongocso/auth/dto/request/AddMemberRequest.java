@@ -12,7 +12,6 @@ import lombok.Data;
  */
 @Data
 public class AddMemberRequest {
-
     @NotBlank(message = "Tên đăng nhập không được để trống")
     @Size(min = 4, max = 30, message = "Tên đăng nhập phải có từ 4 đến 30 ký tự")
     @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Tên đăng nhập chỉ chứa chữ cái, chữ số, dấu gạch ngang và dấu gạch dưới")

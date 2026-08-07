@@ -18,7 +18,6 @@ import vn.nguongocso.permission.service.PermissionChecker;
 @RequiredArgsConstructor
 /** Quản lý hồ sơ tổ chức hiện tại. */
 public class OrganizationProfileController {
-
     private final OrganizationService organizationService;
     private final PermissionChecker permissionChecker;
 

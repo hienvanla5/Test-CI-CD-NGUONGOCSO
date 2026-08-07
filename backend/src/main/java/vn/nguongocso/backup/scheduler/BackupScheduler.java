@@ -24,7 +24,6 @@ import java.util.concurrent.ScheduledFuture;
 @RequiredArgsConstructor
 @Slf4j
 public class BackupScheduler {
-
     private final TaskScheduler taskScheduler;
     private final BackupScheduleRepository backupScheduleRepository;
     private final BackupService backupService;

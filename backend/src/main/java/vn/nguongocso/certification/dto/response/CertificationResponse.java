@@ -15,10 +15,16 @@ import java.util.UUID;
 @Builder
 public class CertificationResponse {
     private UUID id;
+
     private String name;
+
     private String code;
+
     private String issuedBy;
+
     private LocalDate issueDate;
+
     private LocalDate expiryDate;
+    
     private Boolean isValid; // true nếu expiryDate >= hôm nay
 }

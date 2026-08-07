@@ -59,7 +59,8 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     @Override
     @Transactional
     @Auditable(action = "CREATE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Tạo lô sản xuất mới: ' + #request.name")
-    public CreateProductionLotResponse createProductionLot(CreateProductionLotRequest request, CustomUserDetails userDetails) {
+    public CreateProductionLotResponse createProductionLot(CreateProductionLotRequest request,
+            CustomUserDetails userDetails) {
         log.info("Bắt đầu xử lý tạo lô sản xuất với tên={}", request.getName());
 
         UUID userId = userDetails.getUserId();
@@ -106,8 +107,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 "CREATE",
                 "Tạo lô sản xuất " + savedLot.getName(),
                 "ProductionLot",
-                savedLot.getId().toString()
-        );
+                savedLot.getId().toString());
 
         return mapToResponse(savedLot);
     }
@@ -141,8 +141,9 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     @Override
     @Transactional
     @Auditable(action = "APPROVE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Duyệt lô sản xuất ID: ' + #lotId + ', Kết quả duyệt: ' + #request.approved")
-    public CreateProductionLotResponse approveProductionLot(UUID lotId, ApproveProductionLotRequest request, CustomUserDetails userDetails) {
-        log.info("Bắt đầu duyệt lô sản xuất với id={}",  lotId);
+    public CreateProductionLotResponse approveProductionLot(UUID lotId, ApproveProductionLotRequest request,
+            CustomUserDetails userDetails) {
+        log.info("Bắt đầu duyệt lô sản xuất với id={}", lotId);
 
         UUID orgId = userDetails.getOrganizationId();
         UUID userId = userDetails.getUserId();
@@ -184,8 +185,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 action,
                 description,
                 "ProductionLot",
-                saved.getId().toString()
-        );
+                saved.getId().toString());
 
         return mapToResponse(saved);
     }
@@ -223,8 +223,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 "SUBMIT",
                 "Gửi duyệt lô sản xuất " + lot.getName(),
                 "ProductionLot",
-                lot.getId().toString()
-        );
+                lot.getId().toString());
 
         return mapToResponse(lot);
     }
@@ -252,10 +251,13 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .updatedAt(lot.getUpdatedAt())
                 .build();
     }
+
+    /** Cập nhật thông tin lô sản xuất. */
     @Override
     @Transactional
     @Auditable(action = "UPDATE_PRODUCTION_LOT", entityType = "PRODUCTION_LOT", description = "'Cập nhật lô sản xuất ID: ' + #id + ', Tên mới: ' + #request.name")
-    public UpdateProductionLotResponse updateProductionLot(UUID id, UpdateProductionLotRequest request, CustomUserDetails userDetails) {
+    public UpdateProductionLotResponse updateProductionLot(UUID id, UpdateProductionLotRequest request,
+            CustomUserDetails userDetails) {
         log.info("Bắt đầu xử lý cập nhật lô sản xuất với id={}", id);
 
         UUID orgId = userDetails.getOrganizationId();
@@ -264,15 +266,18 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .orElseThrow(() -> new vn.nguongocso.exception.ResourceNotFoundException("Lô sản xuất không tồn tại"));
 
         if (!productionLot.getOrganization().getOrganizationId().equals(orgId)) {
-            throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền chỉnh sửa lô sản xuất này");
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Bạn không có quyền chỉnh sửa lô sản xuất này");
         }
 
         if (productionLot.getStatus() != ProductionLotStatus.DRAFT) {
-            throw new vn.nguongocso.exception.DuplicateResourceException("Chỉ có thể cập nhật lô sản xuất khi đang ở trạng thái nháp");
+            throw new vn.nguongocso.exception.DuplicateResourceException(
+                    "Chỉ có thể cập nhật lô sản xuất khi đang ở trạng thái nháp");
         }
 
         ProductCategory productCategory = productCategoryRepository.findById(request.getProductCategoryId())
-                .orElseThrow(() -> new vn.nguongocso.exception.BusinessException("Không tìm thấy loại nông sản đã chọn"));
+                .orElseThrow(
+                        () -> new vn.nguongocso.exception.BusinessException("Không tìm thấy loại nông sản đã chọn"));
         if (Boolean.FALSE.equals(productCategory.getIsActive())) {
             throw new vn.nguongocso.exception.BusinessException("Loại nông sản này hiện đang ngưng hoạt động");
         }
@@ -280,7 +285,8 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         FarmArea farmArea = null;
         if (request.getFarmAreaId() != null) {
             farmArea = farmAreaRepository.findById(request.getFarmAreaId())
-                    .orElseThrow(() -> new vn.nguongocso.exception.BusinessException("Không tìm thấy khu vực canh tác đã chọn"));
+                    .orElseThrow(() -> new vn.nguongocso.exception.BusinessException(
+                            "Không tìm thấy khu vực canh tác đã chọn"));
             if (!farmArea.getOrganization().getOrganizationId().equals(orgId)) {
                 throw new vn.nguongocso.exception.BusinessException("Khu vực canh tác này không thuộc tổ chức của bạn");
             }
@@ -301,8 +307,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 "UPDATE",
                 "Cập nhật lô sản xuất " + savedLot.getName(),
                 "ProductionLot",
-                savedLot.getId().toString()
-        );
+                savedLot.getId().toString());
 
         return UpdateProductionLotResponse.builder()
                 .id(savedLot.getId())
@@ -318,7 +323,8 @@ public class ProductionLotServiceImpl implements ProductionLotService {
     }
 
     /** Gửi sự kiện nhật ký hoạt động. */
-    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType, String entityId) {
+    private void publishActivityLog(CustomUserDetails currentUser, String action, String description, String entityType,
+            String entityId) {
         eventPublisher.publishEvent(ActivityLogEvent.builder()
                 .userId(currentUser.getUserId())
                 .username(currentUser.getUsername())
@@ -330,8 +336,7 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .entityId(entityId)
                 .ipAddress(IpUtils.getClientIp())
                 .timestamp(LocalDateTime.now())
-                .build()
-        );
+                .build());
     }
 
     /** Lấy dashboard thống kê lô sản xuất. */
@@ -355,17 +360,22 @@ public class ProductionLotServiceImpl implements ProductionLotService {
         boolean isAdmin = userDetails.getRoleCode().equals("VT-01");
         if (!isAdmin && !finalTargetOrgId.equals(userOrgId)) {
             // Ghi nhật ký truy cập trái phép (success = false)
-            reportAccessLogService.logAccess(userId, userOrgId, finalTargetOrgId, "YIELD_AND_LOT_DASHBOARD", false, ipAddress);
-            throw new org.springframework.security.access.AccessDeniedException("Từ chối truy cập: Bạn không có quyền truy cập dữ liệu của tổ chức này.");
+            reportAccessLogService.logAccess(userId, userOrgId, finalTargetOrgId, "YIELD_AND_LOT_DASHBOARD", false,
+                    ipAddress);
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Từ chối truy cập: Bạn không có quyền truy cập dữ liệu của tổ chức này.");
         }
 
         // Ghi nhật ký truy cập hợp lệ (success = true)
-        reportAccessLogService.logAccess(userId, userOrgId, finalTargetOrgId, "YIELD_AND_LOT_DASHBOARD", true, ipAddress);
+        reportAccessLogService.logAccess(userId, userOrgId, finalTargetOrgId, "YIELD_AND_LOT_DASHBOARD", true,
+                ipAddress);
 
         // 3. Lấy dữ liệu summary & byStatus
-        List<Object[]> summaryAndStatusList = productionLotRepository.getDashboardSummaryAndStatus(finalTargetOrgId, startDate, endDate);
+        List<Object[]> summaryAndStatusList = productionLotRepository.getDashboardSummaryAndStatus(finalTargetOrgId,
+                startDate, endDate);
 
-        // Khởi tạo trước tất cả trạng thái về 0L để đảm bảo đầy đủ khóa trong JSON response
+        // Khởi tạo trước tất cả trạng thái về 0L để đảm bảo đầy đủ khóa trong JSON
+        // response
         Map<String, Long> byStatus = new LinkedHashMap<>();
         for (ProductionLotStatus status : ProductionLotStatus.values()) {
             byStatus.put(status.name(), 0L);
@@ -394,8 +404,10 @@ public class ProductionLotServiceImpl implements ProductionLotService {
                 .totalActualYield(totalActualYield)
                 .build();
 
-        // 4. Lấy dữ liệu timeSeries và gom nhóm trên Java (để DB-agnostic giữa H2 & MySQL)
-        List<Object[]> timeSeriesList = productionLotRepository.getDashboardTimeSeriesData(finalTargetOrgId, startDate, endDate);
+        // 4. Lấy dữ liệu timeSeries và gom nhóm trên Java (để DB-agnostic giữa H2 &
+        // MySQL)
+        List<Object[]> timeSeriesList = productionLotRepository.getDashboardTimeSeriesData(finalTargetOrgId, startDate,
+                endDate);
 
         Map<String, ProductionLotDashboardResponse.TimeSeriesDto> timeSeriesMap = new LinkedHashMap<>();
 
@@ -406,12 +418,13 @@ public class ProductionLotServiceImpl implements ProductionLotService {
 
             String period = formatPeriod(plantingDate, groupBy);
 
-            ProductionLotDashboardResponse.TimeSeriesDto tsDto = timeSeriesMap.computeIfAbsent(period, p -> ProductionLotDashboardResponse.TimeSeriesDto.builder()
-                    .period(p)
-                    .lotCount(0L)
-                    .expectedYield(0.0)
-                    .actualYield(0.0)
-                    .build());
+            ProductionLotDashboardResponse.TimeSeriesDto tsDto = timeSeriesMap.computeIfAbsent(period,
+                    p -> ProductionLotDashboardResponse.TimeSeriesDto.builder()
+                            .period(p)
+                            .lotCount(0L)
+                            .expectedYield(0.0)
+                            .actualYield(0.0)
+                            .build());
 
             tsDto.setLotCount(tsDto.getLotCount() + 1);
             tsDto.setExpectedYield(tsDto.getExpectedYield() + expected);

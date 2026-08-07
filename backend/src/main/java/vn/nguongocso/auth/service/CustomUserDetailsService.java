@@ -29,7 +29,6 @@ import vn.nguongocso.organization.repository.OrganizationUserRepository;
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
-
         private final UserRepository userRepository;
         private final OrganizationUserRepository organizationUserRepository;
         private final RoleRepository roleRepository;
@@ -101,5 +100,4 @@ public class CustomUserDetailsService implements UserDetailsService {
                 throw new UnsupportedOperationException(
                                 "Vui lòng sử dụng phương thức loadUserByUsernameAndOrg()");
         }
-        
 }

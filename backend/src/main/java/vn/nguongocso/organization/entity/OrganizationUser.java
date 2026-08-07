@@ -23,6 +23,9 @@ import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.organization.enums.OrganizationUserStatus;
 
+/**
+ * Thực thể lưu trữ thông tin người dùng trong tổ chức.
+ */
 @Entity
 @Table(name = "organization_users")
 @Getter
@@ -30,7 +33,6 @@ import vn.nguongocso.organization.enums.OrganizationUserStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrganizationUser {
-
     @Id
     @Column(name = "id")
     @JdbcTypeCode(SqlTypes.CHAR)

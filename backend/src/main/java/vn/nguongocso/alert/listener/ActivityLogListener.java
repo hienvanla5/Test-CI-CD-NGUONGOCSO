@@ -19,9 +19,13 @@ import vn.nguongocso.alert.repository.ActivityLogRepository;
 @Slf4j
 @RequiredArgsConstructor
 public class ActivityLogListener {
-
     private final ActivityLogRepository activityLogRepository;
 
+    /**
+     * Xử lý sự kiện ActivityLogEvent và lưu thông tin vào cơ sở dữ liệu.
+     *
+     * @param event sự kiện ghi nhật ký hoạt động
+     */
     @Async // Thực thi bất đồng bộ trên một Thread Pool riêng biệt
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW) // Tạo transaction mới hoàn toàn biệt lập
@@ -46,5 +50,4 @@ public class ActivityLogListener {
             log.error("Không thể ghi nhật ký hoạt động vào database: {}", e.getMessage(), e);
         }
     }
-
 }

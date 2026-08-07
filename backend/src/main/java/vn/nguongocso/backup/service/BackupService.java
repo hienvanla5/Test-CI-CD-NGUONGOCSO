@@ -15,7 +15,6 @@ import java.io.File;
 
 /** Xử lý sao lưu hệ thống và lịch sử sao lưu. */
 public interface BackupService {
-
     /** Cấu hình lịch sao lưu. */
     BackupScheduleResponse configureSchedule(BackupScheduleRequest request, User updater);
 

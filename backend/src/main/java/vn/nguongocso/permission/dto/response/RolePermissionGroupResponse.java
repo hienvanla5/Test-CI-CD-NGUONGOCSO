@@ -11,20 +11,8 @@ import java.util.List;
 @Getter
 @Builder
 public class RolePermissionGroupResponse {
-
-    /**
-     * Ví dụ:
-     * production_lot
-     * chain_event
-     * certification
-     */
     private String resource;
 
-    /**
-     * Ví dụ:
-     * Lô sản xuất
-     * Sự kiện chuỗi
-     */
     private String resourceLabel;
 
     private List<PermissionItemResponse> permissions;

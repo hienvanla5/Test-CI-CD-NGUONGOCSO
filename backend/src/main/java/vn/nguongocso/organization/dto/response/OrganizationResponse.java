@@ -10,12 +10,14 @@ import vn.nguongocso.organization.enums.OrganizationType;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+/**
+ * Phản hồi khi truy vấn thông tin tổ chức.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrganizationResponse {
-
     private UUID organizationID;
 
     private String organizationName;

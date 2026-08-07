@@ -8,10 +8,9 @@ import vn.nguongocso.report.dto.response.LookupResponse;
  * @author Triệu Văn Đại
  */
 public interface PublicLookupService {
-
     /**
      * Tra cứu mã truy xuất công khai.
      */
     LookupResponse lookupCode(String codeValue, Double latitude, Double longitude,
-                              String location, String ipAddress, String userAgent);
+            String location, String ipAddress, String userAgent);
 }

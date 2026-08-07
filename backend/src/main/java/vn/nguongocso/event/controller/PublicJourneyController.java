@@ -17,7 +17,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 /** Cung cấp hành trình công khai của lô hàng. */
 public class PublicJourneyController {
-
     private final JourneyService journeyService;
 
     /** Lấy hành trình theo mã lô hàng. */

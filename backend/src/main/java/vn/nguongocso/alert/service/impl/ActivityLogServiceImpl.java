@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 /** Tra cứu và ghi nhật ký hoạt động. */
 public class ActivityLogServiceImpl implements ActivityLogService {
-
     private final ActivityLogRepository activityLogRepository;
 
     /** Lấy danh sách nhật ký theo bộ lọc. */

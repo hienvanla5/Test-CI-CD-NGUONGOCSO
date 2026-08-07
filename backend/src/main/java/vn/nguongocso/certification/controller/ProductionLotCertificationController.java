@@ -24,7 +24,6 @@ import java.util.UUID;
 @RequestMapping("/api/v1/production-lots/{lotId}/certifications")
 @RequiredArgsConstructor
 public class ProductionLotCertificationController {
-
     private final CertificationService certificationService;
     private final PermissionChecker permissionChecker;
 

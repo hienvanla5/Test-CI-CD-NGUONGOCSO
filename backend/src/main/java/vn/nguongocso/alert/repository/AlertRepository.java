@@ -15,7 +15,6 @@ import vn.nguongocso.alert.enums.AlertType;
 
 /** Repository thao tác Alert. */
 public interface AlertRepository extends JpaRepository<Alert, UUID> {
-
         /** Lọc theo loại cảnh báo. */
         Page<Alert> findByType(
                         AlertType type,

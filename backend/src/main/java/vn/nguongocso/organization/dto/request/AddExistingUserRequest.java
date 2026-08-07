@@ -5,9 +5,11 @@ import lombok.Data;
 
 import java.util.UUID;
 
+/**
+ * Yêu cầu thêm người dùng hiện có vào tổ chức.
+ */
 @Data
 public class AddExistingUserRequest {
-
     @NotNull(message = "userId không được để trống")
     private UUID userId;
 

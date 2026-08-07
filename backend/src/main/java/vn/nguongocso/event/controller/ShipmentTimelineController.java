@@ -23,7 +23,6 @@ import java.util.UUID;
 @RequestMapping("/api/v1/shipments")
 @RequiredArgsConstructor
 public class ShipmentTimelineController {
-
     private final ChainEventService chainEventService;
     private final PermissionChecker permissionChecker;
 

@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -23,6 +22,9 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import vn.nguongocso.farm.enums.FarmActivityType;
 
+/**
+ * Đọc và phân tích dữ liệu từ tệp nhập lô sản xuất.
+ */
 @Component
 @RequiredArgsConstructor
 public class ProductionLotImportFileParserImpl implements ProductionLotImportFileParser {
@@ -44,21 +46,28 @@ public class ProductionLotImportFileParserImpl implements ProductionLotImportFil
             "ngay_thuc_hien",
             "ghi_chu");
 
+    /**
+     * Đọc dữ liệu từ tệp và chuyển thành danh sách dòng dữ liệu.
+     *
+     * @param file tệp Excel hoặc CSV
+     * @return danh sách dòng dữ liệu
+     */
     @Override
     public List<ProductionLotImportRow> parse(MultipartFile file) {
         validateFile(file);
 
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
-             CSVParser parser = CSVFormat.DEFAULT
-                     .builder()
-                     .setHeader()
-                     .setSkipHeaderRecord(true)
-                     .setTrim(true)
-                     .build()
-                     .parse(reader)) {
+                CSVParser parser = CSVFormat.DEFAULT
+                        .builder()
+                        .setHeader()
+                        .setSkipHeaderRecord(true)
+                        .setTrim(true)
+                        .build()
+                        .parse(reader)) {
 
-            // --- Bước 1: Chuẩn hóa header (loại bỏ BOM, trim) và tạo map từ tên chuẩn -> tên gốc ---
+            // --- Bước 1: Chuẩn hóa header (loại bỏ BOM, trim) và tạo map từ tên chuẩn ->
+            // tên gốc ---
             Map<String, String> normalizedToRawHeader = new HashMap<>();
             for (String rawHeader : parser.getHeaderMap().keySet()) {
                 String normalized = rawHeader.replace("\uFEFF", "").trim();
@@ -80,7 +89,8 @@ public class ProductionLotImportFileParserImpl implements ProductionLotImportFil
                 Double actualQuantity = parseDouble(get(record, normalizedToRawHeader.get("san_luong_thuc_thu")));
                 LocalDate plantingDate = parseDate(get(record, normalizedToRawHeader.get("ngay_gieo_trong")));
                 LocalDate harvestDate = parseDate(get(record, normalizedToRawHeader.get("ngay_thu_hoach")));
-                FarmActivityType activityType = parseActivityType(get(record, normalizedToRawHeader.get("hoat_dong_canh_tac")));
+                FarmActivityType activityType = parseActivityType(
+                        get(record, normalizedToRawHeader.get("hoat_dong_canh_tac")));
                 String material = get(record, normalizedToRawHeader.get("vat_tu"));
                 Double quantity = parseDouble(get(record, normalizedToRawHeader.get("so_luong")));
                 String unit = get(record, normalizedToRawHeader.get("don_vi"));
@@ -111,8 +121,6 @@ public class ProductionLotImportFileParserImpl implements ProductionLotImportFil
             throw new ProductionLotImportException("Không thể đọc tệp CSV. Vui lòng kiểm tra lại nội dung tệp.");
         }
     }
-
-    // ---- Các helper method được giữ nguyên, chỉ thay đổi validateHeaders ----
 
     private void validateHeaders(Set<String> normalizedHeaders) {
         for (String required : REQUIRED_HEADERS) {
@@ -145,8 +153,10 @@ public class ProductionLotImportFileParserImpl implements ProductionLotImportFil
     }
 
     private String get(CSVRecord record, String rawColumnName) {
-        if (rawColumnName == null) return null;
-        if (!record.isMapped(rawColumnName)) return null;
+        if (rawColumnName == null)
+            return null;
+        if (!record.isMapped(rawColumnName))
+            return null;
         try {
             String value = record.get(rawColumnName);
             return value == null ? null : value.trim();
@@ -157,7 +167,8 @@ public class ProductionLotImportFileParserImpl implements ProductionLotImportFil
     }
 
     private Double parseDouble(String value) {
-        if (value == null || value.isBlank()) return null;
+        if (value == null || value.isBlank())
+            return null;
         try {
             return Double.parseDouble(value);
         } catch (NumberFormatException ex) {
@@ -166,7 +177,8 @@ public class ProductionLotImportFileParserImpl implements ProductionLotImportFil
     }
 
     private LocalDate parseDate(String value) {
-        if (value == null || value.isBlank()) return null;
+        if (value == null || value.isBlank())
+            return null;
         try {
             return LocalDate.parse(value, DATE_FORMAT);
         } catch (DateTimeParseException ex) {

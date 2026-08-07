@@ -13,7 +13,6 @@ import vn.nguongocso.alert.enums.AlertType;
 @Getter
 @Setter
 public class AlertResponse {
-
     private UUID id;
 
     private AlertType type;
@@ -33,5 +32,4 @@ public class AlertResponse {
     private LocalDateTime resolvedAt;
 
     private UUID resolvedBy;
-
 }

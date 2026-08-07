@@ -15,7 +15,6 @@ import java.util.UUID;
 @Getter
 @Setter
 public class OfflineEventSyncRequest {
-
     @NotNull(message = "Mã phiên đồng bộ (syncId) không được để trống")
     private UUID syncId;
 

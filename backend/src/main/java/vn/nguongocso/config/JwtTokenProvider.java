@@ -21,7 +21,6 @@ import java.util.UUID;
  */
 @Component
 public class JwtTokenProvider {
-
     private static final String CLAIM_USER_ID = "userId";
     private static final String CLAIM_ORG_ID = "orgId";
     private static final String CLAIM_ORG_NAME = "orgName";

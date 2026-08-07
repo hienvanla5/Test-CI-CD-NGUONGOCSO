@@ -35,7 +35,6 @@ import vn.nguongocso.organization.repository.OrganizationRepository;
 @Transactional
 @RequiredArgsConstructor
 public class FarmAreaServiceImpl implements FarmAreaService {
-
 	private final FarmAreaRepository farmAreaRepository;
 	private final ProductCategoryRepository productCategoryRepository;
 	private final OrganizationRepository organizationRepository;
@@ -43,6 +42,7 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 
 	/**
 	 * Tạo mới vùng trồng cho tổ chức của người dùng đang đăng nhập.
+	 * 
 	 * @param request thông tin vùng trồng cần tạo
 	 * @return thông tin vùng trồng sau khi tạo
 	 */
@@ -50,13 +50,20 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 	public List<FarmAreaResponse> getFarmAreas() {
 		CustomUserDetails currentUser = getCurrentUser();
 
-		List<FarmArea> farmAreas = farmAreaRepository.findByOrganization_OrganizationId(currentUser.getOrganizationId());
+		List<FarmArea> farmAreas = farmAreaRepository
+				.findByOrganization_OrganizationId(currentUser.getOrganizationId());
 
 		return farmAreas.stream()
 				.map(this::toResponse)
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Tạo mới vùng trồng cho tổ chức của người dùng đang đăng nhập.
+	 *
+	 * @param request thông tin vùng trồng cần tạo
+	 * @return thông tin vùng trồng sau khi tạo
+	 */
 	@Override
 	public FarmAreaResponse create(CreateFarmAreaRequest request) {
 
@@ -73,6 +80,13 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 		return toResponse(saved);
 	}
 
+	/**
+	 * Cập nhật thông tin vùng trồng.
+	 *
+	 * @param farmAreaId ID của vùng trồng cần cập nhật
+	 * @param request    thông tin cập nhật
+	 * @return thông tin vùng trồng sau khi cập nhật
+	 */
 	@Override
 	public List<AreaUnit> getAreaUnits() {
 		return Arrays.asList(AreaUnit.values());
@@ -92,8 +106,9 @@ public class FarmAreaServiceImpl implements FarmAreaService {
 	private ProductCategory getCropType(UUID cropTypeId) {
 		ProductCategory cropType = productCategoryRepository.findById(cropTypeId)
 				.orElseThrow(() -> new BusinessException("Không tìm thấy loại cây trồng"));
-		if(Boolean.FALSE.equals(cropType.getIsActive())){
-			throw new BusinessException("Loại cây trồng " + cropType.getName() + " hiện đã bị ẩn và không thể dùng để tạo vùng trồng mới");
+		if (Boolean.FALSE.equals(cropType.getIsActive())) {
+			throw new BusinessException(
+					"Loại cây trồng " + cropType.getName() + " hiện đã bị ẩn và không thể dùng để tạo vùng trồng mới");
 		}
 		return cropType;
 	}

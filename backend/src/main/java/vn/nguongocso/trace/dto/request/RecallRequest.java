@@ -13,9 +13,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class RecallRequest {
-
     @NotBlank(message = "Lý do thu hồi không được để trống.")
     @Size(max = 1000, message = "Lý do thu hồi không được vượt quá 1000 ký tự.")
     private String reason;
-
 }

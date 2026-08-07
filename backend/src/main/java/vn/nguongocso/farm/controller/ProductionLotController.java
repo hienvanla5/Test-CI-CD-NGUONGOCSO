@@ -35,6 +35,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Controller quản lý lô sản xuất.
+ * Cung cấp các API để tạo, cập nhật, xem chi tiết, xem danh sách, nhập dữ liệu từ CSV,
+ * và lấy thông tin dashboard của lô sản xuất.
+ */
 @RestController
 @RequestMapping("/api/v1/production-lots")
 @RequiredArgsConstructor

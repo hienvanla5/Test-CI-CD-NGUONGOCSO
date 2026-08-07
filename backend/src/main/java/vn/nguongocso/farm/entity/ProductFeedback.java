@@ -7,6 +7,9 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Entity đại diện cho phản hồi sản phẩm.
+ */
 @Entity
 @Table(name = "product_feedbacks")
 @Getter
@@ -15,7 +18,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class ProductFeedback {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @JdbcTypeCode(SqlTypes.CHAR)

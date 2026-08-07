@@ -17,7 +17,6 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class CorrectPackagingEventRequest {
-
     @NotBlank(message = "Quy cách đóng gói đính chính không được để trống")
     @Size(max = 255, message = "Quy cách đóng gói không được vượt quá 255 ký tự")
     private String packagingSpecification;

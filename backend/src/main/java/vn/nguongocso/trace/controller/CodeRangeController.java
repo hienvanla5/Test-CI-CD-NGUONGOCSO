@@ -20,7 +20,6 @@ import java.util.List;
 @RequiredArgsConstructor
 /** Quản lý cấp dải mã truy xuất. */
 public class CodeRangeController {
-
     private final CodeRangeService codeRangeService;
 
     /** Cấp mới một dải mã. */

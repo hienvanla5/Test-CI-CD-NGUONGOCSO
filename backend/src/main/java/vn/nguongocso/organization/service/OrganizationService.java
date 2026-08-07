@@ -16,7 +16,6 @@ import java.util.UUID;
 
 /** Quản lý tổ chức và thông tin thành viên liên quan. */
 public interface OrganizationService {
-
     /** Tạo tổ chức mới. */
     OrganizationResponse createOrganization(CreateOrganizationRequest request);
 
@@ -48,6 +47,7 @@ public interface OrganizationService {
 
     /** Lấy danh sách người dùng có thể thêm vào tổ chức. */
     List<AvailableUserResponse> getAvailableUsersForOrganization(UUID organizationId);
+
     /** Thêm người dùng hiện có vào tổ chức. */
     OrganizationUserResponse addExistingUserToOrganization(UUID organizationId, UUID userId, Integer roleId);
 }

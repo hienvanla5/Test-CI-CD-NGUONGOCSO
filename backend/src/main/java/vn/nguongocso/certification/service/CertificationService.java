@@ -14,7 +14,6 @@ import java.util.UUID;
  * lý chứng nhận.
  */
 public interface CertificationService {
-
         /**
          * Lấy danh sách chứng nhận của một lô sản xuất.
          */

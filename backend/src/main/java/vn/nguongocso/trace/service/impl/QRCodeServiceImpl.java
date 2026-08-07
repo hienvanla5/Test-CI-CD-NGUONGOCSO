@@ -22,7 +22,6 @@ import vn.nguongocso.trace.service.QRCodeService;
 @Slf4j
 /** Sinh và lưu file ảnh QR cho mã truy xuất. */
 public class QRCodeServiceImpl implements QRCodeService {
-
 	@Value("${qr.image.storage.path:./files/qr}")
 
 	private String storagePath;
@@ -55,5 +54,4 @@ public class QRCodeServiceImpl implements QRCodeService {
 			throw new RuntimeException("Không thể sinh ảnh QR cho mã: " + codeValue, e);
 		}
 	}
-
 }

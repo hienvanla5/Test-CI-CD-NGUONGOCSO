@@ -11,7 +11,6 @@ import java.util.Optional;
  */
 @Repository
 public interface BackupScheduleRepository extends JpaRepository<BackupSchedule, Integer> {
-    
     // Tìm cấu hình lịch đang hoạt động
     Optional<BackupSchedule> findFirstByIsActiveTrue();
 }

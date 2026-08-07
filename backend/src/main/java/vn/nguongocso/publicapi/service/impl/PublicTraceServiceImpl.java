@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 /** Cung cấp dữ liệu truy xuất công khai cho tem lô hàng. */
 public class PublicTraceServiceImpl implements PublicTraceService {
-
     private final TraceCodeRepository traceCodeRepository;
     private final ShipmentRepository shipmentRepository;
     private final ChainEventRepository chainEventRepository;
@@ -177,8 +176,8 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 .eventType(event.getEventType().name())
                 .eventData(filteredData)
                 .recordedAt(event.getRecordedAt())
-                .latitude(latitude) // 👈 thêm
-                .longitude(longitude) // 👈 thêm
+                .latitude(latitude)
+                .longitude(longitude)
                 .build();
     }
 
@@ -236,60 +235,60 @@ public class PublicTraceServiceImpl implements PublicTraceService {
     /** Lấy chứng nhận công khai của lô hàng. */
     @Override
     public PublicLotCertificationsResponse getPublicCertifications(String codeValue) {
-		// 1. Tìm trace code
-		TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
-				.orElseThrow(() -> new ResourceNotFoundException("Mã lô hàng không tồn tại."));
+        // 1. Tìm trace code
+        TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
+                .orElseThrow(() -> new ResourceNotFoundException("Mã lô hàng không tồn tại."));
 
-		Shipment shipment = traceCode.getShipment();
-		if (shipment == null) {
-			throw new ResourceNotFoundException("Không tìm thấy lô hàng liên kết.");
-		}
+        Shipment shipment = traceCode.getShipment();
+        if (shipment == null) {
+            throw new ResourceNotFoundException("Không tìm thấy lô hàng liên kết.");
+        }
 
-		ProductionLot lot = shipment.getProductionLot();
-		if (lot == null) {
-			return PublicLotCertificationsResponse.builder()
-					.productionLotId(null)
-					.lotName(null)
-					.hasCertification(false)
-					.certifications(Collections.emptyList())
-					.build();
-		}
+        ProductionLot lot = shipment.getProductionLot();
+        if (lot == null) {
+            return PublicLotCertificationsResponse.builder()
+                    .productionLotId(null)
+                    .lotName(null)
+                    .hasCertification(false)
+                    .certifications(Collections.emptyList())
+                    .build();
+        }
 
-		// 2. Lấy danh sách chứng nhận của lô sản xuất
-		List<ProductionLotCertification> plCertifications =
-				productionLotCertificationRepository.findByProductionLotId(lot.getId());
+        // 2. Lấy danh sách chứng nhận của lô sản xuất
+        List<ProductionLotCertification> plCertifications = productionLotCertificationRepository
+                .findByProductionLotId(lot.getId());
 
-		LocalDate today = LocalDate.now();
-		List<PublicCertificationResponse> certResponses = plCertifications.stream()
-				.map(plc -> {
-					Certification cert = plc.getCertification();
-					CertificationStatus status;
-					String statusLabel;
-					if (cert.getExpiryDate().isBefore(today)) {
-						status = CertificationStatus.EXPIRED;
-						statusLabel = "Hết hạn";
-					} else {
-						status = CertificationStatus.VALID;
-						statusLabel = "Còn hiệu lực";
-					}
-					return PublicCertificationResponse.builder()
-							.certificationId(cert.getId())
-							.certificationName(lot.getName())
-							.certificationCode(cert.getCode())
-							.issuedBy(cert.getIssuedBy())
-							.issueDate(cert.getIssueDate())
-							.expiryDate(cert.getExpiryDate())
-							.status(status)
-							.statusLabel(statusLabel)
-							.build();
-				})
-				.collect(Collectors.toList());
+        LocalDate today = LocalDate.now();
+        List<PublicCertificationResponse> certResponses = plCertifications.stream()
+                .map(plc -> {
+                    Certification cert = plc.getCertification();
+                    CertificationStatus status;
+                    String statusLabel;
+                    if (cert.getExpiryDate().isBefore(today)) {
+                        status = CertificationStatus.EXPIRED;
+                        statusLabel = "Hết hạn";
+                    } else {
+                        status = CertificationStatus.VALID;
+                        statusLabel = "Còn hiệu lực";
+                    }
+                    return PublicCertificationResponse.builder()
+                            .certificationId(cert.getId())
+                            .certificationName(lot.getName())
+                            .certificationCode(cert.getCode())
+                            .issuedBy(cert.getIssuedBy())
+                            .issueDate(cert.getIssueDate())
+                            .expiryDate(cert.getExpiryDate())
+                            .status(status)
+                            .statusLabel(statusLabel)
+                            .build();
+                })
+                .collect(Collectors.toList());
 
-		return PublicLotCertificationsResponse.builder()
-				.productionLotId(lot.getId())
-				.lotName(lot.getName())
-				.hasCertification(!certResponses.isEmpty())
-				.certifications(certResponses)
-				.build();
-	}
+        return PublicLotCertificationsResponse.builder()
+                .productionLotId(lot.getId())
+                .lotName(lot.getName())
+                .hasCertification(!certResponses.isEmpty())
+                .certifications(certResponses)
+                .build();
+    }
 }

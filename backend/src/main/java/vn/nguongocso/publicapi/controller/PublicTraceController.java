@@ -20,7 +20,6 @@ import vn.nguongocso.publicapi.service.PublicTraceService;
 @RequiredArgsConstructor
 /** Cung cấp tra cứu công khai theo mã truy xuất. */
 public class PublicTraceController {
-
     private final PublicTraceService publicTraceService;
 
     /** Lấy thông tin truy xuất công khai của một mã. */
@@ -48,8 +47,7 @@ public class PublicTraceController {
     public ResponseEntity<ApiResult<PublicLotCertificationsResponse>> getPublicCertifications(
             @PathVariable String codeValue) {
 
-        PublicLotCertificationsResponse response =
-                publicTraceService.getPublicCertifications(codeValue);
+        PublicLotCertificationsResponse response = publicTraceService.getPublicCertifications(codeValue);
 
         return ResponseEntity.ok(ApiResult.success(response));
     }

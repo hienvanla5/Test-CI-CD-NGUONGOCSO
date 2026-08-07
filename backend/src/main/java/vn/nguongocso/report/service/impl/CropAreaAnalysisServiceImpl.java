@@ -26,10 +26,21 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CropAreaAnalysisServiceImpl implements CropAreaAnalysisService {
-
         private final ProductionLotRepository productionLotRepository;
         private final ReportAccessLogService reportAccessLogService;
 
+        /**
+         * Lấy dữ liệu phân tích diện tích canh tác theo năm, vùng trồng, loại sản phẩm
+         * và tổ chức.
+         *
+         * @param year              Năm để phân tích (có thể null)
+         * @param farmAreaId        ID của vùng trồng (có thể null)
+         * @param productCategoryId ID của loại sản phẩm (có thể null)
+         * @param organizationId    ID của tổ chức (có thể null)
+         * @param currentUser       Thông tin người dùng hiện tại
+         * @param ipAddress         Địa chỉ IP của người dùng
+         * @return CropAreaAnalysisResponse chứa dữ liệu phân tích
+         */
         @Override
         @Transactional(readOnly = true)
         public CropAreaAnalysisResponse getAnalysis(
@@ -258,6 +269,13 @@ public class CropAreaAnalysisServiceImpl implements CropAreaAnalysisService {
                 }
         }
 
+        /**
+         * So sánh sản lượng mùa vụ giữa các năm.
+         *
+         * @param years             Danh sách các năm để so sánh
+         * @param farmAreaId        ID của vùng trồng (có thể null)
+         * @param productCategoryId ID của loại sản phẩm (có thể null)
+         */
         @Override
         @Transactional(readOnly = true)
         public SeasonYieldComparisonResponse compareSeasonYield(

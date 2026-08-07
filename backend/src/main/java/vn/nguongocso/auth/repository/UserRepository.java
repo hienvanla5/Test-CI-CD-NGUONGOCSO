@@ -11,7 +11,6 @@ import vn.nguongocso.auth.entity.User;
  * Repository cho thực thể User.
  */
 public interface UserRepository extends JpaRepository<User, UUID> {
-
     /**
      * Kiểm tra sự tồn tại của người dùng theo tên đăng nhập.
      */

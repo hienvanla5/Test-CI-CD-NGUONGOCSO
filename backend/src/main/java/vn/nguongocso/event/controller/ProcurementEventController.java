@@ -25,7 +25,6 @@ import vn.nguongocso.permission.service.PermissionChecker;
 @RequestMapping("/api/v1/chain-events")
 @RequiredArgsConstructor
 public class ProcurementEventController {
-
     private final ProcurementEventService procurementEventService;
     private final PermissionChecker permissionChecker;
 

@@ -12,31 +12,13 @@ import java.util.UUID;
 @Getter
 @Builder
 public class RolePermissionResponse {
-
-    /**
-     * ID tổ chức.
-     */
     private UUID organizationId;
 
-    /**
-     * ID vai trò.
-     */
     private Integer roleId;
 
-    /**
-     * Mã vai trò.
-     * Ví dụ: VT-03
-     */
     private String roleCode;
 
-    /**
-     * Tên vai trò.
-     * Ví dụ: Người ghi sự kiện
-     */
     private String roleName;
 
-    /**
-     * Danh sách quyền được nhóm theo resource.
-     */
     private List<RolePermissionGroupResponse> groups;
 }

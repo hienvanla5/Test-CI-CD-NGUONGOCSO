@@ -18,7 +18,6 @@ import java.util.List;
 
 /** Tra cứu và kiểm tra hạn chứng nhận. */
 public class CertificationLookupController {
-
     private final CertificationService certificationService;
 
     /** Lấy danh sách chứng nhận còn hiệu lực. */

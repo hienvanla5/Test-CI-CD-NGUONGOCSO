@@ -9,10 +9,8 @@ import vn.nguongocso.auth.entity.Role;
  * Repository cho thực thể Role.
  */
 public interface RoleRepository extends JpaRepository<Role, Integer> {
-
     /**
      * Tìm kiếm vai trò theo mã.
      */
     Optional<Role> findByCode(String code);
-
 }

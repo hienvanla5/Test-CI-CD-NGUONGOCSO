@@ -21,10 +21,12 @@ public interface ProductionLotService {
     List<CreateProductionLotResponse> getAllProductionLots(CustomUserDetails userDetails);
 
     /** Cập nhật lô sản xuất. */
-    UpdateProductionLotResponse updateProductionLot(UUID id, UpdateProductionLotRequest request, CustomUserDetails userDetails);
+    UpdateProductionLotResponse updateProductionLot(UUID id, UpdateProductionLotRequest request,
+            CustomUserDetails userDetails);
 
     /** Phê duyệt hoặc từ chối lô sản xuất. */
-    CreateProductionLotResponse approveProductionLot(UUID lotId, ApproveProductionLotRequest request, CustomUserDetails userDetails);
+    CreateProductionLotResponse approveProductionLot(UUID lotId, ApproveProductionLotRequest request,
+            CustomUserDetails userDetails);
 
     /** Gửi lô sản xuất sang trạng thái chờ duyệt. */
     CreateProductionLotResponse submitForApproval(UUID lotId, CustomUserDetails userDetails);

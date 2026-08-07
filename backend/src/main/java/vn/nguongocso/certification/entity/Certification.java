@@ -21,7 +21,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class Certification {
-
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "id", nullable = false, updatable = false)

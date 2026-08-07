@@ -9,7 +9,6 @@ import vn.nguongocso.exception.BusinessException;
  * Lớp tiện ích cho các thao tác liên quan đến bảo mật và xác thực người dùng.
  */
 public class SecurityUtils {
-
     /**
      * Lấy thông tin chi tiết của người dùng hiện tại từ ngữ cảnh bảo mật.
      *

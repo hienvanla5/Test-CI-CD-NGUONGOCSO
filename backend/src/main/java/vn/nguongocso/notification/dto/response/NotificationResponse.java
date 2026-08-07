@@ -19,7 +19,6 @@ import vn.nguongocso.alert.enums.NotificationType;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationResponse {
-
     private UUID id;
 
     private NotificationType type;

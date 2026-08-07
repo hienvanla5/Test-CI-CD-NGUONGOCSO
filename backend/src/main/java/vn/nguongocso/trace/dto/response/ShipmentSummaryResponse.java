@@ -14,10 +14,13 @@ import vn.nguongocso.trace.enums.ShipmentStatus;
 @Data
 @Builder
 public class ShipmentSummaryResponse {
-
     private UUID id;
+
     private String name;
+
     private ShipmentStatus status;
+
     private String productionLotName;
+
     private Long totalQuantity;
 }

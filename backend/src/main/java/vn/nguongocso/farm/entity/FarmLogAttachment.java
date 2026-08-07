@@ -9,6 +9,9 @@ import vn.nguongocso.auth.entity.User;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Entity đại diện cho tệp đính kèm của nhật ký hoạt động sản xuất.
+ */
 @Entity
 @Table(name = "farm_log_attachments")
 @Getter
@@ -17,7 +20,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class FarmLogAttachment {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @JdbcTypeCode(SqlTypes.CHAR)
@@ -51,7 +53,9 @@ public class FarmLogAttachment {
 
     @PrePersist
     void prePersist() {
-        if (id == null) id = UUID.randomUUID();
-        if (uploadedAt == null) uploadedAt = LocalDateTime.now();
+        if (id == null)
+            id = UUID.randomUUID();
+        if (uploadedAt == null)
+            uploadedAt = LocalDateTime.now();
     }
 }

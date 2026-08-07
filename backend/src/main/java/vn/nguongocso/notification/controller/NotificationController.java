@@ -21,48 +21,46 @@ import vn.nguongocso.notification.service.NotificationService;
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
+        private final NotificationService alertNotificationService;
 
-    private final NotificationService alertNotificationService;
+        /**
+         * Lấy danh sách thông báo của người dùng.
+         */
+        @GetMapping
+        public ResponseEntity<ApiResult<PageResponse<NotificationResponse>>> getNotifications(
+                        @RequestParam(required = false) Boolean isRead,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size) {
 
-    /**
-     * Lấy danh sách thông báo của người dùng.
-     */
-    @GetMapping
-    public ResponseEntity<ApiResult<PageResponse<NotificationResponse>>> getNotifications(
-            @RequestParam(required = false) Boolean isRead,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+                Pageable pageable = PageRequest.of(page, size);
 
-        Pageable pageable = PageRequest.of(page, size);
+                return ResponseEntity.ok(
+                                ApiResult.success(
+                                                alertNotificationService.getNotifications(
+                                                                isRead,
+                                                                pageable)));
+        }
 
-        return ResponseEntity.ok(
-                ApiResult.success(
-                        alertNotificationService.getNotifications(
-                                isRead,
-                                pageable)));
-    }
+        /**
+         * Lấy số lượng thông báo chưa đọc.
+         */
+        @GetMapping("/unread-count")
+        public ResponseEntity<ApiResult<UnreadCountResponse>> getUnreadCount() {
 
-    /**
-     * Lấy số lượng thông báo chưa đọc.
-     */
-    @GetMapping("/unread-count")
-    public ResponseEntity<ApiResult<UnreadCountResponse>> getUnreadCount() {
+                return ResponseEntity.ok(
+                                ApiResult.success(
+                                                alertNotificationService.getUnreadCount()));
+        }
 
-        return ResponseEntity.ok(
-                ApiResult.success(
-                        alertNotificationService.getUnreadCount()));
-    }
+        /**
+         * Đánh dấu thông báo là đã đọc.
+         */
+        @PatchMapping("/{notificationId}/read")
+        public ResponseEntity<ApiResult<NotificationResponse>> markAsRead(
+                        @PathVariable UUID notificationId) {
 
-    /**
-     * Đánh dấu thông báo là đã đọc.
-     */
-    @PatchMapping("/{notificationId}/read")
-    public ResponseEntity<ApiResult<NotificationResponse>> markAsRead(
-            @PathVariable UUID notificationId) {
-
-        return ResponseEntity.ok(
-                ApiResult.success(
-                        alertNotificationService.markAsRead(notificationId)));
-    }
-
+                return ResponseEntity.ok(
+                                ApiResult.success(
+                                                alertNotificationService.markAsRead(notificationId)));
+        }
 }

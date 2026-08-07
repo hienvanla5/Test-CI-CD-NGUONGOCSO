@@ -15,14 +15,19 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class BackupScheduleResponse {
-
     private Integer id;
+
     private String cronExpression;
+
     private String description;
+
     @JsonProperty("isActive")
     private boolean isActive;
+
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
+
     private String updatedBy;
 
     /**
@@ -32,7 +37,8 @@ public class BackupScheduleResponse {
      * @return Đối tượng BackupScheduleResponse tương ứng.
      */
     public static BackupScheduleResponse fromEntity(BackupSchedule schedule) {
-        if (schedule == null) return null;
+        if (schedule == null)
+            return null;
         return BackupScheduleResponse.builder()
                 .id(schedule.getId())
                 .cronExpression(schedule.getCronExpression())

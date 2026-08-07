@@ -13,7 +13,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ProductionLotImportResultResponse {
-
     private UUID importHistoryId; // ID lịch sử nhập dữ liệu.
 
     private String status; // Trạng thái: SUCCESS, PARTIAL_SUCCESS hoặc FAILED.
@@ -31,5 +30,4 @@ public class ProductionLotImportResultResponse {
     private List<ProductionLotImportRowError> errors; // Danh sách dòng lỗi.
 
     private Instant importedAt; // Thời điểm hoàn tất nhập dữ liệu.
-
 }

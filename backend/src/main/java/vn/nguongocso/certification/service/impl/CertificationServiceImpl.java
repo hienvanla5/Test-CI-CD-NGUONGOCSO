@@ -53,7 +53,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CertificationServiceImpl implements CertificationService {
-
     private final ProductionLotRepository productionLotRepository;
     private final CertificationRepository certificationRepository;
     private final ProductionLotCertificationRepository plCertificationRepository;

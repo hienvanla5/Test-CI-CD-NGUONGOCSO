@@ -11,7 +11,6 @@ import java.time.LocalDate;
  * Service để quản lý nhật ký hoạt động của người dùng.
  */
 public interface ActivityLogService {
-
     /**
      * Lấy danh sách nhật ký hoạt động theo bộ lọc.
      */

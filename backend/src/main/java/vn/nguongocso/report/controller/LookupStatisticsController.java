@@ -17,6 +17,7 @@ import vn.nguongocso.report.service.LookupStatisticsService;
 
 import java.time.LocalDate;
 import java.util.UUID;
+
 /**
  * Controller thống kê tra cứu mã truy xuất.
  *
@@ -26,9 +27,11 @@ import java.util.UUID;
 @RequestMapping("/api/v1/reports/lookup-statistics")
 @RequiredArgsConstructor
 public class LookupStatisticsController {
-
     private final LookupStatisticsService lookupStatisticsService;
 
+    /**
+     * Lấy thống kê tra cứu mã truy xuất.
+     */
     @GetMapping
     @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
     public ResponseEntity<ApiResult<LookupStatisticsResponse>> getStatistics(
@@ -45,6 +48,9 @@ public class LookupStatisticsController {
         return ResponseEntity.ok(ApiResult.success(response));
     }
 
+    /**
+     * Lấy danh sách các lần quét bất thường.
+     */
     @GetMapping("/abnormal")
     @PreAuthorize("hasAnyRole('VT-01', 'VT-02')")
     public ResponseEntity<ApiResult<Page<AbnormalScanResponse>>> getAbnormalScans(

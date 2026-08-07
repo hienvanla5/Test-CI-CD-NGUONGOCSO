@@ -88,6 +88,9 @@ public class NotificationServiceImpl implements NotificationService {
                 return notification;
         }
 
+        /**
+         * Gửi thông báo thu hồi lô hàng cho tất cả người dùng có quyền quản lý tổ chức.
+         */
         @Override
         public void sendShipmentRecallNotification(Recall recall) {
 
@@ -123,6 +126,7 @@ public class NotificationServiceImpl implements NotificationService {
                 return notification;
         }
 
+        /** Lấy danh sách người dùng nhận thông báo dựa trên vai trò. */
         @Override
         public void sendCertificationExpiryNotification(Alert alert) {
 
@@ -286,6 +290,9 @@ public class NotificationServiceImpl implements NotificationService {
                 return (CustomUserDetails) authentication.getPrincipal();
         }
 
+        /**
+         * Gửi cảnh báo (log) khi có sự kiện quan trọng xảy ra.
+         */
         @Override
         public void sendAlert(String message) {
                 log.warn("🚨 CẢNH BÁO: {}", message);

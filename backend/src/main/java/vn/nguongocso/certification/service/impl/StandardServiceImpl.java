@@ -24,7 +24,6 @@ import vn.nguongocso.exception.BusinessException;
 @RequiredArgsConstructor
 @Transactional
 public class StandardServiceImpl implements StandardService {
-
     private static final String ADMIN_ROLE = "VT-01";
 
     private static final String MSG_NO_PERMISSION = "Bạn không có quyền quản lý danh mục tiêu chuẩn.";

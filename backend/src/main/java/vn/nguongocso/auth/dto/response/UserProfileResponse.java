@@ -13,7 +13,6 @@ import java.util.List;
 @Data
 @Builder
 public class UserProfileResponse {
-
     private UUID userId;
 
     private String username;
@@ -37,5 +36,4 @@ public class UserProfileResponse {
     private OrganizationType organizationType;
 
     private List<String> permissions;
-
 }

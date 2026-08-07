@@ -6,7 +6,6 @@ import vn.nguongocso.backup.enums.BackupStatus;
 
 /** Khôi phục dữ liệu từ bản sao lưu và quản lý chế độ bảo trì. */
 public interface RestoreService {
-
     /** Khởi chạy quy trình khôi phục. */
     BackupHistoryResponse triggerRestore(Integer backupHistoryId, User creator);
 

@@ -15,7 +15,6 @@ import java.util.UUID;
 @Getter
 @Setter
 public class CreateCertificationRequest {
-
     @NotNull(message = "ID tiêu chuẩn không được để trống")
     private UUID standardId;
 

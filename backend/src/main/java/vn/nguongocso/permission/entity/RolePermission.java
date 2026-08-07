@@ -10,6 +10,11 @@ import org.hibernate.type.SqlTypes;
 import vn.nguongocso.auth.entity.Permission;
 import vn.nguongocso.auth.entity.Role;
 
+/**
+ * Thực thể RolePermission đại diện cho mối quan hệ giữa vai trò (Role) và quyền
+ * (Permission).
+ * Nó xác định quyền hạn mà một vai trò cụ thể có trong hệ thống.
+ */
 @Entity
 @Table(name = "role_permissions")
 @Getter
@@ -18,7 +23,6 @@ import vn.nguongocso.auth.entity.Role;
 @AllArgsConstructor
 @Builder
 public class RolePermission {
-
     @Id
     @Column(name = "id")
     @JdbcTypeCode(SqlTypes.CHAR)

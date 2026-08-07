@@ -9,7 +9,6 @@ import vn.nguongocso.organization.dto.response.AcceptInvitationResponse;
 
 /** Quản lý thư mời tham gia tổ chức. */
 public interface InvitationService {
-
     /** Tạo thư mời mới. */
     InvitationResponse createInvitation(CreateInvitationRequest request, CustomUserDetails currentUser);
 

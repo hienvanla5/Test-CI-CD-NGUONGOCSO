@@ -11,11 +11,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AlertDetails {
-
     private List<ScanPoint> locations;
 
     private Integer scanCount;
 
     private Integer thresholdConfigured;
-
 }

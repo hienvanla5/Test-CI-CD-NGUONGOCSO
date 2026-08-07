@@ -21,7 +21,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class PageResponse<T> {
-
     /**
      * Danh sách dữ liệu của trang hiện tại.
      */

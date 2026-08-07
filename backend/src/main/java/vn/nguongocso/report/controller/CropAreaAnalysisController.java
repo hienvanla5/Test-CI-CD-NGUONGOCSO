@@ -23,9 +23,12 @@ import java.util.UUID;
 @RequestMapping("/api/v1/reports/crop-area-analysis")
 @RequiredArgsConstructor
 public class CropAreaAnalysisController {
-
     private final CropAreaAnalysisService cropAreaAnalysisService;
 
+    /**
+     * Lấy phân tích diện tích canh tác theo năm, khu vực canh tác, loại sản phẩm và
+     * tổ chức.
+     */
     @GetMapping
     public ResponseEntity<ApiResult<CropAreaAnalysisResponse>> getAnalysis(
             @RequestParam(required = false) Integer year,
@@ -62,14 +65,13 @@ public class CropAreaAnalysisController {
 
         String ipAddress = getClientIp(request);
 
-        SeasonYieldComparisonResponse response =
-                cropAreaAnalysisService.compareSeasonYield(
-                        years,
-                        farmAreaId,
-                        productCategoryId,
-                        organizationId,
-                        currentUser,
-                        ipAddress);
+        SeasonYieldComparisonResponse response = cropAreaAnalysisService.compareSeasonYield(
+                years,
+                farmAreaId,
+                productCategoryId,
+                organizationId,
+                currentUser,
+                ipAddress);
 
         return ResponseEntity.ok(ApiResult.success(response));
     }

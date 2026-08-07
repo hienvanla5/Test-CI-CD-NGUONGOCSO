@@ -30,7 +30,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/admin/organizations")
 public class OrganizationController {
-
     private static final Logger log = LoggerFactory.getLogger(OrganizationController.class);
 
     private final OrganizationService organizationService;
@@ -103,7 +102,8 @@ public class OrganizationController {
     }
 
     /**
-     * Lấy danh sách user có sẵn để thêm vào tổ chức (cùng loại, chưa có trong tổ chức).
+     * Lấy danh sách user có sẵn để thêm vào tổ chức (cùng loại, chưa có trong tổ
+     * chức).
      */
     @GetMapping("/{organizationId}/available-users")
     @PreAuthorize("hasRole('VT-01')")
@@ -115,7 +115,8 @@ public class OrganizationController {
     }
 
     /**
-     * Thêm user đã tồn tại vào tổ chức (giữ nguyên vai trò hiện tại hoặc chọn role mới).
+     * Thêm user đã tồn tại vào tổ chức (giữ nguyên vai trò hiện tại hoặc chọn role
+     * mới).
      */
     @PostMapping("/{organizationId}/add-existing-user")
     @PreAuthorize("hasRole('VT-01')")
@@ -129,7 +130,8 @@ public class OrganizationController {
     }
 
     /**
-     * Gán vai trò cho thành viên trong tổ chức (dùng cho tổ chức hiện tại từ context).
+     * Gán vai trò cho thành viên trong tổ chức (dùng cho tổ chức hiện tại từ
+     * context).
      * Nếu cần gán cho tổ chức khác, có thể mở rộng thêm.
      */
     @PutMapping("/current/members/role")

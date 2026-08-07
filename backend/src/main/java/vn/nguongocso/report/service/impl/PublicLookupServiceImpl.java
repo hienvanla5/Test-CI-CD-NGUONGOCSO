@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+
 /**
  * Service tra cứu công khai mã truy xuất.
  *
@@ -43,6 +44,17 @@ public class PublicLookupServiceImpl implements PublicLookupService {
         private final ChainEventRepository chainEventRepository;
         private final ScanAnomalyDetectionService scanAnomalyDetectionService;
 
+        /**
+         * Tra cứu thông tin chi tiết của mã truy xuất.
+         *
+         * @param codeValue Giá trị mã truy xuất
+         * @param latitude  Vĩ độ (có thể null)
+         * @param longitude Kinh độ (có thể null)
+         * @param location  Vị trí (có thể null)
+         * @param ipAddress Địa chỉ IP của người dùng
+         * @param userAgent User-Agent của trình duyệt
+         * @return Thông tin chi tiết của mã truy xuất
+         */
         @Override
         @Transactional
         public LookupResponse lookupCode(String codeValue, Double latitude, Double longitude, String location,
@@ -51,7 +63,7 @@ public class PublicLookupServiceImpl implements PublicLookupService {
                 TraceCode traceCode = traceCodeRepository.findByCodeValue(codeValue)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Không tìm thấy mã truy xuất: " + codeValue));
-                
+
                 // 2. Kiểm tra trạng thái
                 if (traceCode.getStatus() == TraceCodeStatus.INACTIVE) {
                         throw new BusinessException("Mã truy xuất chưa được kích hoạt.");
@@ -77,7 +89,6 @@ public class PublicLookupServiceImpl implements PublicLookupService {
 
                 // 5. Phân tích bất thường
                 scanAnomalyDetectionService.onScanRecorded(traceCode.getId());
-
 
                 // 6. Build DTO trả về thông tin chi tiết
                 Shipment shipment = traceCode.getShipment();

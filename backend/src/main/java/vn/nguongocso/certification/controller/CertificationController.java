@@ -22,7 +22,6 @@ import java.util.List;
 @RequestMapping("/api/v1/certifications")
 @RequiredArgsConstructor
 public class CertificationController {
-
     private final CertificationService certificationService;
 
     /**

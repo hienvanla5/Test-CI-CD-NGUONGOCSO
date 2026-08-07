@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Lược đồ dữ liệu công khai được sử dụng để xuất dữ liệu.
+ */
 @Getter
 @Setter
 @Builder
@@ -20,6 +23,7 @@ public class OpenDataSchema {
 
     private List<ShipmentData> shipments;
 
+    /** Lớp con biểu thị thông tin về người xuất dữ liệu. */
     @Getter
     @Setter
     @Builder
@@ -30,6 +34,7 @@ public class OpenDataSchema {
         private String organizationName;
     }
 
+    /** Lớp con biểu thị thông tin về lô hàng. */
     @Getter
     @Setter
     @Builder
@@ -45,6 +50,7 @@ public class OpenDataSchema {
         private List<CertificationInfo> certifications;
     }
 
+    /** Lớp con biểu thị thông tin về sự kiện trong dòng thời gian của lô hàng. */
     @Getter
     @Setter
     @Builder
@@ -57,6 +63,7 @@ public class OpenDataSchema {
         private Object data; // Map<String, Object> để chứa dữ liệu đặc thù từng loại sự kiện
     }
 
+    /** Lớp con biểu thị thông tin về vị trí địa lý. */
     @Getter
     @Setter
     @Builder
@@ -65,6 +72,7 @@ public class OpenDataSchema {
         private Double longitude;
     }
 
+    /** Lớp con biểu thị thông tin về chứng nhận của lô hàng. */
     @Getter
     @Setter
     @Builder

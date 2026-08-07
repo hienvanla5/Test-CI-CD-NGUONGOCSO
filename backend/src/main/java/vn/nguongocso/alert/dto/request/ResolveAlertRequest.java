@@ -9,7 +9,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ResolveAlertRequest {
-
     private String resolutionNote;
-
 }

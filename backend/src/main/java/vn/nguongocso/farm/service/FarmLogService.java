@@ -23,8 +23,8 @@ public interface FarmLogService {
      * Lấy danh sách nhật ký canh tác của lô sản xuất theo phân trang.
      *
      * @param productionLotId mã lô sản xuất
-     * @param page số trang, bắt đầu từ 0
-     * @param size số bản ghi trên mỗi trang
+     * @param page            số trang, bắt đầu từ 0
+     * @param size            số bản ghi trên mỗi trang
      * @return dữ liệu nhật ký canh tác theo phân trang
      */
     PageResponse<FarmLogResponse> getFarmLogsByProductionLot(

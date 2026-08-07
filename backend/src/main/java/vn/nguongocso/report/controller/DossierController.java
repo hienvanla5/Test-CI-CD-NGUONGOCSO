@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+
 /**
  * Controller quản lý hồ sơ truy xuất.
  *
@@ -36,7 +37,8 @@ public class DossierController {
 
     /**
      * API Kiểm tra điều kiện xuất hồ sơ truy xuất.
-     * Cho phép các bên kiểm tra trước xem hồ sơ của lô hàng đã đủ điều kiện hay chưa.
+     * Cho phép các bên kiểm tra trước xem hồ sơ của lô hàng đã đủ điều kiện hay
+     * chưa.
      */
     @GetMapping("/{shipmentId}/dossier/check")
     @PreAuthorize("hasAnyRole('VT-01', 'VT-02', 'VT-04')")
@@ -75,6 +77,7 @@ public class DossierController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
     }
+
     private String extractClientIp(HttpServletRequest request) {
         String forwardedFor = request.getHeader("X-Forwarded-For");
         if (forwardedFor != null && !forwardedFor.isBlank()) {
@@ -83,6 +86,9 @@ public class DossierController {
         return request.getRemoteAddr();
     }
 
+    /**
+     * Xử lý ngoại lệ DossierValidationException và trả về phản hồi lỗi.
+     */
     @ExceptionHandler(DossierValidationException.class)
     public ResponseEntity<ApiResult<Void>> handleDossierValidation(
             DossierValidationException e,
@@ -92,8 +98,7 @@ public class DossierController {
                 HttpStatus.BAD_REQUEST.value(),
                 e.getMessage(),
                 e.getErrors(),
-                request.getRequestURI()
-        );
+                request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 }

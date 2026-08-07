@@ -27,7 +27,6 @@ import vn.nguongocso.organization.enums.InvitationStatus;
 @AllArgsConstructor
 @Builder
 public class Invitation {
-
     @Id
     @Column(name = "id")
     @JdbcTypeCode(SqlTypes.CHAR)

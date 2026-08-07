@@ -24,6 +24,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Collections;
 
+/**
+ * Service kiểm tra quyền của người dùng.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -34,6 +37,13 @@ public class PermissionCheckerImpl implements PermissionChecker {
     private final RolePermissionRepository rolePermissionRepository;
     private final OrganizationRolePermissionRepository organizationRolePermissionRepository;
 
+    /**
+     * Kiểm tra quyền của người dùng hiện tại đối với một resource và action cụ thể.
+     * Nếu người dùng không có quyền, ném ra BusinessException với mã lỗi 403.
+     *
+     * @param resource Tên resource (ví dụ: "production_lot").
+     * @param action   Tên action (ví dụ: "view", "create", "update", "delete").
+     */
     @Override
     public void check(String resource, String action) {
 
@@ -41,19 +51,16 @@ public class PermissionCheckerImpl implements PermissionChecker {
 
         Permission permission = permissionRepository
                 .findByResourceAndAction(resource, action)
-                .orElseThrow(() ->
-                        new BusinessException("Permission không tồn tại."));
+                .orElseThrow(() -> new BusinessException("Permission không tồn tại."));
 
         Role role = roleRepository.findByCode(currentUser.getRoleCode())
-                .orElseThrow(() ->
-                        new BusinessException("Vai trò không tồn tại."));
+                .orElseThrow(() -> new BusinessException("Vai trò không tồn tại."));
 
-        Optional<OrganizationRolePermission> organizationPermission =
-                organizationRolePermissionRepository
-                        .findByOrganization_OrganizationIdAndRole_RoleIdAndPermission_PermissionId(
-                                currentUser.getOrganizationId(),
-                                role.getRoleId(),
-                                permission.getPermissionId());
+        Optional<OrganizationRolePermission> organizationPermission = organizationRolePermissionRepository
+                .findByOrganization_OrganizationIdAndRole_RoleIdAndPermission_PermissionId(
+                        currentUser.getOrganizationId(),
+                        role.getRoleId(),
+                        permission.getPermissionId());
 
         boolean enabled;
 
@@ -64,14 +71,12 @@ public class PermissionCheckerImpl implements PermissionChecker {
 
         } else {
 
-            RolePermission defaultPermission =
-                    rolePermissionRepository
-                            .findByRole_RoleIdAndPermission_PermissionId(
-                                    role.getRoleId(),
-                                    permission.getPermissionId())
-                            .orElseThrow(() ->
-                                    new BusinessException(
-                                            "Permission mặc định chưa được cấu hình."));
+            RolePermission defaultPermission = rolePermissionRepository
+                    .findByRole_RoleIdAndPermission_PermissionId(
+                            role.getRoleId(),
+                            permission.getPermissionId())
+                    .orElseThrow(() -> new BusinessException(
+                            "Permission mặc định chưa được cấu hình."));
 
             enabled = Boolean.TRUE.equals(defaultPermission.getEnabled());
         }
@@ -83,6 +88,11 @@ public class PermissionCheckerImpl implements PermissionChecker {
         }
     }
 
+    /**
+     * Lấy danh sách tất cả permissions mà người dùng hiện tại có quyền truy cập.
+     *
+     * @return Danh sách permission codes (resource:action) mà người dùng có quyền.
+     */
     @Override
     public List<String> getPermissionsForCurrentUser() {
         CustomUserDetails currentUser = SecurityUtils.getCurrentUserDetails();
@@ -97,9 +107,8 @@ public class PermissionCheckerImpl implements PermissionChecker {
         }
 
         // Lấy tất cả permissions mặc định của vai trò
-        List<RolePermission> defaultPermissions =
-                rolePermissionRepository.findByRole_RoleId(role.getRoleId());
-        
+        List<RolePermission> defaultPermissions = rolePermissionRepository.findByRole_RoleId(role.getRoleId());
+
         Map<Integer, Boolean> permissionStatusMap = new HashMap<>();
         for (RolePermission rp : defaultPermissions) {
             if (rp.getPermission() != null) {
@@ -109,14 +118,14 @@ public class PermissionCheckerImpl implements PermissionChecker {
 
         // Lấy tất cả ghi đè của HTX cho vai trò đó (nếu user thuộc HTX)
         if (currentUser.getOrganizationId() != null) {
-            List<OrganizationRolePermission> orgPermissions =
-                    organizationRolePermissionRepository.findByOrganization_OrganizationIdAndRole_RoleId(
+            List<OrganizationRolePermission> orgPermissions = organizationRolePermissionRepository
+                    .findByOrganization_OrganizationIdAndRole_RoleId(
                             currentUser.getOrganizationId(),
-                            role.getRoleId()
-                    );
+                            role.getRoleId());
             for (OrganizationRolePermission orp : orgPermissions) {
                 if (orp.getPermission() != null) {
-                    permissionStatusMap.put(orp.getPermission().getPermissionId(), Boolean.TRUE.equals(orp.getEnabled()));
+                    permissionStatusMap.put(orp.getPermission().getPermissionId(),
+                            Boolean.TRUE.equals(orp.getEnabled()));
                 }
             }
         }
@@ -124,7 +133,7 @@ public class PermissionCheckerImpl implements PermissionChecker {
         // Lấy danh sách permission codes (resource:action) có trạng thái enabled = true
         List<String> enabledPermissions = new ArrayList<>();
         List<Permission> allPermissions = permissionRepository.findAll();
-        
+
         for (Permission p : allPermissions) {
             Boolean enabled = permissionStatusMap.get(p.getPermissionId());
             if (Boolean.TRUE.equals(enabled)) {

@@ -55,8 +55,7 @@ public class InvitationServiceImpl implements InvitationService {
             RoleRepository roleRepository,
             OrganizationUserRepository organizationUserRepository,
             PasswordEncoder passwordEncoder,
-            ApplicationEventPublisher eventPublisher
-    ) {
+            ApplicationEventPublisher eventPublisher) {
         this.invitationRepository = invitationRepository;
         this.organizationRepository = organizationRepository;
         this.userRepository = userRepository;
@@ -86,7 +85,8 @@ public class InvitationServiceImpl implements InvitationService {
             organizationUserRepository.findByOrganization_OrganizationIdAndUser_UserId(orgId, user.getUserId())
                     .ifPresent(orgUser -> {
                         if (orgUser.getStatus() == OrganizationUserStatus.ACTIVE) {
-                            throw new DuplicateResourceException("Người dùng có email này đã là thành viên của tổ chức");
+                            throw new DuplicateResourceException(
+                                    "Người dùng có email này đã là thành viên của tổ chức");
                         }
                     });
         });
@@ -94,8 +94,7 @@ public class InvitationServiceImpl implements InvitationService {
         // Vô hiệu hóa các thư mời PENDING cũ cùng email – cùng tổ chức
         List<Invitation> oldInvitations = invitationRepository
                 .findByEmailAndOrganizationOrganizationIdAndStatus(
-                        request.getEmail(), orgId, InvitationStatus.PENDING
-                );
+                        request.getEmail(), orgId, InvitationStatus.PENDING);
         if (!oldInvitations.isEmpty()) {
             for (Invitation oldInv : oldInvitations) {
                 oldInv.setStatus(InvitationStatus.EXPIRED);
@@ -128,7 +127,8 @@ public class InvitationServiceImpl implements InvitationService {
                 .fullName(currentUser.getFullName())
                 .organizationId(orgId)
                 .action("CREATE")
-                .description("Người dùng " + currentUser.getUsername() + " đã gửi thư mời tham gia tổ chức cho email " + request.getEmail() + " với vai trò " + role.getName())
+                .description("Người dùng " + currentUser.getUsername() + " đã gửi thư mời tham gia tổ chức cho email "
+                        + request.getEmail() + " với vai trò " + role.getName())
                 .entityType("MEMBER_INVITATION")
                 .entityId(invitation.getId().toString())
                 .timestamp(LocalDateTime.now())
@@ -156,7 +156,8 @@ public class InvitationServiceImpl implements InvitationService {
         Invitation invitation = invitationRepository.findByToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Thư mời không tồn tại hoặc mã token không hợp lệ"));
 
-        if (invitation.getStatus() == InvitationStatus.PENDING && invitation.getExpiryDate().isBefore(LocalDateTime.now())) {
+        if (invitation.getStatus() == InvitationStatus.PENDING
+                && invitation.getExpiryDate().isBefore(LocalDateTime.now())) {
             invitation.setStatus(InvitationStatus.EXPIRED);
             invitationRepository.save(invitation);
             log.info("Lazy update: Thư mời token={} đã chuyển sang EXPIRED", token);
@@ -183,7 +184,8 @@ public class InvitationServiceImpl implements InvitationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Thư mời không tồn tại hoặc mã token không hợp lệ"));
 
         // Lazy update hết hạn
-        if (invitation.getStatus() == InvitationStatus.PENDING && invitation.getExpiryDate().isBefore(LocalDateTime.now())) {
+        if (invitation.getStatus() == InvitationStatus.PENDING
+                && invitation.getExpiryDate().isBefore(LocalDateTime.now())) {
             invitation.setStatus(InvitationStatus.EXPIRED);
             invitationRepository.save(invitation);
             log.info("Lazy update: Thư mời token={} đã chuyển sang EXPIRED khi cố gắng chấp nhận", token);
@@ -196,7 +198,8 @@ public class InvitationServiceImpl implements InvitationService {
         // Tìm user hiện có theo email
         User existingUser = userRepository.findByEmail(invitation.getEmail()).orElse(null);
 
-        // Nếu user đã tồn tại, kiểm tra xem đã là thành viên active của tổ chức này chưa
+        // Nếu user đã tồn tại, kiểm tra xem đã là thành viên active của tổ chức này
+        // chưa
         if (existingUser != null) {
             organizationUserRepository
                     .findByOrganization_OrganizationIdAndUser_UserId(
@@ -212,10 +215,12 @@ public class InvitationServiceImpl implements InvitationService {
                 List<OrganizationUser> otherOrgLinks = organizationUserRepository
                         .findByUser_UserIdAndStatus(existingUser.getUserId(), OrganizationUserStatus.ACTIVE);
                 for (OrganizationUser link : otherOrgLinks) {
-                    if (!link.getOrganization().getOrganizationId().equals(invitation.getOrganization().getOrganizationId())) {
+                    if (!link.getOrganization().getOrganizationId()
+                            .equals(invitation.getOrganization().getOrganizationId())) {
                         link.setStatus(OrganizationUserStatus.INACTIVE);
                         organizationUserRepository.save(link);
-                        log.info("Đã xóa user {} khỏi tổ chức {}", existingUser.getUserName(), link.getOrganization().getName());
+                        log.info("Đã xóa user {} khỏi tổ chức {}", existingUser.getUserName(),
+                                link.getOrganization().getName());
                     }
                 }
             }
@@ -233,7 +238,8 @@ public class InvitationServiceImpl implements InvitationService {
             invitation.setUsedAt(LocalDateTime.now());
             invitationRepository.save(invitation);
 
-            log.info("User hiện có {} đã tham gia tổ chức {}", existingUser.getUserName(), invitation.getOrganization().getName());
+            log.info("User hiện có {} đã tham gia tổ chức {}", existingUser.getUserName(),
+                    invitation.getOrganization().getName());
             return AcceptInvitationResponse.builder()
                     .userId(existingUser.getUserId())
                     .userName(existingUser.getUserName())
@@ -281,7 +287,8 @@ public class InvitationServiceImpl implements InvitationService {
                 .fullName(savedUser.getFullName())
                 .organizationId(invitation.getOrganization().getOrganizationId())
                 .action("ACCEPT")
-                .description("Người dùng " + savedUser.getUserName() + " chấp nhận thư mời tham gia tổ chức bằng email " + invitation.getEmail())
+                .description("Người dùng " + savedUser.getUserName() + " chấp nhận thư mời tham gia tổ chức bằng email "
+                        + invitation.getEmail())
                 .entityType("MEMBER_INVITATION")
                 .entityId(invitation.getId().toString())
                 .timestamp(LocalDateTime.now())

@@ -2,8 +2,10 @@ package vn.nguongocso.permission.service;
 
 import java.util.List;
 
+/**
+ * Service kiểm tra quyền của người dùng hiện tại.
+ */
 public interface PermissionChecker {
-
     /**
      * Kiểm tra người dùng hiện tại có quyền thực hiện action
      * trên resource hay không.
