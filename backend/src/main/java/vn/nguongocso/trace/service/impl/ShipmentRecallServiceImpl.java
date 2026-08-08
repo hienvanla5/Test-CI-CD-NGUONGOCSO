@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import vn.nguongocso.alert.service.ActivityLogService;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
@@ -28,6 +29,7 @@ import vn.nguongocso.trace.repository.RecallRepository;
 import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 import vn.nguongocso.trace.service.ShipmentRecallService;
+import vn.nguongocso.alert.dto.request.ActivityLogRequest;
 
 /**
  * Triển khai dịch vụ thu hồi lô hàng.
@@ -49,6 +51,7 @@ public class ShipmentRecallServiceImpl implements ShipmentRecallService {
     private final RecallRepository recallRepository;
     private final UserRepository userRepository;
     private final NotificationService alertNotificationService;
+    private final ActivityLogService activityLogService;
 
     /*
      * {@inheritDoc}
@@ -56,25 +59,33 @@ public class ShipmentRecallServiceImpl implements ShipmentRecallService {
     @Override
     public RecallResponse recallShipment(
             UUID shipmentId,
-            RecallRequest request) {
+            RecallRequest request,
+            String ipAddress) {
 
         CustomUserDetails currentUser = getCurrentUser();
 
+        // 1. Kiểm tra quyền
         validateRole(currentUser);
 
+        // 2. Tìm lô hàng
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new BusinessException(MSG_SHIPMENT_NOT_FOUND));
 
+        // 3. Kiểm tra tổ chức
         validateOrganization(currentUser, shipment);
 
+        // 4. Không cho phép thu hồi lại
         if (shipment.getStatus() == ShipmentStatus.RECALLED) {
             throw new BusinessException(MSG_SHIPMENT_ALREADY_RECALLED);
         }
 
+        // 5. Lấy user thực hiện thao tác
         User actor = userRepository.findById(currentUser.getUserId())
                 .orElseThrow(() -> new BusinessException(MSG_USER_NOT_FOUND));
 
+        // 6. Tạo bản ghi thu hồi
         Recall recall = new Recall();
+
         recall.setShipment(shipment);
         recall.setReason(request.getReason());
         recall.setRecalledBy(actor);
@@ -83,18 +94,43 @@ public class ShipmentRecallServiceImpl implements ShipmentRecallService {
 
         recallRepository.save(recall);
 
+        // 7. Cập nhật trạng thái Shipment
         shipment.setStatus(ShipmentStatus.RECALLED);
         shipmentRepository.save(shipment);
 
+        // 8. Cập nhật trạng thái toàn bộ TraceCode
         List<TraceCode> traceCodes = traceCodeRepository.findByShipmentId(shipmentId);
 
         traceCodes.forEach(code -> code.setStatus(TraceCodeStatus.RECALLED));
 
         traceCodeRepository.saveAll(traceCodes);
 
+        // 9. Ghi lịch sử hoạt động
+        ActivityLogRequest activityLogRequest = ActivityLogRequest.builder()
+                .userId(actor.getUserId())
+                .username(actor.getUserName())
+                .fullName(actor.getFullName())
+                .organizationId(
+                        shipment.getOrganization().getOrganizationId())
+                .action("RECALL_SHIPMENT")
+                .description(
+                        "Thu hồi lô hàng \"" +
+                                shipment.getName() +
+                                "\". Lý do: " +
+                                request.getReason())
+                .entityType("SHIPMENT")
+                .entityId(shipment.getId())
+                .ipAddress(ipAddress)
+                .build();
+
+        activityLogService.logActivity(activityLogRequest);
+
+        // 10. Gửi thông báo
         alertNotificationService.sendShipmentRecallNotification(recall);
 
+        // 11. Trả response
         RecallResponse response = new RecallResponse();
+
         response.setId(recall.getId());
         response.setShipmentId(shipment.getId());
         response.setReason(recall.getReason());

@@ -1,7 +1,8 @@
 package vn.nguongocso.permission.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import vn.nguongocso.auth.entity.Permission;
+
+import vn.nguongocso.permission.entity.Permission;
 
 import java.util.List;
 import java.util.Optional;

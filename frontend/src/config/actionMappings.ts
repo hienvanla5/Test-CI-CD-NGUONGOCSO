@@ -1,5 +1,3 @@
-// src/config/actionMappings.ts
-
 export const ACTION_LABELS: Record<string, string> = {
   // Basic CRUD
   CREATE: 'Tạo mới',
@@ -22,6 +20,7 @@ export const ACTION_LABELS: Record<string, string> = {
   // Shipment
   ACTIVATE: 'Kích hoạt',
   RECALL: 'Thu hồi',
+  RECALL_SHIPMENT: 'Thu hồi lô hàng',
   EXPORT: 'Xuất hồ sơ',
 
   // Authentication
@@ -37,28 +36,36 @@ export const ACTION_LABELS: Record<string, string> = {
   UPDATE_ORGANIZATION: 'Cập nhật tổ chức',
   CREATE_INVITATION: 'Tạo thư mời',
   JOIN_ORGANIZATION: 'Tham gia tổ chức',
-  // Thêm các action khác nếu cần
 };
 
 export const ACTION_COLORS: Record<string, string> = {
   CREATE: 'bg-success-bg text-success',
   UPDATE: 'bg-info-bg text-info',
   DELETE: 'bg-error-bg text-destructive',
+
   APPROVE: 'bg-success-bg text-success',
   REJECT: 'bg-error-bg text-destructive',
+
   ACTIVATE: 'bg-info-bg text-info',
   RECALL: 'bg-warning-bg text-status-pending',
+  RECALL_SHIPMENT: 'bg-warning-bg text-status-pending',
+
   EXPORT: 'bg-info-bg text-info',
+
   LOGIN: 'bg-muted text-muted-foreground',
   LOGOUT: 'bg-muted text-muted-foreground',
+
   SUBMIT: 'bg-warning-bg text-status-pending',
   SUBMIT_PRODUCTION_LOT_FOR_APPROVAL: 'bg-warning-bg text-status-pending',
+
   RECORD_HARVEST_EVENT: 'bg-success-bg text-success',
   RECORD_PACKAGING_EVENT: 'bg-success-bg text-success',
   RECORD_TRANSPORT_EVENT: 'bg-success-bg text-success',
   CORRECT_PACKAGING_EVENT: 'bg-info-bg text-info',
+
   APPROVE_PRODUCTION_LOT: 'bg-success-bg text-success',
   SUBMIT_PRODUCTION_LOT: 'bg-warning-bg text-status-pending',
+
   CREATE_ORGANIZATION: 'bg-success-bg text-success',
   UPDATE_ORGANIZATION: 'bg-info-bg text-info',
   CREATE_INVITATION: 'bg-info-bg text-info',

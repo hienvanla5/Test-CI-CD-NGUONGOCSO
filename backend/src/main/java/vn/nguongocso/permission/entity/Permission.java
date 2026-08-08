@@ -1,4 +1,4 @@
-package vn.nguongocso.auth.entity;
+package vn.nguongocso.permission.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

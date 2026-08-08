@@ -2,6 +2,8 @@ package vn.nguongocso.organization.repository;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.organization.entity.Organization;
@@ -119,4 +121,20 @@ public interface OrganizationUserRepository extends JpaRepository<OrganizationUs
 	 * @return danh sách người dùng trong tổ chức phù hợp
 	 */
 	List<OrganizationUser> findByOrganization_OrganizationId(UUID organizationId);
+
+	@Query("""
+			    SELECT DISTINCT ou.user
+			    FROM OrganizationUser ou
+			    JOIN ou.role r
+			    JOIN RolePermission rp ON rp.role = r
+			    JOIN Permission p ON p.permissionId = rp.permission.permissionId
+			    WHERE ou.organization.organizationId = :organizationId
+			      AND rp.enabled = true
+			      AND p.resource = :resource
+			      AND p.action = :action
+			""")
+	List<User> findUsersByPermission(
+			@Param("organizationId") UUID organizationId,
+			@Param("resource") String resource,
+			@Param("action") String action);
 }

@@ -3,7 +3,7 @@ package vn.nguongocso.permission.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.nguongocso.auth.entity.Permission;
+
 import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.RoleRepository;
@@ -19,6 +19,7 @@ import vn.nguongocso.permission.dto.response.PermissionItemResponse;
 import vn.nguongocso.permission.dto.response.RolePermissionGroupResponse;
 import vn.nguongocso.permission.dto.response.RolePermissionResponse;
 import vn.nguongocso.permission.entity.OrganizationRolePermission;
+import vn.nguongocso.permission.entity.Permission;
 import vn.nguongocso.permission.entity.RolePermission;
 import vn.nguongocso.permission.repository.OrganizationRolePermissionRepository;
 import vn.nguongocso.permission.repository.PermissionRepository;

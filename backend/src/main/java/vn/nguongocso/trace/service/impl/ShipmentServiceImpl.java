@@ -78,7 +78,7 @@ public class ShipmentServiceImpl implements ShipmentService {
      * @throws BusinessException nếu không đủ điều kiện tạo lô hàng
      */
     @Override
-    @Auditable(action = "CREATE_SHIPMENT", entityType = "SHIPMENT", description = "'Tạo mới lô hàng cho lô sản xuất ID: ' + #request.productionLotId + ', Số lượng: ' + #request.totalQuantity")
+    @Auditable(action = "CREATE", entityType = "SHIPMENT", description = "'Tạo mới lô hàng cho lô sản xuất ID: ' + #request.productionLotId + ', Số lượng: ' + #request.totalQuantity")
     public ShipmentResponse createShipment(CreateShipmentRequest request) {
 
         CustomUserDetails currentUser = getCurrentUser();
@@ -139,7 +139,7 @@ public class ShipmentServiceImpl implements ShipmentService {
      * @throws BusinessException nếu không đủ điều kiện kích hoạt tem
      */
     @Override
-    @Auditable(action = "ACTIVATE_SHIPMENT_STAMPS", entityType = "SHIPMENT", description = "'Kích hoạt tem cho lô hàng ID: ' + #shipmentId")
+    @Auditable(action = "ACTIVATE", entityType = "SHIPMENT", description = "'Kích hoạt tem cho lô hàng ID: ' + #shipmentId")
     public ShipmentResponse activateShipmentStamps(UUID shipmentId) {
         CustomUserDetails currentUser = getCurrentUser();
 

@@ -13,9 +13,10 @@ public interface ShipmentRecallService {
     /**
      * Thực hiện thu hồi một lô hàng.
      */
-    RecallResponse recallShipment(
-            UUID shipmentId,
-            RecallRequest request);
+RecallResponse recallShipment(
+        UUID shipmentId,
+        RecallRequest request,
+        String ipAddress);
 
     /**
      * Lấy thông tin tình trạng thu hồi của một lô hàng.

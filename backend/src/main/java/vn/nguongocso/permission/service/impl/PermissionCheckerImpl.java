@@ -4,12 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.nguongocso.auth.entity.Permission;
+
 import vn.nguongocso.auth.entity.Role;
 import vn.nguongocso.auth.security.SecurityUtils;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.permission.entity.OrganizationRolePermission;
+import vn.nguongocso.permission.entity.Permission;
 import vn.nguongocso.permission.entity.RolePermission;
 import vn.nguongocso.permission.repository.OrganizationRolePermissionRepository;
 import vn.nguongocso.permission.repository.PermissionRepository;
