@@ -20,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useAuth } from '@/hooks/useAuth';
 import type {
   ScanAnomalyAlert,
   ScanAnomalyAlertFilterStatus,
@@ -72,7 +71,6 @@ const formatDateTime = (value: string) =>
   });
 
 export default function ScanAnomalyAlertPage() {
-  const { user } = useAuth();
   const [draftFilters, setDraftFilters] = useState<AlertFilters>(INITIAL_FILTERS);
   const [filters, setFilters] = useState<AlertFilters>(INITIAL_FILTERS);
   const [result, setResult] = useState<ScanAnomalyAlertListResponse>(EMPTY_PAGE);

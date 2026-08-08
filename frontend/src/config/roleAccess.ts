@@ -39,6 +39,8 @@ export const ROLE_ACCESS = {
   // ✅ Từ file 2
   rolePermissionConfig: ['VT-02'] as const,
 
+  productFeedbackManagement: ['VT-01', 'VT-02'] as const,
+
 } as const satisfies Record<string, readonly AuthenticatedRoleCode[]>;
 
 export function hasAnyRole(

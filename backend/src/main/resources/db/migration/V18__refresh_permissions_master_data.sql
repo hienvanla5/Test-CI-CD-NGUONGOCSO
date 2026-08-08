@@ -120,4 +120,9 @@ VALUES
 -- ==========================
 -- Activity Log
 -- ==========================
-('activity_log','READ','Xem lịch sử hoạt động');
+('activity_log','READ','Xem lịch sử hoạt động'),
+
+-- ==========================
+-- Product Feedback
+-- ==========================
+('product_feedback','READ','Xem phản ánh sản phẩm');

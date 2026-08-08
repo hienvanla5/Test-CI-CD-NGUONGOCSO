@@ -8,4 +8,7 @@ export interface ProductFeedback {
   productionLotName: string;
   content: string;
   createdAt: string;
+  organizationId?: string;
+  organizationName?: string;
+  productCategoryName?: string;
 }

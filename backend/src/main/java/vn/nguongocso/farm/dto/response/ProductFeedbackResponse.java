@@ -22,4 +22,10 @@ public class ProductFeedbackResponse {
     private String content;
 
     private LocalDateTime createdAt;
+
+    private UUID organizationId;
+
+    private String organizationName;
+
+    private String productCategoryName;
 }

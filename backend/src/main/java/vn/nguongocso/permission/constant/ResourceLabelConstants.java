@@ -33,7 +33,8 @@ public final class ResourceLabelConstants {
             Map.entry("export", "Xuất dữ liệu"),
             Map.entry("code_range", "Dải mã truy xuất"),
             Map.entry("traceability", "Truy xuất nguồn gốc"),
-            Map.entry("recall", "Thu hồi lô"));
+            Map.entry("recall", "Thu hồi lô"),
+            Map.entry("product_feedback", "Phản ánh sản phẩm"));
 
     /**
      * Lấy tên hiển thị của nhóm chức năng dựa trên tên tài nguyên.

@@ -10,6 +10,7 @@ INSERT INTO role_permissions (id, role_id, permission_id, is_enabled, created_at
 INSERT INTO role_permissions (id, role_id, permission_id, is_enabled, created_at) VALUES (UUID(), 1, (SELECT permission_id FROM permissions WHERE resource = 'alert' AND action = 'UPDATE'), b'1', NOW());
 INSERT INTO role_permissions (id, role_id, permission_id, is_enabled, created_at) VALUES (UUID(), 1, (SELECT permission_id FROM permissions WHERE resource = 'activity_log' AND action = 'READ'), b'1', NOW());
 INSERT INTO role_permissions (id, role_id, permission_id, is_enabled, created_at) VALUES (UUID(), 1, (SELECT permission_id FROM permissions WHERE resource = 'notification' AND action = 'READ'), b'1', NOW());
+INSERT INTO role_permissions (id, role_id, permission_id, is_enabled, created_at) VALUES (UUID(), 1, (SELECT permission_id FROM permissions WHERE resource = 'product_feedback' AND action = 'READ'), b'1', NOW());
 
 -- =========================================================================
 -- VT-02 (ORG_MANAGER)
@@ -41,6 +42,7 @@ INSERT INTO role_permissions (id, role_id, permission_id, is_enabled, created_at
 INSERT INTO role_permissions (id, role_id, permission_id, is_enabled, created_at) VALUES (UUID(), 2, (SELECT permission_id FROM permissions WHERE resource = 'alert' AND action = 'READ'), b'1', NOW());
 INSERT INTO role_permissions (id, role_id, permission_id, is_enabled, created_at) VALUES (UUID(), 2, (SELECT permission_id FROM permissions WHERE resource = 'report' AND action = 'READ'), b'1', NOW());
 INSERT INTO role_permissions (id, role_id, permission_id, is_enabled, created_at) VALUES (UUID(), 2, (SELECT permission_id FROM permissions WHERE resource = 'report' AND action = 'EXPORT'), b'1', NOW());
+INSERT INTO role_permissions (id, role_id, permission_id, is_enabled, created_at) VALUES (UUID(), 2, (SELECT permission_id FROM permissions WHERE resource = 'product_feedback' AND action = 'READ'), b'1', NOW());
 
 -- =========================================================================
 -- VT-03 (EVENT_RECORDER)

@@ -90,6 +90,9 @@ import ScanQuickEventPage from "@/pages/scan-anomaly-alert/components/ScanQuickE
 // ===== Organization Detail =====
 import OrganizationDetailPage from "@/pages/organization/OrganizationDetailPage";
 
+// ===== Product Feedback =====
+import ProductFeedbackManagementPage from "@/pages/product-feedback/ProductFeedbackManagementPage";
+
 // 🆕 Các import mới từ file 2
 import RecordMobileEventPage from "@/pages/mobile/RecordMobileEventPage";
 import CreateInvitationPage from "@/pages/invitation/CreateInvitationPage";
@@ -531,6 +534,16 @@ const AppRoutes = () => (
         element={
           <RoleRoute allowedRoles={["VT-01"]}>
             <BackupRestorePage />
+          </RoleRoute>
+        }
+      />
+
+      {/* ===== Product Feedback Management ===== */}
+      <Route
+        path="product-feedbacks"
+        element={
+          <RoleRoute allowedRoles={ROLE_ACCESS.productFeedbackManagement}>
+            <ProductFeedbackManagementPage />
           </RoleRoute>
         }
       />
