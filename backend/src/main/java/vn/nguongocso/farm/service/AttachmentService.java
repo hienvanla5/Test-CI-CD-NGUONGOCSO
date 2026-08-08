@@ -19,13 +19,21 @@ import vn.nguongocso.farm.entity.FarmLogAttachment;
 import vn.nguongocso.farm.repository.FarmLogAttachmentRepository;
 import vn.nguongocso.farm.repository.FarmLogRepository;
 
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -159,11 +167,10 @@ public class AttachmentService {
         FarmLogAttachment attachment = attachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy file đính kèm"));
 
-        // Kiểm tra quyền: chỉ người upload
-
-        boolean isUploader = attachment.getUploadedBy().getUserId().equals(userDetails.getUserId());
-
-        if (!isUploader) {
+        // Kiểm tra quyền: user phải thuộc tổ chức sở hữu lô sản xuất
+        UUID orgId = userDetails.getOrganizationId();
+        UUID lotOrgId = attachment.getFarmLog().getProductionLotId().getOrganization().getOrganizationId();
+        if (!lotOrgId.equals(orgId)) {
             throw new BusinessException("Bạn không có quyền xóa file này");
         }
 
@@ -173,7 +180,7 @@ public class AttachmentService {
             if (Files.exists(filePath)) {
                 Files.delete(filePath);
             } else {
-                log.warn("File không tồn tại: {}", attachment.getFilePath());
+                log.warn("File không tồn tại trên đĩa: {}", attachment.getFilePath());
             }
         } catch (IOException e) {
             log.error("Không thể xóa file: {}, lỗi: {}", attachment.getFilePath(), e.getMessage());
@@ -182,6 +189,76 @@ public class AttachmentService {
 
         attachmentRepository.delete(attachment);
         log.info("Xóa attachment thành công: id={}", attachmentId);
+    }
+
+    /** Lấy tệp đính kèm để hiển thị (view). */
+    @Transactional(readOnly = true)
+    public Map.Entry<Resource, MediaType> getAttachmentForView(
+            UUID attachmentId, CustomUserDetails userDetails) {
+        FarmLogAttachment attachment = validateAttachmentAccess(attachmentId, userDetails);
+        Resource resource = resolveFileResource(attachment);
+        MediaType contentType = resolveContentType(attachment.getFileType());
+        return new AbstractMap.SimpleEntry<>(resource, contentType);
+    }
+
+    /** DTO nội bộ cho download: chứa Resource, MediaType và tên file. */
+    public record AttachmentResource(Resource resource, MediaType contentType, String fileName) {}
+
+    /** Lấy tệp đính kèm để tải xuống (download). */
+    @Transactional(readOnly = true)
+    public AttachmentResource getAttachmentForDownload(
+            UUID attachmentId, CustomUserDetails userDetails) {
+        FarmLogAttachment attachment = validateAttachmentAccess(attachmentId, userDetails);
+        Resource resource = resolveFileResource(attachment);
+        MediaType contentType = resolveContentType(attachment.getFileType());
+        String encodedFileName = URLEncoder.encode(attachment.getFileName(), StandardCharsets.UTF_8)
+                .replace("+", "%20");
+        return new AttachmentResource(resource, contentType, encodedFileName);
+    }
+
+    /** Kiểm tra quyền truy cập và trả về attachment. */
+    private FarmLogAttachment validateAttachmentAccess(UUID attachmentId, CustomUserDetails userDetails) {
+        FarmLogAttachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy file đính kèm"));
+
+        // Kiểm tra quyền: user phải thuộc tổ chức sở hữu lô sản xuất
+        UUID orgId = userDetails.getOrganizationId();
+        UUID lotOrgId = attachment.getFarmLog().getProductionLotId().getOrganization().getOrganizationId();
+        if (!lotOrgId.equals(orgId)) {
+            throw new BusinessException("Bạn không có quyền truy cập file này");
+        }
+
+        return attachment;
+    }
+
+    /** Giải quyết file vật lý từ đường dẫn, ngăn path traversal. */
+    private Resource resolveFileResource(FarmLogAttachment attachment) {
+        Path filePath = Paths.get(attachment.getFilePath()).toAbsolutePath().normalize();
+
+        // Kiểm tra path traversal: filePath phải nằm trong baseDir
+        Path baseDirPath = Paths.get(baseDir).toAbsolutePath().normalize();
+        if (!filePath.startsWith(baseDirPath)) {
+            log.warn("Path traversal attempt: {}", attachment.getFilePath());
+            throw new BusinessException("Đường dẫn file không hợp lệ");
+        }
+
+        if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
+            throw new BusinessException("File không tồn tại hoặc không thể đọc");
+        }
+
+        return new FileSystemResource(filePath);
+    }
+
+    /** Xác định MediaType từ chuỗi MIME type. */
+    private MediaType resolveContentType(String fileType) {
+        if (fileType == null || fileType.isBlank()) {
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
+        try {
+            return MediaType.parseMediaType(fileType);
+        } catch (org.springframework.http.InvalidMediaTypeException e) {
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
     }
 
     /** Gửi sự kiện nhật ký hoạt động. */
@@ -209,7 +286,7 @@ public class AttachmentService {
                 .fileName(attachment.getFileName())
                 .fileSize(attachment.getFileSize())
                 .fileType(attachment.getFileType())
-                .fileUrl("/" + attachment.getFilePath())
+                .fileUrl("/api/v1/farm-logs/attachments/" + attachment.getId() + "/view")
                 .description(attachment.getDescription())
                 .uploadedBy(attachment.getUploadedBy().getFullName())
                 .uploadedAt(attachment.getUploadedAt())

@@ -1,20 +1,20 @@
 import { Calendar, MapPin, Package, Truck, Sprout, Clipboard, Pencil } from 'lucide-react';
 import type { ChainEventResponse } from '@/types/packaging';
+import {
+  getEventTypeLabel,
+  formatFieldLabel,
+  formatEventValue,
+  isEventValueEmpty,
+  formatDisplayDateTime,
+} from '@/utils/eventFormatter';
+import type { ComponentType } from 'react';
 
-const EVENT_ICONS: Record<string, any> = {
+const EVENT_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   HARVEST: Sprout,
   PACKAGING: Package,
   TRANSPORT: Truck,
   PROCUREMENT: Clipboard,
   CORRECTION: Pencil,
-};
-
-const EVENT_LABELS: Record<string, string> = {
-  HARVEST: 'Thu hoạch',
-  PACKAGING: 'Đóng gói',
-  TRANSPORT: 'Vận chuyển',
-  PROCUREMENT: 'Thu mua',
-  CORRECTION: 'Đính chính',
 };
 
 interface Props {
@@ -23,68 +23,106 @@ interface Props {
   total: number;
 }
 
-const formatDate = (iso: string) => {
-  try {
-    return new Date(iso).toLocaleString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-};
-
+/**
+ * A single event entry in the shipment timeline.
+ *
+ * Displays:
+ *  - Event type label & icon (Vietnamese)
+ *  - Formatted timestamp (vi-VN)
+ *  - Recorded-by name (Vietnamese label)
+ *  - Dynamic event data with human-readable Vietnamese labels and formatted values
+ *  - GPS coordinates with Vietnamese label when available
+ */
 export const ShipmentTimelineItem = ({ event, index, total }: Props) => {
   const Icon = EVENT_ICONS[event.eventType] || Calendar;
-  const label = EVENT_LABELS[event.eventType] || event.eventType;
+  const label = getEventTypeLabel(event.eventType);
+  const timestamp = formatDisplayDateTime(event.recordedAt);
+
+  // Extract and sort event data entries; hide internal fields
+  const dataEntries = event.eventData
+    ? Object.entries(event.eventData).filter(
+        ([key]) =>
+          key !== 'productionLotId' &&
+          key !== 'shipmentId' &&
+          key !== 'deviceSource' &&
+          key !== 'images',
+      )
+    : [];
+
+  const productionLotId = event.eventData?.['productionLotId'] as string | undefined;
+  const hasCoordinates = event.latitude != null && event.longitude != null;
 
   return (
-    <div className="relative pl-8 pb-8 last:pb-0">
+    <div className="relative pl-8 pb-6 last:pb-0">
+      {/* Vertical connector line */}
       {index < total - 1 && (
         <div className="absolute left-3 top-5 bottom-0 w-0.5 bg-gray-200" />
       )}
-      <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-emerald-100 border-2 border-emerald-500 flex items-center justify-center">
+
+      {/* Icon circle */}
+      <div className="absolute left-0 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-emerald-500 bg-emerald-100">
         <Icon className="h-3.5 w-3.5 text-emerald-600" />
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-gray-900">{label}</span>
-            {event.eventType === 'CORRECTION' && (
-              <span className="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full">Đính chính</span>
-            )}
-          </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
+      {/* Card */}
+      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+        {/* Header: event type + timestamp */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-semibold text-gray-900">{label}</span>
+          <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <Calendar className="h-3 w-3" />
-            <span>{formatDate(event.recordedAt)}</span>
+            <span>{timestamp}</span>
           </div>
         </div>
 
+        {/* Recorded by */}
         {event.recordedByName && (
-          <div className="mt-1 text-xs text-gray-500">
-            Người ghi: <span className="font-medium">{event.recordedByName}</span>
+          <div className="mt-1 text-xs text-gray-400">
+            Người ghi nhận:{' '}
+            <span className="font-medium text-gray-600">{event.recordedByName}</span>
           </div>
         )}
 
-        {event.eventData && Object.keys(event.eventData).length > 0 && (
-          <div className="mt-2 text-sm text-gray-600 space-y-1">
-            {Object.entries(event.eventData).map(([key, value]) => (
-              <div key={key} className="flex gap-2">
-                <span className="font-medium text-gray-500 capitalize">{key}:</span>
-                <span>{String(value)}</span>
-              </div>
-            ))}
+        {/* Divider */}
+        {dataEntries.length > 0 && (
+          <div className="my-3 border-t border-gray-100" />
+        )}
+
+        {/* Event Details */}
+        {dataEntries.length > 0 && (
+          <div className="space-y-1.5">
+            {dataEntries.map(([key, value]) => {
+              const formattedValue = formatEventValue(value);
+              if (isEventValueEmpty(value) || !formattedValue) return null;
+
+              return (
+                <div key={key} className="flex flex-wrap gap-x-2 text-sm">
+                  <span className="font-medium text-gray-500">
+                    {formatFieldLabel(key)}
+                  </span>
+                  <span className="break-words text-gray-700">
+                    {formattedValue}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
 
-        {event.latitude && event.longitude && (
-          <div className="mt-2 text-xs text-gray-400 flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
-            <span>{event.latitude.toFixed(6)}, {event.longitude.toFixed(6)}</span>
+        {/* Production Lot ID (secondary metadata, muted) */}
+        {productionLotId && (
+          <div className="mt-2 text-xs text-gray-300 break-all">
+            Mã: {productionLotId}
+          </div>
+        )}
+
+        {/* Location */}
+        {hasCoordinates && (
+          <div className="mt-2 flex items-center gap-1 text-xs text-gray-400">
+            <MapPin className="h-3 w-3 shrink-0" />
+            <span>
+              Vị trí: {event.latitude!.toFixed(6)}, {event.longitude!.toFixed(6)}
+            </span>
           </div>
         )}
       </div>

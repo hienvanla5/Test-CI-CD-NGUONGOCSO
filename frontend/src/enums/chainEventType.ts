@@ -17,3 +17,12 @@ export const ChainEventTypeLabel: Record<ChainEventType, string> = {
   [ChainEventType.PROCUREMENT]: 'Thu mua',
   [ChainEventType.CORRECTION]: 'Đính chính',
 };
+
+// English display labels for event types
+export const ChainEventTypeEnLabel: Record<ChainEventType, string> = {
+  [ChainEventType.HARVEST]: 'Harvesting',
+  [ChainEventType.PACKAGING]: 'Packaging',
+  [ChainEventType.TRANSPORT]: 'Transport',
+  [ChainEventType.PROCUREMENT]: 'Procurement',
+  [ChainEventType.CORRECTION]: 'Correction',
+};

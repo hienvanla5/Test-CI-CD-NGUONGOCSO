@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -24,6 +25,7 @@ import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.farm.dto.response.AttachmentResponse;
 import vn.nguongocso.farm.entity.FarmLog;
+import vn.nguongocso.farm.entity.FarmLogAttachment;
 import vn.nguongocso.farm.entity.ProductionLot;
 import vn.nguongocso.farm.repository.FarmLogAttachmentRepository;
 import vn.nguongocso.farm.repository.FarmLogRepository;
@@ -42,6 +44,9 @@ class AttachmentServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private AttachmentService attachmentService;
@@ -117,8 +122,12 @@ class AttachmentServiceTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(user));
 
-        when(attachmentRepository.save(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(attachmentRepository.save(any(FarmLogAttachment.class)))
+                .thenAnswer(invocation -> {
+                    FarmLogAttachment a = invocation.getArgument(0);
+                    a.setId(UUID.randomUUID());
+                    return a;
+                });
 
         AttachmentResponse response =
                 attachmentService.uploadAttachment(
@@ -157,8 +166,12 @@ class AttachmentServiceTest {
         when(userRepository.findById(userId))
                 .thenReturn(Optional.of(user));
 
-        when(attachmentRepository.save(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(attachmentRepository.save(any(FarmLogAttachment.class)))
+                .thenAnswer(invocation -> {
+                    FarmLogAttachment a = invocation.getArgument(0);
+                    a.setId(UUID.randomUUID());
+                    return a;
+                });
 
         AttachmentResponse response =
                 attachmentService.uploadAttachment(

@@ -1,7 +1,10 @@
 package vn.nguongocso.farm.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,7 +22,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/farm-logs")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('VT-03', 'VT-02')")
+@PreAuthorize("hasAnyRole('VT-01', 'VT-02', 'VT-03')")
 /** Quản lý tệp đính kèm của nhật ký canh tác. */
 public class FarmLogAttachmentController {
 
@@ -56,5 +59,33 @@ public class FarmLogAttachmentController {
         permissionChecker.check("FARM_LOG", "DELETE");
         attachmentService.deleteAttachment(attachmentId, userDetails);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Xem / hiển thị tệp đính kèm (ảnh, PDF). */
+    @GetMapping("/attachments/{attachmentId}/view")
+    public ResponseEntity<Resource> viewAttachment(
+            @PathVariable UUID attachmentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        permissionChecker.check("FARM_LOG", "READ");
+        var pair = attachmentService.getAttachmentForView(attachmentId, userDetails);
+        Resource resource = pair.getKey();
+        MediaType contentType = pair.getValue();
+        return ResponseEntity.ok()
+                .contentType(contentType)
+                .body(resource);
+    }
+
+    /** Tải xuống tệp đính kèm. */
+    @GetMapping("/attachments/{attachmentId}/download")
+    public ResponseEntity<Resource> downloadAttachment(
+            @PathVariable UUID attachmentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        permissionChecker.check("FARM_LOG", "READ");
+        var result = attachmentService.getAttachmentForDownload(attachmentId, userDetails);
+        return ResponseEntity.ok()
+                .contentType(result.contentType())
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + result.fileName() + "\"")
+                .body(result.resource());
     }
 }
