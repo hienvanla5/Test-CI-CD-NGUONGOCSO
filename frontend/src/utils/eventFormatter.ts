@@ -1,8 +1,9 @@
 import type { ChainEventType } from '@/enums/chainEventType';
 
-/**
- * Maps event type enum values to human-readable Vietnamese labels.
- */
+// ─────────────────────────────────────────────
+// Event Type Labels (Vietnamese)
+// ─────────────────────────────────────────────
+
 export const EVENT_TYPE_VN_LABELS: Record<ChainEventType, string> = {
   HARVEST: 'Thu hoạch',
   PACKAGING: 'Đóng gói',
@@ -11,31 +12,39 @@ export const EVENT_TYPE_VN_LABELS: Record<ChainEventType, string> = {
   CORRECTION: 'Điều chỉnh',
 };
 
-/**
- * Returns a human-readable Vietnamese label for a given technical event type.
- */
 export function getEventTypeLabel(eventType: string): string {
   return EVENT_TYPE_VN_LABELS[eventType as ChainEventType] || eventType;
 }
 
-/**
- * Known business-field label mappings.
- * Keys are backend camelCase property names, values are human-readable Vietnamese labels.
- */
+// ─────────────────────────────────────────────
+// Known Business-Field Labels (Vietnamese)
+// Keys: backend camelCase → Values: Vietnamese label
+// ─────────────────────────────────────────────
+
 const KNOWN_FIELD_LABELS: Record<string, string> = {
+  // Packaging
   packagingSpecification: 'Quy cách đóng gói',
-  productionLotName: 'Tên lô sản xuất',
-  productionLotId: 'Mã lô sản xuất',
   packagingDate: 'Ngày đóng gói',
+  // Harvest
   harvestDate: 'Ngày thu hoạch',
   quantity: 'Số lượng',
-  receivedQuantity: 'Số lượng nhận',
-  seedType: 'Loại giống',
-  plantingDate: 'Ngày trồng',
+  // Transport
   fromLocation: 'Điểm xuất phát',
   toLocation: 'Điểm đến',
+  transportDate: 'Ngày vận chuyển',
   transportMethod: 'Phương thức vận chuyển',
+  // Procurement (matches backend RecordProcurementEventRequest + eventData)
+  shipmentName: 'Tên lô hàng',
+  receivedQuantity: 'Số lượng nhận',
+  notes: 'Ghi chú',
+  // Production Lot
+  productionLotName: 'Tên lô sản xuất',
+  productionLotId: 'Mã lô sản xuất',
+  // Correction
   correctionReason: 'Lý do điều chỉnh',
+  // Common
+  seedType: 'Loại giống',
+  plantingDate: 'Ngày trồng',
   specification: 'Quy cách',
   receivedWeight: 'Khối lượng nhận',
   deviceSource: 'Nguồn thiết bị',
@@ -45,45 +54,27 @@ const KNOWN_FIELD_LABELS: Record<string, string> = {
 /**
  * Converts a camelCase backend field name into a human-readable Vietnamese label.
  *
- * Rules:
- * 1. Use a known mapping if one exists (preferred).
- * 2. Otherwise: camelCase → words, capitalised.
- *
- * Examples:
- *   "packagingSpecification" → "Quy cách đóng gói"
- *   "harvestDate" → "Ngày thu hoạch"
- *   "unknownField" → "Unknown Field"
+ * 1. Exact match from KNOWN_FIELD_LABELS (preferred).
+ * 2. Fallback: camelCase → Title Case Words.
  */
 export function formatFieldLabel(key: string): string {
-  // 1. Known mapping
   if (KNOWN_FIELD_LABELS[key]) {
     return KNOWN_FIELD_LABELS[key];
   }
-
-  // 2. Generic camelCase → words
   return key
     .replace(/([A-Z])/g, ' $1')
     .replace(/^./, (s) => s.toUpperCase())
     .trim();
 }
 
-/**
- * Returns true when a value looks like an ISO 8601 date / date-time string.
- */
+// ─────────────────────────────────────────────
+// Value Formatting
+// ─────────────────────────────────────────────
+
 function isISODateString(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?$/.test(value);
 }
 
-/**
- * Formats a display value based on its type.
- *
- * - Dates → "29/07/2026" (vi-VN)
- * - Booleans → "Có" / "Không"
- * - null/undefined → "" (caller should hide)
- * - UUIDs → passed through as-is (caller decides styling)
- * - Numbers → locale-formatted (vi-VN)
- * - Everything else → String(value)
- */
 export function formatEventValue(value: unknown): string {
   if (value === null || value === undefined) {
     return '';
@@ -115,19 +106,14 @@ export function formatEventValue(value: unknown): string {
   return String(value);
 }
 
-/**
- * Returns true if a value is considered empty / not displayable.
- * (null, undefined, empty string)
- */
 export function isEventValueEmpty(value: unknown): boolean {
   return value === null || value === undefined || value === '';
 }
 
-/**
- * Formats a UTC ISO date-time string into display-friendly Vietnamese format.
- *
- * "2026-07-29T15:05:00Z" → "29/07/2026 22:05" (local time)
- */
+// ─────────────────────────────────────────────
+// Date / DateTime formatting (vi-VN)
+// ─────────────────────────────────────────────
+
 export function formatDisplayDateTime(iso: string): string {
   try {
     const date = new Date(iso);
@@ -151,9 +137,6 @@ export function formatDisplayDateTime(iso: string): string {
   }
 }
 
-/**
- * Formats an ISO date (e.g. "2026-07-29") to "29/07/2026".
- */
 export function formatDisplayDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString('vi-VN', {
@@ -164,4 +147,40 @@ export function formatDisplayDate(iso: string): string {
   } catch {
     return iso;
   }
+}
+
+// ─────────────────────────────────────────────
+// Shared translation helper — used by Timeline
+// and RouteMap to produce labelled event data
+// ─────────────────────────────────────────────
+
+/**
+ * Translates a raw eventData map into { VietnameseLabel: formattedValue }.
+ *
+ * - Skips null/undefined/empty values.
+ * - Uses formatFieldLabel() for key → label.
+ * - Uses formatEventValue() for value formatting.
+ *
+ * Returns a flat Record<string, string> ready for display.
+ */
+export function getTranslatedEventData(
+  _eventType: string,
+  data: Record<string, unknown>,
+): Record<string, string> {
+  const result: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(data)) {
+    // Skip internal / identifier-only fields
+    if (key === 'shipmentId' || key === 'productionLotId') continue;
+
+    if (isEventValueEmpty(value)) continue;
+
+    const label = formatFieldLabel(key);
+    const formatted = formatEventValue(value);
+    if (formatted) {
+      result[label] = formatted;
+    }
+  }
+
+  return result;
 }

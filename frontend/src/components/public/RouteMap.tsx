@@ -2,6 +2,11 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { PublicChainEventItem } from '@/types/publicTrace';
+import {
+  getEventTypeLabel,
+  getTranslatedEventData,
+  formatDisplayDateTime,
+} from '@/utils/eventFormatter';
 
 // Fix icon mặc định của Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -14,28 +19,6 @@ L.Icon.Default.mergeOptions({
 interface RouteMapProps {
   events: PublicChainEventItem[];
 }
-
-const EVENT_LABELS: Record<string, string> = {
-  HARVEST: 'Thu hoạch',
-  PACKAGING: 'Đóng gói',
-  TRANSPORT: 'Vận chuyển',
-  PROCUREMENT: 'Thu mua',
-  CORRECTION: 'Đính chính',
-};
-
-const formatDate = (iso: string) => {
-  try {
-    return new Date(iso).toLocaleString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-};
 
 export const RouteMap = ({ events }: RouteMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -76,10 +59,23 @@ export const RouteMap = ({ events }: RouteMapProps) => {
     locationEvents.forEach((event, index) => {
       const lat = event.latitude!;
       const lng = event.longitude!;
-      const label = EVENT_LABELS[event.eventType] || event.eventType;
-      const date = formatDate(event.recordedAt);
+      const label = getEventTypeLabel(event.eventType);
+      const date = formatDisplayDateTime(event.recordedAt);
 
       coords.push([lat, lng]);
+
+      // Build translated popup content using shared formatter
+      const translatedData = getTranslatedEventData(
+        event.eventType,
+        (event.eventData as Record<string, unknown>) || {},
+      );
+
+      const detailsHtml = Object.entries(translatedData)
+        .map(
+          ([fieldLabel, value]) =>
+            `<div style="font-size: 13px;"><strong>${fieldLabel}:</strong> ${value}</div>`,
+        )
+        .join('');
 
       // Tạo icon có số thứ tự
       const numberIcon = L.divIcon({
@@ -106,16 +102,10 @@ export const RouteMap = ({ events }: RouteMapProps) => {
       L.marker([lat, lng], { icon: numberIcon })
         .addTo(map)
         .bindPopup(`
-          <div style="font-family: system-ui; padding: 4px;">
+          <div style="font-family: system-ui; padding: 4px; min-width: 180px;">
             <strong style="font-size: 16px;">${label}</strong>
-            <div style="font-size: 13px; color: #666;">${date}</div>
-            ${event.eventData ? `
-              <div style="font-size: 13px; margin-top: 6px;">
-                ${Object.entries(event.eventData)
-                  .map(([key, value]) => `<div><strong>${key}:</strong> ${String(value)}</div>`)
-                  .join('')}
-              </div>
-            ` : ''}
+            <div style="font-size: 13px; color: #666; margin-top: 2px;">${date}</div>
+            ${detailsHtml ? `<div style="margin-top: 6px;">${detailsHtml}</div>` : ''}
             <div style="font-size: 12px; color: #999; margin-top: 4px;">
               Sự kiện #${index + 1}/${locationEvents.length}
             </div>

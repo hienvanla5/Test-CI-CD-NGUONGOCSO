@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { exportOpenData } from '@/api/exportApi';
 import { getProductCategories } from '@/api/productCategoryApi';
 import { getOrganizations } from '@/api/organizationApi';
@@ -32,6 +33,22 @@ import {
   type ExportOpenDataFormValues,
 } from '@/utils/validators';
 
+// Helper: format date to datetime-local string (YYYY-MM-DDTHH:mm)
+const toDateTimeLocal = (date: Date, endOfDay = false): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  let hours = String(date.getHours()).padStart(2, '0');
+  let minutes = String(date.getMinutes()).padStart(2, '0');
+  if (endOfDay) {
+    hours = '23';
+    minutes = '59';
+  }
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+type QuickRangeKey = '7days' | '30days' | 'week' | 'month' | 'year' | null;
+
 export const ExportOpenDataForm = () => {
   const { user } = useAuth();
   const isAdmin = user?.roleCode === 'VT-01';
@@ -39,11 +56,13 @@ export const ExportOpenDataForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [activeQuickRange, setActiveQuickRange] = useState<QuickRangeKey>(null);
 
   const {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ExportOpenDataFormValues>({
     resolver: zodResolver(exportOpenDataSchema),
@@ -58,13 +77,69 @@ export const ExportOpenDataForm = () => {
   });
 
   const selectedFormat = watch('format');
+  const selectedCategoryIds = watch('productCategoryIds') || [];
+  const fromDate = watch('fromDate');
+  const toDate = watch('toDate');
+
+  // Detect if current date range matches any preset
+  useEffect(() => {
+    if (!fromDate || !toDate) {
+      setActiveQuickRange(null);
+      return;
+    }
+
+    // Helper to compare dates ignoring seconds/milliseconds
+    const normalize = (dateStr: string) => {
+      if (!dateStr) return '';
+      // trim seconds and timezone
+      return dateStr.slice(0, 16);
+    };
+
+    const now = new Date();
+    const todayStr = toDateTimeLocal(now, true);
+    const from7days = toDateTimeLocal(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+    const from30days = toDateTimeLocal(new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000));
+    const normalizedFrom = normalize(fromDate);
+    const normalizedTo = normalize(toDate);
+
+    // Week
+    const dayOfWeek = now.getDay();
+    const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    const monday = new Date(now);
+    monday.setDate(diff);
+    monday.setHours(0, 0, 0, 0);
+    const weekFrom = toDateTimeLocal(monday);
+    const weekTo = toDateTimeLocal(now, true);
+
+    // Month
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthFrom = toDateTimeLocal(firstDay);
+    const monthTo = toDateTimeLocal(now, true);
+
+    // Year
+    const yearFirst = new Date(now.getFullYear(), 0, 1);
+    const yearFrom = toDateTimeLocal(yearFirst);
+    const yearTo = toDateTimeLocal(now, true);
+
+    if (normalizedFrom === normalize(from7days) && normalizedTo === normalize(todayStr)) {
+      setActiveQuickRange('7days');
+    } else if (normalizedFrom === normalize(from30days) && normalizedTo === normalize(todayStr)) {
+      setActiveQuickRange('30days');
+    } else if (normalizedFrom === normalize(weekFrom) && normalizedTo === normalize(weekTo)) {
+      setActiveQuickRange('week');
+    } else if (normalizedFrom === normalize(monthFrom) && normalizedTo === normalize(monthTo)) {
+      setActiveQuickRange('month');
+    } else if (normalizedFrom === normalize(yearFrom) && normalizedTo === normalize(yearTo)) {
+      setActiveQuickRange('year');
+    } else {
+      setActiveQuickRange(null);
+    }
+  }, [fromDate, toDate]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // VT-05 không có quyền gọi /admin/organizations,
-        // chỉ tải danh sách tổ chức nếu là admin (VT-01)
         const [orgs, cats] = await Promise.all([
           isAdmin ? getOrganizations() : Promise.resolve([] as Organization[]),
           getProductCategories(),
@@ -122,6 +197,77 @@ export const ExportOpenDataForm = () => {
     }
   };
 
+  const removeCategory = (id: string) => {
+    setValue(
+      'productCategoryIds',
+      selectedCategoryIds.filter((v) => v !== id),
+      { shouldValidate: true }
+    );
+  };
+
+  const clearAllCategories = () => {
+    setValue('productCategoryIds', [], { shouldValidate: true });
+  };
+
+  const addCategory = (id: string) => {
+    if (!id) return;
+    if (selectedCategoryIds.includes(id)) {
+      removeCategory(id);
+    } else {
+      setValue('productCategoryIds', [...selectedCategoryIds, id], {
+        shouldValidate: true,
+      });
+    }
+  };
+
+  const getCategoryName = (id: string) => {
+    return categories.find((c) => c.id === id)?.name || id;
+  };
+
+  // Quick date range setters
+  const setQuickRange = (days: number, key: QuickRangeKey) => {
+    const now = new Date();
+    const from = new Date(now);
+    from.setDate(now.getDate() - days);
+    setValue('fromDate', toDateTimeLocal(from, false));
+    setValue('toDate', toDateTimeLocal(now, true));
+    setActiveQuickRange(key);
+  };
+
+  const setThisWeek = () => {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    const monday = new Date(now);
+    monday.setDate(diff);
+    monday.setHours(0, 0, 0, 0);
+    setValue('fromDate', toDateTimeLocal(monday, false));
+    setValue('toDate', toDateTimeLocal(now, true));
+    setActiveQuickRange('week');
+  };
+
+  const setThisMonth = () => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    setValue('fromDate', toDateTimeLocal(firstDay, false));
+    setValue('toDate', toDateTimeLocal(now, true));
+    setActiveQuickRange('month');
+  };
+
+  const setThisYear = () => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), 0, 1);
+    setValue('fromDate', toDateTimeLocal(firstDay, false));
+    setValue('toDate', toDateTimeLocal(now, true));
+    setActiveQuickRange('year');
+  };
+
+  const clearDates = () => {
+    setValue('fromDate', undefined);
+    setValue('toDate', undefined);
+    setActiveQuickRange(null);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center p-8">
@@ -174,6 +320,67 @@ export const ExportOpenDataForm = () => {
           )}
 
           {/* Khoảng thời gian */}
+          <div className="space-y-2">
+            <Label>Khoảng thời gian</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={activeQuickRange === '7days' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setQuickRange(7, '7days')}
+                disabled={submitting}
+              >
+                7 ngày qua
+              </Button>
+              <Button
+                type="button"
+                variant={activeQuickRange === '30days' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setQuickRange(30, '30days')}
+                disabled={submitting}
+              >
+                30 ngày qua
+              </Button>
+              <Button
+                type="button"
+                variant={activeQuickRange === 'week' ? 'default' : 'outline'}
+                size="sm"
+                onClick={setThisWeek}
+                disabled={submitting}
+              >
+                Tuần này
+              </Button>
+              <Button
+                type="button"
+                variant={activeQuickRange === 'month' ? 'default' : 'outline'}
+                size="sm"
+                onClick={setThisMonth}
+                disabled={submitting}
+              >
+                Tháng này
+              </Button>
+              <Button
+                type="button"
+                variant={activeQuickRange === 'year' ? 'default' : 'outline'}
+                size="sm"
+                onClick={setThisYear}
+                disabled={submitting}
+              >
+                Năm nay
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={clearDates}
+                disabled={submitting}
+                className="text-muted-foreground"
+              >
+                Xóa
+              </Button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="fromDate">Từ ngày</Label>
@@ -185,7 +392,10 @@ export const ExportOpenDataForm = () => {
                     id="fromDate"
                     type="datetime-local"
                     value={field.value ?? ''}
-                    onChange={field.onChange}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      // if user manually changes, clear active quick range (will be detected by useEffect)
+                    }}
                     disabled={submitting}
                   />
                 )}
@@ -225,13 +435,7 @@ export const ExportOpenDataForm = () => {
                 <Select
                   value=""
                   onValueChange={(val) => {
-                    if (!val) return;
-                    const current = field.value ?? [];
-                    if (current.includes(val)) {
-                      field.onChange(current.filter((v) => v !== val));
-                    } else {
-                      field.onChange([...current, val]);
-                    }
+                    if (val) addCategory(val);
                   }}
                   disabled={submitting}
                 >
@@ -254,9 +458,43 @@ export const ExportOpenDataForm = () => {
                 {errors.productCategoryIds.message}
               </p>
             )}
-            <p className="text-xs text-muted-foreground">
-              Chọn một danh mục sẽ thêm vào danh sách. Để bỏ chọn, click lại.
-            </p>
+
+            {/* Hiển thị danh sách đã chọn */}
+            {selectedCategoryIds.length > 0 && (
+              <div className="mt-2 space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {selectedCategoryIds.map((id) => (
+                    <Badge
+                      key={id}
+                      variant="secondary"
+                      className="flex items-center gap-1 pl-3 pr-1 py-1"
+                    >
+                      {getCategoryName(id)}
+                      <button
+                        type="button"
+                        onClick={() => removeCategory(id)}
+                        className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                        aria-label={`Xóa ${getCategoryName(id)}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-muted-foreground"
+                    onClick={clearAllCategories}
+                  >
+                    Xóa tất cả
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Đã chọn {selectedCategoryIds.length} danh mục
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Định dạng */}

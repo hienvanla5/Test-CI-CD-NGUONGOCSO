@@ -1,18 +1,35 @@
 import { useMemo, useState } from 'react';
 import { z } from 'zod';
-import { AlertCircle, Download, FileBarChart, LoaderCircle, SearchCheck } from 'lucide-react';
+import {
+  AlertCircle,
+  Download,
+  FileBarChart,
+  LoaderCircle,
+  SearchCheck,
+  CalendarDays,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { useExportIndustryReport } from '@/hooks/useExportIndustryReport';
+import { cn } from '@/lib/utils';
 
 const filterSchema = z
   .object({
@@ -25,12 +42,41 @@ const filterSchema = z
     path: ['toDate'],
   });
 
+type QuickRange = 'today' | 'week' | 'month' | 'year' | null;
+
+function getQuickRangeDates(range: QuickRange): { from: string; to: string } {
+  const now = new Date();
+  const to = now.toISOString().split('T')[0];
+  let from = to;
+
+  if (range === 'today') {
+    // giữ nguyên
+  } else if (range === 'week') {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 7);
+    from = d.toISOString().split('T')[0];
+  } else if (range === 'month') {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 30);
+    from = d.toISOString().split('T')[0];
+  } else if (range === 'year') {
+    const d = new Date(now);
+    d.setFullYear(d.getFullYear() - 1);
+    from = d.toISOString().split('T')[0];
+  }
+
+  return { from, to };
+}
+
 export function IndustryReportPanel() {
   const [region, setRegion] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [format, setFormat] = useState<'PDF' | 'EXCEL'>('PDF');
   const [formError, setFormError] = useState<string | null>(null);
+
+  // State cho quick range đang active
+  const [activeQuickRange, setActiveQuickRange] = useState<QuickRange>(null);
 
   const { report, isLoading, isExporting, fetchReport, exportReport, reset } =
     useExportIndustryReport();
@@ -48,6 +94,31 @@ export function IndustryReportPanel() {
     }
     setFormError(null);
     return true;
+  };
+
+  // Hàm áp dụng quick range
+  const applyQuickRange = (range: QuickRange) => {
+    if (!range) {
+      setActiveQuickRange(null);
+      return;
+    }
+    const { from, to } = getQuickRangeDates(range);
+    setFromDate(from);
+    setToDate(to);
+    setActiveQuickRange(range);
+    // Tự động reset lỗi và báo cáo cũ
+    setFormError(null);
+    reset();
+  };
+
+  // Khi người dùng thay đổi thủ công, bỏ active
+  const handleFromDateChange = (value: string) => {
+    setFromDate(value);
+    setActiveQuickRange(null);
+  };
+  const handleToDateChange = (value: string) => {
+    setToDate(value);
+    setActiveQuickRange(null);
   };
 
   const handleView = () => {
@@ -74,6 +145,47 @@ export function IndustryReportPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Quick range buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground mr-1">Chọn nhanh:</span>
+            {[
+              { label: 'Hôm nay', value: 'today' as const },
+              { label: '7 ngày qua', value: 'week' as const },
+              { label: '30 ngày qua', value: 'month' as const },
+              { label: '1 năm qua', value: 'year' as const },
+            ].map(({ label, value }) => (
+              <Button
+                key={value}
+                variant="outline"
+                size="sm"
+                className={cn(
+                  'h-8 px-3 text-xs font-normal',
+                  activeQuickRange === value &&
+                    'border-emerald-600 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                )}
+                onClick={() => applyQuickRange(value)}
+              >
+                {label}
+              </Button>
+            ))}
+            {activeQuickRange && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs text-muted-foreground"
+                onClick={() => {
+                  setActiveQuickRange(null);
+                  setFromDate('');
+                  setToDate('');
+                  reset();
+                }}
+              >
+                <CalendarDays className="mr-1 size-3" />
+                Bỏ chọn
+              </Button>
+            )}
+          </div>
+
           <div className="grid gap-4 md:grid-cols-4">
             <div className="space-y-2">
               <Label htmlFor="region">Địa bàn *</Label>
@@ -90,7 +202,7 @@ export function IndustryReportPanel() {
                 id="fromDate"
                 type="date"
                 value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
+                onChange={(e) => handleFromDateChange(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -99,12 +211,11 @@ export function IndustryReportPanel() {
                 id="toDate"
                 type="date"
                 value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
+                onChange={(e) => handleToDateChange(e.target.value)}
               />
             </div>
             <div className="flex items-end">
-              {/* CHANGED: thêm variant="view" cho nút Xem báo cáo */}
-              <Button onClick={handleView} disabled={isLoading} className="w-full" variant="view">
+              <Button onClick={handleView} disabled={isLoading} className="w-full">
                 {isLoading ? (
                   <LoaderCircle className="size-4 animate-spin" />
                 ) : (

@@ -93,7 +93,7 @@ public class ExportServiceImpl implements ExportService {
 
         if (eligibleShipments.isEmpty()) {
             throw new BusinessException(
-                    "Không có lô hàng nào đáp ứng đủ điều kiện QTN-11 (thiếu sự kiện chuỗi cung ứng hoặc chứng từ).");
+                    "Không có lô hàng nào đáp ứng đủ điều kiện (thiếu sự kiện chuỗi cung ứng hoặc chứng từ).");
         }
 
         // 4. Build export schema

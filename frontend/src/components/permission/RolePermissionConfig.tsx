@@ -153,7 +153,7 @@ export const RolePermissionConfig: React.FC = () => {
           <SelectContent>
             {roles.map((role) => (
               <SelectItem key={role.roleId} value={role.roleId.toString()}>
-                {getDisplayName(role.roleCode)} ({role.roleCode})
+                {getDisplayName(role.roleCode)}
               </SelectItem>
             ))}
           </SelectContent>

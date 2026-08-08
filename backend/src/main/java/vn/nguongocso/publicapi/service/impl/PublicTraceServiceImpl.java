@@ -210,7 +210,7 @@ public class PublicTraceServiceImpl implements PublicTraceService {
                 keepFields(rawData, result, "fromLocation", "toLocation", "transportDate");
                 break;
             case PROCUREMENT:
-                keepFields(rawData, result, "buyerName", "purchaseDate", "quantity");
+                keepFields(rawData, result, "shipmentName", "receivedQuantity", "notes");
                 break;
             default:
                 // Chỉ giữ các trường an toàn, tránh lộ thông tin nội bộ
