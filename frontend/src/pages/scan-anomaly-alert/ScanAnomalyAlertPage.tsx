@@ -94,21 +94,26 @@ export default function ScanAnomalyAlertPage() {
   const fetchAlerts = async () => {
     try {
       setLoading(true);
+
       const data = await getScanAnomalyAlerts({
         status: filters.status === 'ALL' ? undefined : filters.status,
         fromDate: filters.fromDate || undefined,
         toDate: filters.toDate || undefined,
-        organizationId:
-          user?.roleCode === 'VT-02' ? user.organizationId : undefined,
         page,
         size,
       });
+
       setResult(data);
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || 'Không thể tải danh sách cảnh báo',
+        error.response?.data?.message ||
+        'Không thể tải danh sách cảnh báo',
       );
-      setResult((current) => ({ ...current, content: [] }));
+
+      setResult((current) => ({
+        ...current,
+        content: [],
+      }));
     } finally {
       setLoading(false);
     }
@@ -116,7 +121,7 @@ export default function ScanAnomalyAlertPage() {
 
   useEffect(() => {
     fetchAlerts();
-  }, [filters, page, size, user?.organizationId, user?.roleCode]);
+  }, [filters, page, size]);
 
   const applyFilters = () => {
     if (

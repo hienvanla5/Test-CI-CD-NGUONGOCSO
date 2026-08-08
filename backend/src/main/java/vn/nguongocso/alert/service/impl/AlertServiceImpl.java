@@ -31,8 +31,10 @@ import vn.nguongocso.auth.entity.User;
 import vn.nguongocso.auth.repository.UserRepository;
 import vn.nguongocso.auth.service.CustomUserDetails;
 import vn.nguongocso.exception.BusinessException;
+import vn.nguongocso.organization.dto.response.OrganizationProfileResponse;
 import vn.nguongocso.organization.entity.OrganizationUser;
 import vn.nguongocso.organization.repository.OrganizationUserRepository;
+import vn.nguongocso.organization.service.OrganizationService;
 import vn.nguongocso.trace.entity.TraceCode;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 
@@ -40,271 +42,270 @@ import vn.nguongocso.trace.repository.TraceCodeRepository;
 @Service
 @RequiredArgsConstructor
 public class AlertServiceImpl implements AlertService {
-    private static final String ADMIN_ROLE = "VT-01";
-    private static final String ORG_MANAGER_ROLE = "VT-02";
+        private static final String ADMIN_ROLE = "VT-01";
+        private static final String ORG_MANAGER_ROLE = "VT-02";
 
-    private final AlertRepository alertRepository;
-    private final UserRepository userRepository;
-    private final TraceCodeRepository traceCodeRepository;
-    private final OrganizationUserRepository organizationUserRepository;
-    private final ObjectMapper objectMapper;
-    private final CertificationRepository certificationRepository;
+        private final AlertRepository alertRepository;
+        private final UserRepository userRepository;
+        private final TraceCodeRepository traceCodeRepository;
+        private final OrganizationUserRepository organizationUserRepository;
+        private final ObjectMapper objectMapper;
+        private final CertificationRepository certificationRepository;
+        private final OrganizationService organizationService;
 
-    /** Lấy danh sách cảnh báo quét bất thường. */
-    @Override
-    public AlertListResponse getAlerts(
-            AlertType type,
-            AlertStatus status,
-            LocalDate fromDate,
-            LocalDate toDate,
-            UUID organizationId,
-            Pageable pageable) {
+        /** Lấy danh sách cảnh báo quét bất thường. */
+        @Override
+        public AlertListResponse getAlerts(
+                        AlertType type,
+                        AlertStatus status,
+                        LocalDate fromDate,
+                        LocalDate toDate,
+                        UUID organizationId,
+                        Pageable pageable) {
 
-        User currentUser = getCurrentUser();
+                User currentUser = getCurrentUser();
 
-        List<OrganizationUser> organizationUsers = getOrganizationUsers(currentUser);
+                List<OrganizationUser> organizationUsers = getOrganizationUsers(currentUser);
 
-        if (isAdmin(organizationUsers)) {
-            // VT-01 được xem tất cả, giữ nguyên organizationId.
-        } else if (isOrganizationManager(organizationUsers)) {
-            // VT-02 chỉ được xem cảnh báo của tổ chức mình.
-            organizationId = getOrganizationId(organizationUsers);
-        } else {
-            throw new BusinessException(
-                    "Bạn không có quyền xem cảnh báo.");
+                if (isAdmin(organizationUsers)) {
+
+                        // VT-01 được xem toàn bộ cảnh báo.
+                        organizationId = null;
+
+                } else if (isOrganizationManager(organizationUsers)) {
+
+                        // VT-02 chỉ xem cảnh báo của tổ chức hiện tại.
+                        OrganizationProfileResponse profile = organizationService.getCurrentOrganizationProfile();
+
+                        organizationId = profile.getOrganizationId();
+
+                } else {
+
+                        throw new BusinessException(
+                                        "Bạn không có quyền xem cảnh báo.");
+                }
+
+                Page<Alert> alertPage = findAlerts(
+                                type,
+                                status,
+                                fromDate,
+                                toDate,
+                                organizationId,
+                                pageable);
+
+                AlertListResponse response = new AlertListResponse();
+
+                response.setContent(
+                                alertPage.getContent()
+                                                .stream()
+                                                .map(this::toAlertResponse)
+                                                .toList());
+
+                response.setTotalElements((int) alertPage.getTotalElements());
+                response.setTotalPages(alertPage.getTotalPages());
+                response.setPage(alertPage.getNumber());
+                response.setSize(alertPage.getSize());
+
+                return response;
         }
 
-        Page<Alert> alertPage = findAlerts(
-                type,
-                status,
-                fromDate,
-                toDate,
-                organizationId,
-                pageable);
+        /** Xử lý cảnh báo. */
+        @Override
+        @Transactional
+        public ResolveAlertResponse resolveAlert(
+                        UUID alertId,
+                        ResolveAlertRequest request) {
 
-        AlertListResponse response = new AlertListResponse();
+                Alert alert = alertRepository.findById(alertId)
+                                .orElseThrow(() -> new BusinessException("Cảnh báo không tồn tại."));
 
-        response.setContent(
-                alertPage.getContent()
-                        .stream()
-                        .map(this::toAlertResponse)
-                        .toList());
+                if (alert.getStatus() != AlertStatus.PENDING) {
+                        throw new BusinessException(
+                                        "Cảnh báo không thể xử lý.");
+                }
 
-        response.setTotalElements((int) alertPage.getTotalElements());
-        response.setTotalPages(alertPage.getTotalPages());
-        response.setPage(alertPage.getNumber());
-        response.setSize(alertPage.getSize());
+                User currentUser = getCurrentUser();
 
-        return response;
-    }
+                List<OrganizationUser> organizationUsers = getOrganizationUsers(currentUser);
 
-    /** Xử lý cảnh báo. */
-    @Transactional
-    @Override
-    public ResolveAlertResponse resolveAlert(
-            UUID alertId,
-            ResolveAlertRequest request) {
+                if (!isAdmin(organizationUsers)) {
 
-        Alert alert = alertRepository.findById(alertId)
-                .orElseThrow(() -> new BusinessException("Cảnh báo không tồn tại."));
+                        if (!isOrganizationManager(organizationUsers)) {
+                                throw new BusinessException(
+                                                "Bạn không có quyền xử lý cảnh báo.");
+                        }
 
-        if (alert.getStatus() != AlertStatus.PENDING) {
-            throw new BusinessException(
-                    "Cảnh báo không thể xử lý.");
+                        // Lấy organization hiện tại của user
+                        OrganizationProfileResponse profile = organizationService.getCurrentOrganizationProfile();
+
+                        UUID currentOrganizationId = profile.getOrganizationId();
+
+                        // Kiểm tra alert thuộc organization hiện tại
+                        if (!isAlertBelongToOrganization(
+                                        alert,
+                                        currentOrganizationId)) {
+
+                                throw new BusinessException(
+                                                "Bạn không có quyền xử lý cảnh báo này.");
+                        }
+                }
+
+                alert.setStatus(AlertStatus.RESOLVED);
+                alert.setResolvedAt(LocalDateTime.now());
+                alert.setResolvedBy(currentUser.getUserId());
+
+                Alert resolvedAlert = alertRepository.save(alert);
+
+                return toResolveAlertResponse(resolvedAlert);
         }
 
-        User currentUser = getCurrentUser();
+        /** Lấy người dùng đang đăng nhập. */
+        private User getCurrentUser() {
 
-        List<OrganizationUser> organizationUsers = getOrganizationUsers(currentUser);
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (!isAdmin(organizationUsers)) {
+                if (authentication == null
+                                || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
 
-            if (!isOrganizationManager(organizationUsers)) {
-                throw new BusinessException(
-                        "Bạn không có quyền xử lý cảnh báo.");
-            }
+                        throw new BusinessException(
+                                        "Người dùng chưa đăng nhập.");
+                }
 
-            UUID organizationId = getOrganizationId(organizationUsers);
-
-            if (!isAlertBelongToOrganization(
-                    alert,
-                    organizationId)) {
-
-                throw new BusinessException(
-                        "Bạn không có quyền xử lý cảnh báo này.");
-            }
+                return userRepository.findById(
+                                userDetails.getUser().getUserId())
+                                .orElseThrow(() -> new BusinessException(
+                                                "Người dùng không tồn tại."));
         }
 
-        alert.setStatus(AlertStatus.RESOLVED);
-        alert.setResolvedAt(LocalDateTime.now());
-        alert.setResolvedBy(currentUser.getUserId());
+        /** Lấy tất cả vai trò của người dùng trong các tổ chức. */
+        private List<OrganizationUser> getOrganizationUsers(
+                        User user) {
 
-        Alert resolvedAlert = alertRepository.save(alert);
-
-        return toResolveAlertResponse(resolvedAlert);
-    }
-
-    /** Lấy người dùng đang đăng nhập. */
-    private User getCurrentUser() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null
-                || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
-
-            throw new BusinessException(
-                    "Người dùng chưa đăng nhập.");
+                return organizationUserRepository.findAllByUser_UserId(
+                                user.getUserId());
         }
 
-        return userRepository.findById(
-                userDetails.getUser().getUserId())
-                .orElseThrow(() -> new BusinessException(
-                        "Người dùng không tồn tại."));
-    }
+        /** Kiểm tra người dùng có vai trò quản trị. */
+        private boolean isAdmin(
+                        List<OrganizationUser> organizationUsers) {
 
-    /** Lấy tất cả vai trò của người dùng trong các tổ chức. */
-    private List<OrganizationUser> getOrganizationUsers(
-            User user) {
-
-        return organizationUserRepository.findAllByUser_UserId(
-                user.getUserId());
-    }
-
-    /** Kiểm tra người dùng có vai trò quản trị. */
-    private boolean isAdmin(
-            List<OrganizationUser> organizationUsers) {
-
-        return organizationUsers.stream()
-                .anyMatch(organizationUser -> ADMIN_ROLE.equals(
-                        organizationUser.getRole().getCode()));
-    }
-
-    /** Kiểm tra người dùng có vai trò quản lý tổ chức. */
-    private boolean isOrganizationManager(
-            List<OrganizationUser> organizationUsers) {
-
-        return organizationUsers.stream()
-                .anyMatch(organizationUser -> ORG_MANAGER_ROLE.equals(
-                        organizationUser.getRole().getCode()));
-    }
-
-    /** Lấy tổ chức của người quản lý. */
-    private UUID getOrganizationId(
-            List<OrganizationUser> organizationUsers) {
-
-        return organizationUsers.stream()
-                .filter(organizationUser -> ORG_MANAGER_ROLE.equals(
-                        organizationUser.getRole().getCode()))
-                .findFirst()
-                .orElseThrow(() -> new BusinessException(
-                        "Người dùng chưa thuộc tổ chức."))
-                .getOrganization()
-                .getOrganizationId();
-    }
-
-    /** Kiểm tra cảnh báo có thuộc tổ chức hay không. */
-    private boolean isAlertBelongToOrganization(
-            Alert alert,
-            UUID organizationId) {
-
-        if (alert.getRelatedEntityId() == null) {
-            return false;
+                return organizationUsers.stream()
+                                .anyMatch(organizationUser -> ADMIN_ROLE.equals(
+                                                organizationUser.getRole().getCode()));
         }
 
-        if (alert.getType() == AlertType.SCAN_ANOMALY) {
-            TraceCode traceCode = traceCodeRepository
-                    .findById(alert.getRelatedEntityId())
-                    .orElseThrow(() -> new BusinessException(
-                            "Mã truy xuất không tồn tại."));
+        /** Kiểm tra người dùng có vai trò quản lý tổ chức. */
+        private boolean isOrganizationManager(
+                        List<OrganizationUser> organizationUsers) {
 
-            UUID alertOrganizationId = traceCode.getShipment()
-                    .getOrganization()
-                    .getOrganizationId();
-
-            return alertOrganizationId.equals(organizationId);
-        } else {
-            Certification cert = certificationRepository
-                    .findById(alert.getRelatedEntityId())
-                    .orElseThrow(() -> new BusinessException(
-                            "Chứng nhận không tồn tại."));
-
-            UUID alertOrganizationId = cert.getOrganization()
-                    .getOrganizationId();
-
-            return alertOrganizationId.equals(organizationId);
-        }
-    }
-
-    /** Tìm danh sách cảnh báo theo điều kiện. */
-    private Page<Alert> findAlerts(
-            AlertType type,
-            AlertStatus status,
-            LocalDate fromDate,
-            LocalDate toDate,
-            UUID organizationId,
-            Pageable pageable) {
-
-        LocalDateTime from = fromDate != null
-                ? fromDate.atStartOfDay()
-                : null;
-
-        LocalDateTime to = toDate != null
-                ? toDate.atTime(23, 59, 59)
-                : null;
-
-        return alertRepository.searchAlerts(
-                type,
-                status,
-                organizationId,
-                from,
-                to,
-                pageable);
-    }
-
-    /** Chuyển Alert sang dữ liệu phản hồi. */
-    private AlertResponse toAlertResponse(Alert alert) {
-
-        AlertResponse response = new AlertResponse();
-
-        response.setId(alert.getId());
-
-        response.setType(alert.getType());
-
-        response.setRelatedEntityType(alert.getRelatedEntityType());
-        response.setRelatedEntityId(alert.getRelatedEntityId());
-
-        response.setSeverity(alert.getSeverity());
-        try {
-            response.setDetails(
-                    objectMapper.readValue(
-                            alert.getDetails(),
-                            Object.class));
-        } catch (JsonProcessingException e) {
-            throw new BusinessException(
-                    "Không thể đọc dữ liệu cảnh báo.");
+                return organizationUsers.stream()
+                                .anyMatch(organizationUser -> ORG_MANAGER_ROLE.equals(
+                                                organizationUser.getRole().getCode()));
         }
 
-        response.setStatus(alert.getStatus());
+        /** Kiểm tra cảnh báo có thuộc tổ chức hay không. */
+        private boolean isAlertBelongToOrganization(
+                        Alert alert,
+                        UUID organizationId) {
 
-        response.setCreatedAt(alert.getCreatedAt());
-        response.setResolvedAt(alert.getResolvedAt());
-        response.setResolvedBy(alert.getResolvedBy());
+                if (alert.getRelatedEntityId() == null) {
+                        return false;
+                }
 
-        return response;
-    }
+                if (alert.getType() == AlertType.SCAN_ANOMALY) {
+                        TraceCode traceCode = traceCodeRepository
+                                        .findById(alert.getRelatedEntityId())
+                                        .orElseThrow(() -> new BusinessException(
+                                                        "Mã truy xuất không tồn tại."));
 
-    /** Chuyển Alert sang dữ liệu phản hồi xử lý. */
-    private ResolveAlertResponse toResolveAlertResponse(Alert alert) {
+                        UUID alertOrganizationId = traceCode.getShipment()
+                                        .getOrganization()
+                                        .getOrganizationId();
 
-        ResolveAlertResponse response = new ResolveAlertResponse();
+                        return alertOrganizationId.equals(organizationId);
+                } else {
+                        Certification cert = certificationRepository
+                                        .findById(alert.getRelatedEntityId())
+                                        .orElseThrow(() -> new BusinessException(
+                                                        "Chứng nhận không tồn tại."));
 
-        response.setId(alert.getId());
+                        UUID alertOrganizationId = cert.getOrganization()
+                                        .getOrganizationId();
 
-        response.setStatus(alert.getStatus());
+                        return alertOrganizationId.equals(organizationId);
+                }
+        }
 
-        response.setResolvedAt(alert.getResolvedAt());
-        response.setResolvedBy(alert.getResolvedBy());
+        /** Tìm danh sách cảnh báo theo điều kiện. */
+        private Page<Alert> findAlerts(
+                        AlertType type,
+                        AlertStatus status,
+                        LocalDate fromDate,
+                        LocalDate toDate,
+                        UUID organizationId,
+                        Pageable pageable) {
 
-        return response;
-    }
+                LocalDateTime from = fromDate != null
+                                ? fromDate.atStartOfDay()
+                                : null;
+
+                LocalDateTime to = toDate != null
+                                ? toDate.atTime(23, 59, 59)
+                                : null;
+
+                return alertRepository.searchAlerts(
+                                type,
+                                status,
+                                organizationId,
+                                from,
+                                to,
+                                pageable);
+        }
+
+        /** Chuyển Alert sang dữ liệu phản hồi. */
+        private AlertResponse toAlertResponse(Alert alert) {
+
+                AlertResponse response = new AlertResponse();
+
+                response.setId(alert.getId());
+
+                response.setType(alert.getType());
+
+                response.setRelatedEntityType(alert.getRelatedEntityType());
+                response.setRelatedEntityId(alert.getRelatedEntityId());
+
+                response.setSeverity(alert.getSeverity());
+                try {
+                        response.setDetails(
+                                        objectMapper.readValue(
+                                                        alert.getDetails(),
+                                                        Object.class));
+                } catch (JsonProcessingException e) {
+                        throw new BusinessException(
+                                        "Không thể đọc dữ liệu cảnh báo.");
+                }
+
+                response.setStatus(alert.getStatus());
+
+                response.setCreatedAt(alert.getCreatedAt());
+                response.setResolvedAt(alert.getResolvedAt());
+                response.setResolvedBy(alert.getResolvedBy());
+
+                return response;
+        }
+
+        /** Chuyển Alert sang dữ liệu phản hồi xử lý. */
+        private ResolveAlertResponse toResolveAlertResponse(Alert alert) {
+
+                ResolveAlertResponse response = new ResolveAlertResponse();
+
+                response.setId(alert.getId());
+
+                response.setStatus(alert.getStatus());
+
+                response.setResolvedAt(alert.getResolvedAt());
+                response.setResolvedBy(alert.getResolvedBy());
+
+                return response;
+        }
 }
