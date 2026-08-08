@@ -8,6 +8,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 
@@ -48,17 +49,16 @@ export const ProductCategoryFilter = ({
     onReset();
   };
 
-  const selectedLabel =
-    STATUS_OPTIONS.find((opt) => opt.value === String(isActive ?? ""))?.label ||
-    "Tất cả";
-
   return (
-    <Card>
-      <CardContent className="p-4">
+    <Card className="shadow-sm">
+      <CardContent className="p-5">
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="name">Tên loại nông sản</Label>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
+            {/* Tên loại nông sản */}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="name" className="text-sm font-medium">
+                Tên loại nông sản
+              </Label>
               <Input
                 id="name"
                 value={name}
@@ -67,8 +67,12 @@ export const ProductCategoryFilter = ({
                 className="h-9"
               />
             </div>
-            <div>
-              <Label htmlFor="group">Nhóm hàng</Label>
+
+            {/* Nhóm hàng */}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="group" className="text-sm font-medium">
+                Nhóm hàng
+              </Label>
               <Input
                 id="group"
                 value={group}
@@ -77,16 +81,20 @@ export const ProductCategoryFilter = ({
                 className="h-9"
               />
             </div>
-            <div>
-              <Label htmlFor="isActive">Trạng thái</Label>
+
+            {/* Trạng thái */}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="isActive" className="text-sm font-medium">
+                Trạng thái
+              </Label>
               <Select
                 value={isActive !== undefined ? String(isActive) : ""}
                 onValueChange={(val) =>
                   setIsActive(val === "" ? undefined : val === "true")
                 }
               >
-              <SelectTrigger size="sm" className="w-full">
-                  <span>{selectedLabel}</span>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Tất cả" />
                 </SelectTrigger>
                 <SelectContent>
                   {STATUS_OPTIONS.map((opt) => (
@@ -97,19 +105,25 @@ export const ProductCategoryFilter = ({
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label className="invisible">Thao tác</Label>
+
+            {/* Thao tác */}
+            <div className="flex flex-col gap-1.5">
+              {/* Label ẩn để căn chỉnh */}
+              <Label className="invisible text-sm font-medium">Thao tác</Label>
               <div className="flex gap-2">
-                <Button type="submit" variant="search" disabled={loading}>
-                  <Search className="h-4 w-4 mr-1" /> Tìm kiếm
+                <Button type="submit" disabled={loading} className="flex-1">
+                  <Search className="mr-1 h-4 w-4" />
+                  Tìm kiếm
                 </Button>
                 <Button
                   type="button"
-                  variant="delete"
+                  variant="outline"
                   onClick={handleReset}
                   disabled={loading}
+                  className="flex-1"
                 >
-                  <X className="h-4 w-4 mr-1" /> Xóa
+                  <X className="mr-1 h-4 w-4" />
+                  Xóa
                 </Button>
               </div>
             </div>
