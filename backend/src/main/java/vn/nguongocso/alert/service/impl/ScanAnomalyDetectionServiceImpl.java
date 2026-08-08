@@ -48,31 +48,31 @@ public class ScanAnomalyDetectionServiceImpl
     @Override
     public void onScanRecorded(UUID traceCodeId) {
 
-        // Lấy các lượt quét trong khoảng thời gian theo dõi.
         List<TraceCodeScanLog> scanLogs = getRecentScanLogs(traceCodeId);
 
-        // Không phát hiện bất thường thì kết thúc.
-        if (!isAnomaly(scanLogs)) {
+        boolean anomaly = isAnomaly(scanLogs);
+
+        if (!anomaly) {
             return;
         }
 
-        // Đã tồn tại cảnh báo đang chờ xử lý thì không tạo mới.
-        boolean existed = alertRepository.existsByRelatedEntityIdAndTypeAndStatus(
-                traceCodeId,
-                AlertType.SCAN_ANOMALY,
-                AlertStatus.PENDING);
+        boolean existed = alertRepository
+                .existsByRelatedEntityIdAndTypeAndStatus(
+                        traceCodeId,
+                        AlertType.SCAN_ANOMALY,
+                        AlertStatus.PENDING);
 
         if (existed) {
             return;
         }
 
-        // Lấy tổ chức từ trace code để gán vào alert
         Organization organization = getOrganizationFromTraceCode(traceCodeId);
 
-        // Tạo bản ghi cảnh báo.
-        Alert alert = createAlert(traceCodeId, scanLogs, organization);
+        Alert alert = createAlert(
+                traceCodeId,
+                scanLogs,
+                organization);
 
-        // Gửi thông báo cho các đối tượng liên quan.
         sendNotification(alert);
     }
 
@@ -132,12 +132,17 @@ public class ScanAnomalyDetectionServiceImpl
         return distance <= SAME_LOCATION_THRESHOLD_KM;
     }
 
-    /** Đếm số vị trí quét khác nhau. */
     private int countDistinctLocations(List<TraceCodeScanLog> scanLogs) {
 
         List<TraceCodeScanLog> distinctLocations = new ArrayList<>();
 
         for (TraceCodeScanLog scanLog : scanLogs) {
+
+            // Không có tọa độ thì không thể xác định vị trí
+            if (scanLog.getLatitude() == null
+                    || scanLog.getLongitude() == null) {
+                continue;
+            }
 
             boolean existed = false;
 

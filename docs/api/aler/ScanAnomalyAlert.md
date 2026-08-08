@@ -22,7 +22,7 @@ Ghi nhận lịch sử mỗi lần cảnh báo được tạo và xử lý, ph�
 
 2. Endpoint
 
-GET /api/v1/alerts/scan-anomaly
+GET /api/v1/alerts
 
 Xem danh sách cảnh báo tem quét bất thường.
 
@@ -180,7 +180,7 @@ Ghi chú: khi status = ALL và không có cảnh báo nào phù hợp, content t
 
 Ví dụ request
 
-GET http://localhost:8080/api/v1/alerts/scan-anomaly?status=PENDING&fromDate=2026-07-01&toDate=2026-07-31
+GET http://localhost:8080/api/v1/alerts?status=PENDING&fromDate=2026-07-01&toDate=2026-07-31
 
 HTTP 200 OK — có cảnh báo (TC-01)
 

@@ -21,6 +21,7 @@ import vn.nguongocso.publicapi.dto.response.PublicChainEventItem;
 import vn.nguongocso.publicapi.dto.response.PublicLotCertificationsResponse;
 import vn.nguongocso.publicapi.dto.response.PublicTraceResponse;
 import vn.nguongocso.publicapi.service.PublicTraceService;
+import vn.nguongocso.publicapi.service.ReverseGeocodingService;
 import vn.nguongocso.report.entity.TraceCodeScanLog;
 import vn.nguongocso.report.repository.TraceCodeScanLogRepository;
 import vn.nguongocso.trace.entity.Recall;
@@ -29,7 +30,6 @@ import vn.nguongocso.trace.entity.TraceCode;
 import vn.nguongocso.trace.enums.ShipmentStatus;
 import vn.nguongocso.trace.enums.TraceCodeStatus;
 import vn.nguongocso.trace.repository.RecallRepository;
-import vn.nguongocso.trace.repository.ShipmentRepository;
 import vn.nguongocso.trace.repository.TraceCodeRepository;
 
 import java.math.BigDecimal;
@@ -44,20 +44,19 @@ import java.util.stream.Collectors;
 /** Cung cấp dữ liệu truy xuất công khai cho tem lô hàng. */
 public class PublicTraceServiceImpl implements PublicTraceService {
     private final TraceCodeRepository traceCodeRepository;
-    private final ShipmentRepository shipmentRepository;
     private final ChainEventRepository chainEventRepository;
     private final ObjectMapper objectMapper;
     private final TraceCodeScanLogRepository traceCodeScanLogRepository;
     private final ScanAnomalyDetectionService scanAnomalyDetectionService;
     private final RecallRepository recallRepository;
     private final ProductionLotCertificationRepository productionLotCertificationRepository;
+    private final ReverseGeocodingService reverseGeocodingService;
 
     /** Lấy thông tin truy xuất công khai. */
     @Override
     public PublicTraceResponse getPublicTrace(String codeValue,
             Double latitude,
             Double longitude,
-            String location,
             String ipAddress,
             String userAgent) {
 
@@ -87,17 +86,33 @@ public class PublicTraceServiceImpl implements PublicTraceService {
             throw new BusinessException("Tem chưa có hiệu lực, chưa thể tra cứu hành trình.");
         }
 
+        String resolvedLocation = "Không xác định";
+
+        String location = null;
+
+        if (latitude != null && longitude != null) {
+            location = reverseGeocodingService.reverseGeocode(
+                    latitude,
+                    longitude);
+
+            if (location != null && !location.isBlank()) {
+                resolvedLocation = location;
+            }
+        }
+
         // Ghi nhận lượt quét
         TraceCodeScanLog scanLog = TraceCodeScanLog.builder()
                 .traceCode(traceCode)
                 .scannedAt(LocalDateTime.now())
                 .ipAddress(ipAddress)
                 .userAgent(userAgent)
-                .latitude(latitude != null ? BigDecimal.valueOf(latitude) : null)
-                .longitude(longitude != null ? BigDecimal.valueOf(longitude) : null)
-                .location(location != null && !location.isBlank()
-                        ? location
-                        : "Không xác định")
+                .latitude(latitude != null
+                        ? BigDecimal.valueOf(latitude)
+                        : null)
+                .longitude(longitude != null
+                        ? BigDecimal.valueOf(longitude)
+                        : null)
+                .location(resolvedLocation)
                 .isAbnormal(false)
                 .build();
 

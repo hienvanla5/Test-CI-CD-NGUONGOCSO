@@ -126,14 +126,23 @@ export function ScanAnomalyAlertDetailsDialog({
                   </TableHeader>
                   <TableBody>
                     {alert.details.locations.map((location, index) => (
-                      <TableRow key={`${location.latitude}-${location.longitude}-${location.scannedAt}`}>
+                      <TableRow
+                        key={`${location.latitude}-${location.longitude}-${location.scannedAt}`}
+                      >
                         <TableCell>{index + 1}</TableCell>
+
                         <TableCell className="font-mono text-xs">
-                          {location.latitude.toFixed(6)}
+                          {location.latitude != null
+                            ? location.latitude.toFixed(6)
+                            : '—'}
                         </TableCell>
+
                         <TableCell className="font-mono text-xs">
-                          {location.longitude.toFixed(6)}
+                          {location.longitude != null
+                            ? location.longitude.toFixed(6)
+                            : '—'}
                         </TableCell>
+
                         <TableCell className="whitespace-nowrap text-sm">
                           {formatDateTime(location.scannedAt)}
                         </TableCell>
