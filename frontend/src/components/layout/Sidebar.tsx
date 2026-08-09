@@ -16,7 +16,6 @@ import {
   MessageSquare,
   Package,
   ScanLine,
-  Shield,
   Truck,
   UserCheck,
   Users,

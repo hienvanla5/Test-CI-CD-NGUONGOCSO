@@ -81,9 +81,6 @@ import ExportOpenDataPage from "@/pages/export/ExportOpenDataPage";
 // ===== Import Production Lot (NCL-10-CN-006) =====
 import ImportProductionLotPage from "@/pages/production-lot/ImportProductionLotPage";
 
-// ===== Permission Config (NCL-09-CN-008) =====
-import RolePermissionConfigPage from "@/pages/permission/RolePermissionConfigPage";
-
 // ===== Scan Quick Event (NCL-10-CN-004) =====
 import ScanQuickEventPage from "@/pages/scan-anomaly-alert/components/ScanQuickEventPage";
 
