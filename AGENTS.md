@@ -49,5 +49,5 @@ When working in build mode:
 - Security: JWT (`app.jwt.secret` in `application.properties`). Only `/api/v1/auth/login`, `/api/v1/public/**`, `/actuator/health`, `/files/qr/**` are public; everything else needs a Bearer token. Method-level auth via `@EnableMethodSecurity`.
 - API responses use `vn.nguongocso.common.ApiResult` and paged lists use `vn.nguongocso.common.PageResponse`.
 - Frontend uses path alias `@` → `src` (vite + tsconfig). API base is `VITE_API_BASE_URL=http://localhost:8080/api/v1` in `frontend/.env`.
-- No CI, pre-commit hooks, formatter, or checkstyle config exists — follow the style of adjacent files. Commit messages are `feat:`/`fix:` prefixed, Vietnamese descriptions.
+- No CI, pre-commit hooks, formatter, or checkstyle config exists — follow the style of adjacent files. Commit messages are `feat:`/`fix:` prefixed, **always written in English**.
 - **Commit/push policy:** only commit/push edited source code files and valid config files (e.g. `backend/.env`). NEVER commit `AGENTS.md`, bug-report documents (`docs/*`), or other peripheral files unless the user explicitly asks — the user shares those files with team members themselves.
