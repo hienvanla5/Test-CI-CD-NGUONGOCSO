@@ -134,7 +134,11 @@ export function CreateOrganizationForm() {
                 <InputWithIcon
                   id="organizationCode"
                   icon={Building2}
-                  {...register('organizationCode')}
+                  {...register('organizationCode', {
+                    onChange: (e) => {
+                      e.target.value = e.target.value.replace(/\s+/g, '').toUpperCase();
+                    },
+                  })}
                   placeholder="VD: TC01"
                 />
                 {errors.organizationCode && (

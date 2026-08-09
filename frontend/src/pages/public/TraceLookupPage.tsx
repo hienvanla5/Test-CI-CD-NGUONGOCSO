@@ -21,6 +21,7 @@ import {
   List,
   LoaderCircle,
   MapPin,
+  MessageSquareWarning,
 } from 'lucide-react';
 
 import { Logo } from '@/components/common/Logo';
@@ -334,11 +335,27 @@ export default function TraceLookupPage() {
         />
 
         {/* Gửi phản ánh */}
-        {data.productionLotId && (
+        {data.productionLotId ? (
           <ProductFeedbackForm
             productionLotId={data.productionLotId}
             productName={data.productName}
           />
+        ) : (
+          <section className="rounded-xl border border-amber-200 bg-amber-50/60 p-5 shadow-sm">
+            <div className="flex gap-3">
+              <MessageSquareWarning className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+
+              <div>
+                <h2 className="font-semibold text-gray-900">
+                  Gửi phản ánh sản phẩm
+                </h2>
+
+                <p className="mt-1 text-sm leading-5 text-gray-600">
+                  Chức năng gửi phản ánh không khả dụng cho sản phẩm này.
+                </p>
+              </div>
+            </div>
+          </section>
         )}
 
         {/* Bản đồ và danh sách sự kiện */}
