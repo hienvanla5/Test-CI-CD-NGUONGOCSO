@@ -469,16 +469,6 @@ const AppRoutes = () => (
         }
       />
 
-      {/* ===== Permission Config (NCL-09-CN-008) ===== */}
-      <Route
-        path="permissions/config"
-        element={
-          <RoleRoute allowedRoles={ROLE_ACCESS.rolePermissionConfig}>
-            <RolePermissionConfigPage />
-          </RoleRoute>
-        }
-      />
-
       {/* ===== Procurement (NCL-05-CN-004) ===== */}
       <Route
         path="procurement-event"
