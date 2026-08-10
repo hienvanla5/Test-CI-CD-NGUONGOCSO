@@ -74,47 +74,46 @@ jobs:
 
   # ---------- JOB 3: Deploy via SCP (tùy chọn) ----------
   deploy-via-scp:
-    name: Deploy to Server
-    runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend]
-    if: github.ref == 'refs/heads/main'
-    # Bỏ comment nếu đã có server và secrets
+  name: Deploy to Server
+  runs-on: ubuntu-latest
+  needs: [build-backend, build-frontend]
+  if: github.ref == 'refs/heads/main'
 
-    steps:
-      - name: Download backend artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-jar
-          path: ./backend-artifact
+  steps:
+    - name: Download backend artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: backend-jar
+        path: ./backend-artifact
 
-      - name: Download frontend artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build
-          path: ./frontend-artifact
+    - name: Download frontend artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: ./frontend-artifact
 
-      - name: Install SSH key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
 
-      - name: Deploy Backend
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-              "mkdir -p /home/${{ secrets.SERVER_USER }}/app"
-          scp -o StrictHostKeyChecking=no \
-              ./backend-artifact/*.jar \
-              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SERVER_USER }}/app/backend.jar
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-              "sudo systemctl restart backend-service"
+    - name: Deploy Backend
+      run: |
+        SSH_CMD="ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}"
+        SCP_CMD="scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key"
+        
+        $SSH_CMD "mkdir -p /home/${{ secrets.SERVER_USER }}/app"
+        $SCP_CMD ./backend-artifact/*.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SERVER_USER }}/app/backend.jar
+        $SSH_CMD "sudo systemctl restart backend-service"
 
-      - name: Deploy Frontend
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-              "sudo rm -rf /var/www/html/*"
-          scp -r -o StrictHostKeyChecking=no \
-              ./frontend-artifact/* \
-              ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/html/
+    - name: Deploy Frontend
+      run: |
+        SSH_CMD="ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}"
+        SCP_CMD="scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key"
+        
+        $SSH_CMD "sudo rm -rf /var/www/html/*"
+        $SCP_CMD -r ./frontend-artifact/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/html/
 
   # ---------- JOB 4: Docker Build & Push (tùy chọn) ----------
   docker-build-push:
