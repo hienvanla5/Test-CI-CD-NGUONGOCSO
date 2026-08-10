@@ -10,8 +10,8 @@ on:
       - main
 
 env:
-  BACKEND_DIR: ./backend   # Sửa nếu backend ở thư mục khác (hoặc "." nếu ở root)
-  FRONTEND_DIR: ./frontend # Sửa nếu frontend ở thư mục khác
+  BACKEND_DIR: ./backend
+  FRONTEND_DIR: ./frontend
 
 jobs:
   # ---------- JOB 1: Build Backend ----------
@@ -26,7 +26,7 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'          # ✅ đã sửa từ 17 lên 21
+          java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
 
@@ -53,7 +53,7 @@ jobs:
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '20'          # ✅ đã sửa từ 18 lên 20
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
 
@@ -72,48 +72,48 @@ jobs:
           path: ${{ env.FRONTEND_DIR }}/dist/   # hoặc build/ tùy cấu hình
           retention-days: 7
 
-  # ---------- JOB 3: Deploy via SCP (tùy chọn) ----------
+  # ---------- JOB 3: Deploy via SCP (chạy khi push lên main) ----------
   deploy-via-scp:
-  name: Deploy to Server
-  runs-on: ubuntu-latest
-  needs: [build-backend, build-frontend]
-  if: github.ref == 'refs/heads/main'
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
+    if: github.ref == 'refs/heads/main'
 
-  steps:
-    - name: Download backend artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: backend-jar
-        path: ./backend-artifact
+    steps:
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: ./backend-artifact
 
-    - name: Download frontend artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: frontend-build
-        path: ./frontend-artifact
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend-artifact
 
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-        chmod 600 ~/.ssh/deploy_key
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
 
-    - name: Deploy Backend
-      run: |
-        SSH_CMD="ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}"
-        SCP_CMD="scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key"
-        
-        $SSH_CMD "mkdir -p /home/${{ secrets.SERVER_USER }}/app"
-        $SCP_CMD ./backend-artifact/*.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SERVER_USER }}/app/backend.jar
-        $SSH_CMD "sudo systemctl restart backend-service"
+      - name: Deploy Backend
+        run: |
+          SSH_CMD="ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}"
+          SCP_CMD="scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key"
+          
+          $SSH_CMD "mkdir -p /home/${{ secrets.SERVER_USER }}/app"
+          $SCP_CMD ./backend-artifact/*.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SERVER_USER }}/app/backend.jar
+          $SSH_CMD "sudo systemctl restart backend-service"
 
-    - name: Deploy Frontend
-      run: |
-        SSH_CMD="ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}"
-        SCP_CMD="scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key"
-        
-        $SSH_CMD "sudo rm -rf /var/www/html/*"
-        $SCP_CMD -r ./frontend-artifact/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/html/
+      - name: Deploy Frontend
+        run: |
+          SSH_CMD="ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}"
+          SCP_CMD="scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key"
+          
+          $SSH_CMD "sudo rm -rf /var/www/html/*"
+          $SCP_CMD -r ./frontend-artifact/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/html/
 
   # ---------- JOB 4: Docker Build & Push (tùy chọn) ----------
   docker-build-push:
@@ -121,6 +121,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend]
     if: github.ref == 'refs/heads/main'
+    # Nếu chưa dùng Docker, bạn có thể comment hoặc xoá job này
 
     steps:
       - name: Checkout code
