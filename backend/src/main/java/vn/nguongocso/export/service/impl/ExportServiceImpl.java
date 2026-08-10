@@ -17,6 +17,7 @@ import vn.nguongocso.event.enums.ChainEventType;
 import vn.nguongocso.event.repository.ChainEventRepository;
 import vn.nguongocso.exception.BusinessException;
 import vn.nguongocso.export.dto.request.ExportOpenDataRequest;
+import vn.nguongocso.export.dto.response.Qtn11ErrorDetailDto;
 import vn.nguongocso.export.schema.OpenDataSchema;
 import vn.nguongocso.export.service.ExportService;
 import vn.nguongocso.farm.entity.ProductionLot;
@@ -75,25 +76,46 @@ public class ExportServiceImpl implements ExportService {
         List<UUID> shipmentIds = shipments.stream().map(Shipment::getId).collect(Collectors.toList());
 
         // 3. QTN-11: Validate completeness (all required events + documentation)
-        // 3a. Event completeness check
         Map<UUID, Set<ChainEventType>> eventMap = getEventTypesByShipment(shipmentIds);
-
-        // 3b. Documentation check: at least 1 farm log OR 1 certification per
-        // production lot
         Map<UUID, Boolean> docMap = getDocumentationExistence(shipments);
 
-        List<Shipment> eligibleShipments = shipments.stream()
-                .filter(s -> {
-                    Set<ChainEventType> existingEvents = eventMap.getOrDefault(s.getId(), Collections.emptySet());
-                    boolean hasAllEvents = existingEvents.containsAll(REQUIRED_EVENT_TYPES);
-                    boolean hasDocs = docMap.getOrDefault(s.getId(), false);
-                    return hasAllEvents && hasDocs;
-                })
-                .collect(Collectors.toList());
+        List<Shipment> eligibleShipments = new ArrayList<>();
+        List<Qtn11ErrorDetailDto> qtn11ErrorDetails = new ArrayList<>();
+
+        for (Shipment s : shipments) {
+            Set<ChainEventType> existingEvents = eventMap.getOrDefault(s.getId(), Collections.emptySet());
+            boolean hasAllEvents = existingEvents.containsAll(REQUIRED_EVENT_TYPES);
+            boolean hasDocs = docMap.getOrDefault(s.getId(), false);
+
+            if (hasAllEvents && hasDocs) {
+                eligibleShipments.add(s);
+            } else {
+                List<String> missingEvents = new ArrayList<>();
+                for (ChainEventType type : REQUIRED_EVENT_TYPES) {
+                    if (!existingEvents.contains(type)) {
+                        missingEvents.add(getEventTypeNameInVietnamese(type));
+                    }
+                }
+                List<String> missingDocDetails = new ArrayList<>();
+                if (!hasDocs) {
+                    missingDocDetails.add("Chưa có nhật ký nông hộ hoặc tệp chứng nhận lô hàng đính kèm");
+                }
+
+                qtn11ErrorDetails.add(Qtn11ErrorDetailDto.builder()
+                        .id(s.getId())
+                        .name(s.getName())
+                        .lotCode(s.getProductionLot() != null ? s.getProductionLot().getName() : "Không xác định")
+                        .missingEvents(missingEvents)
+                        .missingDocs(!hasDocs)
+                        .missingDocDetails(missingDocDetails)
+                        .build());
+            }
+        }
 
         if (eligibleShipments.isEmpty()) {
             throw new BusinessException(
-                    "Không có lô hàng nào đáp ứng đủ điều kiện (thiếu sự kiện chuỗi cung ứng hoặc chứng từ).");
+                    "Không có lô hàng nào đáp ứng đủ điều kiện (thiếu sự kiện chuỗi cung ứng hoặc chứng từ).",
+                    qtn11ErrorDetails);
         }
 
         // 4. Build export schema
@@ -355,5 +377,16 @@ public class ExportServiceImpl implements ExportService {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
         return value;
+    }
+
+    private String getEventTypeNameInVietnamese(ChainEventType type) {
+        if (type == null) return "";
+        return switch (type) {
+            case HARVEST -> "Thu hoạch (HARVEST)";
+            case PACKAGING -> "Đóng gói (PACKAGING)";
+            case TRANSPORT -> "Vận chuyển (TRANSPORT)";
+            case PROCUREMENT -> "Thu mua (PROCUREMENT)";
+            default -> type.name();
+        };
     }
 }

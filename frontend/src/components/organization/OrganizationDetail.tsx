@@ -15,7 +15,6 @@ import {
   createOrganizationMember,
 } from "@/api/organizationApi";
 import type { OrganizationDetailResponse } from "@/types/organization";
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import type { AddMemberRequest } from "@/types/organization";
 import {
